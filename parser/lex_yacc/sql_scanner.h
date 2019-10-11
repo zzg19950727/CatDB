@@ -8,7 +8,6 @@
 #undef YY_DECL
 #define YY_DECL CatDB::SqlParser::symbol_type CatDB::SqlScanner::get_next_token()
 #include "sql_parser.hpp"
-#include <stdint.h>
 #include <string>
 
 namespace CatDB {

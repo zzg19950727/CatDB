@@ -436,13 +436,6 @@ projection:
 		stmt->alias_name = $3;
 		$$ = $1;
     }
-  | "*"
-    {
-		//构建column表达式
-		Stmt_s col = ColumnStmt::make_all_column_stmt();
-		check(col);
-		$$ = col;
-    }
   ;
 
 table_factor:
@@ -695,10 +688,6 @@ simple_expr:
   | EXISTS select_with_parens
     {
     	make_unary_stmt($$, $2, ExprStmt::OP_EXISTS);
-    }
-  | NOT EXISTS select_with_parens
-    {
-		make_unary_stmt($$, $3, ExprStmt::OP_NOT_EXISTS);
     }
   ;
 
