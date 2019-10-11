@@ -4,15 +4,21 @@
 
 namespace CatDB {
 	namespace Parser {
+		DECLARE(Stmt);
+
 		class Stmt
 		{
 		public:
 			enum StmtType {
 				Expr = 0,
 				Select,
+				Limit,
 				Update,
 				Insert,
-				Delete
+				Delete,
+				ColumnDefine,
+				CreateTable,
+				DropTable
 			};
 			Stmt();
 			virtual ~Stmt();

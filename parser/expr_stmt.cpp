@@ -1,152 +1,200 @@
-#ifndef EXPR_STMT_H
-#define EXPR_STMT_H
-#include "stmt.h"
-#include "type.h"
+#include "expr_stmt.h"
+using namespace::CatDB::Parser;
 
-namespace CatDB {
-	namespace Common {
-		DECLARE(Object);
-	}
-	namespace Parser {
-		using Common::Object_s;
-		DECLARE(Stmt);
-		DECLARE(ExprStmt);
-		//表达式语句
-		class ExprStmt : public Stmt
-		{
-		public:
-			enum ExprType {
-				Const = 0,
-				Column,
-				Table,
-				Aggregate,
-				Query,
-				Unary,
-				Binary,
-				Ternary
-			};
-			enum OperationType {
-				OP_INVALID = 0,
-				OP_ADD,
-				OP_SUB,
-				OP_MUL,
-				OP_DIV,
-				OP_EQUAL,
-				OP_GREATER,
-				OP_LESS,
-				OP_BETWEEN,
-				OP_IS,
-				OP_IS_NOT,
-				OP_IN,
-				OP_NOT_IN,
-				OP_EXISTS,
-				OP_NOT_EXISTS,
-				OP_AND,
-				OP_OR,
-				OP_NOT
-			};
-			ExprStmt();
-			~ExprStmt();
-			StmtType stmt_type()const;
-			virtual ExprType expr_stmt_type()const = 0;
-		};
-		//单个常量表达式
-		class ConstStmt : public ExprStmt
-		{
-		public:
-			ConstStmt();
-			~ConstStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			Object_s value;
-		};
-		//单列表达式
-		class ColumnStmt : public ExprStmt
-		{
-		public:
-			ColumnStmt();
-			~ColumnStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			String table;	//所属表
-			String column;	//列名
-		};
-		//一张表的描述语句
-		class TableStmt : public ExprStmt
-		{
-		public:
-			TableStmt();
-			~TableStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			String table_name;			//真实表
-			String alias_table_name;	//表的别名
-		};
-		//子查询语句
-		class QueryStmt : public ExprStmt
-		{
-		public:
-			QueryStmt();
-			~QueryStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			Stmt_s query_stmt;
-		};
-		//聚合函数语句
-		class AggrStmt : public ExprStmt
-		{
-		public:
-			enum AggrType {
-				SUM = 0,
-				AVG,
-				COUNT,
-				MIN,
-				MAX
-			};
-			AggrStmt();
-			~AggrStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			ExprStmt_s aggr_expr;	//聚合函数内的表达式
-			AggrType aggr_func;		//聚合函数类型
-		};
-		//一元表达式语句
-		class UnaryExprStmt :public ExprStmt
-		{
-		public:
-			UnaryExprStmt();
-			~UnaryExprStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			ExprStmt_s expr_stmt;
-			OperationType op_type;
-		};
-		//二元表达式语句
-		class BinaryExprStmt :public ExprStmt
-		{
-		public:
-			BinaryExprStmt();
-			~BinaryExprStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			ExprStmt_s first_expr_stmt;
-			ExprStmt_s second_expr_stmt;
-			OperationType op_type;
-		};
-		//三元表达式语句
-		class TernaryExprStmt :public ExprStmt
-		{
-		public:
-			TernaryExprStmt();
-			~TernaryExprStmt();
-			ExprType expr_stmt_type()const;
-		public:
-			ExprStmt_s first_expr_stmt;
-			ExprStmt_s second_expr_stmt;
-			ExprStmt_s third_expr_stmt;
-			OperationType op_type;
-		};
-	}
+ExprStmt::ExprStmt()
+{
 }
 
-#endif	//EXPR_STMT_H
+ExprStmt::~ExprStmt()
+{
+}
+
+Stmt::StmtType ExprStmt::stmt_type() const
+{
+	return Stmt::Expr;
+}
+
+ConstStmt::ConstStmt()
+{
+}
+
+ConstStmt::~ConstStmt()
+{
+}
+
+ExprStmt::ExprType ConstStmt::expr_stmt_type() const
+{
+	return ExprStmt::Const;
+}
+
+Stmt_s ConstStmt::make_const_stmt(const Object_s& value)
+{
+	ConstStmt* stmt = new ConstStmt();
+	stmt->value = value;
+	return Stmt_s(stmt);
+}
+
+ColumnStmt::ColumnStmt()
+{
+}
+
+ColumnStmt::~ColumnStmt()
+{
+}
+
+ExprStmt::ExprType ColumnStmt::expr_stmt_type() const
+{
+	return ExprStmt::Column;
+}
+
+Stmt_s ColumnStmt::make_column_stmt(const String & table, const String & column)
+{
+	ColumnStmt* stmt = new ColumnStmt;
+	stmt->table = table;
+	stmt->column = column;
+	return Stmt_s(stmt);
+}
+
+Stmt_s CatDB::Parser::ColumnStmt::make_all_column_stmt()
+{
+	ColumnStmt* stmt = new ColumnStmt;
+	stmt->table = "*";
+	stmt->column = "*";
+	return Stmt_s(stmt);
+}
+
+TableStmt::TableStmt()
+{
+}
+
+TableStmt::~TableStmt()
+{
+}
+
+ExprStmt::ExprType TableStmt::expr_stmt_type() const
+{
+	return ExprStmt::Table;
+}
+
+Stmt_s TableStmt::make_table_stmt(const String & database, const String & table_name)
+{
+	TableStmt* stmt = new TableStmt;
+	stmt->database = database;
+	stmt->table_name = table_name;
+	return Stmt_s(stmt);
+}
+
+Stmt_s CatDB::Parser::TableStmt::make_table_stmt(const String & table_name)
+{
+	TableStmt* stmt = new TableStmt;
+	stmt->table_name = table_name;
+	return Stmt_s(stmt);
+}
+
+QueryStmt::QueryStmt()
+{
+}
+
+QueryStmt::~QueryStmt()
+{
+}
+
+ExprStmt::ExprType QueryStmt::expr_stmt_type() const
+{
+	return ExprStmt::Query;
+}
+
+Stmt_s QueryStmt::make_query_stmt()
+{
+	return Stmt_s(new QueryStmt());
+}
+
+ListStmt::ListStmt()
+{
+}
+
+ListStmt::~ListStmt()
+{
+}
+
+ExprStmt::ExprType ListStmt::expr_stmt_type() const
+{
+	return ExprStmt::List;
+}
+
+Stmt_s ListStmt::make_list_stmt()
+{
+	return Stmt_s(new ListStmt());
+}
+
+AggrStmt::AggrStmt()
+{
+}
+
+AggrStmt::~AggrStmt()
+{
+}
+
+ExprStmt::ExprType AggrStmt::expr_stmt_type() const
+{
+	return ExprStmt::Aggregate;
+}
+
+Stmt_s AggrStmt::make_aggr_stmt()
+{
+	return Stmt_s(new AggrStmt());
+}
+
+UnaryExprStmt::UnaryExprStmt()
+{
+}
+
+UnaryExprStmt::~UnaryExprStmt()
+{
+}
+
+ExprStmt::ExprType UnaryExprStmt::expr_stmt_type() const
+{
+	return ExprStmt::Unary;
+}
+
+Stmt_s UnaryExprStmt::make_unary_stmt()
+{
+	return Stmt_s(new UnaryExprStmt());
+}
+
+BinaryExprStmt::BinaryExprStmt()
+{
+}
+
+BinaryExprStmt::~BinaryExprStmt()
+{
+}
+
+ExprStmt::ExprType BinaryExprStmt::expr_stmt_type() const
+{
+	return ExprStmt::Binary;
+}
+
+Stmt_s BinaryExprStmt::make_binary_stmt()
+{
+	return Stmt_s(new BinaryExprStmt());
+}
+
+TernaryExprStmt::TernaryExprStmt()
+{
+}
+
+TernaryExprStmt::~TernaryExprStmt()
+{
+}
+
+ExprStmt::ExprType TernaryExprStmt::expr_stmt_type() const
+{
+	return ExprStmt::Ternary;
+}
+
+Stmt_s TernaryExprStmt::make_ternary_stmt()
+{
+	return Stmt_s(new TernaryExprStmt());
+}

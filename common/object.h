@@ -153,6 +153,7 @@ namespace CatDB {
 			DateTime(double value);
 			DateTime(const RawData& data);
 			static Object_s make_object(double value);
+			static Object_s make_object(const String& str);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
 			bool bool_value() override;
@@ -175,7 +176,9 @@ namespace CatDB {
 		public:
 			Varchar(const Buffer_s& buf);
 			Varchar(const RawData& data);
+			Varchar(const String& str);
 			static Object_s make_object(const Buffer_s& buf);
+			static Object_s make_object(const String& buf);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
 			bool bool_value() override;

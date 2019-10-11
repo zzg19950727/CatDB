@@ -369,12 +369,40 @@ void set_test()
 	std::cout << "affect " << n << " rows" << std::endl;
 }
 
+#include "sql_driver.h"
+#include <fstream>
+using namespace CatDB;
+void parser_test()
+{
+	std::ofstream log;
+	log.open("log.txt", std::fstream::out);
+	String query = R"(create table t1 (c1 number, c2 varchar, c3 datetime);)";
+	SqlDriver parser;
+	parser.set_yacc_debug(true);
+	parser.set_yacc_debug_ostream(log);
+	int ret = parser.parse_sql(query);
+	if (ret)
+	{
+		std::cout << "parse error!" << std::endl;
+		if (parser.is_sys_error())
+			std::cout << parser.sys_error() << std::endl;
+		if (parser.is_syntax_error())
+			std::cout << parser.syntax_error() << std::endl;
+	}
+	else
+	{
+		std::cout << "parse finished" << std::endl;
+	}
+	log.close();
+}
+
 int main()
 {
 	//object_test();
 	//page_test();
 	//table_space_test();
-	hash_join_test();
+	//hash_join_test();
 	//set_test();
+	parser_test();
 	return 0;
 }
