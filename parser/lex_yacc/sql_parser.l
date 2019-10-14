@@ -1,4 +1,4 @@
-﻿%option c++
+%option c++
 %option noyywrap debug
 %option yyclass="SqlScanner"
 %option prefix="CatDB_"

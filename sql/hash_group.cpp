@@ -108,7 +108,7 @@ u32 CatDB::Sql::HashGroup::reopen(const Row_s & row)
 u32 CatDB::Sql::HashGroup::get_next_row(Row_s & row)
 {
 	if (cur_bucket_idx >= hash_table.bucket_count()){
-		//Èç¹ûÃ»ÓĞ×Ó½ÚµãÃ»ÓĞÈÎºÎÊäÈë£¬ÔòÊä³ö¶ÔÓ¦¾ÛºÏº¯Êı½á¹ûÒ»´Î
+		//å¦‚æœæ²¡æœ‰å­èŠ‚ç‚¹æ²¡æœ‰ä»»ä½•è¾“å…¥ï¼Œåˆ™è¾“å‡ºå¯¹åº”èšåˆå‡½æ•°ç»“æœä¸€æ¬¡
 		if (hash_table.empty() && !out_when_empty_input){
 			//make row
 			Row_s tmp_null;
@@ -131,7 +131,7 @@ u32 CatDB::Sql::HashGroup::get_next_row(Row_s & row)
 	AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_func_expr.get());
 	agg_func->reset();
 	for (; cur_bucket_pos < bucket.size(); ++cur_bucket_pos){
-		//ÊÇ·ñÊÇÍ¬Ò»group
+		//æ˜¯å¦æ˜¯åŒä¸€group
 		if (this->euqal(cur_group_row, bucket[cur_bucket_pos])){
 			agg_func->add_row(bucket[cur_bucket_pos]);
 		}else{

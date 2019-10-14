@@ -30,7 +30,7 @@ namespace CatDB {
 			Expression_s get_join_condition()const;
 			u32 set_build_table_id(u32 table_id);
 			u32 get_table_id()const;
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -44,7 +44,7 @@ namespace CatDB {
 
 		private:
 			Common::HashTable hash_table;
-			//join condition°üº¬equal condition,equal conditionÓÃÓÚhash join
+			//join conditionåŒ…å«equal condition,equal conditionç”¨äºhash join
 			Expression_s equal_condition;
 			Expression_s join_condition;
 			u32 build_table_id;

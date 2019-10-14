@@ -11,7 +11,7 @@ namespace CatDB {
 		DECLARE(IoService);
 		DECLARE(TableSpace);
 		using Common::Row_s;
-		/*¼òµ¥´æ´¢ÒıÇæ*/
+		/*ç®€å•å­˜å‚¨å¼•æ“*/
 		class TableSpace
 		{
 		private:
@@ -19,7 +19,7 @@ namespace CatDB {
 		public:
 			~TableSpace();
 			static TableSpace_s make_table_space(const String& table_id);
-			//¶ÔÍâ»ñÈ¡¼ÇÂ¼½Ó¿Ú
+			//å¯¹å¤–è·å–è®°å½•æ¥å£
 			u32 open();
 			u32 get_next_row(Row_s& row);
 			u32 reset();
@@ -39,7 +39,7 @@ namespace CatDB {
 			u32 create_page(u32 page_offset, Page_s& page);
 			u32 get_last_page(Page_s& page);
 		private:
-			//±£Ö¤pageÓĞĞòÎö¹¹
+			//ä¿è¯pageæœ‰åºææ„
 			List<Page_s> pages_copy;
 			HashMap<u32, Page_s>  pages;
 			String table_id;

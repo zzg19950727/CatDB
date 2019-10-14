@@ -11,7 +11,7 @@
 		do{\
 			CatDB::Common::log_set_level(log_level, module);\
 			if(CatDB::Common::log_set_info(__FILE__, __LINE__, __FUNCTION__))\
-				CatDB::Common::log_print(fmt, __VA_ARGS__);\
+				CatDB::Common::log_print(fmt, ##__VA_ARGS__);\
 		} while (0);
 
 namespace CatDB {

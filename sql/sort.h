@@ -22,7 +22,7 @@ namespace CatDB {
 				bool asc = true);
 			u32 add_sort_columns(const Expression_s& expr);
 			void set_asc(bool asc);
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -36,7 +36,7 @@ namespace CatDB {
 			u32 sort_rows();
 			Vector<Row_s> rows;
 			Vector<Expression_s> sort_cols;
-			//µ±Ç°¶ÁÈ¡×´Ì¬
+			//å½“å‰è¯»å–çŠ¶æ€
 			u32 pos;
 			bool asc;
 		};
@@ -53,7 +53,7 @@ namespace CatDB {
 				bool asc = true);
 			u32 add_sort_columns(const Expression_s& expr);
 			void set_asc(bool asc);
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -67,10 +67,10 @@ namespace CatDB {
 			u32 sort_rows();
 			Vector<Row_s> rows;
 			Vector<Expression_s> sort_cols;
-			//µ±Ç°¶ÁÈ¡×´Ì¬
+			//å½“å‰è¯»å–çŠ¶æ€
 			u32 pos;
 			u32 topn;
-			//ÊÇ·ñÒªÇóÊÇÉıĞò
+			//æ˜¯å¦è¦æ±‚æ˜¯å‡åº
 			bool asc;
 		};
 	}

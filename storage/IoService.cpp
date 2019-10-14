@@ -54,8 +54,8 @@ u32 IoService::read_page(Page_s & page)
 	u32 offset = page->page_offset();
 	u32 size = page->page_size();
 	const Buffer_s& buffer = page->page_buffer();
-	//Èç¹ûÔÚÎÄ¼şÒÑ¾­¶ÁÈ¡µ½½áÎ²Ê±£¬fstreamµÄ¶ÔÏó»á½«ÄÚ²¿µÄeof stateÖÃÎ»£¬
-	//ÕâÊ±Ê¹ÓÃseekg£¨£©º¯Êı²»ÄÜ½«¸Ã×´Ì¬È¥³ı£¬ĞèÒªÊ¹ÓÃclear£¨£©
+	//å¦‚æœåœ¨æ–‡ä»¶å·²ç»è¯»å–åˆ°ç»“å°¾æ—¶ï¼Œfstreamçš„å¯¹è±¡ä¼šå°†å†…éƒ¨çš„eof stateç½®ä½ï¼Œ
+	//è¿™æ—¶ä½¿ç”¨seekgï¼ˆï¼‰å‡½æ•°ä¸èƒ½å°†è¯¥çŠ¶æ€å»é™¤ï¼Œéœ€è¦ä½¿ç”¨clearï¼ˆï¼‰
 	
 	if (fseek(file_handle, offset, SEEK_SET) != 0){
 		Log(LOG_ERR, "IoService", "set offset error when read page!");

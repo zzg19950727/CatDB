@@ -29,7 +29,7 @@ namespace CatDB {
 				const Filter_s& filter);
 			u32 set_agg_expr(const Expression_s& expr);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();

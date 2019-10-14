@@ -15,13 +15,13 @@ namespace CatDB {
 		DECLARE(Buffer);
 		DECLARE(Object);
 		DECLARE(RawData);
-		//¶ÔÏóĞòÁĞ»¯ºóµÄ½á¹¹
+		//å¯¹è±¡åºåˆ—åŒ–åçš„ç»“æ„
 		class RawData
 		{
 		public:
-			u32 type;		//Êı¾İÀàĞÍ
-			u32 length;		//Êı¾İ³¤¶È
-			u8	data[1];		//ÕæÊµÊı¾İ
+			u32 type;		//æ•°æ®ç±»å‹
+			u32 length;		//æ•°æ®é•¿åº¦
+			u8	data[1];		//çœŸå®æ•°æ®
 			u32 size()const;
 			static RawData* make_row_data(void* ptr);
 		};
@@ -44,8 +44,8 @@ namespace CatDB {
 			virtual u32 hash();
 			virtual String to_string()const;
 
-			//ÒªÇóÊµÏÖµÄÀàĞÍÖ§³ÖÒ»ÏÂËùÓĞÔËËã
-			//²»Ö§³ÖµÄÀàĞÍ·µ»Ø¶ÔÓ¦µÄ´íÎó¶ÔÏó
+			//è¦æ±‚å®ç°çš„ç±»å‹æ”¯æŒä¸€ä¸‹æ‰€æœ‰è¿ç®—
+			//ä¸æ”¯æŒçš„ç±»å‹è¿”å›å¯¹åº”çš„é”™è¯¯å¯¹è±¡
 			virtual Object_s operator+(const Object_s& other);
 			virtual Object_s operator-(const Object_s& other);
 			virtual Object_s operator*(const Object_s& other);
@@ -58,14 +58,14 @@ namespace CatDB {
 			virtual Object_s is_not(const Object_s& other);
 			virtual Object_s in(const Object_s& other);
 			virtual Object_s not_in(const Object_s& other);
-			virtual Object_s and (const Object_s& other);
-			virtual Object_s or (const Object_s& other);
+			virtual Object_s op_and (const Object_s& other);
+			virtual Object_s op_or (const Object_s& other);
 			virtual Object_s exists();
 			virtual Object_s not_exists();
-			virtual Object_s not();
-			//×ÔÔö
+			virtual Object_s op_not();
+			//è‡ªå¢
 			virtual void increase();
-			//×ÔÉíÀÛ¼Ó
+			//è‡ªèº«ç´¯åŠ 
 			virtual void accumulate(const Object_s& other);
 
 		protected:
@@ -89,9 +89,9 @@ namespace CatDB {
 			u32 get_error_code(u32& code);
 			String to_string()const override;
 
-			Object_s and (const Object_s& other) override;
-			Object_s or (const Object_s& other) override;
-			Object_s not();
+			Object_s op_and (const Object_s& other) override;
+			Object_s op_or (const Object_s& other) override;
+			Object_s op_not();
 
 		private:
 			u32 err_code;

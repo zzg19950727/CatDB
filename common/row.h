@@ -44,7 +44,7 @@ namespace CatDB {
 			~Row();
 			static Row_s make_row(const RowDesc &row_desc);
 			static Row_s join_row(const Row_s& left_row, const Row_s& right_row);
-			//…ÓøΩ±¥
+			//Ê∑±Êã∑Ë¥ù
 			void assign(const Row &other);
 			void set_row_id(u32 row_id);
 			u32 get_row_id()const;

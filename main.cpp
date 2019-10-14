@@ -128,7 +128,7 @@ void page_test()
 	std::cout << "page test passed" << std::endl;
 }
 
-void table_space_test()
+void table_space_test(const String& table_name)
 {
 	u32 ret;
 
@@ -141,7 +141,7 @@ void table_space_test()
 	col_desc.set_tid_cid(1, 2);
 	desc.set_column_desc(2, col_desc);
 
-	TableSpace_s table = TableSpace::make_table_space("test2");
+	TableSpace_s table = TableSpace::make_table_space(table_name);
 	table->open();
 	for (int i = 0; i < 1000; ++i)
 	{
@@ -400,7 +400,8 @@ int main()
 {
 	//object_test();
 	//page_test();
-	//table_space_test();
+	//table_space_test("test1");
+	//table_space_test("test2");
 	//hash_join_test();
 	//set_test();
 	parser_test();

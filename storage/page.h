@@ -1,8 +1,8 @@
 #ifndef PAGE_H
 #define PAGE_H
 #include "type.h"
-//PAGE_SIZE¸úrow_idµÄ½á¹¹Éè¼ÆÏà¹Ø£¬¸Ä´óºó×¢ÒâÊÇ·ñÏòÇ°¼æÈİrow_id
-//Ïê¼ûrow_idÉè¼Æ
+//PAGE_SIZEè·Ÿrow_idçš„ç»“æ„è®¾è®¡ç›¸å…³ï¼Œæ”¹å¤§åæ³¨æ„æ˜¯å¦å‘å‰å…¼å®¹row_id
+//è¯¦è§row_idè®¾è®¡
 #define PAGE_SIZE 16384
 
 namespace CatDB {
@@ -16,30 +16,30 @@ namespace CatDB {
 		using Common::Buffer_s;
 		using Common::Row_s;
 
-		//pageµÄÎÄ¼şĞÅÏ¢
+		//pageçš„æ–‡ä»¶ä¿¡æ¯
 		struct FileHeader
 		{
-			u32 page_checksum;	//Ğ£ÑéºÍ
-			u32 table_id;		//ËùÊô±í¿Õ¼ä
-			u32 page_offset;	//±í¿Õ¼äÄÚµÄÆ«ÒÆ
-			u32 page_pre;		//ÉÏÒ»Ò³
-			u32 page_next;		//ÏÂÒ»Ò³
+			u32 page_checksum;	//æ ¡éªŒå’Œ
+			u32 table_id;		//æ‰€å±è¡¨ç©ºé—´
+			u32 page_offset;	//è¡¨ç©ºé—´å†…çš„åç§»
+			u32 page_pre;		//ä¸Šä¸€é¡µ
+			u32 page_next;		//ä¸‹ä¸€é¡µ
 		};
-		/* row_idµÄ¶¨Òå£ºÇ°22Î»Îªµ±Ç°Ò³Æ«ÒÆµÄĞéÄâµØÖ·£¬
-		 * Ò³Êµ¼ÊÆ«ÒÆµÈÓÚĞéÄâµØÖ·×óÒÆ14Î»
-		 * ºó10Î»ÎªÒ³ÄÚrow_id´Ó0x0 ~ 0x3ff
-		 * ÓÉÓÚpage_offsetÊÇµØÖ·µÄËùÒÔrow_idÕûÌåÊÇµİÔöÇÒÎ¨Ò»µÄ£¬
-		 * Í¬Ê±¿ÉÒÔ¸ù¾İrow_idÖ±½Ó¶¨Î»µ½pageµÄÎ»ÖÃ*/
+		/* row_idçš„å®šä¹‰ï¼šå‰22ä½ä¸ºå½“å‰é¡µåç§»çš„è™šæ‹Ÿåœ°å€ï¼Œ
+		 * é¡µå®é™…åç§»ç­‰äºè™šæ‹Ÿåœ°å€å·¦ç§»14ä½
+		 * å10ä½ä¸ºé¡µå†…row_idä»0x0 ~ 0x3ff
+		 * ç”±äºpage_offsetæ˜¯åœ°å€çš„æ‰€ä»¥row_idæ•´ä½“æ˜¯é€’å¢ä¸”å”¯ä¸€çš„ï¼Œ
+		 * åŒæ—¶å¯ä»¥æ ¹æ®row_idç›´æ¥å®šä½åˆ°pageçš„ä½ç½®*/
 		u32 get_page_offset_from_row_id(u32 row_id);
 		u32 get_beg_row_id_from_page_offset(u32 page_offset);
 
 		struct PageHeader
 		{
-			u32 beg_row_id;		//´æ·Å¼ÇÂ¼µÄÆğÊ¼ĞĞ
-			u32 end_row_id;		//´æ·Å¼ÇÂ¼µÄ½áÊøĞĞ
-			u32 row_count;		//´æ·ÅµÄĞĞÊı
-			u32 free_offset;	//¿ÕÏĞ¿Õ¼äÆ«ÒÆ
-			u32 free_size;		//¿ÕÏĞ¿Õ¼ä´óĞ¡
+			u32 beg_row_id;		//å­˜æ”¾è®°å½•çš„èµ·å§‹è¡Œ
+			u32 end_row_id;		//å­˜æ”¾è®°å½•çš„ç»“æŸè¡Œ
+			u32 row_count;		//å­˜æ”¾çš„è¡Œæ•°
+			u32 free_offset;	//ç©ºé—²ç©ºé—´åç§»
+			u32 free_size;		//ç©ºé—²ç©ºé—´å¤§å°
 		};
 
 		struct RowInfo
@@ -51,8 +51,8 @@ namespace CatDB {
 		class RawRecord
 		{
 		public:
-			u32 column_count;	//ÁĞÊıÁ¿
-			u32 column_offset[1];	//Ã¿ÁĞÊı¾İËùÔÚµÄÆ«ÒÆ
+			u32 column_count;	//åˆ—æ•°é‡
+			u32 column_offset[1];	//æ¯åˆ—æ•°æ®æ‰€åœ¨çš„åç§»
 			u32 size()const;
 			static RawRecord* make_raw_record(void* ptr);
 		};
@@ -68,7 +68,7 @@ namespace CatDB {
 				u32 page_pre,
 				u32 page_next,
 				u32 beg_row_id);
-			//ÓÃÓÚ¿ìËÙÉ¨ÃèËùÓĞĞĞÊı¾İ
+			//ç”¨äºå¿«é€Ÿæ‰«ææ‰€æœ‰è¡Œæ•°æ®
 			u32 open();
 			u32 get_next_row(Row_s& row);
 			bool have_row()const;
@@ -99,16 +99,16 @@ namespace CatDB {
 			bool row_id_deleted(u32 row_id)const;
 			u32 row_width(const Row_s& row)const;
 
-			Buffer_s		buffer_;		//Êı¾İËùÔÚÄÚ´æ
-			FileHeader* file_header_;	//ÎÄ¼şĞÅÏ¢
-			PageHeader* page_header_;	//Ò³ĞÅÏ¢
-			u8* records_space_;	//¼ÇÂ¼Êı¾İÆğÊ¼µØÖ·
-			u8* free_space_;	//¿ÕÏĞ¿Õ¼äÆğÊ¼µØÖ·
-			RowInfo* row_info_;		//Ã¿Ìõ¼ÇÂ¼µÄĞÅÏ¢
+			Buffer_s		buffer_;		//æ•°æ®æ‰€åœ¨å†…å­˜
+			FileHeader* file_header_;	//æ–‡ä»¶ä¿¡æ¯
+			PageHeader* page_header_;	//é¡µä¿¡æ¯
+			u8* records_space_;	//è®°å½•æ•°æ®èµ·å§‹åœ°å€
+			u8* free_space_;	//ç©ºé—²ç©ºé—´èµ·å§‹åœ°å€
+			RowInfo* row_info_;		//æ¯æ¡è®°å½•çš„ä¿¡æ¯
 
-			//ÓÃÓÚ¿ìËÙÉ¨ÃèËùÓĞĞĞÊı¾İ
+			//ç”¨äºå¿«é€Ÿæ‰«ææ‰€æœ‰è¡Œæ•°æ®
 			u32 row_idx_;
-			//±£Ö¤ÔàÊı¾İĞ´»Ø±í¿Õ¼ä
+			//ä¿è¯è„æ•°æ®å†™å›è¡¨ç©ºé—´
 			IoService_s io_service_;
 			bool is_dirty;
 

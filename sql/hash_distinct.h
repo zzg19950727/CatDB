@@ -22,7 +22,7 @@ namespace CatDB {
 			u32 set_distinct_columns(const Vector<Expression_s>& distinct_cols);
 			static PhyOperator_s make_hash_distinct(PhyOperator_s& child, const Vector<Expression_s>& distinct_cols);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();

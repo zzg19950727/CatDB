@@ -1,4 +1,5 @@
 #include "buffer.h"
+
 using namespace CatDB::Common;
 
 Buffer::Buffer(u32 len, u8 * ptr)

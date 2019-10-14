@@ -10,7 +10,7 @@ namespace CatDB {
 		using Common::Row_s;
 		DECLARE(PhyOperator);
 
-		//ÎïÀíÔËËã·û½Ó¿Ú
+		//ç‰©ç†è¿ç®—ç¬¦æŽ¥å£
 		class PhyOperator
 		{
 		public:
@@ -35,23 +35,23 @@ namespace CatDB {
 			PhyOperator();
 			virtual ~PhyOperator();
 
-			//´ò¿ªÎïÀíÔËËã·û¡£ÉêÇë×ÊÔ´£¬´ò¿ª×ÓÔËËã·ûµÈ¡£
+			//æ‰“å¼€ç‰©ç†è¿ç®—ç¬¦ã€‚ç”³è¯·èµ„æºï¼Œæ‰“å¼€å­è¿ç®—ç¬¦ç­‰ã€‚
 			virtual u32 open() = 0;
-			//¹Ø±ÕÎïÀíÔËËã·û¡£ÊÍ·Å×ÊÔ´£¬¹Ø±Õ×ÓÔËËã·ûµÈ¡£
+			//å…³é—­ç‰©ç†è¿ç®—ç¬¦ã€‚é‡Šæ”¾èµ„æºï¼Œå…³é—­å­è¿ç®—ç¬¦ç­‰ã€‚
 			virtual u32 close() = 0;
-			//ÖØÖÃËã×Ó£¬ÒÔ±ãÖØÐÂ¶ÁÈ¡ÐÐ
+			//é‡ç½®ç®—å­ï¼Œä»¥ä¾¿é‡æ–°è¯»å–è¡Œ
 			virtual u32 reset() = 0;
-			//ÖØÐÂ´ò¿ªËã×Ó£¬°üÀ¨ÇåÀí»º´æ¡¢ÖØÖÃ×´Ì¬¡¢ÖØÖÃ¹ýÂËÆ÷
-			//Îªsubplan filterÉè¼Æ
+			//é‡æ–°æ‰“å¼€ç®—å­ï¼ŒåŒ…æ‹¬æ¸…ç†ç¼“å­˜ã€é‡ç½®çŠ¶æ€ã€é‡ç½®è¿‡æ»¤å™¨
+			//ä¸ºsubplan filterè®¾è®¡
 			virtual u32 reopen(const Row_s& row) = 0;
 			/**
-			* »ñµÃÏÂÒ»ÐÐµÄÒýÓÃ
-			* @note ÔÚÏÂ´Îµ÷ÓÃget_next»òÕßcloseÇ°£¬·µ»ØµÄrowÓÐÐ§
-			* @pre µ÷ÓÃopen()
-			* @return SUCCESS»òITER_END»ò´íÎóÂë
+			* èŽ·å¾—ä¸‹ä¸€è¡Œçš„å¼•ç”¨
+			* @note åœ¨ä¸‹æ¬¡è°ƒç”¨get_nextæˆ–è€…closeå‰ï¼Œè¿”å›žçš„rowæœ‰æ•ˆ
+			* @pre è°ƒç”¨open()
+			* @return SUCCESSæˆ–ITER_ENDæˆ–é”™è¯¯ç 
 			*/
 			virtual u32 get_next_row(Row_s &row) = 0;
-			//»ñÈ¡µ±Ç°Ëã×ÓµÄÀàÐÍ
+			//èŽ·å–å½“å‰ç®—å­çš„ç±»åž‹
 			virtual u32 type() const = 0;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)

@@ -37,19 +37,19 @@ u32 TableSpace::get_next_row(Row_s & row)
 		Log(LOG_ERR, "TableSpace", "can not get page %u, error code:%s", cur_page_offset, err_string(ret));
 		return ret;
 	}
-	//µ±Ç°Ò³É¨ÃèÍê³É
+	//å½“å‰é¡µæ‰«æå®Œæˆ
 	if (!page->have_row()){
 		Page_s last_page;
 		get_last_page(last_page);
-		//×îºóÒ»Ò³
+		//æœ€åŽä¸€é¡µ
 		if (cur_page_offset == last_page->page_offset()){
 			Log(LOG_TRACE, "TableSpace", "read end of table space");
 			return END_OF_TABLE_SPACE;
 		}
 		Log(LOG_TRACE, "TableSpace", "page %u have read end, load next page", cur_page_offset);
-		//¶ÁÈ¡ÏÂÒ»Ò³
+		//è¯»å–ä¸‹ä¸€é¡µ
 		cur_page_offset = page->next_page_offset();
-		//ÏÂÒ»Ò³²»ÔÚÄÚ´æÖÐ
+		//ä¸‹ä¸€é¡µä¸åœ¨å†…å­˜ä¸­
 		ret = get_page_from_offset(cur_page_offset, page);
 		if (ret != SUCCESS){
 			Log(LOG_ERR, "TableSpace", "get page %u failed,%s", cur_page_offset, err_string(ret));
@@ -62,7 +62,7 @@ u32 TableSpace::get_next_row(Row_s & row)
 		}
 	}
 	
-	//TODO filter ·ÅÕâ»¹ÊÇÏÂÑ¹µ½page²ãÃæ£¿
+	//TODO filter æ”¾è¿™è¿˜æ˜¯ä¸‹åŽ‹åˆ°pageå±‚é¢ï¼Ÿ
 	return page->get_next_row(row);
 }
 
@@ -92,10 +92,10 @@ u32 TableSpace::insert_row(const Row_s & row)
 	u32 row_id;
 	Page_s page;
 	get_last_page(page);
-	//µ±Ç°Ò³ÄÜ¹»´æ·ÅÏÂÐÐ
+	//å½“å‰é¡µèƒ½å¤Ÿå­˜æ”¾ä¸‹è¡Œ
 	if (page->have_free_space_insert(row)){
 		return page->insert_row(row_id, row);
-	}else{//´´½¨ÐÂµÄÒ³´æ·Å
+	}else{//åˆ›å»ºæ–°çš„é¡µå­˜æ”¾
 		Log(LOG_TRACE, "TableSpace", "page %u have no free space to insert row", page->page_offset());
 		u32 offset = page->next_page_offset();
 		Page_s page;
@@ -196,27 +196,27 @@ u32 TableSpace::get_last_page(Page_s & page)
 {
 	u32 offset = 0;
 	u32 ret = io->end_offset(offset);
-	//¿Õ±í
+	//ç©ºè¡¨
 	if (ret == EMPTY_TABLE_SPACE){
-		//ÄÚ´æÖÐÒ²Ã»ÓÐÊý¾ÝÒ³
+		//å†…å­˜ä¸­ä¹Ÿæ²¡æœ‰æ•°æ®é¡µ
 		if (pages.empty()){
 			create_page(offset, page);
 			return SUCCESS;
-		}else{//·ñÔòÄÚ´æÖÐ×îºóÒ»Ò³
+		}else{//å¦åˆ™å†…å­˜ä¸­æœ€åŽä¸€é¡µ
 			auto iter = pages.end();
 			--iter;
 			page = iter->second;
 			return SUCCESS;
 		}
 	}else{
-		//»ñÈ¡´ÅÅÌµÄ×îºóÒ»Ò³
+		//èŽ·å–ç£ç›˜çš„æœ€åŽä¸€é¡µ
 		u32 ret = get_page_from_offset(offset, page);
 		if (ret != SUCCESS){
 			return ret;
 		}
 		auto iter = pages.end();
 		--iter;
-		//ÄÚ´æ×îºóÒ»Ò³ÔÚ´ÅÅÌ×îºóÒ»Ò³Ö®ºó
+		//å†…å­˜æœ€åŽä¸€é¡µåœ¨ç£ç›˜æœ€åŽä¸€é¡µä¹‹åŽ
 		if (iter->first > offset)
 			page = iter->second;
 		return SUCCESS;

@@ -18,9 +18,9 @@ namespace CatDB {
 			void clear();
 			bool empty()const;
 			u32 build(const Row_s& row);
-			//hash distinct、hash group使用
+			//hash distinct銆乭ash group浣跨敤
 			u32 probe(const Row_s& row);
-			//hash join使用
+			//hash join浣跨敤
 			u32 probe(const Row_s& row, Queue<Row_s>& out_rows);
 			u32 add_hash_column(const Expression_s& col_expr);
 			void clear_hash_columns();

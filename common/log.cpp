@@ -181,7 +181,7 @@ static int outc(char c)
 	return 0;
 }
 
-static int outs(const char *s)                                 //Êä³ö×Ö·û´®
+static int outs(const char *s)                                 //è¾“å‡ºå­—ç¬¦ä¸²
 {
 	ostream << s;
 	return 0;

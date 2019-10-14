@@ -51,7 +51,7 @@ String CatDB::SqlDriver::syntax_error() const
 
 String CatDB::SqlDriver::error_position()
 {
-	String msg = "<=(½âÎö·¢Éú´íÎó!!) ";
+	String msg = "<=(è§£æžå‘ç”Ÿé”™è¯¯!!) ";
 	auto pos = query_stream.tellg();
 	String sql;
 	std::getline(query_stream, sql);

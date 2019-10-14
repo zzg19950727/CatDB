@@ -129,7 +129,7 @@ const Vector<Row_s>& CatDB::Common::HashTable::bucket(u32 idx)
 {
 	if (idx >= buckets.size()){
 		Log(LOG_ERR, "HashTable", "idx %u bigger than bucket size %u", idx, buckets.size());
-		//TODO ´íÎó´¦Àí£¿
+		//TODO é”™è¯¯å¤„ç†ï¼Ÿ
 	}
 	u32 i = 0;
 	for (auto iter = buckets.cbegin(); iter != buckets.cend(); ++iter, ++i){

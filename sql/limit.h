@@ -16,7 +16,7 @@ namespace CatDB {
 			Limit(PhyOperator_s& child, u32 size, u32 offset);
 		public:
 			static PhyOperator_s make_limit(PhyOperator_s& child, u32 size, u32 offset = 0);
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -26,7 +26,7 @@ namespace CatDB {
 		private:
 			u32 size;
 			u32 offset;
-			//µ±Ç°¶ÁÈ¡×´Ì¬
+			//å½“å‰è¯»å–çŠ¶æ€
 			u32 cur_offset;
 		};
 	}

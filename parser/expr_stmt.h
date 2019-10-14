@@ -10,7 +10,7 @@ namespace CatDB {
 	namespace Parser {
 		using Common::Object_s;
 		DECLARE(Stmt);
-		//±í´ïÊ½Óï¾ä
+		//è¡¨è¾¾å¼è¯­å¥
 		class ExprStmt : public Stmt
 		{
 		public:
@@ -61,9 +61,9 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			virtual ExprType expr_stmt_type()const = 0;
 		public:
-			String alias_name;	//±í´ïÊ½µÄ±ğÃû
+			String alias_name;	//è¡¨è¾¾å¼çš„åˆ«å
 		};
-		//µ¥¸ö³£Á¿±í´ïÊ½
+		//å•ä¸ªå¸¸é‡è¡¨è¾¾å¼
 		class ConstStmt : public ExprStmt
 		{
 		private:
@@ -75,9 +75,9 @@ namespace CatDB {
 		public:
 			Object_s value;
 		};
-		/*µ¥ÁĞ±í´ïÊ½
-		columnÎª*Ê±±íÊ¾±íµÄËùÓĞÁĞ£¬
-		table¡¢columnÍ¬Ê±Îª*Ê±±íÊ¾fromÁĞ±íËùÓĞ±íµÄËùÓĞÁĞ
+		/*å•åˆ—è¡¨è¾¾å¼
+		columnä¸º*æ—¶è¡¨ç¤ºè¡¨çš„æ‰€æœ‰åˆ—ï¼Œ
+		tableã€columnåŒæ—¶ä¸º*æ—¶è¡¨ç¤ºfromåˆ—è¡¨æ‰€æœ‰è¡¨çš„æ‰€æœ‰åˆ—
 		*/
 		class ColumnStmt : public ExprStmt
 		{
@@ -89,10 +89,10 @@ namespace CatDB {
 			static Stmt_s make_column_stmt(const String& table, const String& column);
 			static Stmt_s make_all_column_stmt();
 		public:
-			String table;	//ËùÊô±í
-			String column;	//ÁĞÃû
+			String table;	//æ‰€å±è¡¨
+			String column;	//åˆ—å
 		};
-		//Ò»ÕÅ±íµÄÃèÊöÓï¾ä
+		//ä¸€å¼ è¡¨çš„æè¿°è¯­å¥
 		class TableStmt : public ExprStmt
 		{
 		private:
@@ -104,9 +104,9 @@ namespace CatDB {
 			static Stmt_s make_table_stmt(const String& table_name);
 		public:
 			String database;
-			String table_name;			//ÕæÊµ±í
+			String table_name;			//çœŸå®è¡¨
 		};
-		//×Ó²éÑ¯Óï¾ä
+		//å­æŸ¥è¯¢è¯­å¥
 		class QueryStmt : public ExprStmt
 		{
 		private:
@@ -118,7 +118,7 @@ namespace CatDB {
 		public:
 			Stmt_s query_stmt;
 		};
-		//±í´ïÊ½ÁĞ±í
+		//è¡¨è¾¾å¼åˆ—è¡¨
 		class ListStmt : public ExprStmt
 		{
 		private:
@@ -130,7 +130,7 @@ namespace CatDB {
 		public:
 			Vector<Stmt_s> stmt_list;
 		};
-		//¾ÛºÏº¯ÊıÓï¾ä
+		//èšåˆå‡½æ•°è¯­å¥
 		class AggrStmt : public ExprStmt
 		{
 		private:
@@ -147,11 +147,11 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_aggr_stmt();
 		public:
-			Stmt_s aggr_expr;	//¾ÛºÏº¯ÊıÄÚµÄ±í´ïÊ½
-			AggrType aggr_func;		//¾ÛºÏº¯ÊıÀàĞÍ
+			Stmt_s aggr_expr;	//èšåˆå‡½æ•°å†…çš„è¡¨è¾¾å¼
+			AggrType aggr_func;		//èšåˆå‡½æ•°ç±»å‹
 			bool distinct;
 		};
-		//Ò»Ôª±í´ïÊ½Óï¾ä
+		//ä¸€å…ƒè¡¨è¾¾å¼è¯­å¥
 		class UnaryExprStmt :public ExprStmt
 		{
 		private:
@@ -164,7 +164,7 @@ namespace CatDB {
 			Stmt_s expr_stmt;
 			OperationType op_type;
 		};
-		//¶şÔª±í´ïÊ½Óï¾ä
+		//äºŒå…ƒè¡¨è¾¾å¼è¯­å¥
 		class BinaryExprStmt :public ExprStmt
 		{
 		private:
@@ -178,7 +178,7 @@ namespace CatDB {
 			Stmt_s second_expr_stmt;
 			OperationType op_type;
 		};
-		//ÈıÔª±í´ïÊ½Óï¾ä
+		//ä¸‰å…ƒè¡¨è¾¾å¼è¯­å¥
 		class TernaryExprStmt :public ExprStmt
 		{
 		private:

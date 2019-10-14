@@ -51,7 +51,7 @@
 #define yyerror(fmt, ...) \
 { \
 	char tmp[255]; \
-	sprintf(tmp, fmt, __VA_ARGS__); \
+	sprintf(tmp, fmt, ##__VA_ARGS__); \
 	driver.set_sys_error(tmp); \
 }
  

@@ -178,7 +178,7 @@ namespace CatDB {
 			Expression_s expr;
 			Operation op;
 		};
-		//×¢Òâ£ºÄ¿Ç°»¹Ã»ÓĞÖ§³Ö¾ÛºÏº¯ÊıÄÚº¬distinct£¬¾ÛºÏº¯ÊıÇ¶Ì×
+		//æ³¨æ„ï¼šç›®å‰è¿˜æ²¡æœ‰æ”¯æŒèšåˆå‡½æ•°å†…å«distinctï¼Œèšåˆå‡½æ•°åµŒå¥—
 		class AggregateExpression : public Expression
 		{
 		private:

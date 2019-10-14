@@ -48,7 +48,7 @@ Page::Page(const Buffer_s & buffer, IoService_s& io_service)
 
 Page::~Page()
 {
-	//Ğ´»ØÔàÊı¾İ
+	//å†™å›è„æ•°æ®
 	if (is_dirty){
 		if (!io_service_->is_open()){
 			Log(LOG_ERR, "Page", "IO service not open");
@@ -74,19 +74,19 @@ Page_s Page::make_page(
 	u32 length = PAGE_SIZE;
 	Buffer_s buffer = Buffer::make_buffer(length);
 	Page* page = new Page(buffer, io_service);
-	//³õÊ¼»¯file header
+	//åˆå§‹åŒ–file header
 	page->file_header_->page_checksum = 0;
 	page->file_header_->table_id = table_id;
 	page->file_header_->page_offset = page_offset;
 	page->file_header_->page_pre = page_pre;
 	page->file_header_->page_next = page_next;
-	//³õÊ¼»¯page header
+	//åˆå§‹åŒ–page header
 	page->page_header_->beg_row_id = beg_row_id;
 	page->page_header_->end_row_id = beg_row_id;
 	page->page_header_->row_count = 0;
 	page->page_header_->free_offset = sizeof(FileHeader) + sizeof(PageHeader);
 	page->page_header_->free_size = length - sizeof(FileHeader) - sizeof(PageHeader);
-	//ÖØĞÂ³õÊ¼»¯Ò³ÔªĞÅÏ¢
+	//é‡æ–°åˆå§‹åŒ–é¡µå…ƒä¿¡æ¯
 	page->free_space_ = page->records_space_;
 	page->row_info_ = reinterpret_cast<RowInfo*>(buffer->buf + buffer->length);
 	page->row_idx_ = 0;
@@ -145,7 +145,7 @@ u32 Page::get_free_space()const
 {
 	return page_header_->free_size;
 }
-//·´ĞòÁĞ»¯Ö¸¶¨row_id¼ÇÂ¼
+//ååºåˆ—åŒ–æŒ‡å®šrow_idè®°å½•
 u32 Page::select_row(u32 row_id, Row_s & row)const
 {
 	RowInfo* info = nullptr;
@@ -167,20 +167,20 @@ u32 Page::insert_row(u32& row_id, const Row_s & row)
 	record->column_count = row->get_row_desc().get_column_num();
 	u32 ret = write_row(record, row);
 	if (ret == SUCCESS){
-		//¸üĞÂÒ³Í·ĞÅÏ¢
+		//æ›´æ–°é¡µå¤´ä¿¡æ¯
 		row_id = page_header_->end_row_id;
 		++page_header_->end_row_id;
 		++page_header_->row_count;
 		page_header_->free_offset += row_width(row);
 		page_header_->free_size -= (row_width(row) + sizeof(RowInfo));
 		
-		//¸üĞÂ¼ÇÂ¼ÔªĞÅÏ¢
+		//æ›´æ–°è®°å½•å…ƒä¿¡æ¯
 		--row_info_;
 		row_info_->row_id = row_id;
 		row_info_->offset = free_space_ - records_space_;
-		//¸üĞÂÒ³µÄ¿ÕÏĞ¿Õ¼äĞÅÏ¢
+		//æ›´æ–°é¡µçš„ç©ºé—²ç©ºé—´ä¿¡æ¯
 		free_space_ += row_width(row);
-		//ÉèÖÃÒ³º¬ÓĞÔàÊı¾İ
+		//è®¾ç½®é¡µå«æœ‰è„æ•°æ®
 		is_dirty = true;
 		row->set_row_id(row_id);
 		Log(LOG_TRACE, "Page", "insert row %u into page %u success", row->get_row_id(), file_header_->page_offset);
@@ -197,9 +197,9 @@ u32 Page::update_row(u32 row_id, const Row_s & row)
 		Object_s cell;
 		ret = row->get_cell(i, cell);
 		if (ret == SUCCESS){
-			//ÈôÓĞ±ä³¤Êı¾İĞŞ¸Ä
-			//ĞèÒªÏÈÉ¾³ı¾ÉÊı¾İ£¬ÔÙ²åÈëĞÂÊı¾İ
-			//Ä¿Ç°Ö»Ö§³Ö¶¨³¤Êı¾İµÄÔ­µØ¸üĞÂ
+			//è‹¥æœ‰å˜é•¿æ•°æ®ä¿®æ”¹
+			//éœ€è¦å…ˆåˆ é™¤æ—§æ•°æ®ï¼Œå†æ’å…¥æ–°æ•°æ®
+			//ç›®å‰åªæ”¯æŒå®šé•¿æ•°æ®çš„åŸåœ°æ›´æ–°
 			if (!cell->is_fixed_length()){
 				Log(LOG_INFO, "Page", "found none fixed column when update row %u", row->get_row_id());
 				return ROW_DATA_TOO_LONG;
@@ -214,7 +214,7 @@ u32 Page::update_row(u32 row_id, const Row_s & row)
 		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
 		return ret;
 	}
-	//¶¨Î»Ä¿±ê¼ÇÂ¼
+	//å®šä½ç›®æ ‡è®°å½•
 	RawRecord* record = RawRecord::make_raw_record(records_space_ + info->offset);
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i){
 		Object_s cell;
@@ -230,10 +230,10 @@ u32 Page::update_row(u32 row_id, const Row_s & row)
 			break;
 		}
 	}
-	//³É¹¦¸üĞÂ¼ÇÂ¼
+	//æˆåŠŸæ›´æ–°è®°å½•
 	if (ret == SUCCESS){
 		Log(LOG_TRACE, "Page", "update row %u success", row_id);
-		//ÉèÖÃÒ³º¬ÓĞÔàÊı¾İ
+		//è®¾ç½®é¡µå«æœ‰è„æ•°æ®
 		is_dirty = true;
 	}
 	return ret;
@@ -250,7 +250,7 @@ u32 Page::delete_row(u32 row_id)
 		ret = set_row_id_deleted(info->row_id);
 		if (ret == SUCCESS){
 			Log(LOG_TRACE, "Page", "delete row %u success", row_id);
-			//ÉèÖÃÒ³º¬ÓĞÔàÊı¾İ
+			//è®¾ç½®é¡µå«æœ‰è„æ•°æ®
 			is_dirty = true;
 		}
 		return ret;
@@ -323,24 +323,24 @@ u32 Page::project_all_column(RawRecord* record, Row_s & row)const
 
 u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 {
-	//¶¨Î»Ä¿±ê¼ÇÂ¼
+	//å®šä½ç›®æ ‡è®°å½•
 	RawRecord* record = RawRecord::make_raw_record(records_space_ + row_info->offset);
-	//Èç¹ûĞĞÃ»ÓĞÈÎºÎÁĞÃèÊö£¬Ä¬ÈÏÎªÍ¶Ó°ËùÓĞÁĞ
+	//å¦‚æœè¡Œæ²¡æœ‰ä»»ä½•åˆ—æè¿°ï¼Œé»˜è®¤ä¸ºæŠ•å½±æ‰€æœ‰åˆ—
 	if (!row){
 		Log(LOG_INFO, "Page", "project row %u with no row_desc and then project all column", row_info->row_id);
 		project_all_column(record, row);
 	}
 	const RowDesc& desc = row->get_row_desc();
-	//·´ĞòÁĞ»¯ËùĞèµÄÁĞ
+	//ååºåˆ—åŒ–æ‰€éœ€çš„åˆ—
 	for (u32 i = 0; i < desc.get_column_num(); ++i){
 		ColumnDesc col_desc;
 		if (desc.get_column_desc(i, col_desc) == SUCCESS){
 			u32 table_id, column_id;
 			col_desc.get_tid_cid(table_id, column_id);
 			if (column_id < record->column_count){
-				//¶¨Î»ÁĞËùÔÚÔªÊı¾İ
+				//å®šä½åˆ—æ‰€åœ¨å…ƒæ•°æ®
 				RawData* data = RawData::make_row_data(reinterpret_cast<u8*>(record) + record->column_offset[column_id]);
-				//¹¹½¨ÁĞÊı¾İ¶ÔÏó
+				//æ„å»ºåˆ—æ•°æ®å¯¹è±¡
 				row->set_cell(i, Object::make_object(*data));
 			}
 		}else{

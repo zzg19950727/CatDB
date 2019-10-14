@@ -12,7 +12,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		DECLARE(Expression);
-		//ÓÒ±í¹¹½¨hash±í£¬×ó±íÌ½²â
+		//å³è¡¨æ„å»ºhashè¡¨ï¼Œå·¦è¡¨æ¢æµ‹
 		class HashUnion : public DoubleChildPhyOperator
 		{
 		private:
@@ -22,7 +22,7 @@ namespace CatDB {
 			~HashUnion();
 			static PhyOperator_s make_hash_union(PhyOperator_s& first_child, PhyOperator_s& second_child);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -43,7 +43,7 @@ namespace CatDB {
 			~HashIntersect();
 			static PhyOperator_s make_hash_intersect(PhyOperator_s& first_child, PhyOperator_s& second_child);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -54,7 +54,7 @@ namespace CatDB {
 		private:
 			u32 build_hash_table();
 			Common::HashTable hash_table;
-			//ÓÃÓÚ½»¼¯È¥ÖØ
+			//ç”¨äºäº¤é›†å»é‡
 			Common::HashTable hash_distinct;
 		};
 
@@ -67,7 +67,7 @@ namespace CatDB {
 			~HashExcept();
 			static PhyOperator_s make_hash_except(PhyOperator_s& first_child, PhyOperator_s& second_child);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -89,7 +89,7 @@ namespace CatDB {
 			~UnionAll();
 			static PhyOperator_s make_union_all(PhyOperator_s& first_child, PhyOperator_s& second_child);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();

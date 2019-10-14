@@ -16,14 +16,14 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_select_stmt();
 		public:
-			Stmt_s select_expr_list;	//selectÓï¾ä¿é
-			bool is_distinct;				//Êä³ö¼¯ÊÇ·ñÈ¥ÖØ£¿
-			Stmt_s from_stmts;		//fromÓï¾ä¿é
-			Stmt_s where_stmt;				//whereÓï¾ä¿é
-			Stmt_s group_columns;	//groupby ÁĞ
-			Stmt_s having_stmt;				//havingÓï¾ä¿é
-			Stmt_s order_columns;	//order byÁĞ
-			bool asc_desc;					//ÉıĞò»¹ÊÇ½µĞò,trueÎªasc£¬falseÎªdesc£¬Ä¬ÈÏasc
+			Stmt_s select_expr_list;	//selectè¯­å¥å—
+			bool is_distinct;				//è¾“å‡ºé›†æ˜¯å¦å»é‡ï¼Ÿ
+			Stmt_s from_stmts;		//fromè¯­å¥å—
+			Stmt_s where_stmt;				//whereè¯­å¥å—
+			Stmt_s group_columns;	//groupby åˆ—
+			Stmt_s having_stmt;				//havingè¯­å¥å—
+			Stmt_s order_columns;	//order byåˆ—
+			bool asc_desc;					//å‡åºè¿˜æ˜¯é™åº,trueä¸ºascï¼Œfalseä¸ºdescï¼Œé»˜è®¤asc
 			Stmt_s limit_stmt;
 		};
 
@@ -36,8 +36,8 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_limit_stmt(u32 size, u32 offset = 0);
 		private:
-			u32 limit_offset;			//limitĞĞÆ«ÒÆ
-			u32 limit_size;				//limitĞĞÊı
+			u32 limit_offset;			//limitè¡Œåç§»
+			u32 limit_size;				//limitè¡Œæ•°
 		};
 	}
 }

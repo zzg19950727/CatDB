@@ -34,7 +34,7 @@ namespace CatDB {
 			u32 set_agg_expr(const Expression_s& expr);
 			u32 set_filter(const Filter_s& filter);
 
-			//ÎïÀíËã×Ó±ØĞëÌá¹©µÄ½Ó¿Ú
+			//ç‰©ç†ç®—å­å¿…é¡»æä¾›çš„æ¥å£
 			u32 open();
 			u32 close();
 			u32 reset();
@@ -55,10 +55,10 @@ namespace CatDB {
 
 			u32 alias_table_id;
 
-			//µ±Ç°¼¯ºÏº¯Êı¼ÆËã×´Ì¬
+			//å½“å‰é›†åˆå‡½æ•°è®¡ç®—çŠ¶æ€
 			u32 cur_bucket_idx;
 			u32 cur_bucket_pos;
-			//µ±Ã»ÓĞÊäÈëµÄÊ±ºòĞèÒªÊä³öÒ»ĞĞ½á¹û
+			//å½“æ²¡æœ‰è¾“å…¥çš„æ—¶å€™éœ€è¦è¾“å‡ºä¸€è¡Œç»“æœ
 			bool out_when_empty_input;
 		};
 

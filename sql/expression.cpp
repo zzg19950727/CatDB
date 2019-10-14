@@ -161,17 +161,17 @@ Object_s Operation::do_not_exists(Object_s & first_obj)
 
 Object_s Operation::do_and(Object_s & first_obj, Object_s & second_obj)
 {
-	return first_obj-> and (second_obj);
+	return first_obj-> op_and (second_obj);
 }
 
 Object_s Operation::do_or(Object_s & first_obj, Object_s & second_obj)
 {
-	return first_obj-> or (second_obj);
+	return first_obj-> op_or (second_obj);
 }
 
 Object_s Operation::do_not(Object_s & first_obj)
 {
-	return first_obj->not();
+	return first_obj->op_not();
 }
 
 Expression::Expression()
@@ -284,7 +284,8 @@ Expression_s UnaryExpression::make_unary_expression(const Expression_s& expr, Op
 
 Object_s UnaryExpression::get_result(const Row_s & row)
 {
-	return op.calc(expr->get_result(row));
+	auto obj = expr->get_result(row);
+	return op.calc(obj);
 }
 
 Expression::ExprType CatDB::Sql::UnaryExpression::get_type() const
@@ -319,7 +320,9 @@ Expression_s BinaryExpression::make_binary_expression(const Expression_s& first_
 
 Object_s BinaryExpression::get_result(const Row_s & row)
 {
-	return op.calc(first_expr->get_result(row), second_expr->get_result(row));
+	auto first_obj = first_expr->get_result(row);
+	auto second_obj = second_expr->get_result(row);
+	return op.calc(first_obj, second_obj);
 }
 
 Expression::ExprType CatDB::Sql::BinaryExpression::get_type() const
@@ -359,7 +362,10 @@ Expression_s TernaryExpression::make_ternary_expression(const Expression_s& firs
 
 Object_s TernaryExpression::get_result(const Row_s & row)
 {
-	return op.calc(first_expr->get_result(row), second_expr->get_result(row), third_expr->get_result(row));
+	auto first_obj = first_expr->get_result(row);
+	auto second_obj = second_expr->get_result(row);
+	auto third_obj = third_expr->get_result(row);
+	return op.calc(first_obj, second_obj, third_obj);
 }
 
 Expression::ExprType CatDB::Sql::TernaryExpression::get_type() const
@@ -393,12 +399,12 @@ Expression_s CatDB::Sql::AggregateExpression::make_aggregate_expression(const Ex
 
 Object_s CatDB::Sql::AggregateExpression::get_result(const Row_s &)
 {
-	//Èç¹û¾ÛºÏº¯ÊıÃ»ÓĞÈÎºÎÊäÈë
+	//å¦‚æœèšåˆå‡½æ•°æ²¡æœ‰ä»»ä½•è¾“å…¥
 	if (!result){
-		//countº¯Êı·µ»ØÁã
+		//countå‡½æ•°è¿”å›é›¶
 		if (op.get_type() == Operation::OP_COUNT){
 			return Number::make_object(0);
-		}else{//ÆäËûº¯Êı·µ»Ønull
+		}else{//å…¶ä»–å‡½æ•°è¿”å›null
 			return Object::make_null_object();
 		}
 	}else if(op.get_type() == Operation::OP_AVG){
