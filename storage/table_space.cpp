@@ -55,11 +55,6 @@ u32 TableSpace::get_next_row(Row_s & row)
 			Log(LOG_ERR, "TableSpace", "get page %u failed,%s", cur_page_offset, err_string(ret));
 			return ret;
 		}
-		ret = page->open();
-		if (ret != SUCCESS){
-			Log(LOG_ERR, "TableSpace", "open page %u failed,%s", cur_page_offset, err_string(ret));
-			return ret;
-		}
 	}
 	
 	//TODO filter 放这还是下压到page层面？
@@ -173,6 +168,11 @@ u32 TableSpace::read_page(u32 page_offset, Page_s & page)
 	if (ret != SUCCESS){
 		return ret;
 	}else{
+		ret = page->open();
+		if (ret != SUCCESS){
+			Log(LOG_ERR, "TableSpace", "open page %u failed,%s", cur_page_offset, err_string(ret));
+			return ret;
+		}
 		pages[page_offset] = page;
 		return ret;
 	}

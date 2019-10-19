@@ -30,7 +30,10 @@ namespace CatDB {
 				MERGE_SET,
 				LIMIT,
 				SUBPLAN_SCAN,
-				SUBPLAN_FILTER
+				SUBPLAN_FILTER,
+				INSERT,
+				UPDATE,
+				DELETE
 			};
 			PhyOperator();
 			virtual ~PhyOperator();

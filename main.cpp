@@ -10,6 +10,7 @@
 #include "expression.h"
 #include "IoService.h"
 #include "hash_join.h"
+#include "insert.h"
 #include "filter.h"
 #include "buffer.h"
 #include "object.h"
@@ -377,23 +378,82 @@ void parser_test()
 	std::ofstream log;
 	log.open("log.txt", std::fstream::out);
 	String query = R"(create table t1 (c1 number, c2 varchar, c3 datetime);)";
+	std::getline(std::cin, query);
 	SqlDriver parser;
 	parser.set_yacc_debug(true);
 	parser.set_yacc_debug_ostream(log);
 	int ret = parser.parse_sql(query);
-	if (ret)
-	{
-		std::cout << "parse error!" << std::endl;
-		if (parser.is_sys_error())
-			std::cout << parser.sys_error() << std::endl;
-		if (parser.is_syntax_error())
-			std::cout << parser.syntax_error() << std::endl;
-	}
-	else
-	{
-		std::cout << "parse finished" << std::endl;
-	}
 	log.close();
+
+	if (parser.is_sys_error())
+		std::cout << parser.sys_error() << std::endl;
+	if (parser.is_syntax_error())
+		std::cout << parser.syntax_error() << std::endl;
+
+	std::cout << "parse finished!" << std::endl;
+}
+
+void print_row(const Row_s& row)
+{
+	std::cout << "| ";
+	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
+	{
+		Object_s cell;
+		row->get_cell(i, cell);
+		std::cout << fix_length(cell->to_string()) << " | ";
+	}
+	std::cout << std::endl;
+	for (u32 i = 0; i < 55; ++i)
+		std::cout << "-";
+	std::cout << std::endl;
+}
+
+void print_table(const String& table_name)
+{
+	TableSpace_s table = TableSpace::make_table_space(table_name);
+	table->open();
+	Row_s row;
+	while (table->get_next_row(row) == SUCCESS)
+	{
+		print_row(row);
+	}
+	table->close();
+}
+
+void insert_table(const String& table_name)
+{
+	std::cout<<"before insert:"<<std::endl;
+	print_table(table_name);
+	
+	u32 ret;
+	RowDesc desc(3);
+	ColumnDesc col_desc;
+	col_desc.set_tid_cid(1, 0);
+	desc.set_column_desc(0, col_desc);
+	col_desc.set_tid_cid(1, 1);
+	desc.set_column_desc(1, col_desc);
+	col_desc.set_tid_cid(1, 2);
+	desc.set_column_desc(2, col_desc);
+
+	TableSpace_s table_space = TableSpace::make_table_space(table_name);
+	PhyOperator_s table = Insert::make_insert(table_space);
+	table->open();
+	for (int i = 0; i < 10; ++i)
+	{
+		Row_s row = Row::make_row(desc);
+		for (int j = 0; j < 3; ++j)
+		{
+			auto object = Number::make_object(i+j+500);
+			ret = row->set_cell(j, object);
+			assert(ret == SUCCESS);
+		}
+		ret = table->get_next_row(row);
+		assert(ret == SUCCESS);
+	}
+	table->close();
+
+	std::cout<<"after insert:"<<std::endl;
+	print_table(table_name);
 }
 
 int main()
@@ -404,6 +464,7 @@ int main()
 	//table_space_test("test2");
 	//hash_join_test();
 	//set_test();
-	parser_test();
+	//parser_test();
+	insert_table("test3");
 	return 0;
 }

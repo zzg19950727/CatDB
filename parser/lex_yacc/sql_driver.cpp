@@ -15,7 +15,7 @@ SqlDriver::~SqlDriver()
 
 int CatDB::SqlDriver::parse_sql(const String & sql)
 {
-	String query = sql;
+	String query = sql + ";";
 	for (u32 i = 0; i < query.size(); ++i)
 	{
 		if (query[i] == '\n' || query[i] == '\r')
@@ -51,7 +51,7 @@ String CatDB::SqlDriver::syntax_error() const
 
 String CatDB::SqlDriver::error_position()
 {
-	String msg = "<=(解析发生错误!!) ";
+	String msg = "(<==parse error!!!) ";
 	auto pos = query_stream.tellg();
 	String sql;
 	std::getline(query_stream, sql);

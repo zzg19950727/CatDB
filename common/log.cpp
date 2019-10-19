@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdarg>
 #include "log.h"
+#define LOG_SET		LOG_ERR
 
 class LogStream
 {
