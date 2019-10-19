@@ -11,6 +11,7 @@ class LogStream
 public:
 	LogStream();
 	~LogStream();
+	std::ostream* switch_ostream(std::ostream* os);
 
 	LogStream &operator<<(char);
 
@@ -45,13 +46,13 @@ public:
 	bool print_info(const char* file, int line, const char* function);
 
 private:
-	std::ostream& os;
+	std::ostream* os;
 	std::string module;
 	int log_level;
 };
 
 LogStream::LogStream()
-	:os(std::cout),
+	:os(&std::cout),
 	log_level(LOG_ERR)
 {
 
@@ -62,87 +63,94 @@ LogStream::~LogStream()
 
 }
 
+std::ostream* LogStream::switch_ostream(std::ostream* os)
+{
+	std::ostream* ret = this->os;
+	this->os = os;
+	return ret;
+}
+
 LogStream &LogStream::operator << (char value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned char value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (short value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned short value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (int value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned int value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (long value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned long value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (long long value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned long long value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator<<(float value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator<<(double value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
 LogStream &LogStream::operator<<(const char *value)
 {
-	os << std::string(value);
+	*os << std::string(value);
 	return *this;
 }
 
 LogStream &LogStream::operator << (const std::string& value)
 {
-	os << value;
+	*os << value;
 	return *this;
 }
 
@@ -160,17 +168,17 @@ bool LogStream::print_info(const char * file, int line, const char * function)
 	if (log_level > LOG_SET)
 		return false;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	os << std::put_time(std::localtime(&t), "%F %T ");
-	os << function;
-	//os << file << "," << line << "," << function;
+	*os << std::put_time(std::localtime(&t), "%F %T ");
+	*os << function;
+	//*os << file << "," << line << "," << function;
 	if (log_level == LOG_ERR)
-		os << " [ERR][" << module << "] ";
+		*os << " [ERR][" << module << "] ";
 	else if (log_level == LOG_WARN)
-		os << " [WARN][" << module << "] ";
+		*os << " [WARN][" << module << "] ";
 	else if (log_level == LOG_INFO)
-		os << " [INFO][" << module << "] ";
+		*os << " [INFO][" << module << "] ";
 	else if (log_level == LOG_TRACE)
-		os << " [TRACE][" << module << "] ";
+		*os << " [TRACE][" << module << "] ";
 	return true;
 }
 
@@ -284,4 +292,9 @@ void CatDB::Common::log_print(const char *fmt, ...)
 	vprint(fmt, vap);
 	va_end(vap);
 	ostream << "\n";
+}
+
+std::ostream* CatDB::Common::switch_log_ostream(std::ostream* os)
+{
+	return ostream.switch_ostream(os);
 }
