@@ -1,4 +1,4 @@
-#ifndef HASH_DISTINCT_H
+﻿#ifndef HASH_DISTINCT_H
 #define HASH_DISTINCT_H
 #include "phy_operator.h"
 #include "hash_table.h"

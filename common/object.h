@@ -1,4 +1,4 @@
-#ifndef OBJECT_H
+﻿#ifndef OBJECT_H
 #define OBJECT_H
 #include "type.h"
 
@@ -54,8 +54,6 @@ namespace CatDB {
 			virtual Object_s operator>(const Object_s& other);
 			virtual Object_s operator<(const Object_s& other);
 			virtual Object_s between(const Object_s& left, const Object_s& right);
-			virtual Object_s is(const Object_s& other);
-			virtual Object_s is_not(const Object_s& other);
 			virtual Object_s in(const Object_s& other);
 			virtual Object_s not_in(const Object_s& other);
 			virtual Object_s op_and (const Object_s& other);
@@ -192,16 +190,6 @@ namespace CatDB {
 		private:
 			Buffer_s data;
 		};
-		/*
-		class List :public Object
-		{
-		public:
-			List();
-			u32 serialization(u8*& buffer);
-			bool is_fixed_length();
-			u32 add_object(Object_s& object);
-
-		};*/
 	}
 }
 #endif	//OBJECT_H

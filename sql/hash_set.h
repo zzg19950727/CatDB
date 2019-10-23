@@ -1,4 +1,4 @@
-#ifndef HASH_SET_H
+﻿#ifndef HASH_SET_H
 #define HASH_SET_H
 
 #include "phy_operator.h"

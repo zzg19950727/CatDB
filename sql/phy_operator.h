@@ -1,4 +1,4 @@
-#ifndef PHY_OPERATOR_H
+﻿#ifndef PHY_OPERATOR_H
 #define PHY_OPERATOR_H
 #include "type.h"
 

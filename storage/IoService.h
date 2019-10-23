@@ -22,6 +22,8 @@ namespace CatDB {
 			u32 end_offset(u32& offset);
 			void close();
 			bool eof()const;
+			u32 delete_file(const String& table_file);
+			u32 clear_file(const String& table_file);
 
 		private:
 			FILE* file_handle;

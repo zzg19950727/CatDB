@@ -174,10 +174,10 @@ u32 CatDB::Sql::HashJoin::init_hash_table()
 				hash_table.add_probe_column(expr);
 		}else if (expr->get_type() == Expression::Binary){
 			BinaryExpression* bin_expr = dynamic_cast<BinaryExpression*>(expr.get());
-			if (bin_expr->op.get_type() == Operation::OP_AND){
+			if (bin_expr->op.get_type() == Parser::ExprStmt::OP_AND){
 				expr_queue.push(bin_expr->first_expr);
 				expr_queue.push(bin_expr->second_expr);
-			}else if (bin_expr->op.get_type() == Operation::OP_EQUAL){
+			}else if (bin_expr->op.get_type() == Parser::ExprStmt::OP_EQ){
 				expr_queue.push(bin_expr->first_expr);
 				expr_queue.push(bin_expr->second_expr);
 			}else{

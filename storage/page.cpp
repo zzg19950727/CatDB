@@ -1,4 +1,4 @@
-#include "IoService.h"
+﻿#include "IoService.h"
 #include "buffer.h"
 #include "object.h"
 #include "error.h"
@@ -348,9 +348,10 @@ u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 			return ERR_ROW_DESC;
 		}
 	}
-	row->set_row_id(row_info_->row_id);
+	u32 id = row_info->row_id;
+	row->set_row_id(id);
 	row->set_alias_table_id(file_header_->table_id);
-	Log(LOG_TRACE, "Page", "project row %u success", row_info->row_id);
+	Log(LOG_TRACE, "Page", "project row %u success", id);
 	return SUCCESS;
 }
 

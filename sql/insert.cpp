@@ -30,6 +30,7 @@ u32 Insert::open()
 u32 Insert::close()
 {
     table_space->close();
+	return SUCCESS;
 }
 
 u32 Insert::reset()

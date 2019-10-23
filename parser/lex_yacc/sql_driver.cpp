@@ -86,3 +86,8 @@ void CatDB::SqlDriver::set_yacc_debug_ostream(std::ostream & os)
 {
 	m_parser.set_debug_stream(os);
 }
+
+Parser::Stmt_s CatDB::SqlDriver::parse_result() const
+{
+	return result;
+}

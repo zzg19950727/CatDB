@@ -1,4 +1,4 @@
-#ifndef SCALAR_GROUP_H
+﻿#ifndef SCALAR_GROUP_H
 #define SCALAR_GROUP_H
 
 #include "phy_operator.h"

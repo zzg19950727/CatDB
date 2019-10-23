@@ -1,4 +1,4 @@
-#ifndef TABLE_SPACE_H
+﻿#ifndef TABLE_SPACE_H
 #define TABLE_SPACE_H
 #include "type.h"
 
@@ -15,10 +15,10 @@ namespace CatDB {
 		class TableSpace
 		{
 		private:
-			TableSpace(const String& table_id);
+			TableSpace(const String& database, const String& table_name);
 		public:
 			~TableSpace();
-			static TableSpace_s make_table_space(const String& table_id);
+			static TableSpace_s make_table_space(const String& table_name, const String& database="");
 			//对外获取记录接口
 			u32 open();
 			u32 get_next_row(Row_s& row);
@@ -30,7 +30,7 @@ namespace CatDB {
 			u32 delete_row(u32 row_id);
 			u32 delete_all_row();
 			u32 delete_table();
-			u32 create_table(const String& table_id);
+			u32 create_table(const String& table_name);
 			u32 get_table_id()const;
 		private:
 			u32 get_page_from_row_id(u32 row_id, Page_s& page);
@@ -42,7 +42,8 @@ namespace CatDB {
 			//保证page有序析构
 			List<Page_s> pages_copy;
 			HashMap<u32, Page_s>  pages;
-			String table_id;
+			String database;
+			String table_name;
 			IoService_s io;
 			u32 cur_page_offset;
 

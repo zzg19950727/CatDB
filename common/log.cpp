@@ -1,4 +1,5 @@
-#include <iostream>
+﻿#include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <string>
 #include <chrono>
@@ -60,7 +61,7 @@ LogStream::LogStream()
 
 LogStream::~LogStream()
 {
-
+	
 }
 
 std::ostream* LogStream::switch_ostream(std::ostream* os)
@@ -297,4 +298,9 @@ void CatDB::Common::log_print(const char *fmt, ...)
 std::ostream* CatDB::Common::switch_log_ostream(std::ostream* os)
 {
 	return ostream.switch_ostream(os);
+}
+
+void CatDB::Common::set_log_file(const char* file)
+{
+	;
 }

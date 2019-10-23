@@ -32,6 +32,7 @@ namespace CatDB {
 		void set_lex_debug(bool debug);
 		void set_yacc_debug(bool debug);
 		void set_yacc_debug_ostream(std::ostream& os);
+		Parser::Stmt_s parse_result()const;
 	  };
 }
 #endif	//SQL_DRIVER_H

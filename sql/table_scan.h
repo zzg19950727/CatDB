@@ -1,4 +1,4 @@
-#ifndef TABLE_SCAN_H
+﻿#ifndef TABLE_SCAN_H
 #define TABLE_SCAN_H
 #include "phy_operator.h"
 #include "filter.h"

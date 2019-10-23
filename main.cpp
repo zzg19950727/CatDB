@@ -11,6 +11,8 @@
 #include "IoService.h"
 #include "hash_join.h"
 #include "insert.h"
+#include "update.h"
+#include "delete.h"
 #include "filter.h"
 #include "buffer.h"
 #include "object.h"
@@ -20,9 +22,16 @@
 #include "page.h"
 #include "row.h"
 #include "log.h"
+#include "sql_driver.h"
+#include "select_stmt.h"
+#include "expr_stmt.h"
+#include "plan.h"
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
+using CatDB::Parser::ExprStmt;
+using CatDB::Parser::AggrStmt;
+using CatDB::SqlDriver;
 
 class Timer
 {
@@ -36,7 +45,21 @@ public:
 	{
 		auto now = std::chrono::steady_clock::now();
 		long long end = now.time_since_epoch().count();
-		std::cout << "cost " << (end - start) / 1000000000 << "s" << std::endl;
+		long long msec = (end - start) / 1000000;
+		String time;
+		time = std::to_string(msec % 1000) + "ms" + time;
+		msec /= 1000;
+		if (msec > 0)
+		{
+			time = std::to_string(msec % 60) + "s" + time;
+			msec /= 60;
+			if (msec > 0)
+			{
+				time = std::to_string(msec % 60) + "min" + time;
+				msec /= 60;
+			}
+		}
+		std::cout << "cost " << time << std::endl;
 	}
 	void when()
 	{
@@ -47,6 +70,51 @@ public:
 private:
 	long long start;
 };
+
+String fix_length(const String& str)
+{
+	u32 size = 6 - str.size();
+	return str + String(size, ' ');
+}
+
+void print_row(const Row_s& row, bool first)
+{
+	if (first)
+	{
+		std::cout << "+";
+		for (u32 i = 0; i < 9 * row->get_row_desc().get_column_num() - 1; ++i)
+			std::cout << "-";
+		std::cout << "+";
+		std::cout << std::endl;
+	}
+	std::cout << "| ";
+	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
+	{
+		Object_s cell;
+		row->get_cell(i, cell);
+		std::cout << fix_length(cell->to_string()) << " | ";
+	}
+	std::cout << std::endl;
+	std::cout << "+";
+	for (u32 i = 0; i < 9 * row->get_row_desc().get_column_num() -1; ++i)
+		std::cout << "-";
+	std::cout << "+";
+	std::cout << std::endl;
+}
+
+void print_table(const String& table_name)
+{
+	TableSpace_s table = TableSpace::make_table_space(table_name);
+	table->open();
+	Row_s row;
+	bool first = true;
+	while (table->get_next_row(row) == SUCCESS)
+	{
+		print_row(row, first);
+		first = false;
+	}
+	table->close();
+}
 
 void object_test()
 {
@@ -190,12 +258,12 @@ void expression_test()
 	ColumnDesc desc;
 	desc.set_tid_cid(1, 0);
 	Expression_s c_value = ColumnExpression::make_column_expression(desc);
-	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, Operation::OP_GREATER);
+	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, ExprStmt::OP_GT);
 
 	desc.set_tid_cid(1, 1);
 	c_value = ColumnExpression::make_column_expression(desc);
-	Expression_s e_filter2 = BinaryExpression::make_binary_expression(c_value, e_value, Operation::OP_GREATER);
-	e_filter = BinaryExpression::make_binary_expression(e_filter, e_filter2, Operation::OP_AND);
+	Expression_s e_filter2 = BinaryExpression::make_binary_expression(c_value, e_value, ExprStmt::OP_GT);
+	e_filter = BinaryExpression::make_binary_expression(e_filter, e_filter2, ExprStmt::OP_AND);
 	
 	Filter_s filter = Filter::make_filter(e_filter);
 
@@ -221,12 +289,6 @@ void expression_test()
 	std::cout << "output " << n << " rows" << std::endl;
 }
 
-String fix_length(const String& str)
-{
-	u32 size = 6 - str.size();
-	return str + String(size, ' ');
-}
-
 void hash_join_test()
 {
 	RowDesc row_desc(3);
@@ -236,7 +298,7 @@ void hash_join_test()
 	Expression_s e_value = ConstExpression::make_const_expression(value);
 	col_desc.set_tid_cid(1, 0);
 	Expression_s c_value = ColumnExpression::make_column_expression(col_desc);
-	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, Operation::OP_GREATER);
+	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, ExprStmt::OP_GT);
 	Filter_s filter = Filter::make_filter(e_filter);
 	TableSpace_s left_table = TableSpace::make_table_space("test1");
 	col_desc.set_tid_cid(1, 0);
@@ -261,7 +323,7 @@ void hash_join_test()
 	Expression_s left_value = ColumnExpression::make_column_expression(col_desc);
 	col_desc.set_tid_cid(2, 0);
 	Expression_s right_value = ColumnExpression::make_column_expression(col_desc);
-	Expression_s join_condition = BinaryExpression::make_binary_expression(left_value, right_value, Operation::OP_EQUAL);
+	Expression_s join_condition = BinaryExpression::make_binary_expression(left_value, right_value, ExprStmt::OP_EQ);
 
 	PhyOperator_s join = HashJoin::make_hash_join(left_scan, right_scan, join_condition, join_condition, 1);
 
@@ -284,7 +346,7 @@ void hash_join_test()
 
 	col_desc.set_tid_cid(1, 0);
 	Expression_s group_col = ColumnExpression::make_column_expression(col_desc);
-	Expression_s agg_func = AggregateExpression::make_aggregate_expression(group_col, Operation::OP_COUNT);
+	Expression_s agg_func = AggregateExpression::make_aggregate_expression(group_col, AggrStmt::COUNT);
 	PhyOperator_s group = ScalarGroup::make_scalar_group(limit, agg_func);
 
 	PhyOperator_s plan = distinct;
@@ -320,7 +382,7 @@ void set_test()
 	Expression_s e_value = ConstExpression::make_const_expression(value);
 	col_desc.set_tid_cid(1, 0);
 	Expression_s c_value = ColumnExpression::make_column_expression(col_desc);
-	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, Operation::OP_GREATER);
+	Expression_s e_filter = BinaryExpression::make_binary_expression(c_value, e_value, ExprStmt::OP_GT);
 	Filter_s filter = Filter::make_filter(e_filter);
 	TableSpace_s left_table = TableSpace::make_table_space("test1");
 	col_desc.set_tid_cid(1, 0);
@@ -370,61 +432,11 @@ void set_test()
 	std::cout << "affect " << n << " rows" << std::endl;
 }
 
-#include "sql_driver.h"
-#include <fstream>
-using namespace CatDB;
-void parser_test()
-{
-	std::ofstream log;
-	log.open("log.txt", std::fstream::out);
-	String query = R"(create table t1 (c1 number, c2 varchar, c3 datetime);)";
-	std::getline(std::cin, query);
-	SqlDriver parser;
-	parser.set_yacc_debug(true);
-	parser.set_yacc_debug_ostream(log);
-	int ret = parser.parse_sql(query);
-	log.close();
-
-	if (parser.is_sys_error())
-		std::cout << parser.sys_error() << std::endl;
-	if (parser.is_syntax_error())
-		std::cout << parser.syntax_error() << std::endl;
-
-	std::cout << "parse finished!" << std::endl;
-}
-
-void print_row(const Row_s& row)
-{
-	std::cout << "| ";
-	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
-	{
-		Object_s cell;
-		row->get_cell(i, cell);
-		std::cout << fix_length(cell->to_string()) << " | ";
-	}
-	std::cout << std::endl;
-	for (u32 i = 0; i < 55; ++i)
-		std::cout << "-";
-	std::cout << std::endl;
-}
-
-void print_table(const String& table_name)
-{
-	TableSpace_s table = TableSpace::make_table_space(table_name);
-	table->open();
-	Row_s row;
-	while (table->get_next_row(row) == SUCCESS)
-	{
-		print_row(row);
-	}
-	table->close();
-}
-
 void insert_table(const String& table_name)
 {
-	std::cout<<"before insert:"<<std::endl;
+	std::cout << "before insert:" << std::endl;
 	print_table(table_name);
-	
+
 	u32 ret;
 	RowDesc desc(3);
 	ColumnDesc col_desc;
@@ -443,7 +455,7 @@ void insert_table(const String& table_name)
 		Row_s row = Row::make_row(desc);
 		for (int j = 0; j < 3; ++j)
 		{
-			auto object = Number::make_object(i+j+500);
+			auto object = Number::make_object(i + j + 500);
 			ret = row->set_cell(j, object);
 			assert(ret == SUCCESS);
 		}
@@ -452,8 +464,128 @@ void insert_table(const String& table_name)
 	}
 	table->close();
 
-	std::cout<<"after insert:"<<std::endl;
+	std::cout << "after insert:" << std::endl;
 	print_table(table_name);
+}
+
+void update_table(const String& table_name)
+{
+	std::cout << "before update:" << std::endl;
+	print_table(table_name);
+
+	u32 ret;
+	RowDesc desc(3);
+	ColumnDesc col_desc;
+	col_desc.set_tid_cid(1, 0);
+	desc.set_column_desc(0, col_desc);
+	col_desc.set_tid_cid(1, 1);
+	desc.set_column_desc(1, col_desc);
+	col_desc.set_tid_cid(1, 2);
+	desc.set_column_desc(2, col_desc);
+	Row_s row = Row::make_row(desc);
+
+	RowDesc row_desc(2);
+	col_desc.set_tid_cid(1, 1);
+	row_desc.set_column_desc(0, col_desc);
+	col_desc.set_tid_cid(1, 2);
+	row_desc.set_column_desc(1, col_desc);
+	Row_s new_row = Row::make_row(row_desc);
+
+	auto object = Number::make_object(666);
+	ret = new_row->set_cell(0, object);
+	object = Number::make_object(669);
+	ret = new_row->set_cell(1, object);
+
+	col_desc.set_tid_cid(1, 0);
+	Expression_s e1 = ColumnExpression::make_column_expression(col_desc);
+	object = Number::make_object(500);
+	Expression_s e2 = ConstExpression::make_const_expression(object);
+	Expression_s e3 = BinaryExpression::make_binary_expression(e1, e2, ExprStmt::OP_EQ);
+	Filter_s filter = Filter::make_filter(e3);
+
+	TableSpace_s table_space = TableSpace::make_table_space(table_name);
+	PhyOperator_s table = Update::make_update(table_space, new_row, filter);
+
+	table->open();
+	while (table->get_next_row(row) == SUCCESS)
+		;
+	table->close();
+
+	std::cout << "after update:" << std::endl;
+	print_table(table_name);
+}
+
+void delete_table(const String& table_name)
+{
+	std::cout << "before delete:" << std::endl;
+	print_table(table_name);
+
+	u32 ret;
+	RowDesc desc(3);
+	ColumnDesc col_desc;
+	col_desc.set_tid_cid(1, 0);
+	desc.set_column_desc(0, col_desc);
+	col_desc.set_tid_cid(1, 1);
+	desc.set_column_desc(1, col_desc);
+	col_desc.set_tid_cid(1, 2);
+	desc.set_column_desc(2, col_desc);
+	Row_s row = Row::make_row(desc);
+
+	col_desc.set_tid_cid(1, 0);
+	Expression_s e1 = ColumnExpression::make_column_expression(col_desc);
+	auto object = Number::make_object(501);
+	Expression_s e2 = ConstExpression::make_const_expression(object);
+	Expression_s e3 = BinaryExpression::make_binary_expression(e1, e2, ExprStmt::OP_EQ);
+	Filter_s filter = Filter::make_filter(e3);
+
+	TableSpace_s table_space = TableSpace::make_table_space(table_name);
+	PhyOperator_s table = Delete::make_delete(table_space, filter);
+
+	table->open();
+	while (table->get_next_row(row) == SUCCESS)
+		;
+	table->close();
+
+	std::cout << "after delete:" << std::endl;
+	print_table(table_name);
+}
+
+void parser_test()
+{
+	String query;
+	
+	while (1) {
+		std::cout << "CatSQL > ";
+		std::getline(std::cin, query);
+		if (query == "quit") {
+			std::cout << "bye" << std::endl;
+			break;
+		}
+		Timer timer;
+		SqlDriver parser;
+		int ret = parser.parse_sql(query);
+
+		if (parser.is_sys_error())
+			std::cout << parser.sys_error() << std::endl;
+		else if (parser.is_syntax_error())
+			std::cout << parser.syntax_error() << std::endl;
+		else {
+			Stmt_s result = parser.parse_result();
+			if (result->stmt_type() == Stmt::Select) {
+				SelectStmt* select = dynamic_cast<SelectStmt*>(result.get());
+				ListStmt* table_list = dynamic_cast<ListStmt*>(select->from_stmts.get());
+				TableStmt* table = dynamic_cast<TableStmt*>(table_list->stmt_list[0].get());
+				print_table(table->table_name);
+			}
+			else {
+				Plan_s plan = Plan::make_plan(parser.parse_result());
+				plan->build_plan();
+				plan->execute();
+				u32 affect_rows = plan->affect_rows();
+				std::cout << "affect " << affect_rows << " rows." << std::endl;
+			}
+		}
+	}
 }
 
 int main()
@@ -464,7 +596,9 @@ int main()
 	//table_space_test("test2");
 	//hash_join_test();
 	//set_test();
-	//parser_test();
-	insert_table("test3");
+	parser_test();
+	//insert_table("test2");
+	//update_table("test2");
+	//delete_table("test2");
 	return 0;
 }

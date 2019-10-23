@@ -1,6 +1,6 @@
-#ifndef EXPRESSION_H
+﻿#ifndef EXPRESSION_H
 #define EXPRESSION_H
-
+#include "expr_stmt.h"
 #include "type.h"
 #include "row.h"
 
@@ -13,6 +13,7 @@ namespace CatDB {
 		using CatDB::Common::ColumnDesc;
 		using CatDB::Common::Row_s;
 		using CatDB::Common::Object_s;
+		DECLARE(Plan);
 		DECLARE(Expression);
 		DECLARE(UnaryExpression);
 		DECLARE(AggregateExpression);
@@ -22,31 +23,7 @@ namespace CatDB {
 		class Operation
 		{
 		public:
-			enum OperationType {
-				OP_INVALID = 0,
-				OP_ADD,
-				OP_SUB,
-				OP_MUL,
-				OP_DIV,
-				OP_EQUAL,
-				OP_GREATER,
-				OP_LESS,
-				OP_BETWEEN,
-				OP_IS,
-				OP_IS_NOT,
-				OP_IN,
-				OP_NOT_IN,
-				OP_EXISTS,
-				OP_NOT_EXISTS,
-				OP_AND,
-				OP_OR,
-				OP_NOT,
-				OP_SUM,
-				OP_COUNT,
-				OP_AVG,
-				OP_MIN,
-				OP_MAX
-			};
+			typedef Parser::ExprStmt::OperationType OperationType;
 		private:
 			Operation() = delete;
 		protected:
@@ -64,11 +41,15 @@ namespace CatDB {
 			Object_s do_mul(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_div(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_equal(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_not_equal(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_greater(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_GE(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_less(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_LE(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_between(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
-			Object_s do_is(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_is_not(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_not_between(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
+			Object_s do_is_null(Object_s& first_obj);
+			Object_s do_is_not_null(Object_s& first_obj);
 			Object_s do_in(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not_in(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_exists(Object_s& first_obj);
@@ -76,6 +57,8 @@ namespace CatDB {
 			Object_s do_and(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_or(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not(Object_s& first_obj);
+			Object_s do_like(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_not_like(Object_s& first_obj, Object_s& second_obj);
 
 		private:
 			OperationType type;
@@ -145,20 +128,18 @@ namespace CatDB {
 		{
 		public:
 			SubplanFilterExpression() = delete;
-			SubplanFilterExpression(const ColumnDesc& desc);
+			SubplanFilterExpression(const Plan_s& subplan);
 		public:
-			static Expression_s make_subplan_filter_expression(const ColumnDesc& desc);
-			u32 set_column_desc(ColumnDesc& desc);
-			const ColumnDesc& get_column_desc()const;
-			u32 set_alias_table_id(u32 table_id);
-			u32 get_alias_table_id()const;
+			static Expression_s make_subplan_filter_expression(const Plan_s& subplan);
+			u32 set_alias_table(u32 table);
+			u32 get_alias_table()const;
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
 		private:
 			Object_s result;
-			Common::ColumnDesc col_desc;
-			u32 alias_table_id;
+			Plan_s subplan;
+			u32 alias_table;
 		};
 
 		class UnaryExpression :public Expression
@@ -181,12 +162,14 @@ namespace CatDB {
 		//注意：目前还没有支持聚合函数内含distinct，聚合函数嵌套
 		class AggregateExpression : public Expression
 		{
+		public:
+			typedef Parser::AggrStmt::AggrType	AggrType;
 		private:
 			AggregateExpression() = delete;
-			AggregateExpression(const Expression_s& expr,const Operation& op);
+			AggregateExpression(const Expression_s& expr, AggrType op);
 		public:
 			~AggregateExpression();
-			static Expression_s make_aggregate_expression(const Expression_s& expr, Operation::OperationType op);
+			static Expression_s make_aggregate_expression(const Expression_s& expr, AggrType op);
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
@@ -200,7 +183,7 @@ namespace CatDB {
 			u32 min(const Row_s& row);
 
 			Expression_s expr;
-			Operation op;
+			AggrType op;
 			Object_s result;
 			u32 row_count;
 		};

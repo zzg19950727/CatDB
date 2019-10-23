@@ -1,4 +1,4 @@
-#ifndef ROW_H
+﻿#ifndef ROW_H
 #define ROW_H
 #include "type.h"
 

@@ -19,6 +19,7 @@ namespace CatDB {
 		void log_set_level(int log_level, const char* module);
 		void log_print(const char *fmt, ...);
 		std::ostream* switch_log_ostream(std::ostream* os);
+		void set_log_file(const char* file);
 	}
 }
 #endif	//LOG_H

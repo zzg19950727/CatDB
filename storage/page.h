@@ -1,4 +1,4 @@
-#ifndef PAGE_H
+﻿#ifndef PAGE_H
 #define PAGE_H
 #include "type.h"
 //PAGE_SIZE跟row_id的结构设计相关，改大后注意是否向前兼容row_id

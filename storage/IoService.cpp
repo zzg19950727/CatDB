@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include "IoService.h"
 #include "buffer.h"
 #include "error.h"
@@ -115,4 +115,26 @@ void IoService::close()
 bool IoService::eof() const
 {
 	return feof(file_handle) != 0;
+}
+
+u32 IoService::delete_file(const String& table_file)
+{
+	Log(LOG_TRACE, "IoService", "delete table file %s", table_file.c_str());
+	if (remove(table_file.c_str()) == 0) {
+		return SUCCESS;
+	}else {
+		return TABLE_FILE_NOT_EXISTS;
+	}
+}
+
+u32 IoService::clear_file(const String& table_file)
+{
+	Log(LOG_TRACE, "IoService", "clear table file %s", table_file.c_str());
+	file_handle = fopen(table_file.c_str(), "w");
+	if (file_handle) {
+		fclose(file_handle);
+		return SUCCESS;
+	}else {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 }

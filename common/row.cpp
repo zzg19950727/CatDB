@@ -126,9 +126,9 @@ void Row::assign(const Row & other)
 
 }
 
-void Row::set_row_id(u32 row_id)
+void Row::set_row_id(u32 id)
 {
-	this->row_id = row_id;
+	this->row_id = id;
 }
 
 u32 Row::get_row_id() const

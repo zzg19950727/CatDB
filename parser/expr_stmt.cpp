@@ -81,6 +81,7 @@ Stmt_s TableStmt::make_table_stmt(const String & database, const String & table_
 	TableStmt* stmt = new TableStmt;
 	stmt->database = database;
 	stmt->table_name = table_name;
+	stmt->alias_name = table_name;
 	return Stmt_s(stmt);
 }
 
@@ -88,6 +89,7 @@ Stmt_s CatDB::Parser::TableStmt::make_table_stmt(const String & table_name)
 {
 	TableStmt* stmt = new TableStmt;
 	stmt->table_name = table_name;
+	stmt->alias_name = table_name;
 	return Stmt_s(stmt);
 }
 

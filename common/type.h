@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 #include <cstring>
+#include <cassert>
 #define DECLARE(class_name)	\
 class class_name;\
 typedef shared_ptr<class_name> class_name##_s;
@@ -38,5 +39,6 @@ template<typename T>
 using Hash = std::hash<T>;
 template<typename T>
 using Queue = std::queue<T>;
-
+template<typename T1, typename T2>
+using Pair = std::pair<T1, T2>;
 #endif	//TYPE_H

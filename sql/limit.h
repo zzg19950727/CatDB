@@ -1,4 +1,4 @@
-#ifndef LIMIT_H
+﻿#ifndef LIMIT_H
 #define LIMIT_H
 #include "phy_operator.h"
 #include "type.h"

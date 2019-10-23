@@ -1,4 +1,4 @@
-#include "table_space.h"
+﻿#include "table_space.h"
 #include "IoService.h"
 #include "error.h"
 #include "page.h"
@@ -7,8 +7,9 @@
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
-TableSpace::TableSpace(const String & table_id)
-	:table_id(table_id),
+TableSpace::TableSpace(const String& database, const String& table_name)
+	:database(database),
+	table_name(table_name),
 	cur_page_offset(0)
 {
 	io = IoService::make_io_service();
@@ -18,15 +19,15 @@ TableSpace::~TableSpace()
 {
 }
 
-TableSpace_s TableSpace::make_table_space(const String & table_id)
+TableSpace_s TableSpace::make_table_space(const String& table_name, const String & database)
 {
-	return TableSpace_s(new TableSpace(table_id));
+	return TableSpace_s(new TableSpace(database, table_name));
 }
 
 u32 TableSpace::open()
 {
-	Log(LOG_TRACE, "TableSpace", "open table space %s", table_id.c_str());
-	return io->open(table_id);
+	Log(LOG_TRACE, "TableSpace", "open table space %s", table_name.c_str());
+	return io->open(table_name);
 }
 
 u32 TableSpace::get_next_row(Row_s & row)
@@ -78,7 +79,7 @@ u32 TableSpace::close()
 	}
 	pages.clear();
 	pages_copy.clear();
-	Log(LOG_TRACE, "TableSpace", "close table space %s", table_id.c_str());
+	Log(LOG_TRACE, "TableSpace", "close table space %s", table_name.c_str());
 	return SUCCESS;
 }
 
@@ -124,10 +125,45 @@ u32 TableSpace::delete_row(u32 row_id)
 	}
 }
 
+u32 TableSpace::delete_all_row()
+{
+	u32 ret = io->clear_file(table_name);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
+		return ret;
+	}
+	else {
+		return SUCCESS;
+	}
+}
+
+u32 TableSpace::delete_table()
+{
+	u32 ret = io->delete_file(table_name);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "TableSpace", "delete table %s error:%s", table_name.c_str(), err_string(ret));
+		return ret;
+	}else {
+		return SUCCESS;
+	}
+}
+
+u32 TableSpace::create_table(const String& table_name)
+{
+	u32 ret = io->open(table_name);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "TableSpace", "create table %s error:%s", table_name.c_str(), err_string(ret));
+		return ret;
+	}else {
+		io->close();
+		return SUCCESS;
+	}
+}
+
 u32 TableSpace::get_table_id() const
 {
 	Hash<String> hash;
-	return hash(table_id);
+	return hash(table_name);
 }
 
 u32 TableSpace::get_page_from_row_id(u32 row_id, Page_s& page)

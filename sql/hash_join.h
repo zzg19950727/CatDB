@@ -1,4 +1,4 @@
-#ifndef HASH_JOIN_H
+﻿#ifndef HASH_JOIN_H
 #define HASH_JOIN_H
 #include "phy_operator.h"
 #include "hash_table.h"

@@ -134,18 +134,6 @@ Object_s Object::between(const Object_s & left, const Object_s & right)
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
-Object_s Object::is(const Object_s & other)
-{
-	Log(LOG_ERR, "Object", "object %u do not support is operation", obj_type);
-	return Error::make_object(OPERATION_NOT_SUPPORT);
-}
-
-Object_s Object::is_not(const Object_s & other)
-{
-	Log(LOG_ERR, "Object", "object %u do not support is not operation", obj_type);
-	return Error::make_object(OPERATION_NOT_SUPPORT);
-}
-
 Object_s Object::in(const Object_s & other)
 {
 	Log(LOG_ERR, "Object", "object %u do not support in operation", obj_type);

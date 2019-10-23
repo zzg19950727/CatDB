@@ -1,4 +1,4 @@
-#ifndef EXPR_STMT_H
+﻿#ifndef EXPR_STMT_H
 #define EXPR_STMT_H
 #include "stmt.h"
 #include "type.h"
@@ -104,7 +104,7 @@ namespace CatDB {
 			static Stmt_s make_table_stmt(const String& table_name);
 		public:
 			String database;
-			String table_name;			//真实表
+			String table_name;
 		};
 		//子查询语句
 		class QueryStmt : public ExprStmt

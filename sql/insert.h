@@ -1,4 +1,4 @@
-#ifndef INSERT_H
+﻿#ifndef INSERT_H
 #define INSERT_H
 #include "phy_operator.h"
 #include "type.h"

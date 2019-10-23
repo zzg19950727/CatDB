@@ -25,7 +25,13 @@
 #define ERR_BUCKET_IDX			0x16
 #define UNKNOWN_AGG_FUNC		0x17
 #define EXPR_CALC_ERR			0x18
-
+#define ERROR_LEX_STMT			0x19
+#define ERROR_COLUMN_VALUE		0x1a
+#define PLAN_NOT_BUILD			0x1b
+#define COLUMN_NOT_EXISTS		0x1c
+#define TABLE_NOT_EXISTS		0x1d
+#define TABLE_REDEFINE			0x1e
+#define JOIN_TABLES_NOT_EXISTS	0x1f
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H
