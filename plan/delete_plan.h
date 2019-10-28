@@ -2,6 +2,7 @@
 #define DELETE_PLAN_H
 #include "type.h"
 #include "plan.h"
+#include "row.h"
 
 namespace CatDB {
 	namespace Parser {
@@ -15,6 +16,7 @@ namespace CatDB {
 		DECLARE(Filter);
 		DECLARE(Expression);
 		using Common::Row_s;
+		using Common::ColumnDesc;
 		using Parser::Stmt_s;
 		using Sql::Filter_s;
 		using Sql::Expression_s;
@@ -33,9 +35,11 @@ namespace CatDB {
 		private:
 			u32 resolve_filter(const Stmt_s& where_stmt, Filter_s& filter);
 			u32 resolve_expr(const Stmt_s& expr_stmt, Expression_s& expr);
+			void add_access_column(const ColumnDesc& col_desc);
+		private:
 			String database;
 			String table_name;
-			Row_s row_access;
+			Vector<ColumnDesc> access_columns;
 		};
 	}
 }

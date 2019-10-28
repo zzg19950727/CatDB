@@ -74,10 +74,15 @@ u32 Delete::get_next_row(Row_s &row)
 		}
 	}else
     for(;;){
+		row = Row::make_row(access_desc);
 	    ret = table_space->get_next_row(row);
 	    if (ret == END_OF_TABLE_SPACE){
 		    return NO_MORE_ROWS;
-		}else if (ret != SUCCESS){
+		}
+		else if (ret == NO_MORE_ROWS) {
+			return NO_MORE_ROWS;
+		}
+		else if (ret != SUCCESS){
 			Log(LOG_ERR, "Delete", "get next row error:%s", err_string(ret));
 			return ret;
 		}else{

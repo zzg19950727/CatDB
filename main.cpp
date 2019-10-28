@@ -77,16 +77,19 @@ String fix_length(const String& str)
 	return str + String(size, ' ');
 }
 
-void print_row(const Row_s& row, bool first)
+void print_line(u32 column_count)
 {
-	if (first)
-	{
-		std::cout << "+";
-		for (u32 i = 0; i < 9 * row->get_row_desc().get_column_num() - 1; ++i)
+	std::cout << "+";
+	for (u32 i = 0; i < column_count; ++i) {
+		for (u32 i = 0; i < 8; ++i)
 			std::cout << "-";
 		std::cout << "+";
-		std::cout << std::endl;
 	}
+	std::cout << std::endl;
+}
+
+void print_row(const Row_s& row)
+{
 	std::cout << "| ";
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
 	{
@@ -94,11 +97,6 @@ void print_row(const Row_s& row, bool first)
 		row->get_cell(i, cell);
 		std::cout << fix_length(cell->to_string()) << " | ";
 	}
-	std::cout << std::endl;
-	std::cout << "+";
-	for (u32 i = 0; i < 9 * row->get_row_desc().get_column_num() -1; ++i)
-		std::cout << "-";
-	std::cout << "+";
 	std::cout << std::endl;
 }
 
@@ -110,9 +108,13 @@ void print_table(const String& table_name)
 	bool first = true;
 	while (table->get_next_row(row) == SUCCESS)
 	{
-		print_row(row, first);
+		if(first)
+			print_line(row->get_row_desc().get_column_num());
+		print_row(row);
 		first = false;
 	}
+	if(row)
+		print_line(row->get_row_desc().get_column_num());
 	table->close();
 }
 
@@ -325,7 +327,7 @@ void hash_join_test()
 	Expression_s right_value = ColumnExpression::make_column_expression(col_desc);
 	Expression_s join_condition = BinaryExpression::make_binary_expression(left_value, right_value, ExprStmt::OP_EQ);
 
-	PhyOperator_s join = HashJoin::make_hash_join(left_scan, right_scan, join_condition, join_condition, 1);
+	PhyOperator_s join = HashJoin::make_hash_join(left_scan, right_scan, join_condition, join_condition,1);
 
 	col_desc.set_tid_cid(2, 1);
 	Expression_s sort_col1 = ColumnExpression::make_column_expression(col_desc);
@@ -340,14 +342,7 @@ void hash_join_test()
 	Expression_s distinct_col = ColumnExpression::make_column_expression(col_desc);
 	Vector<Expression_s> distinct_cols;
 	distinct_cols.push_back(distinct_col);
-	PhyOperator_s distinct = HashDistinct::make_hash_distinct(sort, distinct_cols);
-
-	PhyOperator_s limit = Limit::make_limit(distinct, 10);
-
-	col_desc.set_tid_cid(1, 0);
-	Expression_s group_col = ColumnExpression::make_column_expression(col_desc);
-	Expression_s agg_func = AggregateExpression::make_aggregate_expression(group_col, AggrStmt::COUNT);
-	PhyOperator_s group = ScalarGroup::make_scalar_group(limit, agg_func);
+	PhyOperator_s distinct = HashDistinct::make_hash_distinct(sort);
 
 	PhyOperator_s plan = distinct;
 	Timer timer;
@@ -553,10 +548,11 @@ void delete_table(const String& table_name)
 void parser_test()
 {
 	String query;
-	
-	while (1) {
+	u32 n = 100000;
+	while (n--) {
 		std::cout << "CatSQL > ";
 		std::getline(std::cin, query);
+		//query = "insert into t1 values(" + std::to_string(n) + "," + std::to_string(n) + ");";
 		if (query == "quit") {
 			std::cout << "bye" << std::endl;
 			break;
@@ -571,19 +567,11 @@ void parser_test()
 			std::cout << parser.syntax_error() << std::endl;
 		else {
 			Stmt_s result = parser.parse_result();
-			if (result->stmt_type() == Stmt::Select) {
-				SelectStmt* select = dynamic_cast<SelectStmt*>(result.get());
-				ListStmt* table_list = dynamic_cast<ListStmt*>(select->from_stmts.get());
-				TableStmt* table = dynamic_cast<TableStmt*>(table_list->stmt_list[0].get());
-				print_table(table->table_name);
-			}
-			else {
-				Plan_s plan = Plan::make_plan(parser.parse_result());
-				plan->build_plan();
-				plan->execute();
-				u32 affect_rows = plan->affect_rows();
-				std::cout << "affect " << affect_rows << " rows." << std::endl;
-			}
+			Plan_s plan = Plan::make_plan(result);
+			plan->build_plan();
+			plan->execute();
+			u32 affect_rows = plan->affect_rows();
+			std::cout << "affect " << affect_rows << " rows." << std::endl;
 		}
 	}
 }

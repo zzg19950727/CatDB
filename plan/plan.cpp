@@ -1,6 +1,7 @@
 #include "insert_plan.h"
 #include "delete_plan.h"
 #include "update_plan.h"
+#include "select_plan.h"
 #include "plan.h"
 #include "stmt.h"
 #include "object.h"
@@ -29,6 +30,8 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 		return DeletePlan::make_delete_plan(lex_stmt);
 	case Stmt::Update:
 		return UpdatePlan::make_update_plan(lex_stmt);
+	case Stmt::Select:
+		return SelectPlan::make_select_plan(lex_stmt);
 	default:
 		return Plan_s();
 	}

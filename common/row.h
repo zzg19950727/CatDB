@@ -21,14 +21,14 @@ namespace CatDB {
 
 		class RowDesc
 		{
-		private:
-			RowDesc() = delete;
 		public:
+			RowDesc();
 			RowDesc(u32 column_count);
 			u32 get_column_idx(const ColumnDesc& c_desc, u32 &idx) const;
 			u32 get_column_desc(u32 idx, ColumnDesc& c_desc) const;
 			u32 set_column_desc(u32 idx, const ColumnDesc& c_desc);
 			u32 get_column_num() const;
+			u32 add_column_desc(const ColumnDesc& col_desc);
 
 		private:
 			Vector<ColumnDesc> column_desc;
@@ -50,7 +50,7 @@ namespace CatDB {
 			u32 get_row_id()const;
 			void set_alias_table_id(u32 table_id);
 			u32 get_alias_table_id()const;
-			const RowDesc& get_row_desc() const;
+			RowDesc& get_row_desc();
 			void set_row_desc(const RowDesc &row_desc);
 			virtual u32 get_cell(const ColumnDesc& c_desc, Object_s& cell) const;
 			u32 get_cell(u32 idx, Object_s& cell) const;

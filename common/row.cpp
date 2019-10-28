@@ -28,6 +28,11 @@ int ColumnDesc::operator==(const ColumnDesc & other) const
 	return table_id == other.table_id && column_id == other.column_id;
 }
 
+RowDesc::RowDesc()
+	:column_count(0)
+{
+}
+
 RowDesc::RowDesc(u32 column_count)
 	:column_count(column_count),
 	column_desc(column_count)
@@ -70,6 +75,13 @@ u32 RowDesc::set_column_desc(u32 idx, const ColumnDesc & c_desc)
 u32 RowDesc::get_column_num() const
 {
 	return column_count;
+}
+
+u32 RowDesc::add_column_desc(const ColumnDesc & col_desc)
+{
+	column_desc.push_back(col_desc);
+	++column_count;
+	return SUCCESS;
 }
 
 Row::Row(const RowDesc &row_desc)
@@ -146,7 +158,7 @@ u32 Row::get_alias_table_id() const
 	return alias_table_id;
 }
 
-const RowDesc & Row::get_row_desc() const
+RowDesc & Row::get_row_desc()
 {
 	return row_desc;
 }

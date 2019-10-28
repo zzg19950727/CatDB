@@ -17,7 +17,7 @@ namespace CatDB {
 		{
 		private:
 			TableScan() = delete;
-			TableScan(const TableSpace_s& table_space, const Common::RowDesc& desc);
+			TableScan(const TableSpace_s& table_space);
 		public:
 			~TableScan();
 			static PhyOperator_s make_table_scan(const TableSpace_s& table_space,
@@ -36,7 +36,6 @@ namespace CatDB {
 			u32 type() const;
 		private:
 			TableSpace_s table_space;
-			Common::RowDesc desc;
 			Filter_s filter;
 		};
 	}

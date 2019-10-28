@@ -23,13 +23,13 @@ namespace CatDB {
 				const PhyOperator_s& right_child,
 				const Expression_s& equal_cond,
 				const Expression_s& join_cond,
-				u32 build_table_id);
+				u32 probe_table_id);
 			u32 set_equal_condition(const Expression_s& equal_cond);
 			Expression_s get_equal_condition()const;
 			u32 set_join_condition(const Expression_s& join_cond);
 			Expression_s get_join_condition()const;
-			u32 set_build_table_id(u32 table_id);
-			u32 get_table_id()const;
+			void set_probe_table_id(u32 id);
+			u32 get_probe_table_id()const;
 			//物理算子必须提供的接口
 			u32 open();
 			u32 close();
@@ -47,11 +47,11 @@ namespace CatDB {
 			//join condition包含equal condition,equal condition用于hash join
 			Expression_s equal_condition;
 			Expression_s join_condition;
-			u32 build_table_id;
 		private:
 			//hash table state
 			Queue<Row_s> probe_result;
 			Row_s last_probe_row;
+			u32 probe_table_id;
 		};
 	}
 }

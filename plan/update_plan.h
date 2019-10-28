@@ -39,9 +39,11 @@ namespace CatDB {
 			u32 resolve_expr(const Stmt_s& expr_stmt, Expression_s& expr);
 			u32 resolve_update_row(const Stmt_s& asgn_stmt, Row_s& row);
 			u32 resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Object_s& cell);
+			void add_access_column(const ColumnDesc& col_desc);
+		private:
 			String database;
 			String table_name;
-			Row_s row_access;
+			Vector<ColumnDesc> access_columns;
 		};
 	}
 }

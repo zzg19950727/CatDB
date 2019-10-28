@@ -26,10 +26,9 @@ u32 CatDB::Sql::HashDistinct::set_distinct_columns(const Vector<Expression_s>& d
 	return SUCCESS;
 }
 
-PhyOperator_s CatDB::Sql::HashDistinct::make_hash_distinct(PhyOperator_s & child, const Vector<Expression_s>& distinct_cols)
+PhyOperator_s CatDB::Sql::HashDistinct::make_hash_distinct(PhyOperator_s & child)
 {
 	HashDistinct* op = new HashDistinct(child);
-	op->set_distinct_columns(distinct_cols);
 	return PhyOperator_s(op);
 }
 

@@ -34,12 +34,15 @@ u32 TableSpace::get_next_row(Row_s & row)
 {
 	Page_s page;
 	u32 ret = get_page_from_offset(cur_page_offset, page);
-	if (ret != SUCCESS){
+	if (ret == END_OF_TABLE_SPACE) {
+		return ret;
+	}
+	else if (ret != SUCCESS){
 		Log(LOG_ERR, "TableSpace", "can not get page %u, error code:%s", cur_page_offset, err_string(ret));
 		return ret;
 	}
 	//当前页扫描完成
-	if (!page->have_row()){
+	while (!page->have_row()){
 		Page_s last_page;
 		get_last_page(last_page);
 		//最后一页
@@ -52,7 +55,10 @@ u32 TableSpace::get_next_row(Row_s & row)
 		cur_page_offset = page->next_page_offset();
 		//下一页不在内存中
 		ret = get_page_from_offset(cur_page_offset, page);
-		if (ret != SUCCESS){
+		if (ret == END_OF_TABLE_SPACE) {
+			return ret;
+		}
+		else if (ret != SUCCESS){
 			Log(LOG_ERR, "TableSpace", "get page %u failed,%s", cur_page_offset, err_string(ret));
 			return ret;
 		}
@@ -163,7 +169,7 @@ u32 TableSpace::create_table(const String& table_name)
 u32 TableSpace::get_table_id() const
 {
 	Hash<String> hash;
-	return hash(table_name);
+	return hash(database + "." + table_name);
 }
 
 u32 TableSpace::get_page_from_row_id(u32 row_id, Page_s& page)

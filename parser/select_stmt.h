@@ -35,7 +35,7 @@ namespace CatDB {
 			~LimitStmt();
 			StmtType stmt_type()const;
 			static Stmt_s make_limit_stmt(u32 size, u32 offset = 0);
-		private:
+		public:
 			u32 limit_offset;			//limit行偏移
 			u32 limit_size;				//limit行数
 		};

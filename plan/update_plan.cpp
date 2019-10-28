@@ -45,7 +45,8 @@ u32 UpdatePlan::execute()
 	}
 
 	affect_rows_ = 0;
-	while ((ret = root_operator->get_next_row(row_access)) == SUCCESS)
+	Row_s row;
+	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
 		++affect_rows_;
 	}
@@ -95,6 +96,14 @@ u32 UpdatePlan::build_plan()
 		return ret;
 	}
 	root_operator = Update::make_update(table_space, new_row, filter);
+	if (access_columns.size() > 0) {
+		RowDesc row_desc(access_columns.size());
+		for (u32 i = 0; i < access_columns.size(); ++i) {
+			row_desc.set_column_desc(i, access_columns[i]);
+		}
+		root_operator->set_access_desc(row_desc);
+	}
+	
 	return SUCCESS;
 }
 
@@ -158,6 +167,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 			return COLUMN_NOT_EXISTS;
 		}
 		col_desc = checker->get_column_desc(database, table_name, column_stmt->column);
+		add_access_column(col_desc);
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;
 		break;
@@ -167,6 +177,10 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	case ExprStmt::List:
 		Log(LOG_ERR, "UpdatePlan", "list stmt in update`s where stmt not support yet");
+		ret = ERROR_LEX_STMT;
+		break;
+	case ExprStmt::Aggregate:
+		Log(LOG_ERR, "UpdatePlan", "aggregate stmt in update`s where stmt not support");
 		ret = ERROR_LEX_STMT;
 		break;
 	case ExprStmt::Unary:
@@ -308,4 +322,18 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 	col_desc = checker->get_column_desc(database, table_name, column_stmt->column);
 	cell = const_stmt->value;
 	return SUCCESS;
+}
+
+void UpdatePlan::add_access_column(const ColumnDesc & col_desc)
+{
+	bool find = false;
+	for (u32 i = 0; i < access_columns.size(); ++i) {
+		if (access_columns[i] == col_desc) {
+			find = true;
+			break;
+		}
+	}
+	if (!find) {
+		access_columns.push_back(col_desc);
+	}
 }

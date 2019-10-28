@@ -10,10 +10,8 @@ using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Storage;
 
-CatDB::Sql::TableScan::TableScan(const TableSpace_s & table_space
-	, const RowDesc& desc)
-	:table_space(table_space),
-	desc(desc)
+CatDB::Sql::TableScan::TableScan(const TableSpace_s & table_space)
+	:table_space(table_space)
 {
 }
 
@@ -25,15 +23,18 @@ CatDB::Sql::TableScan::~TableScan()
 PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const TableSpace_s & table_space,
 	const RowDesc& desc)
 {
-	return PhyOperator_s(new TableScan(table_space, desc));
+	TableScan* scan = new TableScan(table_space);
+	scan->set_access_desc(desc);
+	return PhyOperator_s(scan);
 }
 
 PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const TableSpace_s & table_space,
 	const RowDesc& desc,
 	const Filter_s & filter)
 {
-	TableScan* scan = new TableScan(table_space, desc);
+	TableScan* scan = new TableScan(table_space);
 	scan->set_filter(filter);
+	scan->set_access_desc(desc);
 	return PhyOperator_s(scan);
 }
 
@@ -73,12 +74,12 @@ u32 CatDB::Sql::TableScan::reopen(const Row_s & row)
 u32 CatDB::Sql::TableScan::get_next_row(Row_s & row)
 {
 	u32 ret;
-	row = Row::make_row(desc);
+	row = Row::make_row(access_desc);
 	
 	for(;;){
 		ret = table_space->get_next_row(row);
 		if (ret == END_OF_TABLE_SPACE){
-			return ret;
+			return NO_MORE_ROWS;
 		}else if (ret != SUCCESS){
 			Log(LOG_ERR, "TableScan", "get next row error:%s", err_string(ret));
 			return ret;

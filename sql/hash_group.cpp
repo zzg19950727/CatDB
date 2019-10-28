@@ -21,24 +21,20 @@ CatDB::Sql::HashGroup::~HashGroup()
 }
 
 PhyOperator_s CatDB::Sql::HashGroup::make_hash_group(PhyOperator_s & child,
-	const Vector<Expression_s>& group_columns,
-	const Expression_s & agg_expr)
+	const Vector<Expression_s>& group_columns)
 {
 	HashGroup* op = new HashGroup(child);
 	op->set_group_columns(group_columns);
-	op->set_agg_expr(agg_expr);
 	op->init_hash_table();
 	return PhyOperator_s(op);
 }
 
 PhyOperator_s CatDB::Sql::HashGroup::make_hash_group(PhyOperator_s & child, 
-	const Vector<Expression_s>& group_columns, 
-	const Expression_s & agg_expr, 
+	const Vector<Expression_s>& group_columns,
 	const Filter_s & filter)
 {
 	HashGroup* op = new HashGroup(child);
 	op->set_group_columns(group_columns);
-	op->set_agg_expr(agg_expr);
 	op->init_hash_table();
 	op->set_filter(filter);
 	return PhyOperator_s(op);
@@ -50,9 +46,9 @@ u32 CatDB::Sql::HashGroup::set_group_columns(const Vector<Expression_s>& expr)
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::HashGroup::set_agg_expr(const Expression_s & expr)
+u32 CatDB::Sql::HashGroup::add_agg_expr(const Expression_s & expr)
 {
-	agg_func_expr = expr;
+	agg_funcs.push_back(expr);
 	return SUCCESS;
 }
 
@@ -60,6 +56,16 @@ u32 CatDB::Sql::HashGroup::set_filter(const Filter_s & filter)
 {
 	this->filter = filter;
 	return SUCCESS;
+}
+
+void CatDB::Sql::HashGroup::set_agg_table_id(u32 id)
+{
+	agg_table_id = id;
+}
+
+u32 CatDB::Sql::HashGroup::get_agg_table_id() const
+{
+	return agg_table_id;
 }
 
 u32 CatDB::Sql::HashGroup::open()
@@ -80,8 +86,7 @@ u32 CatDB::Sql::HashGroup::close()
 
 u32 CatDB::Sql::HashGroup::reset()
 {
-	AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_func_expr.get());
-	agg_func->reset();
+	reset_agg_func();
 	cur_bucket_idx = 0;
 	cur_bucket_pos = 0;
 	out_when_empty_input = false;
@@ -90,8 +95,7 @@ u32 CatDB::Sql::HashGroup::reset()
 
 u32 CatDB::Sql::HashGroup::reopen(const Row_s & row)
 {
-	AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_func_expr.get());
-	agg_func->reset();
+	reset_agg_func();
 	cur_bucket_idx = 0;
 	cur_bucket_pos = 0;
 	out_when_empty_input = false;
@@ -111,9 +115,8 @@ u32 CatDB::Sql::HashGroup::get_next_row(Row_s & row)
 		//如果没有子节点没有任何输入，则输出对应聚合函数结果一次
 		if (hash_table.empty() && !out_when_empty_input){
 			//make row
-			Row_s tmp_null;
-			Object_s result = agg_func_expr->get_result(tmp_null);
-			row = make_row(result);
+			row.reset();
+			row = make_row( row );
 			out_when_empty_input = true;
 			if (filter && !(*filter)(row))
 				return NO_MORE_ROWS;
@@ -122,18 +125,14 @@ u32 CatDB::Sql::HashGroup::get_next_row(Row_s & row)
 		}else{
 			return NO_MORE_ROWS;
 		}
-	}else if (agg_func_expr->get_type() != Expression::Aggregate){
-		Log(LOG_ERR, "HashGroup", "expression must be aggregate function");
-		return ERR_EXPR_TYPE;
 	}
 	const Vector<Row_s>& bucket = hash_table.bucket(cur_bucket_idx);
 	const Row_s& cur_group_row = bucket[cur_bucket_pos];
-	AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_func_expr.get());
-	agg_func->reset();
+	reset_agg_func();
 	for (; cur_bucket_pos < bucket.size(); ++cur_bucket_pos){
 		//是否是同一group
 		if (this->euqal(cur_group_row, bucket[cur_bucket_pos])){
-			agg_func->add_row(bucket[cur_bucket_pos]);
+			add_row_to_agg_func(bucket[cur_bucket_pos]);
 		}else{
 			break;
 		}
@@ -142,9 +141,7 @@ u32 CatDB::Sql::HashGroup::get_next_row(Row_s & row)
 		++cur_bucket_idx;
 		cur_bucket_pos = 0;
 	}
-	Row_s tmp_null;
-	Object_s result = agg_func->get_result(tmp_null);
-	row = make_row(result);
+	row = make_row(cur_group_row);
 	if (filter && !(*filter)(row))
 		return get_next_row(row);
 	else
@@ -194,13 +191,44 @@ bool CatDB::Sql::HashGroup::euqal(const Row_s & lhs, const Row_s & rhs)
 	return true;
 }
 
-Row_s CatDB::Sql::HashGroup::make_row(const Object_s & result)
+void HashGroup::reset_agg_func()
 {
-	RowDesc row_desc(1);
-	ColumnDesc col_desc;
-	col_desc.set_tid_cid(alias_table_id, 0);
-	row_desc.set_column_desc(0, col_desc);
-	Row_s row = Row::make_row(row_desc);
-	row->set_cell(0, result);
-	return row;
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_funcs[i].get());
+		agg_func->reset();
+	}
+}
+
+u32 HashGroup::add_row_to_agg_func(const Row_s & row)
+{
+	u32 ret = SUCCESS;
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_funcs[i].get());
+		ret = agg_func->add_row(row);
+		if (ret != SUCCESS) {
+			break;
+		}
+	}
+	return ret;
+}
+
+Row_s CatDB::Sql::HashGroup::make_row(const Row_s& row)
+{
+	RowDesc row_desc(group_cols.size() + agg_funcs.size());
+	Row_s new_row = Row::make_row(row_desc);
+	u32 i = 0;
+	for (; i < group_cols.size(); ++i) {
+		ColumnExpression* column = dynamic_cast<ColumnExpression*>(group_cols[i].get());
+		new_row->get_row_desc().set_column_desc(i, column->get_column_desc());
+		new_row->set_cell(i, group_cols[i]->get_result(row));
+	}
+	Row_s tmp_null;
+	for (u32 j = 0; j < agg_funcs.size(); ++i, ++j) {
+		ColumnDesc col_desc;
+		col_desc.set_tid_cid(agg_table_id, j);
+		Object_s result = agg_funcs[j]->get_result(tmp_null);
+		new_row->get_row_desc().set_column_desc(i, col_desc);
+		new_row->set_cell(i, result);
+	}
+	return new_row;
 }

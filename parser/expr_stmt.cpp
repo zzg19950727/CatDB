@@ -63,6 +63,11 @@ Stmt_s CatDB::Parser::ColumnStmt::make_all_column_stmt()
 	return Stmt_s(stmt);
 }
 
+bool ColumnStmt::is_all_column() const
+{
+	return column == "*";
+}
+
 TableStmt::TableStmt()
 {
 }

@@ -261,6 +261,7 @@ static int vprint(const char *fmt, va_list ap)
 
 		switch (*fmt) {
 		case 'd': out_int(va_arg(ap, int), 10, lead, maxwidth); break;
+		case 'f': out_int(va_arg(ap, double), 10, lead, maxwidth); break;
 		case 'l': out_int(va_arg(ap, int), 10, lead, maxwidth); break;
 		case 'o': out_unsigned_int(va_arg(ap, unsigned int), 8, lead, maxwidth); break;
 		case 'u': out_unsigned_int(va_arg(ap, unsigned int), 10, lead, maxwidth); break;

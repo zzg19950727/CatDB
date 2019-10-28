@@ -20,12 +20,12 @@ PhyOperator_s CatDB::Sql::HashJoin::make_hash_join(const PhyOperator_s & left_ch
 	const PhyOperator_s & right_child,
 	const Expression_s& equal_cond,
 	const Expression_s& join_cond,
-	u32 build_table_id)
+	u32 probe_table_id)
 {
 	HashJoin* op = new HashJoin(left_child, right_child);
 	op->set_equal_condition(equal_cond);
 	op->set_join_condition(join_cond);
-	op->set_build_table_id(build_table_id);
+	op->set_probe_table_id(probe_table_id);
 	op->init_hash_table();
 	return PhyOperator_s(op);
 }
@@ -52,15 +52,14 @@ Expression_s CatDB::Sql::HashJoin::get_join_condition() const
 	return join_condition;
 }
 
-u32 CatDB::Sql::HashJoin::set_build_table_id(u32 table_id)
+void CatDB::Sql::HashJoin::set_probe_table_id(u32 id)
 {
-	build_table_id = table_id;
-	return SUCCESS;
+	probe_table_id = id;
 }
 
-u32 CatDB::Sql::HashJoin::get_table_id() const
+u32 CatDB::Sql::HashJoin::get_probe_table_id() const
 {
-	return u32();
+	return probe_table_id;
 }
 
 u32 CatDB::Sql::HashJoin::open()
@@ -168,7 +167,7 @@ u32 CatDB::Sql::HashJoin::init_hash_table()
 			const ColumnDesc& desc = col_expr->get_column_desc();
 			u32 table_id, column_id;
 			desc.get_tid_cid(table_id, column_id);
-			if (table_id == build_table_id)
+			if (table_id != probe_table_id)
 				hash_table.add_hash_column(expr);
 			else
 				hash_table.add_probe_column(expr);

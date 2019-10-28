@@ -88,6 +88,7 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_column_stmt(const String& table, const String& column);
 			static Stmt_s make_all_column_stmt();
+			bool is_all_column()const;
 		public:
 			String table;	//所属表
 			String column;	//列名

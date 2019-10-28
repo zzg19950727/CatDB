@@ -24,15 +24,15 @@ namespace CatDB {
 		public:
 			~HashGroup();
 			static PhyOperator_s make_hash_group(PhyOperator_s& child, 
-				const Vector<Expression_s>& group_columns,
-				const Expression_s& agg_expr);
+				const Vector<Expression_s>& group_columns);
 			static PhyOperator_s make_hash_group(PhyOperator_s& child,
 				const Vector<Expression_s>& group_columns,
-				const Expression_s& agg_expr,
 				const Filter_s& filter);
 			u32 set_group_columns(const Vector<Expression_s>& expr);
-			u32 set_agg_expr(const Expression_s& expr);
+			u32 add_agg_expr(const Expression_s& expr);
 			u32 set_filter(const Filter_s& filter);
+			void set_agg_table_id(u32 id);
+			u32 get_agg_table_id()const;
 
 			//物理算子必须提供的接口
 			u32 open();
@@ -46,15 +46,16 @@ namespace CatDB {
 			u32 init_hash_table();
 			u32 build_hash_table();
 			bool euqal(const Row_s& lhs, const Row_s& rhs);
-			Row_s make_row(const Object_s& result);
-
+			void reset_agg_func();
+			u32 add_row_to_agg_func(const Row_s& row);
+			Row_s make_row(const Row_s& row);
+		private:
 			Common::HashTable hash_table;
 			Vector<Expression_s> group_cols;
-			Expression_s agg_func_expr;
+			Vector<Expression_s> agg_funcs;
 			Filter_s filter;
-
-			u32 alias_table_id;
-
+			//用于生成聚合函数所在的列
+			u32 agg_table_id;
 			//当前集合函数计算状态
 			u32 cur_bucket_idx;
 			u32 cur_bucket_pos;

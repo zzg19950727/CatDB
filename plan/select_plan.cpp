@@ -7,12 +7,16 @@
 #include "filter.h"
 #include "object.h"
 #include "table_scan.h"
+#include "nested_loop_join.h"
+#include "plan_filter.h"
+#include "hash_join.h"
 #include "hash_distinct.h"
 #include "hash_group.h"
 #include "hash_set.h"
 #include "scalar_group.h"
 #include "table_space.h"
 #include "hash_join.h"
+#include "query.h"
 #include "limit.h"
 #include "sort.h"
 #include "stmt.h"
@@ -26,6 +30,8 @@ using namespace CatDB::Parser;
 using namespace CatDB::Storage;
 
 SelectPlan::SelectPlan()
+	:resolve_select_list_or_having(0),
+	alias_table_id(0)
 {
 
 }
@@ -41,6 +47,38 @@ Plan_s SelectPlan::make_select_plan(const Stmt_s& lex_insert_stmt)
 	plan->set_lex_stmt(lex_insert_stmt);
 	return Plan_s(plan);
 }
+
+//for debug
+#include <iostream>
+String fix_length2(const String& str)
+{
+	u32 size = 6 - str.size();
+	return str + String(size, ' ');
+}
+
+void print_line2(u32 column_count)
+{
+	std::cout << "+";
+	for (u32 i = 0; i < column_count; ++i) {
+		for (u32 i = 0; i < 8; ++i)
+			std::cout << "-";
+		std::cout << "+";
+	}
+	std::cout << std::endl;
+}
+
+void print_row2(const Row_s& row)
+{
+	std::cout << "| ";
+	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
+	{
+		Object_s cell;
+		row->get_cell(i, cell);
+		std::cout << fix_length2(cell->to_string()) << " | ";
+	}
+	std::cout << std::endl;
+}
+
 u32 SelectPlan::execute()
 {
 	if (!root_operator) {
@@ -57,6 +95,7 @@ u32 SelectPlan::execute()
 	Row_s row;
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
+		print_row2(row);
 		//save row to result
 		++affect_rows_;
 	}
@@ -89,12 +128,82 @@ u32 SelectPlan::build_plan()
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	SelectStmt* lex = dynamic_cast<SelectStmt*>(lex_stmt.get());
+	is_distinct = lex->is_distinct;
+	asc = lex->asc_desc;
+	if (lex->limit_stmt)
+		have_limit = true;
+	else
+		have_limit = false;
 	u32 ret = get_ref_tables(lex->from_stmts);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
 		return ret;
 	}
-	
+	ret = resolve_select_list(lex->select_expr_list);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
+		return ret;
+	}
+	ret = resolve_where_stmt(lex->where_stmt);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
+		return ret;
+	}
+	ret = resolve_group_stmt(lex->group_columns);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
+		return ret;
+	}
+	ret = resolve_having_stmt(lex->having_stmt);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
+		return ret;
+	}
+	ret = resolve_sort_stmt(lex->order_columns);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
+		return ret;
+	}
+	ret = resolve_limit_stmt(lex->limit_stmt);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
+		return ret;
+	}
+	ret = make_access_row_desc();
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
+		return ret;
+	}
+	ret = choos_best_join_order();
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "choose best join order failed");
+		return ret;
+	}
+	ret = make_join_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make join plan failed");
+		return ret;
+	}
+	ret = make_group_pan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make group plan failed");
+		return ret;
+	}
+	ret = make_sort_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
+		return ret;
+	}
+	ret = make_query_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
+		return ret;
+	}
+	ret = make_limit_and_distinct_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make limit and distinct plan failed");
+		return ret;
+	}
 	return SUCCESS;
 }
 
@@ -109,11 +218,24 @@ Plan::PlanType SelectPlan::type() const
 	return Plan::SELECT;
 }
 
+void SelectPlan::set_alias_table_id(u32 id)
+{
+	alias_table_id = id;
+}
+
+u32 SelectPlan::get_alias_table_id() const
+{
+	return alias_table_id;
+}
+
 /*
  * 解析where子句块，切分成and连接的谓词分析
  */
 u32 SelectPlan::resolve_where_stmt(const Stmt_s& where_stmt)
 {
+	if (!where_stmt) {
+		return SUCCESS;
+	}
 	if (where_stmt->stmt_type() != Stmt::Expr) {
 		return ERROR_LEX_STMT;
 	}
@@ -180,6 +302,7 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 					}
 					add_join_equal_cond(JoinableTables(first_table, second_table), expr);
 					add_join_cond(JoinableTables(first_table, second_table), expr);
+					return SUCCESS;
 				}
 				else {
 					Expression_s expr;
@@ -188,10 +311,12 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 						return ret;
 					}
 					add_join_cond(JoinableTables(first_table, second_table), expr);
+					return SUCCESS;
 				}
 			}
 		}
 	}
+
 	//检查是否是单张表的过滤谓词
 	Expression_s expr;
 	u32 ret = resolve_expr(stmt, expr);
@@ -237,12 +362,13 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
 	Expression_s first_expr, second_expr, third_expr;
-	ConstStmt* const_stmt;
-	ColumnStmt* column_stmt;
+	ConstStmt* const_stmt = nullptr;
+	ColumnStmt* column_stmt = nullptr;
 	ColumnDesc col_desc;
-	UnaryExprStmt* unary_stmt;
-	BinaryExprStmt* binary_stmt;
-	TernaryExprStmt* ternary_stmt;
+	AggrStmt* agg_stmt = nullptr;
+	UnaryExprStmt* unary_stmt = nullptr;
+	BinaryExprStmt* binary_stmt = nullptr;
+	TernaryExprStmt* ternary_stmt = nullptr;
 	u32 ret;
 
 	switch (expr_stmt->expr_stmt_type())
@@ -254,12 +380,21 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	case ExprStmt::Column:
 		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
-		ret = resolve_column_desc(column_stmt, col_desc);
-		if (ret != SUCCESS) {
-			break;
+		if (!resolve_select_list_or_having && column_stmt->is_all_column()) {
+			Log(LOG_ERR, "SelectPlan", "* can only exists in select list or count(*)");
+			return ERROR_LEX_STMT;
 		}
-		expr = ColumnExpression::make_column_expression(col_desc);
-		ret = SUCCESS;
+		else if (column_stmt->is_all_column()) {
+			return HAVE_ALL_COLUMN_STMT;
+		}
+		else {
+			ret = resolve_column_desc(column_stmt, col_desc);
+			if (ret != SUCCESS) {
+				break;
+			}
+			expr = ColumnExpression::make_column_expression(col_desc);
+			ret = SUCCESS;
+		}
 		break;
 	case ExprStmt::Query:
 		Log(LOG_ERR, "SelectPlan", "subquery in select`s where stmt not support yet");
@@ -268,6 +403,37 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	case ExprStmt::List:
 		Log(LOG_ERR, "SelectPlan", "list stmt in select`s where stmt not support yet");
 		ret = ERROR_LEX_STMT;
+		break;
+	case ExprStmt::Aggregate:
+		if (!resolve_select_list_or_having) {
+			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
+			return ERROR_LEX_STMT;
+		}
+		
+		agg_stmt = dynamic_cast<AggrStmt*>(expr_stmt);
+		ret = resolve_expr(agg_stmt->aggr_expr, expr);
+		if (ret == HAVE_ALL_COLUMN_STMT) {
+			if (agg_stmt->aggr_func != AggrStmt::COUNT) {
+				Log(LOG_ERR, "SelectPlan", "only count aggregation can have * expression");
+				return ERROR_LEX_STMT;
+			}
+			else {
+				ret = resolve_all_column_in_count_agg(agg_stmt->aggr_expr, expr);
+				if (ret != SUCCESS) {
+					return ret;
+				}
+			}
+		}
+		else if (ret != SUCCESS) {
+			return ret;
+		}
+		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func);
+		aggr_exprs.push_back(expr);
+		//为了统一表达式计算框架把聚合表达式替换成group算子输出列描述，因为聚合函数本身由group算子计算
+		
+		col_desc.set_tid_cid(alias_table_id, aggr_exprs.size() - 1);
+		expr = ColumnExpression::make_column_expression(col_desc);
+		ret = SUCCESS;
 		break;
 	case ExprStmt::Unary:
 		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
@@ -321,6 +487,103 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	}
 	return ret;
 }
+u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
+{
+	if (stmt->stmt_type() != Stmt::Expr) {
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
+		return ERROR_LEX_STMT;
+	}
+	ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+	if (column_stmt->table == "*") {
+		SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+		assert(checker);
+		for (u32 i = 0; i < table_list.size(); ++i) {
+			TableStmt* table = table_list[i];
+			RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+			for (u32 j = 0; j < row_desc.get_column_num(); ++j) {
+				ColumnDesc col_desc;
+				row_desc.get_column_desc(j, col_desc);
+				u32 tid, cid;
+				col_desc.get_tid_cid(tid, cid);
+				tid = checker->get_table_id(table->database, table->alias_name);
+				col_desc.set_tid_cid(tid, cid);
+				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+				select_list.push_back(expr);
+				add_access_column(table, col_desc);
+			}
+		}
+	}
+	else {
+		TableStmt* table = nullptr;
+		u32 ret = find_table(column_stmt->table, table);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+		assert(checker);
+		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
+			ColumnDesc col_desc;
+			row_desc.get_column_desc(i, col_desc);
+			u32 tid, cid;
+			col_desc.get_tid_cid(tid, cid);
+			tid = checker->get_table_id(table->database, table->alias_name);
+			col_desc.set_tid_cid(tid, cid);
+			Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+			select_list.push_back(expr);
+			add_access_column(table, col_desc);
+		}
+	}
+	return SUCCESS;
+}
+u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_s& expr)
+{
+	if (stmt->stmt_type() != Stmt::Expr) {
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
+		return ERROR_LEX_STMT;
+	}
+	ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	if (column_stmt->table == "*") {
+		assert(table_list.size());
+		TableStmt* table = table_list[0];
+		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		assert(row_desc.get_column_num());
+		ColumnDesc col_desc;
+		row_desc.get_column_desc(0, col_desc);
+		u32 tid, cid;
+		col_desc.get_tid_cid(tid, cid);
+		tid = checker->get_table_id(table->database, table->alias_name);
+		col_desc.set_tid_cid(tid, cid);
+		expr = ColumnExpression::make_column_expression(col_desc);
+		add_access_column(table, col_desc);
+	}
+	else {
+		TableStmt* table = nullptr;
+		u32 ret = find_table(column_stmt->table, table);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		assert(row_desc.get_column_num());
+		ColumnDesc col_desc;
+		row_desc.get_column_desc(0, col_desc);
+		u32 tid, cid;
+		col_desc.get_tid_cid(tid, cid);
+		tid = checker->get_table_id(table->database, table->alias_name);
+		col_desc.set_tid_cid(tid, cid);
+		expr = ColumnExpression::make_column_expression(col_desc);
+		add_access_column(table, col_desc);
+	}
+	return SUCCESS;
+}
 /*
  * 当前谓词语句块是否是基表过滤谓词：
  * 如果谓词中只出现了一张表的列或者都是常量，
@@ -341,9 +604,6 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 
 	switch (expr_stmt->expr_stmt_type())
 	{
-	case ExprStmt::Const:
-		ret = true;
-		break;
 	case ExprStmt::Column:
 		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		//在此之前没有出现过列相关谓词
@@ -368,12 +628,6 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 				ret = true;
 			}
 		}
-		break;
-	case ExprStmt::Query:
-		ret = false;
-		break;
-	case ExprStmt::List:
-		ret = false;
 		break;
 	case ExprStmt::Unary:
 		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
@@ -424,6 +678,11 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 		return ret;
 	}
 	col_desc = checker->get_column_desc(table->database, table->table_name, column_stmt->column);
+	u32 tid, cid;
+	col_desc.get_tid_cid(tid, cid);
+	tid = checker->get_table_id(table->database, table->alias_name);
+	col_desc.set_tid_cid(tid, cid);
+	add_access_column(table, col_desc);
 	return SUCCESS;
 }
 
@@ -519,7 +778,14 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 			return ERROR_LEX_STMT;
 		}
 		TableStmt* table = dynamic_cast<TableStmt*>(expr_stmt);
-		table_list.push_back(table);
+		TableStmt* exist_table = nullptr;
+		if (find_table(table->alias_name, exist_table) == SUCCESS) {
+			Log(LOG_ERR, "SelectPlan", "same alias table %s in from list", table->alias_name.c_str());
+			return NOT_UNIQUE_TABLE;
+		}
+		else {
+			table_list.push_back(table);
+		}
 	}
 	return SUCCESS;
 }
@@ -529,7 +795,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 u32 SelectPlan::search_jon_info(const JoinableTables & join_tables, JoinConditions & join_cond)
 {
 	u32 ret = JOIN_TABLES_NOT_EXISTS;
-	for (auto iter = join_info.cbegin(); iter != join_info.cend(); ++iter) {
+	for (auto iter = join_info.begin(); iter != join_info.end(); ++iter) {
 		if (iter->first.first->alias_name == join_tables.first->alias_name
 			&& iter->first.second->alias_name == join_tables.second->alias_name) {
 			join_cond = iter->second;
@@ -545,15 +811,34 @@ u32 SelectPlan::search_jon_info(const JoinableTables & join_tables, JoinConditio
 	}
 	return ret;
 }
+u32 SelectPlan::search_jon_info(const JoinableTables & join_tables, JoinConditions *& join_cond)
+{
+	u32 ret = JOIN_TABLES_NOT_EXISTS;
+	for (auto iter = join_info.begin(); iter != join_info.end(); ++iter) {
+		if (iter->first.first->alias_name == join_tables.first->alias_name
+			&& iter->first.second->alias_name == join_tables.second->alias_name) {
+			join_cond = &(iter->second);
+			ret = SUCCESS;
+			break;
+		}
+		else if (iter->first.second->alias_name == join_tables.first->alias_name
+			&& iter->first.first->alias_name == join_tables.second->alias_name) {
+			join_cond = &(iter->second);
+			ret = SUCCESS;
+			break;
+		}
+	}
+	return ret;
+}
 /*
  * 添加指定两张表的连接谓词
  */
 u32 SelectPlan::add_join_cond(const JoinableTables & join_tables, const Expression_s & expr)
 {
-	JoinConditions join_cond;
+	JoinConditions* join_cond = nullptr;
 	u32 ret = search_jon_info(join_tables, join_cond);
 	if (ret == SUCCESS) {
-		make_and_expression(join_cond.first, expr);
+		make_and_expression(join_cond->first, expr);
 	}
 	else {
 		join_info[join_tables] = JoinConditions(expr, Expression_s());
@@ -565,10 +850,10 @@ u32 SelectPlan::add_join_cond(const JoinableTables & join_tables, const Expressi
  */
 u32 SelectPlan::add_join_equal_cond(const JoinableTables & join_tables, const Expression_s & expr)
 {
-	JoinConditions join_cond;
+	JoinConditions* join_cond = nullptr;
 	u32 ret = search_jon_info(join_tables, join_cond);
 	if (ret == SUCCESS) {
-		make_and_expression(join_cond.second, expr);
+		make_and_expression(join_cond->second, expr);
 	}
 	else {
 		join_info[join_tables] = JoinConditions(Expression_s(), expr);
@@ -611,5 +896,318 @@ u32 SelectPlan::make_and_expression(Expression_s & expr, const Expression_s & ot
 
 u32 SelectPlan::choos_best_join_order()
 {
+	//TODO
+	return SUCCESS;
+}
+
+u32 SelectPlan::resolve_group_stmt(const Stmt_s & group_stmt)
+{
+	if (!group_stmt) {
+		return SUCCESS;
+	}
+	else if (group_stmt->stmt_type() != Stmt::Expr) {
+		Log(LOG_ERR, "SelectPlan", "error stmt for sort columns");
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(group_stmt.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::List) {
+		return ERROR_LEX_STMT;
+	}
+	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
+	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
+		if (list_stmt->stmt_list[i]->stmt_type() != Stmt::Expr) {
+			return ERROR_LEX_STMT;
+		}
+		ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
+		if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
+			return ERROR_LEX_STMT;
+		}
+		Expression_s column;
+		u32 ret = resolve_expr(list_stmt->stmt_list[i], column);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		group_cols.push_back(column);
+	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::resolve_having_stmt(const Stmt_s & having_stmt)
+{
+	if (!having_stmt) {
+		return SUCCESS;
+	}
+	resolve_select_list_or_having = 1;
+	u32 ret = resolve_expr(having_stmt, having_filter);
+	resolve_select_list_or_having = 0;
+	return ret;
+}
+
+u32 SelectPlan::resolve_limit_stmt(const Stmt_s& limit_stmt)
+{
+	if (!limit_stmt) {
+		return SUCCESS;
+	}
+	else if (limit_stmt->stmt_type() != Stmt::Limit) {
+		Log(LOG_ERR, "SelectPlan", "error stmt for limit");
+		return ERROR_LEX_STMT;
+	}
+	LimitStmt* limit = dynamic_cast<LimitStmt*>(limit_stmt.get());
+	limit_offset = limit->limit_offset;
+	limit_size = limit->limit_size;
+	return SUCCESS;
+}
+
+u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
+{
+	if (!sort_stmt) {
+		return SUCCESS;
+	}
+	else if (sort_stmt->stmt_type() != Stmt::Expr) {
+		Log(LOG_ERR, "SelectPlan", "error stmt for sort columns");
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(sort_stmt.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::List) {
+		return ERROR_LEX_STMT;
+	}
+	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
+	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
+		if (list_stmt->stmt_list[i]->stmt_type() != Stmt::Expr) {
+			return ERROR_LEX_STMT;
+		}
+		ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
+		if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
+			return ERROR_LEX_STMT;
+		}
+		Expression_s column;
+		u32 ret = resolve_expr(list_stmt->stmt_list[i], column);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		sort_cols.push_back(column);
+	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
+{
+	if (!select_list) {
+		Log(LOG_ERR, "SelectPlan", "select list can not be empty");
+		return ERROR_LEX_STMT;
+	}
+	else if (select_list->stmt_type() != Stmt::Expr) {
+		Log(LOG_ERR, "SelectPlan", "error stmt for select columns");
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(select_list.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::List) {
+		return ERROR_LEX_STMT;
+	}
+	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
+	resolve_select_list_or_having = 2;
+	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
+		Expression_s expr;
+		u32 ret = resolve_expr(list_stmt->stmt_list[i], expr);
+		if (ret == HAVE_ALL_COLUMN_STMT) {
+			ret = resolve_all_column_in_select_list(list_stmt->stmt_list[i]);
+			if (ret != SUCCESS) {
+				break;
+			}
+		}
+		else if (ret != SUCCESS) {
+			break;
+		}
+		else {
+			this->select_list.push_back(expr);
+		}
+	}
+	resolve_select_list_or_having = 0;
+	return SUCCESS;
+}
+
+u32 SelectPlan::add_access_column(TableStmt* table, const ColumnDesc& col_desc)
+{
+	if (table_access_column.find(table) == table_access_column.cend()) {
+		Vector<ColumnDesc> access_columns;
+		access_columns.push_back(col_desc);
+		table_access_column[table] = access_columns;
+	}
+	else {
+		bool find = false;
+		Vector<ColumnDesc>& access_columns = table_access_column[table];
+		for (u32 i = 0; i <access_columns.size(); ++i) {
+			if (access_columns[i] == col_desc) {
+				find = true;
+				break;
+			}
+		}
+		if (!find) {
+			access_columns.push_back(col_desc);
+		}
+	}
+	return SUCCESS;
+}
+
+/*
+ * 为每一张需要访问的表建立访问行描述
+ * 即需要访问哪些列
+ */
+u32 SelectPlan::make_access_row_desc()
+{
+	u32 size = table_list.size();
+	for (u32 i = 0; i < size; ++i) {
+		if (table_access_column.find(table_list[i]) != table_access_column.cend())  {
+			const Vector<ColumnDesc>& access_columns = table_access_column[table_list[i]];
+			RowDesc row_desc(access_columns.size());
+			for (u32 j = 0; j < access_columns.size(); ++j) {
+				row_desc.set_column_desc(j, access_columns[j]);
+			}
+			table_access_row_desc[table_list[i]] = row_desc;
+		}
+		else {
+			table_access_row_desc[table_list[i]] = RowDesc();
+		}
+	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::make_join_plan(PhyOperator_s & op)
+{
+	if (table_list.size() == 0) {
+		Log(LOG_ERR, "SelectPlan", "from list must have more than one table");
+		return NO_TABLE_FOR_SELECT;
+	}
+	else if (table_list.size() == 1) {
+		return make_table_scan(table_list[0], op);
+	}
+	else {
+		PhyOperator_s left_root_operator;
+		u32 ret = make_table_scan(table_list[0], left_root_operator);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		//为table list中每一张表生成join计划
+		for (u32 i = 1; i < table_list.size(); ++i) {
+			TableStmt* right_table = table_list[i];
+			Expression_s join_cond, join_equal_cond;
+			//搜索当前表与已生成计划的表是否有连接条件
+			for (u32 j = 0; j < i; ++j) {
+				TableStmt* left_table = table_list[j];
+				JoinableTables joinable_table(left_table, right_table);
+				JoinConditions condition;
+				u32 ret = search_jon_info(joinable_table, condition);
+				//两张表没有join条件
+				if (ret != SUCCESS) {
+					continue;
+				}
+				//合并连接条件
+				make_and_expression(join_cond, condition.first);
+				make_and_expression(join_equal_cond, condition.second);
+			}
+			PhyOperator_s right_op;
+			u32 ret = make_table_scan(right_table, right_op);
+			if (ret != SUCCESS) {
+				Log(LOG_ERR, "SelectPlan","make table scan for table failed");
+				return ret;
+			}
+			//没有等值连接条件的连接只能选择nested loop算法
+			if (!join_equal_cond) {
+				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
+			}
+			else {
+				SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+				assert(checker);
+				u32 id = checker->get_table_id(right_table->database, right_table->table_name);
+				left_root_operator = HashJoin::make_hash_join(left_root_operator, 
+					right_op, join_equal_cond, join_cond, id);
+			}
+		}
+		if (filter_after_join) {
+			Filter_s filter = Filter::make_filter(filter_after_join);
+			left_root_operator = PlanFilter::make_plan_filter(left_root_operator, filter);
+		}
+		op = left_root_operator;
+		return SUCCESS;
+	}
+}
+
+u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
+{
+	TableSpace_s table_space = TableSpace::make_table_space(table->table_name, table->database);
+	assert(table_space);
+	Filter_s filter;
+	if (table_filters.find(table) != table_filters.cend()) {
+		filter = Filter::make_filter(table_filters[table]);
+	}
+	op = TableScan::make_table_scan(table_space, table_access_row_desc[table], filter);
+	return SUCCESS;
+}
+
+u32 CatDB::Sql::SelectPlan::make_group_pan(PhyOperator_s & op)
+{
+	//scalar group by
+	if (group_cols.size() == 0) {
+		//没有任何需要计算的聚合函数
+		if (aggr_exprs.size() == 0) {
+			//不需要聚合算子
+			if (having_filter) {
+				Log(LOG_ERR, "SelectPlan", "can not have having filter when there is no group operation");
+				return HAVING_ERROR;
+			}
+			else {
+				return SUCCESS;
+			}
+		}
+		else {
+			Filter_s filter = Filter::make_filter(having_filter);
+			op = ScalarGroup::make_scalar_group(op, filter);
+			ScalarGroup* scalar_group = dynamic_cast<ScalarGroup*>(op.get());
+			for (u32 i = 0; i < aggr_exprs.size(); ++i) {
+				scalar_group->add_agg_expr(aggr_exprs[i]);
+			}
+			scalar_group->set_alias_table_id(alias_table_id);
+			return SUCCESS;
+		}
+	}
+	else {
+		Filter_s filter = Filter::make_filter(having_filter);
+		op = HashGroup::make_hash_group(op, group_cols, filter);
+		HashGroup* hash_group = dynamic_cast<HashGroup*>(op.get());
+		for (u32 i = 0; i < aggr_exprs.size(); ++i) {
+			hash_group->add_agg_expr(aggr_exprs[i]);
+		}
+		hash_group->set_agg_table_id(alias_table_id);
+		return SUCCESS;
+	}
+}
+
+u32 CatDB::Sql::SelectPlan::make_sort_plan(PhyOperator_s & op)
+{
+	if (sort_cols.size() == 0) {
+		return SUCCESS;
+	}
+	else {
+		op = Sort::make_sort(op, sort_cols, asc);
+		return SUCCESS;
+	}
+}
+
+u32 CatDB::Sql::SelectPlan::make_query_plan(PhyOperator_s & op)
+{
+	op = Query::make_query(op, select_list);
+	Query* query = dynamic_cast<Query*>(op.get());
+	query->set_alias_table_id(alias_table_id);
+	return SUCCESS;
+}
+
+u32 CatDB::Sql::SelectPlan::make_limit_and_distinct_plan(PhyOperator_s & op)
+{
+	if (is_distinct) {
+		op = HashDistinct::make_hash_distinct(op);
+	}
+	if (have_limit) {
+		op = Limit::make_limit(op, limit_size, limit_offset);
+	}
 	return SUCCESS;
 }

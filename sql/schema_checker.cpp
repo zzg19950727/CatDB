@@ -11,7 +11,7 @@ SchemaChecker_s SchemaChecker::make_schema_checker()
 u32 SchemaChecker::get_table_id(const String& database, const String& table_name)
 {
 	Hash<String> hash_func;
-	return hash_func(table_name);
+	return hash_func(database +"."+table_name);
 }
 
 RowDesc SchemaChecker::get_row_desc(const String& database, const String& table_name)

@@ -20,7 +20,7 @@ namespace CatDB {
 		public:
 			~HashDistinct();
 			u32 set_distinct_columns(const Vector<Expression_s>& distinct_cols);
-			static PhyOperator_s make_hash_distinct(PhyOperator_s& child, const Vector<Expression_s>& distinct_cols);
+			static PhyOperator_s make_hash_distinct(PhyOperator_s& child);
 
 			//物理算子必须提供的接口
 			u32 open();

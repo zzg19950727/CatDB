@@ -17,28 +17,35 @@ CatDB::Sql::ScalarGroup::~ScalarGroup()
 {
 }
 
-PhyOperator_s CatDB::Sql::ScalarGroup::make_scalar_group(PhyOperator_s & child, 
-	const Expression_s& agg_expr)
+PhyOperator_s CatDB::Sql::ScalarGroup::make_scalar_group(PhyOperator_s & child)
 {
 	ScalarGroup* op = new ScalarGroup(child);
-	op->set_agg_expr(agg_expr);
 	return PhyOperator_s(op);
 }
 
-PhyOperator_s CatDB::Sql::ScalarGroup::make_scalar_group(PhyOperator_s & child, 
-	const Expression_s & agg_expr, 
+PhyOperator_s CatDB::Sql::ScalarGroup::make_scalar_group(PhyOperator_s & child,
 	const Filter_s & filter)
 {
 	ScalarGroup* op = new ScalarGroup(child);
-	op->set_agg_expr(agg_expr);
 	op->set_filter(filter);
 	return PhyOperator_s(op);
 }
 
-u32 CatDB::Sql::ScalarGroup::set_agg_expr(const Expression_s & expr)
+u32 CatDB::Sql::ScalarGroup::add_agg_expr(const Expression_s & expr)
 {
-	agg_func_expr = expr;
+	agg_funcs.push_back(expr);
 	return SUCCESS;
+}
+
+u32 CatDB::Sql::ScalarGroup::set_alias_table_id(u32 id)
+{
+	alias_table_id = id;
+	return SUCCESS;
+}
+
+u32 CatDB::Sql::ScalarGroup::get_alias_table_id() const
+{
+	return alias_table_id;
 }
 
 u32 CatDB::Sql::ScalarGroup::open()
@@ -71,6 +78,7 @@ u32 CatDB::Sql::ScalarGroup::reopen(const Row_s & row)
 	}else {
 		if (filter)
 			filter->reset(row);
+		reset_agg_func();
 		return calc_aggregate();
 	}
 }
@@ -78,7 +86,7 @@ u32 CatDB::Sql::ScalarGroup::reopen(const Row_s & row)
 u32 CatDB::Sql::ScalarGroup::get_next_row(Row_s & row)
 {
 	if (result){
-		row = make_row(result);
+		row = result;
 		if (filter && !(*filter)(row))
 			return NO_MORE_ROWS;
 		result.reset();
@@ -98,26 +106,48 @@ void CatDB::Sql::ScalarGroup::set_filter(const Filter_s & filter)
 	this->filter = filter;
 }
 
-Row_s CatDB::Sql::ScalarGroup::make_row(const Object_s & result)
-{
-	RowDesc row_desc(1);
-	ColumnDesc col_desc;
-	col_desc.set_tid_cid(alias_table_id, 0);
-	row_desc.set_column_desc(0, col_desc);
-	Row_s row = Row::make_row(row_desc);
-	row->set_cell(0, result);
-	return row;
-}
-
 u32 CatDB::Sql::ScalarGroup::calc_aggregate()
 {
 	Row_s row;
-	AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_func_expr.get());
-	agg_func->reset();
 	while (child->get_next_row(row) == SUCCESS){
-		agg_func->add_row(row);
+		add_row_to_agg_func(row);
 	}
-	Row_s tmp_null;
-	result = agg_func->get_result(tmp_null);
+	result = make_row();
 	return SUCCESS;
+}
+
+void CatDB::Sql::ScalarGroup::reset_agg_func()
+{
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_funcs[i].get());
+		agg_func->reset();
+	}
+}
+
+u32 CatDB::Sql::ScalarGroup::add_row_to_agg_func(const Row_s & row)
+{
+	u32 ret = SUCCESS;
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		AggregateExpression* agg_func = dynamic_cast<AggregateExpression*>(agg_funcs[i].get());
+		ret = agg_func->add_row(row);
+		if (ret != SUCCESS) {
+			break;
+		}
+	}
+	return ret;
+}
+
+Row_s CatDB::Sql::ScalarGroup::make_row()
+{
+	RowDesc row_desc(agg_funcs.size());
+	Row_s row = Row::make_row(row_desc);
+	Row_s tmp_null;
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		ColumnDesc col_desc;
+		col_desc.set_tid_cid(alias_table_id, i);
+		Object_s result = agg_funcs[i]->get_result(tmp_null);
+		row->get_row_desc().set_column_desc(i, col_desc);
+		row->set_cell(i, result);
+	}
+	return row;
 }
