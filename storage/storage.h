@@ -3,24 +3,49 @@
 #include "type.h"
 
 namespace CatDB {
-	namespace Common {
-		DECLARE(Row);
-	}
 	namespace Storage {
-		using Common::Row_s;
+		DECLARE(Page);
+		DECLARE(PageManager);
+
+		class PageManager
+		{
+		public:
+			PageManager(const String& database, const String& table_name);
+			~PageManager();
+
+			u32 get_page_from_row_id(u32 row_id, Page_s& page);
+			u32 get_page_from_offset(u32 page_offset, Page_s& page);
+			u32 read_page(u32 page_offset, Page_s& page);
+			u32 create_page(u32 page_offset, Page_s& page);
+			u32 get_last_page(Page_s& page);
+			u32 delete_all_row();
+			u32 clear();
+			void set_data_dir(const String& dir);
+			u32 get_table_id()const;
+			void reset_all_page();
+		private:
+			//保证page有序析构
+			List<Page_s> pages_copy;
+			HashMap<u32, Page_s>  pages;
+			String data_dir;
+			String database;
+			String table_name;
+			IoService_s io;
+		};
 
 		class StorageEngine
 		{
 		public:
-			virtual ~StorageEngine();
-			virtual u32 open_table(const String& table) = 0;
-			virtual u32 get_next_row(Row_s& row) = 0;
-			virtual u32 reset() = 0;
-			virtual u32 close() = 0;
-			virtual u32 insert_row(const Row_s& row) = 0;
-			virtual u32 update_row(const Row_s& row) = 0;
-			virtual u32 delete_row(u32 row_id) = 0;
-			virtual u32 get_table_id()const = 0;
+			StorageEngine();
+			~StorageEngine();
+			PageManager_s get_page_manager(const String& database, const String& table);
+			void set_data_dir(const String& dir);
+			String get_data_dir()const;
+
+
+		private:
+			HashMap<String, PageManager_s> tables;
+			String data_dir;
 		};
 	}
 }

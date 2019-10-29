@@ -34,34 +34,35 @@ Plan_s InsertPlan::make_insert_plan(const Stmt_s& lex_insert_stmt)
 u32 InsertPlan::execute()
 {
 	if (!root_operator) {
+		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
-		result = Error::make_object(ret);
+		set_error_code(ret);
 		return ret;
 	}
 	for (u32 i = 0; i < values.size(); ++i) {
 		ret = root_operator->get_next_row(values[i]);
 		if (ret != SUCCESS) {
-			result = Error::make_object(ret);
+			set_error_code(ret);
 			break;
 		}
 	}
 	
 	u32 ret2 = root_operator->close();
 	if (ret != SUCCESS) {
-		result = Error::make_object(ret);
+		set_error_code(ret);
 		return ret;
 	}
 	else if (ret2 != SUCCESS) {
-		result = Error::make_object(ret2);
+		set_error_code(ret2);
 		return ret2;
 	}
 	else {
 		affect_rows_ = values.size();
-		result = Error::make_object(SUCCESS);
+		set_error_code(SUCCESS);
 		return SUCCESS;
 	}
 }
@@ -71,6 +72,7 @@ u32 InsertPlan::build_plan()
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Insert)
 	{
 		Log(LOG_ERR, "InsertPlan", "error lex stmt when build insert plan");
+		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -95,17 +97,20 @@ u32 InsertPlan::build_plan()
 		u32 ret = check_column_value(list->stmt_list[i], row_desc);
 		if (ret) {
 			Log(LOG_ERR, "InsertPlan", "column value check failed in values:%u, column:%u", i, ret);
+			set_error_code(ERROR_COLUMN_VALUE);
 			return ERROR_COLUMN_VALUE;
 		}
 		Row_s row;
 		ret = resolve_row(list->stmt_list[i], row_desc, row);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "InsertPlan", "create row error:%s", err_string(ret));
+			set_error_code(ret);
 			return ret;
 		}
 
 		values.push_back(row);
 	}
+	set_error_code(SUCCESS);
 	return SUCCESS;
 }
 

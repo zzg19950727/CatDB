@@ -165,3 +165,12 @@ Object_s Bool::operator<(const Object_s & other)
 		return Bool::make_object(value < rhs->value);
 	}
 }
+
+Object_s Bool::exists()
+{
+	if (is_null()) {
+		return Object::make_null_object();
+	}else {
+		return Bool::make_object(true);
+	}
+}

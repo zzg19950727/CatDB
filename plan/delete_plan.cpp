@@ -36,12 +36,16 @@ Plan_s DeletePlan::make_delete_plan(const Stmt_s& lex_insert_stmt)
 u32 DeletePlan::execute()
 {
 	if (!root_operator) {
+		Log(LOG_ERR, "DeletePlan", "there is no plan for delete");
+		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
+	Log(LOG_TRACE, "DeletePlan", "start execute delete plan");
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
-		result = Error::make_object(ret);
+		Log(LOG_ERR, "DeletePlan", "open delete plan failed");
+		set_error_code(ret);
 		return ret;
 	}
 	
@@ -50,18 +54,22 @@ u32 DeletePlan::execute()
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
 		++affect_rows_;
+		Log(LOG_TRACE, "DeletePlan", "delete row %u success", row->get_row_id());
 	}
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
-		result = Error::make_object(ret);
+		Log(LOG_ERR, "DeletePlan", "execute delete plan failed");
+		set_error_code(ret);
 		return ret;
 	}
 	else if (ret2 != SUCCESS) {
-		result = Error::make_object(ret2);
+		Log(LOG_ERR, "DeletePlan", "close plan failed");
+		set_error_code(ret2);
 		return ret2;
 	}
 	else {
-		result = Error::make_object(SUCCESS);
+		Log(LOG_TRACE, "DeletePlan", "execute delete plan success");
+		set_error_code(SUCCESS);
 		return SUCCESS;
 	}
 }
@@ -71,8 +79,10 @@ u32 DeletePlan::build_plan()
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Delete)
 	{
 		Log(LOG_ERR, "DeletePlan", "error lex stmt when build delete plan");
+		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
+	Log(LOG_TRACE, "DeletePlan", "start build delete plan");
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	DeleteStmt* lex = dynamic_cast<DeleteStmt*>(lex_stmt.get());
@@ -88,6 +98,7 @@ u32 DeletePlan::build_plan()
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "DeletePlan", "create filter from where stmt error:%s", err_string(ret));
+		set_error_code(ret);
 		return ret;
 	}
 	root_operator = Delete::make_delete(table_space, filter);
@@ -98,6 +109,7 @@ u32 DeletePlan::build_plan()
 		}
 		root_operator->set_access_desc(row_desc);
 	}
+	set_error_code(SUCCESS);
 	return SUCCESS;
 }
 
@@ -168,9 +180,25 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		ret = ERROR_LEX_STMT;
 		break;
 	case ExprStmt::List:
-		Log(LOG_ERR, "DeletePlan", "list stmt in delete`s where stmt not support yet");
-		ret = ERROR_LEX_STMT;
+	{
+		ListStmt* list = dynamic_cast<ListStmt*>(expr_stmt);
+		Object_s obj = ObjList::make_object();
+		ObjList* obj_list = dynamic_cast<ObjList*>(obj.get());
+		for (u32 i = 0; i < list->stmt_list.size(); ++i) {
+			if (list->stmt_list[i]->stmt_type() != Stmt::Expr) {
+				return ERROR_LEX_STMT;
+			}
+			expr_stmt = dynamic_cast<ExprStmt*>(list->stmt_list[i].get());
+			if (expr_stmt->expr_stmt_type() != ExprStmt::Const) {
+				return ERROR_LEX_STMT;
+			}
+			const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+			obj_list->add_object(const_stmt->value);
+		}
+		expr = ConstExpression::make_const_expression(obj);
+		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Aggregate:
 		Log(LOG_ERR, "DeletePlan", "aggregate stmt in delete`s where stmt not support");
 		ret = ERROR_LEX_STMT;

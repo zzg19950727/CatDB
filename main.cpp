@@ -25,6 +25,7 @@
 #include "sql_driver.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
+#include "query_result.h"
 #include "plan.h"
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
@@ -70,10 +71,10 @@ public:
 private:
 	long long start;
 };
-
+u32 length = 6;
 String fix_length(const String& str)
 {
-	u32 size = 6 - str.size();
+	u32 size = length - str.length();
 	return str + String(size, ' ');
 }
 
@@ -81,7 +82,7 @@ void print_line(u32 column_count)
 {
 	std::cout << "+";
 	for (u32 i = 0; i < column_count; ++i) {
-		for (u32 i = 0; i < 8; ++i)
+		for (u32 i = 0; i < length+2; ++i)
 			std::cout << "-";
 		std::cout << "+";
 	}
@@ -116,6 +117,29 @@ void print_table(const String& table_name)
 	if(row)
 		print_line(row->get_row_desc().get_column_num());
 	table->close();
+}
+
+void print_query_result(QueryResult* result)
+{
+	Row_s row;
+	u32 col_count = 0;
+	for (u32 i = 0; i < result->size(); ++i) {
+		result->get_row(i, row);
+		col_count = row->get_row_desc().get_column_num();
+		for (u32 i = 0; i < col_count; ++i)
+		{
+			Object_s cell;
+			row->get_cell(i, cell);
+			if (length < cell->to_string().length())
+				length = cell->to_string().length();
+		}
+	}
+	print_line(col_count);
+	for (u32 i = 0; i < result->size(); ++i) {
+		result->get_row(i, row);
+		print_row(row);
+	}
+	print_line(col_count);
 }
 
 void object_test()
@@ -547,12 +571,22 @@ void delete_table(const String& table_name)
 
 void parser_test()
 {
+	bool create_data = false;
 	String query;
-	u32 n = 100000;
+	u32 n = 1000;
 	while (n--) {
-		std::cout << "CatSQL > ";
-		std::getline(std::cin, query);
-		//query = "insert into t1 values(" + std::to_string(n) + "," + std::to_string(n) + ");";
+		if (!create_data) {
+			std::cout << "CatSQL > ";
+			std::getline(std::cin, query);
+		}
+		else {
+			query = "insert into t2 values";
+			for (u32 i = 0; i < 600; ++i) {
+				query += "(" + std::to_string(rand() % 100000) + "," + std::to_string(rand() % 100000) + ","
+					 + std::to_string(rand() % 100000) + "),";
+			}
+			query[query.size() - 1] = ';';
+		}
 		if (query == "quit") {
 			std::cout << "bye" << std::endl;
 			break;
@@ -568,10 +602,25 @@ void parser_test()
 		else {
 			Stmt_s result = parser.parse_result();
 			Plan_s plan = Plan::make_plan(result);
-			plan->build_plan();
-			plan->execute();
-			u32 affect_rows = plan->affect_rows();
-			std::cout << "affect " << affect_rows << " rows." << std::endl;
+			u32 ret = plan->build_plan();
+			if (ret != SUCCESS) {
+				Object_s result = plan->get_result();
+				if(result)
+					std::cout << "build plan failed:" << result->to_string() << std::endl;
+				continue;
+			}
+			ret = plan->execute();
+			if (ret != SUCCESS) {
+				Object_s result = plan->get_result();
+				if (result)
+					std::cout << "execute plan failed:" << result->to_string() << std::endl;
+				continue;
+			}
+			else {
+				Object_s result = plan->get_result();
+				QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+				print_query_result(query_result);
+			}
 		}
 	}
 }

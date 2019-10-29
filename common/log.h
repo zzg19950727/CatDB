@@ -6,12 +6,16 @@
 #define LOG_INFO	0x4
 #define LOG_TRACE	0x8
 
+#ifdef DEBUG
 #define Log(log_level, module, fmt, ...) \
 		do{\
 			CatDB::Common::log_set_level(log_level, module);\
 			if(CatDB::Common::log_set_info(__FILE__, __LINE__, __FUNCTION__))\
 				CatDB::Common::log_print(fmt, ##__VA_ARGS__);\
 		} while (0);
+#else
+#define Log(log_level, module, fmt, ...) 
+#endif	//DEBUG
 
 namespace CatDB {
 	namespace Common {

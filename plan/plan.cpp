@@ -2,6 +2,7 @@
 #include "delete_plan.h"
 #include "update_plan.h"
 #include "select_plan.h"
+#include "query_result.h"
 #include "plan.h"
 #include "stmt.h"
 #include "object.h"
@@ -55,4 +56,13 @@ Object_s Plan::get_result()
 u32 CatDB::Sql::Plan::affect_rows() const
 {
 	return affect_rows_;
+}
+
+void Plan::set_error_code(u32 code)
+{
+	if (!result) {
+		result = QueryResult::make_query_result();
+	}
+	QueryResult* query = dynamic_cast<QueryResult*>(result.get());
+	query->set_error_code(code);
 }

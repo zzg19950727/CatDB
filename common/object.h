@@ -59,8 +59,8 @@ namespace CatDB {
 			virtual Object_s op_and (const Object_s& other);
 			virtual Object_s op_or (const Object_s& other);
 			virtual Object_s exists();
-			virtual Object_s not_exists();
 			virtual Object_s op_not();
+			virtual Object_s like(const Object_s& other);
 			//自增
 			virtual void increase();
 			//自身累加
@@ -89,7 +89,7 @@ namespace CatDB {
 
 			Object_s op_and (const Object_s& other) override;
 			Object_s op_or (const Object_s& other) override;
-			Object_s op_not();
+			Object_s op_not()override;
 
 		private:
 			u32 err_code;
@@ -114,6 +114,7 @@ namespace CatDB {
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
+			Object_s exists()override;
 
 		private:
 			bool value;
@@ -138,6 +139,8 @@ namespace CatDB {
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
+			Object_s exists()override;
+			Object_s between(const Object_s& left, const Object_s& right)override;
 			void increase()override;
 			void accumulate(const Object_s& other)override;
 
@@ -163,6 +166,8 @@ namespace CatDB {
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
+			Object_s exists()override;
+			Object_s between(const Object_s& left, const Object_s& right)override;
 			void accumulate(const Object_s& other)override;
 
 		private:
@@ -186,9 +191,33 @@ namespace CatDB {
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
+			Object_s exists()override;
+			Object_s between(const Object_s& left, const Object_s& right)override;
+			Object_s like(const Object_s& other)override;
 
 		private:
 			Buffer_s data;
+		};
+
+		class ObjList : public Object
+		{
+		public:
+			ObjList();
+			static Object_s make_object();
+			void add_object(const Object_s& obj);
+			u32 size()const;
+			u32 serialization(u8*& buffer) override;
+			bool is_fixed_length() override;
+			bool bool_value() override;
+			u32 hash() override;
+			String to_string()const override;
+
+			Object_s in(const Object_s& other)override;
+			Object_s not_in(const Object_s& other)override;
+			Object_s exists()override;
+
+		private:
+			Vector<Object_s> list;
 		};
 	}
 }

@@ -36,6 +36,7 @@
 #define NO_TABLE_FOR_SELECT		0x21
 #define HAVING_ERROR			0x22
 #define HAVE_ALL_COLUMN_STMT	0x23
+#define ERROR_INDEX				0x24
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

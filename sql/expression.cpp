@@ -203,12 +203,12 @@ Object_s Operation::do_is_not_null(Object_s & first_obj)
 
 Object_s Operation::do_in(Object_s & first_obj, Object_s & second_obj)
 {
-	return first_obj->in(second_obj);
+	return second_obj->in(first_obj);
 }
 
 Object_s Operation::do_not_in(Object_s & first_obj, Object_s & second_obj)
 {
-	return first_obj->not_in(second_obj);
+	return second_obj->not_in(first_obj);
 }
 
 Object_s Operation::do_exists(Object_s & first_obj)
@@ -218,7 +218,8 @@ Object_s Operation::do_exists(Object_s & first_obj)
 
 Object_s Operation::do_not_exists(Object_s & first_obj)
 {
-	return first_obj->not_exists();
+	Object_s result = first_obj->exists();
+	return result->op_not();
 }
 
 Object_s Operation::do_and(Object_s & first_obj, Object_s & second_obj)
@@ -238,12 +239,13 @@ Object_s Operation::do_not(Object_s & first_obj)
 
 Object_s CatDB::Sql::Operation::do_like(Object_s & first_obj, Object_s & second_obj)
 {
-	return Error::make_object(OPERATION_NOT_SUPPORT);
+	return first_obj->like(second_obj);
 }
 
 Object_s CatDB::Sql::Operation::do_not_like(Object_s & first_obj, Object_s & second_obj)
 {
-	return Error::make_object(OPERATION_NOT_SUPPORT); 
+	Object_s result = first_obj->like(second_obj);
+	return result->op_not();
 }
 
 Expression::Expression()

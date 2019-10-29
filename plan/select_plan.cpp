@@ -16,6 +16,7 @@
 #include "scalar_group.h"
 #include "table_space.h"
 #include "hash_join.h"
+#include "query_result.h"
 #include "query.h"
 #include "limit.h"
 #include "sort.h"
@@ -23,6 +24,10 @@
 #include "row.h"
 #include "error.h"
 #include "log.h"
+
+#define return_result(code) \
+	set_error_code(code);\
+	return code;
 
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
@@ -48,69 +53,34 @@ Plan_s SelectPlan::make_select_plan(const Stmt_s& lex_insert_stmt)
 	return Plan_s(plan);
 }
 
-//for debug
-#include <iostream>
-String fix_length2(const String& str)
-{
-	u32 size = 6 - str.size();
-	return str + String(size, ' ');
-}
-
-void print_line2(u32 column_count)
-{
-	std::cout << "+";
-	for (u32 i = 0; i < column_count; ++i) {
-		for (u32 i = 0; i < 8; ++i)
-			std::cout << "-";
-		std::cout << "+";
-	}
-	std::cout << std::endl;
-}
-
-void print_row2(const Row_s& row)
-{
-	std::cout << "| ";
-	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i)
-	{
-		Object_s cell;
-		row->get_cell(i, cell);
-		std::cout << fix_length2(cell->to_string()) << " | ";
-	}
-	std::cout << std::endl;
-}
-
 u32 SelectPlan::execute()
 {
 	if (!root_operator) {
-		return PLAN_NOT_BUILD;
+		return_result(PLAN_NOT_BUILD);
 	}
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
-		result = Error::make_object(ret);
-		return ret;
+		return_result(ret);
 	}
 
 	affect_rows_ = 0;
 	Row_s row;
+	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
-		print_row2(row);
-		//save row to result
+		query_result->add_row(row);
 		++affect_rows_;
 	}
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
-		result = Error::make_object(ret);
-		return ret;
+		return_result(ret);
 	}
 	else if (ret2 != SUCCESS) {
-		result = Error::make_object(ret2);
-		return ret2;
+		return_result(ret2);
 	}
 	else {
-		result = Error::make_object(SUCCESS);
-		return SUCCESS;
+		return_result(SUCCESS);
 	}
 }
 
@@ -123,7 +93,7 @@ u32 SelectPlan::build_plan()
 			Log(LOG_ERR, "SelectPlan", "set operation not support yet");
 		}
 		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
-		return ERROR_LEX_STMT;
+		return_result(ERROR_LEX_STMT);
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
@@ -137,74 +107,80 @@ u32 SelectPlan::build_plan()
 	u32 ret = get_ref_tables(lex->from_stmts);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
-		return ret;
+		return_result( ret );
 	}
 	ret = resolve_select_list(lex->select_expr_list);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
-		return ret;
+		return_result(ret);
 	}
 	ret = resolve_where_stmt(lex->where_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
-		return ret;
+		return_result(ret);
 	}
 	ret = resolve_group_stmt(lex->group_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
-		return ret;
+		return_result(ret);
 	}
 	ret = resolve_having_stmt(lex->having_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
-		return ret;
+		return_result(ret);
 	}
 	ret = resolve_sort_stmt(lex->order_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
-		return ret;
+		return_result(ret);
 	}
 	ret = resolve_limit_stmt(lex->limit_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
-		return ret;
+		return_result(ret);
 	}
 	ret = make_access_row_desc();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
-		return ret;
+		return_result(ret);
 	}
 	ret = choos_best_join_order();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "choose best join order failed");
-		return ret;
+		return_result(ret);
 	}
 	ret = make_join_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make join plan failed");
-		return ret;
+		return_result(ret);
 	}
 	ret = make_group_pan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make group plan failed");
-		return ret;
+		return_result(ret);
 	}
+
 	ret = make_sort_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
-		return ret;
+		return_result(ret);
 	}
 	ret = make_query_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
-		return ret;
+		return_result(ret);
 	}
-	ret = make_limit_and_distinct_plan(root_operator);
+	ret = make_distinct_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make limit and distinct plan failed");
-		return ret;
+		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
+		return_result(ret);
 	}
-	return SUCCESS;
+	ret = make_limit_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make limit plan failed");
+		return_result(ret);
+	}
+	return_result(SUCCESS);
 }
 
 u32 SelectPlan::optimizer()
@@ -401,9 +377,25 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		ret = ERROR_LEX_STMT;
 		break;
 	case ExprStmt::List:
-		Log(LOG_ERR, "SelectPlan", "list stmt in select`s where stmt not support yet");
-		ret = ERROR_LEX_STMT;
+	{
+		ListStmt* list = dynamic_cast<ListStmt*>(expr_stmt);
+		Object_s obj = ObjList::make_object();
+		ObjList* obj_list = dynamic_cast<ObjList*>(obj.get());
+		for (u32 i = 0; i < list->stmt_list.size(); ++i) {
+			if (list->stmt_list[i]->stmt_type() != Stmt::Expr) {
+				return ERROR_LEX_STMT;
+			}
+			expr_stmt = dynamic_cast<ExprStmt*>(list->stmt_list[i].get());
+			if (expr_stmt->expr_stmt_type() != ExprStmt::Const) {
+				return ERROR_LEX_STMT;
+			}
+			const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+			obj_list->add_object(const_stmt->value);
+		}
+		expr = ConstExpression::make_const_expression(obj);
+		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Aggregate:
 		if (!resolve_select_list_or_having) {
 			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
@@ -604,6 +596,9 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 
 	switch (expr_stmt->expr_stmt_type())
 	{
+	case ExprStmt::Const:
+		ret = true;
+		break;
 	case ExprStmt::Column:
 		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		//在此之前没有出现过列相关谓词
@@ -628,6 +623,9 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 				ret = true;
 			}
 		}
+		break;
+	case ExprStmt::List:
+		ret = true;
 		break;
 	case ExprStmt::Unary:
 		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
@@ -748,7 +746,7 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 	if (find == 1)
 		return SUCCESS;
 	else if (find == 0)
-		return TABLE_NOT_EXISTS;
+		return COLUMN_NOT_EXISTS;
 	else
 		return TABLE_REDEFINE;
 }
@@ -972,6 +970,7 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 		return ERROR_LEX_STMT;
 	}
 	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
+	u32 ret = SUCCESS;
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 		if (list_stmt->stmt_list[i]->stmt_type() != Stmt::Expr) {
 			return ERROR_LEX_STMT;
@@ -981,13 +980,13 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 			return ERROR_LEX_STMT;
 		}
 		Expression_s column;
-		u32 ret = resolve_expr(list_stmt->stmt_list[i], column);
+		ret = resolve_expr(list_stmt->stmt_list[i], column);
 		if (ret != SUCCESS) {
 			return ret;
 		}
 		sort_cols.push_back(column);
 	}
-	return SUCCESS;
+	return ret;
 }
 
 u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
@@ -1006,9 +1005,10 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 	}
 	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
 	resolve_select_list_or_having = 2;
+	u32 ret = SUCCESS;
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 		Expression_s expr;
-		u32 ret = resolve_expr(list_stmt->stmt_list[i], expr);
+		ret = resolve_expr(list_stmt->stmt_list[i], expr);
 		if (ret == HAVE_ALL_COLUMN_STMT) {
 			ret = resolve_all_column_in_select_list(list_stmt->stmt_list[i]);
 			if (ret != SUCCESS) {
@@ -1023,7 +1023,7 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 		}
 	}
 	resolve_select_list_or_having = 0;
-	return SUCCESS;
+	return ret;
 }
 
 u32 SelectPlan::add_access_column(TableStmt* table, const ColumnDesc& col_desc)
@@ -1188,7 +1188,17 @@ u32 CatDB::Sql::SelectPlan::make_sort_plan(PhyOperator_s & op)
 		return SUCCESS;
 	}
 	else {
-		op = Sort::make_sort(op, sort_cols, asc);
+		//limit 30000以内行可以用top-N排序
+		if (have_limit && limit_size + limit_offset < 30000) {
+			op = TopNSort::make_topn_sort(op, sort_cols, limit_size + limit_offset, asc);
+			//limit没有偏移则不需要再执行一次limit操作
+			if (limit_offset == 0) {
+				have_limit = false;
+			}
+		}
+		else {
+			op = Sort::make_sort(op, sort_cols, asc);
+		}
 		return SUCCESS;
 	}
 }
@@ -1201,11 +1211,16 @@ u32 CatDB::Sql::SelectPlan::make_query_plan(PhyOperator_s & op)
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::SelectPlan::make_limit_and_distinct_plan(PhyOperator_s & op)
+u32 SelectPlan::make_distinct_plan(PhyOperator_s & op)
 {
 	if (is_distinct) {
 		op = HashDistinct::make_hash_distinct(op);
 	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::make_limit_plan(PhyOperator_s & op)
+{
 	if (have_limit) {
 		op = Limit::make_limit(op, limit_size, limit_offset);
 	}

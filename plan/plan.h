@@ -41,7 +41,7 @@ namespace CatDB {
 			virtual u32 build_plan() = 0;
 			virtual u32 optimizer() = 0;
 			virtual PlanType type() const = 0;
-			
+			void set_error_code(u32 code);
 		protected:
 			Stmt_s lex_stmt;
 			Object_s result;

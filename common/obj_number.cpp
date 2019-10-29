@@ -55,7 +55,7 @@ String Number::to_string() const
 	if (is_null())
 		return String("NULL");
 	else
-		return std::to_string(static_cast<u32>(data));
+		return std::to_string(data);
 }
 
 Object_s Number::operator+(const Object_s & other)
@@ -166,6 +166,32 @@ Object_s Number::operator<(const Object_s & other)
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
 		return Bool::make_object(data < rhs->data);
+	}
+}
+
+Object_s Number::exists()
+{
+	if (is_null()) {
+		return Object::make_null_object();
+	}
+	else {
+		return Bool::make_object(true);
+	}
+}
+
+Object_s Number::between(const Object_s & left, const Object_s & right)
+{
+	if (is_null() || left->is_null() || right->is_null()) {
+		return Object::make_null_object();
+	}
+	else if (left->get_type() != T_NUMBER || right->get_type() != T_NUMBER) {
+		Log(LOG_ERR, "Object", "number type can not comapre %u", other->get_type());
+		return Error::make_object(OPERATION_NOT_SUPPORT);
+	}
+	else {
+		Number* lhs = dynamic_cast<Number*>((left.get()));
+		Number* rhs = dynamic_cast<Number*>((right.get()));
+		return Bool::make_object((data <= rhs->data) && (data >= lhs->data));
 	}
 }
 

@@ -170,12 +170,6 @@ Object_s Object::exists()
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
-Object_s Object::not_exists()
-{
-	Log(LOG_ERR, "Object", "object %u do not support not exists operation", obj_type);
-	return Error::make_object(OPERATION_NOT_SUPPORT);
-}
-
 Object_s Object::op_not()
 {
 	if (is_null()){
@@ -183,6 +177,12 @@ Object_s Object::op_not()
 	}else{
 		return Bool::make_object(!bool_value());
 	}
+}
+
+Object_s Object::like(const Object_s & other)
+{
+	Log(LOG_ERR, "Object", "object %u do not support like operation", obj_type);
+	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 void Object::increase()

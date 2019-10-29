@@ -193,6 +193,32 @@ Object_s DateTime::operator<(const Object_s & other)
 	}
 }
 
+Object_s DateTime::exists()
+{
+	if (is_null()) {
+		return Object::make_null_object();
+	}
+	else {
+		return Bool::make_object(true);
+	}
+}
+
+Object_s DateTime::between(const Object_s & left, const Object_s & right)
+{
+	if (is_null() || left->is_null() || right->is_null()) {
+		return Object::make_null_object();
+	}
+	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
+		Log(LOG_ERR, "Object", "datetime type can not comapre %u", other->get_type());
+		return Error::make_object(OPERATION_NOT_SUPPORT);
+	}
+	else {
+		DateTime* lhs = dynamic_cast<DateTime*>((left.get()));
+		DateTime* rhs = dynamic_cast<DateTime*>((right.get()));
+		return Bool::make_object(data <= rhs->data && data >= lhs->data);
+	}
+}
+
 void DateTime::accumulate(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

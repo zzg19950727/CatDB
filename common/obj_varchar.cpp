@@ -138,3 +138,53 @@ Object_s Varchar::operator<(const Object_s & other)
 		}
 	}
 }
+
+Object_s CatDB::Common::Varchar::exists()
+{
+	if (is_null()) {
+		return Object::make_null_object();
+	}
+	else {
+		return Bool::make_object(true);
+	}
+}
+
+Object_s CatDB::Common::Varchar::between(const Object_s & left, const Object_s & right)
+{
+	if (is_null() || left->is_null() || right->is_null()) {
+		return Object::make_null_object();
+	}
+	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
+		Log(LOG_ERR, "Object", "datetime type can not comapre %u", other->get_type());
+		return Error::make_object(OPERATION_NOT_SUPPORT);
+	}
+	else {
+		Object_s r1 = this->operator>(left);
+		Object_s r2 = this->operator==(left);
+		Object_s r3 = this->operator<(right);
+		Object_s r4 = this->operator==(right);
+		r1 = r1->op_or(r2);
+		r3 = r3->op_or(r4);
+		return r1->op_and(r3);
+	}
+}
+
+Object_s CatDB::Common::Varchar::like(const Object_s & other)
+{
+	if (is_null() || other->is_null()) {
+		return Object::make_null_object();
+	}
+	else if (other->get_type() != T_VARCHAR) {
+		Log(LOG_ERR, "Object", "varchar type can not compare %u", other->get_type());
+		return Error::make_object(OPERATION_NOT_SUPPORT);
+	}
+	else {
+		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
+		if (data->length > rhs->data->length) {
+			return Bool::make_object( false );
+		}
+		else {
+			return Bool::make_object(memcmp(data->buf, rhs->data->buf, data->length) == 0);
+		}
+	}
+}

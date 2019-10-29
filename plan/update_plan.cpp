@@ -35,12 +35,13 @@ Plan_s UpdatePlan::make_update_plan(const Stmt_s& lex_insert_stmt)
 u32 UpdatePlan::execute()
 {
 	if (!root_operator) {
+		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
-		result = Error::make_object(ret);
+		set_error_code(ret);
 		return ret;
 	}
 
@@ -52,15 +53,15 @@ u32 UpdatePlan::execute()
 	}
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
-		result = Error::make_object(ret);
+		set_error_code(ret);
 		return ret;
 	}
 	else if (ret2 != SUCCESS) {
-		result = Error::make_object(ret2);
+		set_error_code(ret2);
 		return ret2;
 	}
 	else {
-		result = Error::make_object(SUCCESS);
+		set_error_code(SUCCESS);
 		return SUCCESS;
 	}
 }
@@ -70,6 +71,7 @@ u32 UpdatePlan::build_plan()
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Update)
 	{
 		Log(LOG_ERR, "UpdatePlan", "error lex stmt when build update plan");
+		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -87,12 +89,14 @@ u32 UpdatePlan::build_plan()
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "UpdatePlan", "create filter from where stmt error:%s", err_string(ret));
+		set_error_code(ret);
 		return ret;
 	}
 	Row_s new_row;
 	ret = resolve_update_row(lex->update_asgn_stmt, new_row);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "UpdatePlan", "create update row from asign stmt error:%s", err_string(ret));
+		set_error_code(ret);
 		return ret;
 	}
 	root_operator = Update::make_update(table_space, new_row, filter);
@@ -103,7 +107,7 @@ u32 UpdatePlan::build_plan()
 		}
 		root_operator->set_access_desc(row_desc);
 	}
-	
+	set_error_code(SUCCESS);
 	return SUCCESS;
 }
 
@@ -175,10 +179,26 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Log(LOG_ERR, "UpdatePlan", "subquery in update`s where stmt not support yet");
 		ret = ERROR_LEX_STMT;
 		break;
-	case ExprStmt::List:
-		Log(LOG_ERR, "UpdatePlan", "list stmt in update`s where stmt not support yet");
-		ret = ERROR_LEX_STMT;
+	case ExprStmt::List: 
+	{
+		ListStmt* list = dynamic_cast<ListStmt*>(expr_stmt);
+		Object_s obj = ObjList::make_object();
+		ObjList* obj_list = dynamic_cast<ObjList*>(obj.get());
+		for (u32 i = 0; i < list->stmt_list.size(); ++i) {
+			if (list->stmt_list[i]->stmt_type() != Stmt::Expr) {
+				return ERROR_LEX_STMT;
+			}
+			expr_stmt = dynamic_cast<ExprStmt*>(list->stmt_list[i].get());
+			if (expr_stmt->expr_stmt_type() != ExprStmt::Const) {
+				return ERROR_LEX_STMT;
+			}
+			const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+			obj_list->add_object(const_stmt->value);
+		}
+		expr = ConstExpression::make_const_expression(obj); 
+		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Aggregate:
 		Log(LOG_ERR, "UpdatePlan", "aggregate stmt in update`s where stmt not support");
 		ret = ERROR_LEX_STMT;

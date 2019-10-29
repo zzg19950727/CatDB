@@ -34,6 +34,48 @@ const char * err_string(u32 err_code)
 			return "row id have deleted";
 		case EMPTY_TABLE_SPACE:
 			return "table space is empty";
+		case WRONG_CALC_FOR_OP:
+			return "unknown operation";
+		case INVALID_OBJECT:
+			return "invalid object";
+		case OPERATION_NOT_SUPPORT:
+			return "operation not support";
+		case DEVISOR_IS_ZERO:
+			return "devisor is zero";
+		case ROW_NOT_FOUND:
+			return "row not found";
+		case ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION:
+			return "error operation in equal join condition";
+		case ERR_EXPR_TYPE:
+			return "error expression type";
+		case ERR_BUCKET_IDX:
+			return "error bucket index in hash table";
+		case UNKNOWN_AGG_FUNC:
+			return "unknown aggregate function";
+		case EXPR_CALC_ERR:
+			return "expression calculate error";
+		case ERROR_LEX_STMT:
+			return "error lex statement";
+		case ERROR_COLUMN_VALUE:
+			return "error column value";
+		case PLAN_NOT_BUILD:
+			return "plan not build yet";
+		case COLUMN_NOT_EXISTS:
+			return "column not exists";
+		case TABLE_NOT_EXISTS:
+			return "table not exists";
+		case TABLE_REDEFINE:
+			return "many table have this column";
+		case JOIN_TABLES_NOT_EXISTS:
+			return "join tables not exists";
+		case NOT_UNIQUE_TABLE:
+			return "not unique table alias";
+		case NO_TABLE_FOR_SELECT:
+			return "there is no table for select";
+		case HAVING_ERROR:
+			return "having stmt error";
+		case HAVE_ALL_COLUMN_STMT:
+			return "have * column stmt";
 		default:
 			return "";
 	}

@@ -94,7 +94,9 @@ namespace CatDB {
 			u32 make_group_pan(PhyOperator_s& op);
 			u32 make_sort_plan(PhyOperator_s& op);
 			u32 make_query_plan(PhyOperator_s& op);
-			u32 make_limit_and_distinct_plan(PhyOperator_s& op);
+			u32 make_distinct_plan(PhyOperator_s& op);
+			u32 make_limit_plan(PhyOperator_s& op);
+			
 		private:
 			//select list语句块中出现过的聚合函数
 			Vector<Expression_s> aggr_exprs;
