@@ -50,6 +50,11 @@ u32 Number::hash()
 	return hash(data);
 }
 
+double Number::value() const
+{
+	return data;
+}
+
 String Number::to_string() const
 {
 	if (is_null())
@@ -185,7 +190,7 @@ Object_s Number::between(const Object_s & left, const Object_s & right)
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_NUMBER || right->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not comapre %u", other->get_type());
+		Log(LOG_ERR, "Object", "number type can not comapre %u", left->get_type());
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {

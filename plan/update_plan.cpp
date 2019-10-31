@@ -1,7 +1,6 @@
 #include "schema_checker.h"
 #include "update_plan.h"
 #include "update_stmt.h"
-#include "table_space.h"
 #include "expression.h"
 #include "expr_stmt.h"
 #include "filter.h"
@@ -14,7 +13,6 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
-using namespace CatDB::Storage;
 
 UpdatePlan::UpdatePlan()
 {
@@ -82,8 +80,6 @@ u32 UpdatePlan::build_plan()
 	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
-	TableSpace_s table_space = TableSpace::make_table_space(table_name, database);
-	assert(table_space);
 	//将where子句转换为filter
 	Filter_s filter;
 	u32 ret = resolve_filter(lex->where_stmt, filter);
@@ -99,7 +95,7 @@ u32 UpdatePlan::build_plan()
 		set_error_code(ret);
 		return ret;
 	}
-	root_operator = Update::make_update(table_space, new_row, filter);
+	root_operator = Update::make_update(database, table_name, new_row, filter);
 	if (access_columns.size() > 0) {
 		RowDesc row_desc(access_columns.size());
 		for (u32 i = 0; i < access_columns.size(); ++i) {
@@ -170,7 +166,10 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 				database.c_str(), table_name.c_str(), column_stmt->column.c_str());
 			return COLUMN_NOT_EXISTS;
 		}
-		col_desc = checker->get_column_desc(database, table_name, column_stmt->column);
+		ret = checker->get_column_desc(database, table_name, column_stmt->column, col_desc);
+		if (ret != SUCCESS) {
+			break;
+		}
 		add_access_column(col_desc);
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;
@@ -276,7 +275,7 @@ u32 UpdatePlan::resolve_update_row(const Stmt_s& asgn_stmt, Row_s& row)
 			Log(LOG_ERR, "UpdatePlan", "create %uth column failed", i);
 			return ret;
 		}
-		row_desc.set_column_desc(i, col_desc);
+		row->get_row_desc().set_column_desc(i, col_desc);
 		row->set_cell(i, cell);
 	}
 	return SUCCESS;
@@ -339,7 +338,10 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 			database.c_str(), table_name.c_str(), column_stmt->column.c_str());
 		return COLUMN_NOT_EXISTS;
 	}
-	col_desc = checker->get_column_desc(database, table_name, column_stmt->column);
+	u32 ret = checker->get_column_desc(database, table_name, column_stmt->column, col_desc);
+	if (ret != SUCCESS) {
+		return ret;
+	}
 	cell = const_stmt->value;
 	return SUCCESS;
 }

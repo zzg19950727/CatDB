@@ -20,9 +20,11 @@ namespace CatDB {
 			TableScan(const TableSpace_s& table_space);
 		public:
 			~TableScan();
-			static PhyOperator_s make_table_scan(const TableSpace_s& table_space,
+			static PhyOperator_s make_table_scan(const String&database,
+				const String& table,
 				const Common::RowDesc& desc);
-			static PhyOperator_s make_table_scan(const TableSpace_s& table_space,
+			static PhyOperator_s make_table_scan(const String&database,
+				const String& table,
 				const Common::RowDesc& desc,
 				const Filter_s& filter);
 			u32 set_filter(const Filter_s& filter);

@@ -76,6 +76,16 @@ const char * err_string(u32 err_code)
 			return "having stmt error";
 		case HAVE_ALL_COLUMN_STMT:
 			return "have * column stmt";
+		case ERROR_INDEX:
+			return "error index";
+		case SYSTEM_SCHEMA_ERROR:
+			return "schema check error";
+		case DATABASE_EXISTS:
+			return "database exists";
+		case DATABASE_NOT_EXISTS:
+			return "database not exists";
+		case TABLE_EXISTS:
+			return "table exists";
 		default:
 			return "";
 	}

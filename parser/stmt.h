@@ -18,7 +18,13 @@ namespace CatDB {
 				Delete,
 				ColumnDefine,
 				CreateTable,
-				DropTable
+				DropTable,
+				CreateDatabase,
+				DropDatabase,
+				ShowTables,
+				ShowDatabases,
+				DescTable,
+				UseDatabase
 			};
 			Stmt();
 			virtual ~Stmt();

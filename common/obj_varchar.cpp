@@ -155,7 +155,7 @@ Object_s CatDB::Common::Varchar::between(const Object_s & left, const Object_s &
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not comapre %u", other->get_type());
+		Log(LOG_ERR, "Object", "datetime type can not comapre %u", left->get_type());
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -180,11 +180,6 @@ Object_s CatDB::Common::Varchar::like(const Object_s & other)
 	}
 	else {
 		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
-		if (data->length > rhs->data->length) {
-			return Bool::make_object( false );
-		}
-		else {
-			return Bool::make_object(memcmp(data->buf, rhs->data->buf, data->length) == 0);
-		}
+		return Bool::make_object(strstr((char*)data->buf, (char*)rhs->data->buf));
 	}
 }

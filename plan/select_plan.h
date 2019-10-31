@@ -102,6 +102,7 @@ namespace CatDB {
 			Vector<Expression_s> aggr_exprs;
 			//select list语句块中每一个输出表达式，聚合函数预处理过，详见select_list解析函数
 			Vector<Expression_s> select_list;
+			Vector<String> select_list_name;
 			//from list的表
 			Vector<TableStmt*> table_list;
 			/*不能用于table scan和join的filter，比如or条件连接的双表谓词*/

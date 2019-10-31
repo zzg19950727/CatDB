@@ -24,6 +24,9 @@ namespace CatDB {
 			bool eof()const;
 			u32 delete_file(const String& table_file);
 			u32 clear_file(const String& table_file);
+			static u32 make_dir(const String& dir);
+			static u32 remove_dir(const String& dir);
+			static u32 move_dir(const String& src_dir, const String& dst_dir);
 
 		private:
 			FILE* file_handle;

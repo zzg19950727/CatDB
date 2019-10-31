@@ -21,9 +21,11 @@ Delete::~Delete()
 }
 
 
-PhyOperator_s Delete::make_delete(const TableSpace_s& table_space,
+PhyOperator_s Delete::make_delete(const String&database,
+								const String& table,
                                 const Filter_s& filter)
 {
+	TableSpace_s table_space = TableSpace::make_table_space(table, database);
     Delete* op = new Delete(table_space);
     op->set_filter(filter);
     return PhyOperator_s(op);

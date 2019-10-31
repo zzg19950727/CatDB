@@ -37,6 +37,10 @@
 #define HAVING_ERROR			0x22
 #define HAVE_ALL_COLUMN_STMT	0x23
 #define ERROR_INDEX				0x24
+#define SYSTEM_SCHEMA_ERROR		0x25
+#define DATABASE_EXISTS			0x26
+#define DATABASE_NOT_EXISTS		0x27
+#define TABLE_EXISTS			0x28
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

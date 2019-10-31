@@ -17,8 +17,9 @@ Insert::~Insert()
 
 }
 
-PhyOperator_s Insert::make_insert(const TableSpace_s& table_space)
+PhyOperator_s Insert::make_insert(const String&database, const String& table)
 {
+	TableSpace_s table_space = TableSpace::make_table_space(table, database);
     return PhyOperator_s(new Insert(table_space));
 }
 

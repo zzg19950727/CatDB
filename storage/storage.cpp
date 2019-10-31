@@ -4,7 +4,6 @@
 #include "page.h"
 #include "log.h"
 using namespace CatDB::Storage;
-StorageEngine engine;
 
 PageManager::PageManager(const String& database, const String& table_name)
 {
@@ -60,7 +59,6 @@ u32 PageManager::read_page(u32 page_offset, Page_s& page)
 	else {
 		ret = page->open();
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "TableSpace", "open page %u failed,%s", cur_page_offset, err_string(ret));
 			return ret;
 		}
 		pages[page_offset] = page;
@@ -155,36 +153,4 @@ void PageManager::reset_all_page()
 void PageManager::set_data_dir(const String& dir)
 {
 
-}
-
-StorageEngine::StorageEngine()
-{
-
-}
-
-StorageEngine::~StorageEngine()
-{
-	for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
-		iter->second->clear();
-	}
-}
-PageManager_s StorageEngine::get_page_manager(const String& database, const String& table)
-{
-	String key = database + "." + table;
-	if (tables.find(key) == tables.cend()) {
-		PageManager* page_manager = new PageManager(database, table);
-		page_manager->set_data_dir(data_dir);
-		tables[key] = PageManager_s(page_manager);
-	}
-	return tables[key];
-}
-
-void StorageEngine::set_data_dir(const String& dir)
-{
-	data_dir = dir;
-}
-
-String StorageEngine::get_data_dir()const
-{
-	return data_dir;
 }

@@ -109,7 +109,7 @@ String DateTime::to_string() const
 	if (is_null())
 		return String("NULL");
 	else
-		return std::to_string(data);
+		return DatetimeToString(data);
 }
 
 Object_s DateTime::operator+(const Object_s & other)
@@ -209,7 +209,7 @@ Object_s DateTime::between(const Object_s & left, const Object_s & right)
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not comapre %u", other->get_type());
+		Log(LOG_ERR, "Object", "datetime type can not comapre %u", left->get_type());
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {

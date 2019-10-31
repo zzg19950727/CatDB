@@ -1,4 +1,4 @@
-#include "create_table_stmt.h"
+#include "create_stmt.h"
 
 using namespace CatDB::Parser;
 
@@ -40,4 +40,22 @@ Stmt::StmtType CreateTableStmt::stmt_type() const
 Stmt_s CreateTableStmt::make_create_table_stmt()
 {
 	return Stmt_s(new CreateTableStmt());
+}
+
+CreateDatabaseStmt::CreateDatabaseStmt()
+{
+}
+
+CreateDatabaseStmt::~CreateDatabaseStmt()
+{
+}
+
+Stmt::StmtType CreateDatabaseStmt::stmt_type() const
+{
+	return Stmt::CreateDatabase;
+}
+
+Stmt_s CreateDatabaseStmt::make_create_database_stmt()
+{
+	return Stmt_s(new CreateDatabaseStmt);
 }

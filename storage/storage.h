@@ -33,12 +33,11 @@ namespace CatDB {
 			IoService_s io;
 		};
 
-		class StorageEngine
+		class CacheManager
 		{
 		public:
-			StorageEngine();
-			~StorageEngine();
-			PageManager_s get_page_manager(const String& database, const String& table);
+			CacheManager();
+			~CacheManager();
 			void set_data_dir(const String& dir);
 			String get_data_dir()const;
 

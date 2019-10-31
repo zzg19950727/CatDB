@@ -1,7 +1,6 @@
 #include "schema_checker.h"
 #include "delete_plan.h"
 #include "delete_stmt.h"
-#include "table_space.h"
 #include "expression.h"
 #include "expr_stmt.h"
 #include "filter.h"
@@ -15,7 +14,6 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
-using namespace CatDB::Storage;
 
 DeletePlan::DeletePlan()
 {
@@ -91,8 +89,6 @@ u32 DeletePlan::build_plan()
 	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
-	TableSpace_s table_space = TableSpace::make_table_space(table_name, database);
-	assert(table_space);
 	//将where子句转换为filter
 	Filter_s filter;
 	u32 ret = resolve_filter(lex->where_stmt, filter);
@@ -101,7 +97,7 @@ u32 DeletePlan::build_plan()
 		set_error_code(ret);
 		return ret;
 	}
-	root_operator = Delete::make_delete(table_space, filter);
+	root_operator = Delete::make_delete(database, table_name, filter);
 	if (access_columns.size() > 0) {
 		RowDesc row_desc(access_columns.size());
 		for (u32 i = 0; i < access_columns.size(); ++i) {
@@ -170,7 +166,10 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 				database.c_str(), table_name.c_str(), column_stmt->column.c_str());
 			return COLUMN_NOT_EXISTS;
 		}
-		col_desc = checker->get_column_desc(database, table_name, column_stmt->column);
+		ret = checker->get_column_desc(database, table_name, column_stmt->column, col_desc);
+		if (ret != SUCCESS) {
+			break;
+		}
 		add_access_column(col_desc);
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;

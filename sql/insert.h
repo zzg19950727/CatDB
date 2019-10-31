@@ -17,7 +17,7 @@ namespace CatDB {
 			Insert(const TableSpace_s& table_space);
 		public:
 			~Insert();
-			static PhyOperator_s make_insert(const TableSpace_s& table_space);
+			static PhyOperator_s make_insert(const String&database,const String& table);
 			//物理算子必须提供的接口
 			u32 open();
 			u32 close();

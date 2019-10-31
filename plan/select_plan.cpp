@@ -1,25 +1,24 @@
 #include "schema_checker.h"
 #include "select_plan.h"
 #include "select_stmt.h"
-#include "table_space.h"
 #include "expression.h"
 #include "expr_stmt.h"
 #include "filter.h"
 #include "object.h"
-#include "table_scan.h"
+
 #include "nested_loop_join.h"
-#include "plan_filter.h"
-#include "hash_join.h"
 #include "hash_distinct.h"
-#include "hash_group.h"
-#include "hash_set.h"
 #include "scalar_group.h"
-#include "table_space.h"
+#include "plan_filter.h"
+#include "hash_group.h"
+#include "table_scan.h"
 #include "hash_join.h"
-#include "query_result.h"
-#include "query.h"
+#include "hash_join.h"
+#include "hash_set.h"
 #include "limit.h"
 #include "sort.h"
+#include "query_result.h"
+#include "query.h"
 #include "stmt.h"
 #include "row.h"
 #include "error.h"
@@ -32,7 +31,6 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
-using namespace CatDB::Storage;
 
 SelectPlan::SelectPlan()
 	:resolve_select_list_or_having(0),
@@ -66,7 +64,17 @@ u32 SelectPlan::execute()
 
 	affect_rows_ = 0;
 	Row_s row;
+	if (!result) {
+		result = QueryResult::make_query_result();
+	}
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+	RowDesc row_desc(select_list_name.size());
+	result_title = Row::make_row(row_desc);
+	for (u32 i = 0; i < select_list_name.size(); ++i) {
+		Object_s label = Varchar::make_object(select_list_name[i]);
+		result_title->set_cell(i, label);
+	}
+	
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
 		query_result->add_row(row);
@@ -494,7 +502,11 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 		assert(checker);
 		for (u32 i = 0; i < table_list.size(); ++i) {
 			TableStmt* table = table_list[i];
-			RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+			RowDesc row_desc;
+			u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+			if (ret != SUCCESS) {
+				return ret;
+			}
 			for (u32 j = 0; j < row_desc.get_column_num(); ++j) {
 				ColumnDesc col_desc;
 				row_desc.get_column_desc(j, col_desc);
@@ -516,7 +528,11 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 		}
 		SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 		assert(checker);
-		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		RowDesc row_desc;
+		ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+		if (ret != SUCCESS) {
+			return ret;
+		}
 		for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
 			ColumnDesc col_desc;
 			row_desc.get_column_desc(i, col_desc);
@@ -546,7 +562,11 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 	if (column_stmt->table == "*") {
 		assert(table_list.size());
 		TableStmt* table = table_list[0];
-		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		RowDesc row_desc;
+		u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+		if (ret != SUCCESS) {
+			return ret;
+		}
 		assert(row_desc.get_column_num());
 		ColumnDesc col_desc;
 		row_desc.get_column_desc(0, col_desc);
@@ -563,7 +583,11 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 		if (ret != SUCCESS) {
 			return ret;
 		}
-		RowDesc row_desc = checker->get_row_desc(table->database, table->table_name);
+		RowDesc row_desc;
+		ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+		if (ret != SUCCESS) {
+			return ret;
+		}
 		assert(row_desc.get_column_num());
 		ColumnDesc col_desc;
 		row_desc.get_column_desc(0, col_desc);
@@ -675,7 +699,10 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	col_desc = checker->get_column_desc(table->database, table->table_name, column_stmt->column);
+	ret = checker->get_column_desc(table->database, table->table_name, column_stmt->column, col_desc);
+	if (ret != SUCCESS) {
+		return ret;
+	}
 	u32 tid, cid;
 	col_desc.get_tid_cid(tid, cid);
 	tid = checker->get_table_id(table->database, table->alias_name);
@@ -1019,6 +1046,8 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 			break;
 		}
 		else {
+			ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
+			select_list_name.push_back(expr_stmt->to_string());
 			this->select_list.push_back(expr);
 		}
 	}
@@ -1118,7 +1147,7 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 			else {
 				SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 				assert(checker);
-				u32 id = checker->get_table_id(right_table->database, right_table->table_name);
+				u32 id = checker->get_table_id(right_table->database, right_table->alias_name);
 				left_root_operator = HashJoin::make_hash_join(left_root_operator, 
 					right_op, join_equal_cond, join_cond, id);
 			}
@@ -1134,13 +1163,11 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 
 u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table->table_name, table->database);
-	assert(table_space);
 	Filter_s filter;
 	if (table_filters.find(table) != table_filters.cend()) {
 		filter = Filter::make_filter(table_filters[table]);
 	}
-	op = TableScan::make_table_scan(table_space, table_access_row_desc[table], filter);
+	op = TableScan::make_table_scan(table->database, table->table_name, table_access_row_desc[table], filter);
 	return SUCCESS;
 }
 

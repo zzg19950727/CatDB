@@ -7,12 +7,14 @@ namespace CatDB {
 		DECLARE(Stmt);
 	}
 	namespace Common {
+		DECLARE(Row);
 		DECLARE(Object);
 	}
 	namespace Sql {
 		DECLARE(Plan);
 		DECLARE(PhyOperator);
 		using Parser::Stmt_s;
+		using Common::Row_s;
 		using Common::Object_s;
 
 		class Plan
@@ -22,7 +24,15 @@ namespace CatDB {
 				INSERT = 0,
 				DELETE,
 				UPDATE,
-				SELECT
+				SELECT,
+				CreateTable,
+				CreateDatabase,
+				DropTable,
+				DropDatabase,
+				ShowTables,
+				ShowDatabases,
+				DescTable,
+				UseDatabase
 			};
 		protected:
 			Plan();
@@ -36,6 +46,7 @@ namespace CatDB {
 			Thd_s get_thd()const;
 			*/
 			Object_s get_result();
+			Row_s get_result_title()const;
 			u32 affect_rows()const;
 			virtual u32 execute() = 0;
 			virtual u32 build_plan() = 0;
@@ -45,6 +56,7 @@ namespace CatDB {
 		protected:
 			Stmt_s lex_stmt;
 			Object_s result;
+			Row_s result_title;
 			PhyOperator_s root_operator;
 			u32 affect_rows_;
 		};

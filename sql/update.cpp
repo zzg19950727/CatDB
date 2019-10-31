@@ -21,18 +21,22 @@ Update::~Update()
 
 }
 
-PhyOperator_s Update::make_update(const TableSpace_s& table_space, 
+PhyOperator_s Update::make_update(const String&database, 
+									const String& table,
                                     const Row_s& new_row)
 {
+	TableSpace_s table_space = TableSpace::make_table_space(table, database);
     Update* op = new Update(table_space);
     op->new_row = new_row;
     return PhyOperator_s(op);
 }
 
-PhyOperator_s Update::make_update(const TableSpace_s& table_space, 
+PhyOperator_s Update::make_update(const String&database,
+								const String& table,
                                 const Row_s& new_row,
                                 const Filter_s& filter)
 {
+	TableSpace_s table_space = TableSpace::make_table_space(table, database);
     Update* op = new Update(table_space);
     op->new_row = new_row;
     op->set_filter(filter);

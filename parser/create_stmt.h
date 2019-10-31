@@ -1,5 +1,5 @@
-#ifndef CREATE_TABLE_STMT_H
-#define CREATE_TABLE_STMT_H
+#ifndef CREATE_STMT_H
+#define CREATE_STMT_H
 
 #include "stmt.h"
 #include "type.h"
@@ -14,7 +14,8 @@ namespace CatDB {
 			enum DataType {
 				NUMBER = 0,
 				DATETIME,
-				VARCHAR
+				VARCHAR,
+				INT
 			};
 		private:
 			ColumnDefineStmt();
@@ -39,7 +40,19 @@ namespace CatDB {
 			Stmt_s table;
 			Stmt_s column_define_list;
 		};
+
+		class CreateDatabaseStmt : public Stmt
+		{
+		public:
+			CreateDatabaseStmt();
+		public:
+			~CreateDatabaseStmt();
+			StmtType stmt_type()const;
+			static Stmt_s make_create_database_stmt();
+		public:
+			String database;
+		};
 	}
 }
 
-#endif	//CREATE_TABLE_STMT_H
+#endif	//CREATE_STMT_H

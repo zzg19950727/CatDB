@@ -20,7 +20,7 @@
 	}
 	using namespace CatDB::Parser;
 }
- 
+
 %code top
 {
 	#include "sql_parser.hpp"
@@ -31,8 +31,9 @@
 	#include "insert_stmt.h"
 	#include "update_stmt.h"
 	#include "delete_stmt.h"
-	#include "create_table_stmt.h"
-	#include "drop_table_stmt.h"
+	#include "create_stmt.h"
+	#include "drop_stmt.h"
+	#include "show_stmt.h"
 	#include "expr_stmt.h"
 	#include "object.h"
 	
@@ -44,6 +45,7 @@
 	using namespace CatDB;
 	using namespace CatDB::Parser;
 	using namespace CatDB::Common;
+	extern String g_database;
 }
 
 %{
@@ -123,6 +125,16 @@
 	ternary->second_expr_stmt = stmt2; \
 	ternary->third_expr_stmt = stmt3; \
 	ternary->op_type = op;
+	
+#define str_to_lower(str) \
+	{\
+		for(u32 i = 0; i<str.size(); ++i){\
+			if(str[i] >= 'A' && str[i] <= 'Z'){\
+				str[i] -= 'A';\
+				str[i] += 'a';\
+			}\
+		}\
+	}
 %}
 
 /*定义parser传给scanner的参数*/
@@ -165,9 +177,9 @@
 %token PERIOD	"."
 %token SEMICOLON ";"
 %token AP		 "'"
-%token DQ		"\""
 
 %token<std::string>	STRING
+%token<std::string>	IDENT
 %token<std::string>	NUMERIC
 %token<std::string>	TIMESTAMP
 %token FALSE
@@ -197,6 +209,8 @@
 %token BY
 %token CREATE
 %token DATETIME
+%token DATABASE
+%token DATABASES
 %token DELETE
 %token DESC
 %token DESCRIBE
@@ -210,6 +224,7 @@
 %token GROUP
 %token HAVING
 %token INSERT
+%token INT
 %token INTO
 %token LIMIT
 %token NUMBER
@@ -234,9 +249,9 @@
 %type<Stmt_s>		projection table_factor relation_factor 
 %type<Stmt_s>		expr_list expr simple_expr arith_expr in_expr column_ref expr_const func_expr
 %type<Stmt_s>		insert_stmt insert_vals_list insert_vals
-%type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt
-%type<Stmt_s>		explain_stmt explainable_stmt drop_table_stmt
-%type<Stmt_s>		create_table_stmt table_element_list table_element column_definition
+%type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt show_stmt
+%type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt
+%type<Stmt_s>		create_stmt table_element_list table_element column_definition
 %type<std::string>	column_label database_name relation_name column_name function_name ident string datetime
 %type<double>		number
 %start sql_stmt
@@ -255,10 +270,12 @@ stmt:
   | insert_stmt			{ $$ = $1; }
   | update_stmt			{ $$ = $1; }
   | delete_stmt			{ $$ = $1; }
-  | create_table_stmt	{ $$ = $1; }
-  | drop_table_stmt		{ $$ = $1; }
   | explain_stmt		{ $$ = $1; }
-  /*| show_stmt			{ $$ = $1; }*/
+  | show_stmt			{ $$ = $1; }
+  | create_stmt			{ $$ = $1; }
+  | drop_stmt			{ $$ = $1; }
+  | desc_stmt			{ $$ = $1; }
+  | use_stmt			{ $$ = $1; }
   | /*EMPTY*/			{ yyerror("unknow stmt"); }
 	;
 
@@ -418,6 +435,10 @@ order_by:
 projection:
     expr
     {
+	//设置表达式别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>($1.get());
+		check(stmt);
+		stmt->alias_name = stmt->to_string();
 		$$ = $1;
     }
   | expr column_label
@@ -778,7 +799,7 @@ expr_const:
 		$$ = stmt;
 	}
   ;
-
+  
 func_expr:
     function_name "(" "*" ")"
     {
@@ -951,10 +972,10 @@ explainable_stmt:
 
 /**************************************************************
  *
- *	create table define
+ *	create define
  *
  **************************************************************/
-create_table_stmt:
+create_stmt:
     CREATE TABLE relation_factor "(" table_element_list ")"
     {
 		Stmt_s stmt = CreateTableStmt::make_create_table_stmt();
@@ -964,6 +985,14 @@ create_table_stmt:
 		create_table_stmt->column_define_list = $5;
 		$$ = stmt;
     }
+	| CREATE DATABASE database_name
+	{
+		Stmt_s stmt = CreateDatabaseStmt::make_create_database_stmt();
+		check(stmt);
+		CreateDatabaseStmt* create_database_stmt = dynamic_cast<CreateDatabaseStmt*>(stmt.get());
+		create_database_stmt->database = $3;
+		$$ = stmt;
+	}
   ;
 
 table_element_list:
@@ -1006,14 +1035,18 @@ data_type:
     {
 		$$ = ColumnDefineStmt::VARCHAR;
     }
+  | INT
+	{
+		$$ = ColumnDefineStmt::INT;
+	}
   ;
 
 /**************************************************************
  *
- *	drop table define
+ *	drop define
  *
  **************************************************************/
- drop_table_stmt:
+ drop_stmt:
     DROP TABLE table_factor
     {
 		Stmt_s stmt = DropTableStmt::make_drop_table_stmt();
@@ -1022,8 +1055,65 @@ data_type:
 		drop_table_stmt->table = $3;
 		$$ = stmt;
     }
+	| DROP DATABASE database_name
+	{
+		Stmt_s stmt = DropDatabaseStmt::make_drop_database_stmt();
+		check(stmt);
+		DropDatabaseStmt* drop_database_stmt = dynamic_cast<DropDatabaseStmt*>(stmt.get());
+		drop_database_stmt->database = $3;
+		$$ = stmt;
+	}
   ;
 
+/**************************************************************
+ *
+ *	show define
+ *
+ **************************************************************/
+ show_stmt:
+    SHOW DATABASES
+    {
+		$$ = ShowDatabasesStmt::make_show_databases_stmt();
+    }
+	| SHOW TABLES
+	{
+		$$ = ShowTablesStmt::make_show_tables_stmt();
+	}
+  ;
+ use_stmt:
+	USING database_name
+	{
+		Stmt_s stmt = UseDatabaseStmt::make_use_database_stmt();
+		check(stmt);
+		UseDatabaseStmt* use_database_stmt = dynamic_cast<UseDatabaseStmt*>(stmt.get());
+		use_database_stmt->database = $2;
+		$$ = stmt;
+	}
+	;
+  
+  /**************************************************************
+ *
+ *	desc define
+ *
+ **************************************************************/
+ desc_stmt:
+    DESCRIBE relation_factor
+    {
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = $2;
+		$$ = stmt;
+    }
+	| DESC relation_factor
+	{
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = $2;
+		$$ = stmt;
+	}
+  ;
  /**************************************************************
  *
  *	name define
@@ -1033,7 +1123,7 @@ relation_factor:
 	relation_name
 	{
 		//构建表表达式
-		Stmt_s table = TableStmt::make_table_stmt($1);
+		Stmt_s table = TableStmt::make_table_stmt(g_database, $1);
 		check(table);
 		$$ = table;
 	}
@@ -1063,21 +1153,19 @@ function_name:
 	;
 
 column_label:
-	ident		{ $$ = $1; }
+	ident		{ str_to_lower($1);$$=$1; }
 	;
 
 ident:
-	STRING		{ $$ = $1; }
+	IDENT		{ $$ = $1; }
 	;
 
 string:
-	"\"" STRING "\""	{ $$ = $2; }
-  | "'" STRING "'"		{ $$ = $2; }
-  ;
+	STRING 		{ $$ = $1; }
+  ;	
 
 datetime:
-	"\"" TIMESTAMP "\""	{ $$ = $2; }
-  | "'" TIMESTAMP "'"	{ $$ = $2; }
+	"'" TIMESTAMP "'"	{ $$ = $2; }
   ;
 
 number:

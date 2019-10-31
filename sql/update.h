@@ -22,9 +22,11 @@ namespace CatDB {
 			Update(const TableSpace_s& table_space);
 		public:
 			~Update();
-			static PhyOperator_s make_update(const TableSpace_s& table_space, 
+			static PhyOperator_s make_update(const String&database,
+											const String& table,
                                             const Row_s& new_row);
-            static PhyOperator_s make_update(const TableSpace_s& table_space, 
+            static PhyOperator_s make_update(const String&database,
+											const String& table,
 											const Row_s& new_row,
 											const Filter_s& filter);
 			u32 set_filter(const Filter_s& filter);

@@ -1,5 +1,5 @@
-#ifndef DROP_TABLE_STMT_H
-#define DROP_TABLE_STMT_H
+#ifndef DROP_STMT_H
+#define DROP_STMT_H
 
 #include "stmt.h"
 #include "type.h"
@@ -10,7 +10,7 @@ namespace CatDB {
 
 		class DropTableStmt : public Stmt
 		{
-		public:
+		private:
 			DropTableStmt();
 		public:
 			~DropTableStmt();
@@ -19,7 +19,19 @@ namespace CatDB {
 		public:
 			Stmt_s table;
 		};
+
+		class DropDatabaseStmt : public Stmt
+		{
+		public:
+			DropDatabaseStmt();
+		public:
+			~DropDatabaseStmt();
+			StmtType stmt_type()const;
+			static Stmt_s make_drop_database_stmt();
+		public:
+			String database;
+		};
 	}
 }
 
-#endif	//DROP_TABLE_STMT_H
+#endif	//DROP_STMT_H

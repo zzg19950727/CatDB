@@ -9,7 +9,7 @@ namespace CatDB {
 	namespace Storage {
 		DECLARE(Page);
 		DECLARE(TableSpace);
-		DECLARE(PageManager);
+		DECLARE(IoService);
 		using Common::Row_s;
 		/*简单存储引擎*/
 		class TableSpace
@@ -31,9 +31,25 @@ namespace CatDB {
 			u32 delete_all_row();
 			static u32 delete_table(const String& database, const String& table_name);
 			static u32 create_table(const String& database, const String& table_name);
+			static u32 delete_database(const String& database);
+			static u32 create_database(const String& database);
 
 		private:
-			PageManager_s page_manager;
+			u32 get_page_from_row_id(u32 row_id, Page_s& page);
+			u32 get_page_from_offset(u32 page_offset, Page_s& page);
+			u32 read_page(u32 page_offset, Page_s& page);
+			u32 create_page(u32 page_offset, Page_s& page);
+			u32 get_last_page(Page_s& page);
+			u32 get_table_id()const;
+			void reset_all_page();
+
+		private:
+			//保证page有序析构
+			List<Page_s> pages_copy;
+			HashMap<u32, Page_s>  pages;
+			String database;
+			String table_name;
+			IoService_s io;
 			u32 cur_page_offset;
 
 		private:

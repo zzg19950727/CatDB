@@ -60,6 +60,7 @@ namespace CatDB {
 			~ExprStmt();
 			StmtType stmt_type()const;
 			virtual ExprType expr_stmt_type()const = 0;
+			virtual String to_string()const = 0;
 		public:
 			String alias_name;	//表达式的别名
 		};
@@ -72,6 +73,7 @@ namespace CatDB {
 			~ConstStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_const_stmt(const Object_s& value);
+			String to_string()const;
 		public:
 			Object_s value;
 		};
@@ -89,6 +91,7 @@ namespace CatDB {
 			static Stmt_s make_column_stmt(const String& table, const String& column);
 			static Stmt_s make_all_column_stmt();
 			bool is_all_column()const;
+			String to_string()const;
 		public:
 			String table;	//所属表
 			String column;	//列名
@@ -103,6 +106,7 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_table_stmt(const String& database, const String& table_name);
 			static Stmt_s make_table_stmt(const String& table_name);
+			String to_string()const;
 		public:
 			String database;
 			String table_name;
@@ -116,6 +120,7 @@ namespace CatDB {
 			~QueryStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_query_stmt();
+			String to_string()const;
 		public:
 			Stmt_s query_stmt;
 		};
@@ -128,6 +133,7 @@ namespace CatDB {
 			~ListStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_list_stmt();
+			String to_string()const;
 		public:
 			Vector<Stmt_s> stmt_list;
 		};
@@ -147,6 +153,8 @@ namespace CatDB {
 			~AggrStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_aggr_stmt();
+			String to_string()const;
+
 		public:
 			Stmt_s aggr_expr;	//聚合函数内的表达式
 			AggrType aggr_func;		//聚合函数类型
@@ -161,6 +169,7 @@ namespace CatDB {
 			~UnaryExprStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_unary_stmt();
+			String to_string()const;
 		public:
 			Stmt_s expr_stmt;
 			OperationType op_type;
@@ -174,6 +183,7 @@ namespace CatDB {
 			~BinaryExprStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_binary_stmt();
+			String to_string()const;
 		public:
 			Stmt_s first_expr_stmt;
 			Stmt_s second_expr_stmt;
@@ -188,6 +198,7 @@ namespace CatDB {
 			~TernaryExprStmt();
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_ternary_stmt();
+			String to_string()const;
 		public:
 			Stmt_s first_expr_stmt;
 			Stmt_s second_expr_stmt;

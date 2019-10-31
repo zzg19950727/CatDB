@@ -22,7 +22,8 @@ namespace CatDB {
 			Delete(const TableSpace_s& table_space);
 		public:
 			~Delete();
-            static PhyOperator_s make_delete(const TableSpace_s& table_space, 
+            static PhyOperator_s make_delete(const String&database,
+											const String& table,
 											const Filter_s& filter);
 			u32 set_filter(const Filter_s& filter);
 			Filter_s get_filter()const;

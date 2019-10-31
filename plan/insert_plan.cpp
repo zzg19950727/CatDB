@@ -1,7 +1,6 @@
 #include "schema_checker.h"
 #include "insert_plan.h"
 #include "insert_stmt.h"
-#include "table_space.h"
 #include "expr_stmt.h"
 #include "object.h"
 #include "insert.h"
@@ -12,7 +11,6 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
-using namespace CatDB::Storage;
 
 InsertPlan::InsertPlan()
 {
@@ -84,15 +82,18 @@ u32 InsertPlan::build_plan()
 	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
 	const String& database = table->database;
 	const String& table_name = table->table_name;
-	TableSpace_s table_space = TableSpace::make_table_space(table_name, database);
-	assert(table_space);
-	root_operator = Insert::make_insert(table_space);
+	root_operator = Insert::make_insert(database, table_name);
 	//将解析的value转换为Row
 	assert(lex->values->stmt_type() == Stmt::Expr);
 	ExprStmt* expr = dynamic_cast<ExprStmt*>(lex->values.get());
 	assert(expr->expr_stmt_type() == ExprStmt::List);
 	ListStmt* list = dynamic_cast<ListStmt*>(expr);
-	RowDesc row_desc = checker->get_row_desc(database, table_name);
+	RowDesc row_desc;
+	u32 ret = checker->get_row_desc(database, table_name, row_desc);
+	if (ret != SUCCESS) {
+		set_error_code(ret);
+		return ret;
+	}
 	for (u32 i = 0; i < list->stmt_list.size(); ++i){
 		u32 ret = check_column_value(list->stmt_list[i], row_desc);
 		if (ret) {

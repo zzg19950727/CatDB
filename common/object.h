@@ -130,6 +130,7 @@ namespace CatDB {
 			bool is_fixed_length() override;
 			bool bool_value() override;
 			u32 hash() override;
+			double value() const;
 			String to_string()const override;
 
 			Object_s operator+(const Object_s& other) override;

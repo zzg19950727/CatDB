@@ -1,5 +1,7 @@
 #include "expr_stmt.h"
+#include "object.h"
 using namespace::CatDB::Parser;
+using namespace::CatDB::Common;
 
 ExprStmt::ExprStmt()
 {
@@ -32,6 +34,16 @@ Stmt_s ConstStmt::make_const_stmt(const Object_s& value)
 	ConstStmt* stmt = new ConstStmt();
 	stmt->value = value;
 	return Stmt_s(stmt);
+}
+
+String ConstStmt::to_string() const
+{
+	if (value) {
+		return value->to_string();
+	}
+	else {
+		return "";
+	}
 }
 
 ColumnStmt::ColumnStmt()
@@ -68,6 +80,14 @@ bool ColumnStmt::is_all_column() const
 	return column == "*";
 }
 
+String ColumnStmt::to_string() const
+{
+	if (table.size() && table != "*")
+		return table + "." + column;
+	else
+		return column;
+}
+
 TableStmt::TableStmt()
 {
 }
@@ -98,6 +118,11 @@ Stmt_s CatDB::Parser::TableStmt::make_table_stmt(const String & table_name)
 	return Stmt_s(stmt);
 }
 
+String TableStmt::to_string() const
+{
+	return database + "." + table_name;
+}
+
 QueryStmt::QueryStmt()
 {
 }
@@ -114,6 +139,11 @@ ExprStmt::ExprType QueryStmt::expr_stmt_type() const
 Stmt_s QueryStmt::make_query_stmt()
 {
 	return Stmt_s(new QueryStmt());
+}
+
+String QueryStmt::to_string() const
+{
+	return "subquery";
 }
 
 ListStmt::ListStmt()
@@ -134,7 +164,13 @@ Stmt_s ListStmt::make_list_stmt()
 	return Stmt_s(new ListStmt());
 }
 
+String ListStmt::to_string() const
+{
+	return "List";
+}
+
 AggrStmt::AggrStmt()
+	:distinct(false)
 {
 }
 
@@ -150,6 +186,39 @@ ExprStmt::ExprType AggrStmt::expr_stmt_type() const
 Stmt_s AggrStmt::make_aggr_stmt()
 {
 	return Stmt_s(new AggrStmt());
+}
+
+String AggrStmt::to_string() const
+{
+	String func;
+	switch (aggr_func)
+	{
+	case AggrStmt::COUNT:
+		func = "COUNT";
+		break;
+	case AggrStmt::SUM:
+		func = "SUM";
+		break;
+	case AggrStmt::AVG:
+		func = "AVG";
+		break;
+	case AggrStmt::MIN:
+		func = "MIN";
+		break;
+	case AggrStmt::MAX:
+		func = "MAX";
+		break;
+	}
+	String distinct_str;
+	if (distinct) {
+		distinct_str = "DISTINCT ";
+	}
+	ExprStmt* expr = dynamic_cast<ExprStmt*>(aggr_expr.get());
+	String expr_str;
+	if (expr) {
+		expr_str = expr->to_string();
+	}
+	return func + "(" + distinct_str + expr_str + ")";
 }
 
 UnaryExprStmt::UnaryExprStmt()
@@ -170,6 +239,31 @@ Stmt_s UnaryExprStmt::make_unary_stmt()
 	return Stmt_s(new UnaryExprStmt());
 }
 
+String UnaryExprStmt::to_string() const
+{
+	String str1, op_str;
+	ExprStmt* expr1 = dynamic_cast<ExprStmt*>(expr_stmt.get());
+	if (expr1) {
+		str1 = expr1->to_string();
+	}
+
+	if (op_type == ExprStmt::OP_NOT) {
+		op_str = "NOT ";
+		return op_str + str1;
+	}
+	else if (op_type == ExprStmt::OP_IS_NULL) {
+		op_str = " IS NULL";
+		return str1 + op_str;
+	}
+	else if (op_type == ExprStmt::OP_IS_NOT_NULL) {
+		op_str = " IS NOT NULL";
+		return str1 + op_str;
+	}
+	else {
+		return str1;
+	}
+}
+
 BinaryExprStmt::BinaryExprStmt()
 {
 }
@@ -188,6 +282,66 @@ Stmt_s BinaryExprStmt::make_binary_stmt()
 	return Stmt_s(new BinaryExprStmt());
 }
 
+String BinaryExprStmt::to_string() const
+{
+	String str1, str2,op_str;
+	ExprStmt* expr1 = dynamic_cast<ExprStmt*>(first_expr_stmt.get());
+	if (expr1) {
+		str1 = expr1->to_string();
+	}
+	ExprStmt* expr2 = dynamic_cast<ExprStmt*>(second_expr_stmt.get());
+	if (expr2) {
+		str2 = expr2->to_string();
+	}
+
+	switch (op_type)
+	{
+		case OP_ADD:
+			op_str = "+";
+			break;
+		case OP_SUB:
+			op_str = "-";
+			break;
+		case OP_MUL:
+			op_str = "*";
+			break;
+		case OP_DIV:
+			op_str = "/";
+			break;
+		case OP_EQ:
+			op_str = "=";
+			break;
+		case OP_NE:
+			op_str = "!=";
+			break;
+		case OP_GE:
+			op_str = ">=";
+			break;
+		case OP_GT:
+			op_str = ">";
+			break;
+		case OP_LE:
+			op_str = "<=";
+			break;
+		case OP_LT:
+			op_str = "<";
+			break;
+		case OP_AND:
+			op_str = " and ";
+			break;
+		case OP_OR:
+			op_str = " or ";
+			break;
+		case OP_LIKE:
+			op_str = " like ";
+			break;
+		case OP_NOT_LIKE:
+			op_str = " not like ";
+			break;
+	}
+	return str1 + op_str + str2;
+}
+
 TernaryExprStmt::TernaryExprStmt()
 {
 }
@@ -204,4 +358,29 @@ ExprStmt::ExprType TernaryExprStmt::expr_stmt_type() const
 Stmt_s TernaryExprStmt::make_ternary_stmt()
 {
 	return Stmt_s(new TernaryExprStmt());
+}
+
+String TernaryExprStmt::to_string() const
+{
+	String str1, str2, str3, op_str;
+	ExprStmt* expr1 = dynamic_cast<ExprStmt*>(first_expr_stmt.get());
+	if (expr1) {
+		str1 = expr1->to_string();
+	}
+	ExprStmt* expr2 = dynamic_cast<ExprStmt*>(second_expr_stmt.get());
+	if (expr2) {
+		str2 = expr2->to_string();
+	}
+	ExprStmt* expr3 = dynamic_cast<ExprStmt*>(third_expr_stmt.get());
+	if (expr3) {
+		str3 = expr3->to_string();
+	}
+
+	if (op_type == ExprStmt::OP_BETWEEN) {
+		op_str = "between";
+	}
+	else if (op_type == ExprStmt::OP_NOT_BETWEEN) {
+		op_str = "not between";
+	}
+	return str1 + op_str + str2 + "and" + str3;
 }

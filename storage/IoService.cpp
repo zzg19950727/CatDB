@@ -1,4 +1,6 @@
 ﻿#include <stdio.h>
+#include <stdlib.h>
+#include <io.h>
 #include "IoService.h"
 #include "buffer.h"
 #include "error.h"
@@ -137,4 +139,25 @@ u32 IoService::clear_file(const String& table_file)
 	}else {
 		return TABLE_FILE_NOT_EXISTS;
 	}
+}
+
+u32 IoService::make_dir(const String & dir)
+{
+	String cmd = "mkdir " + dir;
+	system(cmd.c_str());
+	return SUCCESS;
+}
+
+u32 IoService::remove_dir(const String & dir)
+{
+	String cmd = "rmdir " + dir;
+	system(cmd.c_str());
+	return SUCCESS;
+}
+
+u32 IoService::move_dir(const String& src_dir, const String& dst_dir)
+{
+	String cmd = "move " + src_dir + " " + dst_dir;
+	system(cmd.c_str());
+	return SUCCESS;
 }

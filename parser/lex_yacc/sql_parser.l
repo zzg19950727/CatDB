@@ -2,29 +2,33 @@
 %option noyywrap debug
 %option yyclass="SqlScanner"
 %option prefix="CatDB_"
-
+%option caseless
 %{
 	#include "sql_parser.hpp"	//包含由parser.l生成的头文件
 	#include "sql_scanner.h" 	//包含yyFlexLexer子类的头文件
 	#include "location.hh" 	//包含位置调试信息头文件
+	#include <string>
 	# define YY_USER_ACTION  loc.columns (yyleng);
 	#define yyterminate() CatDB::SqlParser::make_END(loc);
 	# undef yywrap
   	# define yywrap() 1
 	#define YY_NO_UNISTD_H
   	static CatDB::location loc;	//声明位置实例
+	std::string parse_str;
+	char* tmp_ptr;
 %}
 
 letter 	[A-Za-z_]
 digit	[0-9]
+space	[ \t\n\r\f]+
 num1    {digit}+(\.)?([eE][-]?{digit}+)?
 num2    {digit}*(\.)?{digit}+([eE][-]?{digit}+)?
 number  {num1}|{num2}
-str		{letter}({letter}|{digit})*
+ident	{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
-space	[ \t\n\r\f]+
 timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
+%x str
 %%
 
 "bool"			{ return CatDB::SqlParser::make_BOOL(loc); }
@@ -53,6 +57,8 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "asc"			{ return CatDB::SqlParser::make_ASC(loc); }
 "by"			{ return CatDB::SqlParser::make_BY(loc); }
 "create"		{ return CatDB::SqlParser::make_CREATE(loc); }
+"database"		{ return CatDB::SqlParser::make_DATABASE(loc); }
+"databases"		{ return CatDB::SqlParser::make_DATABASES(loc); }
 "datetime"		{ return CatDB::SqlParser::make_DATETIME(loc); }
 "delete"		{ return CatDB::SqlParser::make_DELETE(loc); }
 "desc"			{ return CatDB::SqlParser::make_DESC(loc); }
@@ -67,6 +73,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "group"			{ return CatDB::SqlParser::make_GROUP(loc); }
 "having"		{ return CatDB::SqlParser::make_HAVING(loc); }
 "insert"		{ return CatDB::SqlParser::make_INSERT(loc); }
+"int"			{ return CatDB::SqlParser::make_INT(loc); }
 "into"			{ return CatDB::SqlParser::make_INTO(loc); }
 "limit"			{ return CatDB::SqlParser::make_LIMIT(loc); }
 "number"		{ return CatDB::SqlParser::make_NUMBER(loc); }
@@ -77,7 +84,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "table"			{ return CatDB::SqlParser::make_TABLE(loc); }
 "tables"		{ return CatDB::SqlParser::make_TABLES(loc); }
 "update"		{ return CatDB::SqlParser::make_UPDATE(loc); }
-"using"			{ return CatDB::SqlParser::make_USING(loc); }
+"use"			{ return CatDB::SqlParser::make_USING(loc); }
 "values"		{ return CatDB::SqlParser::make_VALUES(loc); }
 "varchar"		{ return CatDB::SqlParser::make_VARCHAR(loc); }
 "where"			{ return CatDB::SqlParser::make_WHERE(loc); }
@@ -91,11 +98,27 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
 "'"				{ return CatDB::SqlParser::make_AP(loc); }
-"\""			{ return CatDB::SqlParser::make_DQ(loc); }
+
+\"				{parse_str.clear();BEGIN(str);}
+<str>\"         {
+				BEGIN(INITIAL);
+				return CatDB::SqlParser::make_STRING(parse_str,loc);
+				}
+<str>\\n		parse_str += '\n';
+<str>\\t		parse_str += '\t';
+<str>\\r		parse_str += '\r';
+<str>\\b		parse_str += '\b';
+<str>\\f		parse_str += '\f';
+<str>\\(.|\n)	parse_str += yytext[1];
+<str>[^\\\n\"]+ {
+				tmp_ptr = yytext;
+				while( *tmp_ptr )
+				parse_str += *tmp_ptr++;
+				}
 
 {space}
 {number}		{ return CatDB::SqlParser::make_NUMERIC(yytext,loc);	}
-{str}			{ return CatDB::SqlParser::make_STRING(yytext,loc);	} 
+{ident}			{ return CatDB::SqlParser::make_IDENT(yytext,loc);	} 
 {date}			{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	} 
 {time}			{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	} 
 {timestamp}		{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	}
