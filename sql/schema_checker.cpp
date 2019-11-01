@@ -253,7 +253,7 @@ u32 SchemaChecker::desc_table(const String & database, const String & table, Vec
 {
 	String query = R"(select col.name,col.type from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
-				and db.name=")" + database + R"(" and tb.name=")" + table + R"(";)";
+				and db.name=")" + database + R"(" and tb.name=")" + table + R"(" order by col.id;)";
 	Object_s result;
 	u32 ret = execute_sys_sql(query, result);
 	if (ret != SUCCESS) {

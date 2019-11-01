@@ -161,6 +161,9 @@ namespace CatDB {
 			bool bool_value() override;
 			u32 hash() override;
 			String to_string()const override;
+			static time_t StringToDatetime(const String& str);
+			static String DatetimeToString(time_t t);
+			static String CurrentDatetime();
 
 			Object_s operator+(const Object_s& other) override;
 			Object_s operator-(const Object_s& other) override;

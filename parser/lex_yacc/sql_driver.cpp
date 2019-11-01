@@ -13,16 +13,15 @@ SqlDriver::~SqlDriver()
  
 }
 
+void CatDB::SqlDriver::reset()
+{
+	sys_error_.clear();
+	syntax_error_.clear();
+}
+
 int CatDB::SqlDriver::parse_sql(const String & sql)
 {
-	String query = sql;/*
-	for (u32 i = 0; i < query.size(); ++i)
-	{
-		if (query[i] == '\n' || query[i] == '\r')
-			query[i] = ' ';
-		else if (query[i] >= 'A' && query[i] <= 'Z')
-			query[i] -= ('A' - 'a');
-	}*/
+	String query = sql + ";";
 	query_stream.clear();
 	query_stream << query;
 	//m_parser.set_debug_level(1);

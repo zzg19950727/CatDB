@@ -107,6 +107,7 @@ Stmt_s TableStmt::make_table_stmt(const String & database, const String & table_
 	stmt->database = database;
 	stmt->table_name = table_name;
 	stmt->alias_name = table_name;
+	stmt->is_tmp_table = false;
 	return Stmt_s(stmt);
 }
 
@@ -115,6 +116,7 @@ Stmt_s CatDB::Parser::TableStmt::make_table_stmt(const String & table_name)
 	TableStmt* stmt = new TableStmt;
 	stmt->table_name = table_name;
 	stmt->alias_name = table_name;
+	stmt->is_tmp_table = false;
 	return Stmt_s(stmt);
 }
 
@@ -143,7 +145,7 @@ Stmt_s QueryStmt::make_query_stmt()
 
 String QueryStmt::to_string() const
 {
-	return "subquery";
+	return DateTime::CurrentDatetime();
 }
 
 ListStmt::ListStmt()
@@ -166,7 +168,7 @@ Stmt_s ListStmt::make_list_stmt()
 
 String ListStmt::to_string() const
 {
-	return "List";
+	return DateTime::CurrentDatetime();
 }
 
 AggrStmt::AggrStmt()

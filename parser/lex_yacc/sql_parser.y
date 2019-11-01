@@ -1153,11 +1153,11 @@ function_name:
 	;
 
 column_label:
-	ident		{ str_to_lower($1);$$=$1; }
+	ident		{ $$=$1; }
 	;
 
 ident:
-	IDENT		{ $$ = $1; }
+	IDENT		{ str_to_lower($1);$$ = $1; }
 	;
 
 string:

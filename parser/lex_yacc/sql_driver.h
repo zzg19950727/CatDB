@@ -21,6 +21,7 @@ namespace CatDB {
 	  public:
 		SqlDriver ();
 		virtual ~SqlDriver();
+		void reset();
 		int parse_sql(const String& sql);
 		bool is_sys_error()const;
 		bool is_syntax_error()const;

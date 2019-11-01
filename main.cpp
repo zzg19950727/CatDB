@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <chrono>
+#include "tpch.h"
 #include "schema_checker.h"
 #include "query_result.h"
 #include "sql_driver.h"
@@ -54,10 +55,11 @@ public:
 private:
 	long long start;
 };
-u32 length = 6;
-String fix_length(const String& str)
+
+Vector<u32> length;
+String fix_length(u32 i, const String& str)
 {
-	u32 size = length - str.length();
+	u32 size = length[i] - str.length();
 	return str + String(size, ' ');
 }
 
@@ -65,7 +67,7 @@ void print_line(u32 column_count)
 {
 	std::cout << "+";
 	for (u32 i = 0; i < column_count; ++i) {
-		for (u32 i = 0; i < length+2; ++i)
+		for (u32 j = 0; j < length[i]+2; ++j)
 			std::cout << "-";
 		std::cout << "+";
 	}
@@ -79,7 +81,7 @@ void print_row(const Row_s& row)
 	{
 		Object_s cell;
 		row->get_cell(i, cell);
-		std::cout << fix_length(cell->to_string()) << " | ";
+		std::cout << fix_length(i, cell->to_string()) << " | ";
 	}
 	std::cout << std::endl;
 }
@@ -88,6 +90,7 @@ void print_query_result(QueryResult* result, const Row_s& title)
 {
 	Row_s row;
 	u32 col_count = 0;
+	length = Vector<u32>(40, 0);
 	for (u32 i = 0; i < result->size(); ++i) {
 		result->get_row(i, row);
 		col_count = row->get_row_desc().get_column_num();
@@ -95,11 +98,11 @@ void print_query_result(QueryResult* result, const Row_s& title)
 		{
 			Object_s cell;
 			row->get_cell(i, cell);
-			if (length < cell->to_string().length())
-				length = cell->to_string().length();
+			if (length[i] < cell->to_string().length())
+				length[i] = cell->to_string().length();
 			title->get_cell(i, cell);
-			if (length < cell->to_string().length())
-				length = cell->to_string().length();
+			if (length[i] < cell->to_string().length())
+				length[i] = cell->to_string().length();
 		}
 	}
 	if (result->size() == 0)
@@ -118,12 +121,13 @@ void print_query_result(QueryResult* result, const Row_s& title)
 void parser_test()
 {
 	bool create_data = false;
-	SqlDriver parser;
 	Plan_s plan;
-	String query;
+	
 	u32 n = 1000;
 	while (n--) {
 		plan.reset();
+		SqlDriver parser;
+		String query;
 		if (!create_data) {
 			std::cout << "CatSQL(" << g_database << ") > ";
 			std::getline(std::cin, query);
@@ -167,7 +171,7 @@ void parser_test()
 			else {
 				Object_s result = plan->get_result();
 				QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
-				print_query_result(query_result, plan->get_result_title());
+				//print_query_result(query_result, plan->get_result_title());
 			}
 		}
 	}
@@ -211,9 +215,11 @@ void schema_checker_test()
 	
 }
 
+
 int main()
 {
 	//schema_checker_test();
 	parser_test();
+	
 	return 0;
 }

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <memory>
+#include <chrono>
 #include <vector>
 #include <queue>
 #include <list>
@@ -24,6 +25,7 @@ class_name&operator=(const class_name&)=delete;
 typedef unsigned char u8;
 typedef unsigned int u32;
 typedef std::string String;
+typedef std::chrono::system_clock Clock;
 
 template<typename T>
 using shared_ptr = std::shared_ptr<T>;

@@ -34,7 +34,11 @@ using namespace CatDB::Parser;
 
 SelectPlan::SelectPlan()
 	:resolve_select_list_or_having(0),
-	alias_table_id(0)
+	alias_table_id(0),
+	is_distinct(false),
+	is_sort_query_result(false),
+	asc(true),
+	have_limit(false)
 {
 
 }
@@ -167,16 +171,29 @@ u32 SelectPlan::build_plan()
 		Log(LOG_ERR, "SelectPlan", "make group plan failed");
 		return_result(ret);
 	}
-
-	ret = make_sort_plan(root_operator);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
-		return_result(ret);
+	if (!is_sort_query_result) {
+		ret = make_sort_plan(root_operator);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SelectPlan", "make sort plan failed");
+			return_result(ret);
+		}
+		ret = make_query_plan(root_operator);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SelectPlan", "make expression plan failed");
+			return_result(ret);
+		}
 	}
-	ret = make_query_plan(root_operator);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
-		return_result(ret);
+	else {
+		ret = make_query_plan(root_operator);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SelectPlan", "make expression plan failed");
+			return_result(ret);
+		}
+		ret = make_sort_plan(root_operator);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SelectPlan", "make sort plan failed");
+			return_result(ret);
+		}
 	}
 	ret = make_distinct_plan(root_operator);
 	if (ret != SUCCESS) {
@@ -210,6 +227,32 @@ void SelectPlan::set_alias_table_id(u32 id)
 u32 SelectPlan::get_alias_table_id() const
 {
 	return alias_table_id;
+}
+
+u32 SelectPlan::get_column_from_select_list(const String & column_name, ColumnDesc & col_desc)
+{
+	for (u32 i = 0; i < select_list_name.size(); ++i) {
+		if (column_name == select_list_name[i]) {
+			col_desc.set_tid_cid(alias_table_id, i);
+			return SUCCESS;
+		}
+	}
+	return COLUMN_NOT_EXISTS;
+}
+
+u32 SelectPlan::get_query_row_desc(RowDesc & row_desc)
+{
+	ColumnDesc col_desc;
+	for (u32 i = 0; i < select_list.size(); ++i) {
+		col_desc.set_tid_cid(alias_table_id, i);
+		row_desc.add_column_desc(col_desc);
+	}
+	return SUCCESS;
+}
+
+PhyOperator_s SelectPlan::get_root_operator()
+{
+	return root_operator;
 }
 
 /*
@@ -430,7 +473,6 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func);
 		aggr_exprs.push_back(expr);
 		//为了统一表达式计算框架把聚合表达式替换成group算子输出列描述，因为聚合函数本身由group算子计算
-		
 		col_desc.set_tid_cid(alias_table_id, aggr_exprs.size() - 1);
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;
@@ -502,21 +544,36 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 		assert(checker);
 		for (u32 i = 0; i < table_list.size(); ++i) {
 			TableStmt* table = table_list[i];
-			RowDesc row_desc;
-			u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-			if (ret != SUCCESS) {
-				return ret;
+			if (table->is_tmp_table) {
+				RowDesc row_desc;
+				SelectPlan* plan = tmp_table_list[table->table_name];
+				if (!plan || plan->get_query_row_desc(row_desc) != SUCCESS) {
+					return COLUMN_NOT_EXISTS;
+				}
+				for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
+					ColumnDesc col_desc;
+					row_desc.get_column_desc(i, col_desc);
+					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+					select_list.push_back(expr);
+				}
 			}
-			for (u32 j = 0; j < row_desc.get_column_num(); ++j) {
-				ColumnDesc col_desc;
-				row_desc.get_column_desc(j, col_desc);
-				u32 tid, cid;
-				col_desc.get_tid_cid(tid, cid);
-				tid = checker->get_table_id(table->database, table->alias_name);
-				col_desc.set_tid_cid(tid, cid);
-				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
-				select_list.push_back(expr);
-				add_access_column(table, col_desc);
+			else {
+				RowDesc row_desc;
+				u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+				if (ret != SUCCESS) {
+					return ret;
+				}
+				for (u32 j = 0; j < row_desc.get_column_num(); ++j) {
+					ColumnDesc col_desc;
+					row_desc.get_column_desc(j, col_desc);
+					u32 tid, cid;
+					col_desc.get_tid_cid(tid, cid);
+					tid = checker->get_table_id(table->database, table->alias_name);
+					col_desc.set_tid_cid(tid, cid);
+					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+					select_list.push_back(expr);
+					add_access_column(table, col_desc);
+				}
 			}
 		}
 	}
@@ -526,23 +583,38 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 		if (ret != SUCCESS) {
 			return ret;
 		}
-		SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-		assert(checker);
-		RowDesc row_desc;
-		ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-		if (ret != SUCCESS) {
-			return ret;
+		if (table->is_tmp_table) {
+			RowDesc row_desc;
+			SelectPlan* plan = tmp_table_list[table->table_name];
+			if (!plan || plan->get_query_row_desc(row_desc) != SUCCESS) {
+				return COLUMN_NOT_EXISTS;
+			}
+			for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
+				ColumnDesc col_desc;
+				row_desc.get_column_desc(i, col_desc);
+				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+				select_list.push_back(expr);
+			}
 		}
-		for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
-			ColumnDesc col_desc;
-			row_desc.get_column_desc(i, col_desc);
-			u32 tid, cid;
-			col_desc.get_tid_cid(tid, cid);
-			tid = checker->get_table_id(table->database, table->alias_name);
-			col_desc.set_tid_cid(tid, cid);
-			Expression_s expr = ColumnExpression::make_column_expression(col_desc);
-			select_list.push_back(expr);
-			add_access_column(table, col_desc);
+		else {
+			SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+			assert(checker);
+			RowDesc row_desc;
+			ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
+				ColumnDesc col_desc;
+				row_desc.get_column_desc(i, col_desc);
+				u32 tid, cid;
+				col_desc.get_tid_cid(tid, cid);
+				tid = checker->get_table_id(table->database, table->alias_name);
+				col_desc.set_tid_cid(tid, cid);
+				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
+				select_list.push_back(expr);
+				add_access_column(table, col_desc);
+			}
 		}
 	}
 	return SUCCESS;
@@ -562,20 +634,22 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 	if (column_stmt->table == "*") {
 		assert(table_list.size());
 		TableStmt* table = table_list[0];
-		RowDesc row_desc;
-		u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-		if (ret != SUCCESS) {
-			return ret;
+		if (!table->is_tmp_table) {
+			RowDesc row_desc;
+			u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			assert(row_desc.get_column_num());
+			ColumnDesc col_desc;
+			row_desc.get_column_desc(0, col_desc);
+			u32 tid, cid;
+			col_desc.get_tid_cid(tid, cid);
+			tid = checker->get_table_id(table->database, table->alias_name);
+			col_desc.set_tid_cid(tid, cid);
+			expr = ColumnExpression::make_column_expression(col_desc);
+			add_access_column(table, col_desc);
 		}
-		assert(row_desc.get_column_num());
-		ColumnDesc col_desc;
-		row_desc.get_column_desc(0, col_desc);
-		u32 tid, cid;
-		col_desc.get_tid_cid(tid, cid);
-		tid = checker->get_table_id(table->database, table->alias_name);
-		col_desc.set_tid_cid(tid, cid);
-		expr = ColumnExpression::make_column_expression(col_desc);
-		add_access_column(table, col_desc);
 	}
 	else {
 		TableStmt* table = nullptr;
@@ -583,20 +657,22 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 		if (ret != SUCCESS) {
 			return ret;
 		}
-		RowDesc row_desc;
-		ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-		if (ret != SUCCESS) {
-			return ret;
+		if (!table->is_tmp_table) {
+			RowDesc row_desc;
+			ret = checker->get_row_desc(table->database, table->table_name, row_desc);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			assert(row_desc.get_column_num());
+			ColumnDesc col_desc;
+			row_desc.get_column_desc(0, col_desc);
+			u32 tid, cid;
+			col_desc.get_tid_cid(tid, cid);
+			tid = checker->get_table_id(table->database, table->alias_name);
+			col_desc.set_tid_cid(tid, cid);
+			expr = ColumnExpression::make_column_expression(col_desc);
+			add_access_column(table, col_desc);
 		}
-		assert(row_desc.get_column_num());
-		ColumnDesc col_desc;
-		row_desc.get_column_desc(0, col_desc);
-		u32 tid, cid;
-		col_desc.get_tid_cid(tid, cid);
-		tid = checker->get_table_id(table->database, table->alias_name);
-		col_desc.set_tid_cid(tid, cid);
-		expr = ColumnExpression::make_column_expression(col_desc);
-		add_access_column(table, col_desc);
 	}
 	return SUCCESS;
 }
@@ -699,15 +775,23 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	ret = checker->get_column_desc(table->database, table->table_name, column_stmt->column, col_desc);
-	if (ret != SUCCESS) {
-		return ret;
+	if (table->is_tmp_table) {
+		SelectPlan* plan = tmp_table_list[table->table_name];
+		if (!plan || plan->get_column_from_select_list(column_stmt->column, col_desc) != SUCCESS) {
+			return COLUMN_NOT_EXISTS;
+		}
 	}
-	u32 tid, cid;
-	col_desc.get_tid_cid(tid, cid);
-	tid = checker->get_table_id(table->database, table->alias_name);
-	col_desc.set_tid_cid(tid, cid);
-	add_access_column(table, col_desc);
+	else {
+		ret = checker->get_column_desc(table->database, table->table_name, column_stmt->column, col_desc);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		u32 tid, cid;
+		col_desc.get_tid_cid(tid, cid);
+		tid = checker->get_table_id(table->database, table->alias_name);
+		col_desc.set_tid_cid(tid, cid);
+		add_access_column(table, col_desc);
+	}
 	return SUCCESS;
 }
 
@@ -765,7 +849,15 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 	assert(checker);
 	u32 find = 0;
 	for (u32 i = 0; i < table_list.size(); ++i) {
-		if (checker->have_column(table_list[i]->database, table_list[i]->table_name, column_name)) {
+		if (table_list[i]->is_tmp_table) {
+			SelectPlan* plan = tmp_table_list[table_list[i]->table_name];
+			ColumnDesc col_desc;
+			if (plan && plan->get_column_from_select_list(column_name, col_desc) == SUCCESS) {
+				++find;
+				table = table_list[i];
+			}
+		}
+		else if (checker->have_column(table_list[i]->database, table_list[i]->table_name, column_name)) {
 			++find;
 			table = table_list[i];
 		}
@@ -796,22 +888,52 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 		}
 		ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
 		if (expr_stmt->expr_stmt_type() == ExprStmt::Query) {
-			Log(LOG_ERR, "SelectPlan", "subquery in from stmt not support yet");
-			return ERROR_LEX_STMT;
+			QueryStmt* query = dynamic_cast<QueryStmt*>(expr_stmt);
+			u32 ret = get_ref_table_from_query(query);
+			if (ret != SUCCESS) {
+				return ret;
+			}
 		}
 		else if (expr_stmt->expr_stmt_type() != ExprStmt::Table) {
 			return ERROR_LEX_STMT;
 		}
-		TableStmt* table = dynamic_cast<TableStmt*>(expr_stmt);
-		TableStmt* exist_table = nullptr;
-		if (find_table(table->alias_name, exist_table) == SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "same alias table %s in from list", table->alias_name.c_str());
-			return NOT_UNIQUE_TABLE;
-		}
 		else {
-			table_list.push_back(table);
+			TableStmt* table = dynamic_cast<TableStmt*>(expr_stmt);
+			TableStmt* exist_table = nullptr;
+			if (find_table(table->alias_name, exist_table) == SUCCESS) {
+				Log(LOG_ERR, "SelectPlan", "same alias table %s in from list", table->alias_name.c_str());
+				return NOT_UNIQUE_TABLE;
+			}
+			else {
+				table_list.push_back(table);
+			}
 		}
 	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
+{
+	Plan_s plan = Plan::make_plan(subquery->query_stmt);
+	if (!plan || plan->type() != Plan::SELECT) {
+		return ERROR_LEX_STMT;
+	}
+	tmp_plans.push_back(plan);
+	u32 ret = plan->build_plan();
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "resolve subquery in from list failed");
+		return ret;
+	}
+	TableStmt* table = nullptr;
+	if (find_table(subquery->alias_name, table) == SUCCESS) {
+		return TABLE_EXISTS;
+	}
+	tmp_table_list[subquery->alias_name] = dynamic_cast<SelectPlan*>(plan.get());
+	Stmt_s stmt = TableStmt::make_table_stmt(subquery->alias_name);
+	tmp_table_handle.push_back(stmt);
+	table = dynamic_cast<TableStmt*>(stmt.get());
+	table->is_tmp_table = true;
+	table_list.push_back(table);
 	return SUCCESS;
 }
 /*
@@ -1007,9 +1129,21 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 			return ERROR_LEX_STMT;
 		}
 		Expression_s column;
-		ret = resolve_expr(list_stmt->stmt_list[i], column);
-		if (ret != SUCCESS) {
-			return ret;
+		//在select list中查找排序列
+		ret = resolve_column_from_select_list(list_stmt->stmt_list[i], column);
+		if (ret == SUCCESS) {
+			is_sort_query_result = true;
+		}
+		else {
+			//如果在select list中没有找到排序列，再从基表中查找
+			ret = resolve_expr(list_stmt->stmt_list[i], column);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			else if (is_sort_query_result) {
+				Log(LOG_ERR, "SelectPlan", "暂时不支持排序同时出现在基表和select list");
+				return ERROR_LEX_STMT;
+			}
 		}
 		sort_cols.push_back(column);
 	}
@@ -1047,12 +1181,31 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 		}
 		else {
 			ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
-			select_list_name.push_back(expr_stmt->to_string());
+			select_list_name.push_back(expr_stmt->alias_name);
 			this->select_list.push_back(expr);
 		}
 	}
 	resolve_select_list_or_having = 0;
 	return ret;
+}
+
+u32 SelectPlan::resolve_column_from_select_list(const Stmt_s& stmt, Expression_s& expr)
+{
+	if (stmt->stmt_type() != Stmt::Expr) {
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
+		return ERROR_LEX_STMT;
+	}
+	ColumnStmt*column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+	ColumnDesc col_desc;
+	u32 ret = get_column_from_select_list(column_stmt->column, col_desc);
+	if (ret != SUCCESS) {
+		return ret;
+	}
+	expr = ColumnExpression::make_column_expression(col_desc);
+	return SUCCESS;
 }
 
 u32 SelectPlan::add_access_column(TableStmt* table, const ColumnDesc& col_desc)
@@ -1167,11 +1320,25 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 	if (table_filters.find(table) != table_filters.cend()) {
 		filter = Filter::make_filter(table_filters[table]);
 	}
-	op = TableScan::make_table_scan(table->database, table->table_name, table_access_row_desc[table], filter);
+	if (table->is_tmp_table) {
+		SelectPlan* plan = tmp_table_list[table->table_name];
+		if (!plan) {
+			return ERROR_LEX_STMT;
+		}
+		if (!filter) {
+			op = plan->get_root_operator();
+		}
+		else {
+			op = PlanFilter::make_plan_filter(plan->get_root_operator(), filter);
+		}
+	}
+	else {
+		op = TableScan::make_table_scan(table->database, table->table_name, table_access_row_desc[table], filter);
+	}
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::SelectPlan::make_group_pan(PhyOperator_s & op)
+u32 SelectPlan::make_group_pan(PhyOperator_s & op)
 {
 	//scalar group by
 	if (group_cols.size() == 0) {
@@ -1209,14 +1376,14 @@ u32 CatDB::Sql::SelectPlan::make_group_pan(PhyOperator_s & op)
 	}
 }
 
-u32 CatDB::Sql::SelectPlan::make_sort_plan(PhyOperator_s & op)
+u32 SelectPlan::make_sort_plan(PhyOperator_s & op)
 {
 	if (sort_cols.size() == 0) {
 		return SUCCESS;
 	}
 	else {
-		//limit 30000以内行可以用top-N排序
-		if (have_limit && limit_size + limit_offset < 30000) {
+		//limit 30000以内行可以用top-N排序,如果有distinct则不能改写
+		if (!is_distinct && have_limit && limit_size + limit_offset < 30000) {
 			op = TopNSort::make_topn_sort(op, sort_cols, limit_size + limit_offset, asc);
 			//limit没有偏移则不需要再执行一次limit操作
 			if (limit_offset == 0) {
@@ -1230,7 +1397,7 @@ u32 CatDB::Sql::SelectPlan::make_sort_plan(PhyOperator_s & op)
 	}
 }
 
-u32 CatDB::Sql::SelectPlan::make_query_plan(PhyOperator_s & op)
+u32 SelectPlan::make_query_plan(PhyOperator_s & op)
 {
 	op = Query::make_query(op, select_list);
 	Query* query = dynamic_cast<Query*>(op.get());

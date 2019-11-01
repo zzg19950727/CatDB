@@ -25,7 +25,7 @@ Object_s DateTime::make_object(double value)
 	return Object_s(new DateTime(value));
 }
 
-time_t StringToDatetime(const String& str)
+time_t DateTime::StringToDatetime(const String& str)
 {
 	const char *cha = str.c_str();
 	tm tm_;
@@ -50,7 +50,7 @@ time_t StringToDatetime(const String& str)
 	return t_;
 }
 
-String DatetimeToString(time_t t)
+String DateTime::DatetimeToString(time_t t)
 {
 	char tmp[255];
 	tm* time = localtime(&t);
@@ -69,7 +69,13 @@ String DatetimeToString(time_t t)
 	return String(tmp);
 }
 
-Object_s CatDB::Common::DateTime::make_object(const String & str)
+String DateTime::CurrentDatetime()
+{
+	auto t = Clock::to_time_t(Clock::now());
+	return DatetimeToString(t);
+}
+
+Object_s DateTime::make_object(const String & str)
 {
 	double value = static_cast<double>( StringToDatetime(str) );
 	if(value < 0)

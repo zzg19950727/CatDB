@@ -1,5 +1,6 @@
 #ifndef SELECT_PLAN_H
 #define SELECT_PLAN_H
+#include "expr_stmt.h"
 #include "type.h"
 #include "plan.h"
 
@@ -22,6 +23,7 @@ namespace CatDB {
 		using Sql::Expression_s;
 		using Parser::TableStmt;
 		using Parser::ColumnStmt;
+		using Parser::QueryStmt;
 
 		class SelectPlan : public Plan
 		{
@@ -36,6 +38,9 @@ namespace CatDB {
 			PlanType type() const;
 			void set_alias_table_id(u32 id);
 			u32 get_alias_table_id()const;
+			u32 get_column_from_select_list(const String& column_name, ColumnDesc& col_desc);
+			u32 get_query_row_desc(RowDesc& row_desc);
+			PhyOperator_s get_root_operator();
 		private:
 			/*第一个pair指定join的两张表，第二个pair指定join condition和join equal condition
 			  join condition包含join equal condition*/
@@ -65,6 +70,8 @@ namespace CatDB {
 			u32 who_have_column(const String& column_name, TableStmt*& table);
 			//解析from语句块为table list
 			u32 get_ref_tables(const Stmt_s& from_stmt);
+			//如果from中出现子查询
+			u32 get_ref_table_from_query(QueryStmt* subquery);
 			//根据两张表搜素这两张表的连接谓词
 			u32 search_jon_info(const JoinableTables& join_tables, JoinConditions& join_cond);
 			u32 search_jon_info(const JoinableTables& join_tables, JoinConditions*& join_cond);
@@ -86,7 +93,10 @@ namespace CatDB {
 			u32 resolve_limit_stmt(const Stmt_s& limit_stmt);
 			//解析sort列
 			u32 resolve_sort_stmt(const Stmt_s& sort_stmt);
+			//解析select list
 			u32 resolve_select_list(const Stmt_s& select_list);
+			//如果排序列不在基表，则在查询生成列中解析
+			u32 resolve_column_from_select_list(const Stmt_s& expr_stmt, Expression_s& expr);
 			u32 add_access_column(TableStmt* table, const ColumnDesc& col_desc);
 			u32 make_access_row_desc();
 			u32 make_join_plan(PhyOperator_s& op);
@@ -102,9 +112,15 @@ namespace CatDB {
 			Vector<Expression_s> aggr_exprs;
 			//select list语句块中每一个输出表达式，聚合函数预处理过，详见select_list解析函数
 			Vector<Expression_s> select_list;
+			//新的输出列名
 			Vector<String> select_list_name;
 			//from list的表
 			Vector<TableStmt*> table_list;
+			//子查询生成的临时表
+			HashMap<String, SelectPlan*> tmp_table_list;
+			//需要保存临时表的引用，防止内存释放
+			Vector<Stmt_s> tmp_table_handle;
+			Vector<Plan_s> tmp_plans;
 			/*不能用于table scan和join的filter，比如or条件连接的双表谓词*/
 			Expression_s filter_after_join;
 			//每张表的过滤谓词
@@ -126,8 +142,13 @@ namespace CatDB {
 			u32 resolve_select_list_or_having;
 			//查询生成的临时表ID
 			u32 alias_table_id;
+			//查询列是否去重
 			bool is_distinct;
+			//排序列是否是查询的生成列
+			bool is_sort_query_result;
+			//是否升序
 			bool asc;
+			//是否有limit
 			bool have_limit;
 		};
 	}

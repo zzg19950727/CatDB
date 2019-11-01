@@ -110,6 +110,7 @@ namespace CatDB {
 		public:
 			String database;
 			String table_name;
+			bool is_tmp_table;
 		};
 		//子查询语句
 		class QueryStmt : public ExprStmt

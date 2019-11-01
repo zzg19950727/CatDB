@@ -23,7 +23,7 @@ digit	[0-9]
 space	[ \t\n\r\f]+
 num1    {digit}+(\.)?([eE][-]?{digit}+)?
 num2    {digit}*(\.)?{digit}+([eE][-]?{digit}+)?
-number  {num1}|{num2}
+number  [+|-]?({num1}|{num2})
 ident	{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}

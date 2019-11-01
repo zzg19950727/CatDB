@@ -138,7 +138,8 @@ u32 TableSpace::delete_row(u32 row_id)
 
 u32 TableSpace::delete_all_row()
 {
-	u32 ret = io->clear_file(table_name);
+	String table_path = data_dir + database + "\\" + table_name;
+	u32 ret = io->clear_file(table_path);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
 		return ret;
@@ -178,7 +179,7 @@ u32 TableSpace::create_table(const String& database, const String& table_name)
 u32 TableSpace::delete_database(const String & database)
 {
 	String path = data_dir + database;
-	IoService::move_dir(path, recycle_dir);
+	IoService::remove_dir(path);
 	return SUCCESS;
 }
 
