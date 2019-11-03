@@ -41,6 +41,9 @@
 #define DATABASE_EXISTS			0x26
 #define DATABASE_NOT_EXISTS		0x27
 #define TABLE_EXISTS			0x28
+#define SUBQUERY_RESULT_MUST_BE_ONE_COLUMN	0x29
+#define SUBQUERY_RESULT_MUST_BE_ONE_ROW	0x29
+#define END_OF_BUCKETS			0x2a
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

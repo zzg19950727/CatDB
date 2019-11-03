@@ -13,7 +13,8 @@ namespace CatDB {
 		class HashTable
 		{
 		public:
-			HashTable();
+			typedef HashMap<u32, Vector<Row_s>>::iterator BucketIterator;
+			HashTable(u32 bucket_num =10000);
 			~HashTable();
 			void clear();
 			bool empty()const;
@@ -28,8 +29,12 @@ namespace CatDB {
 			void clear_probe_columns();
 			u32 set_probe_condition(const Expression_s& probe_expr);
 			u32 bucket_count()const;
-			u32 sort_bucket(u32 idx);
-			const Vector<Row_s>& bucket(u32 idx);
+			BucketIterator begin_bucket();
+			BucketIterator end_bucket();
+			u32 sort_bucket(BucketIterator& iter);
+			const Vector<Row_s>& bucket(const BucketIterator& iter);
+			bool bucket_empty(const BucketIterator& iter);
+			u32 next_none_empty_bucket(BucketIterator& iter);
 
 		private:
 			bool less(const Row_s& lhs, const Row_s& rhs);
@@ -40,6 +45,8 @@ namespace CatDB {
 			Vector<Expression_s> hash_cols;
 			Vector<Expression_s> probe_cols;
 			Expression_s probe_condition;
+			u32 bucket_num;
+			bool is_empty;
 		};
 	}
 }

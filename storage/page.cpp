@@ -117,7 +117,7 @@ u32 Page::get_next_row(Row_s & row)
 bool Page::have_row() const
 {
 	u32 idx = row_idx_;
-	while (row_id_deleted(row_info_[idx].row_id) && idx < page_header_->row_count){
+	while (idx < page_header_->row_count && row_id_deleted(row_info_[idx].row_id)){
 		++idx;
 	}
 	if (idx >= page_header_->row_count){

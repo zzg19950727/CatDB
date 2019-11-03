@@ -13,6 +13,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		using Common::Object_s;
+		using Common::HashTable;
 		DECLARE(Filter);
 		DECLARE(Expression);
 
@@ -57,10 +58,11 @@ namespace CatDB {
 			//用于生成聚合函数所在的列
 			u32 agg_table_id;
 			//当前集合函数计算状态
-			u32 cur_bucket_idx;
+			HashTable::BucketIterator cur_bucket;
 			u32 cur_bucket_pos;
 			//当没有输入的时候需要输出一行结果
 			bool out_when_empty_input;
+			bool end_of_bucket;
 		};
 
 	}

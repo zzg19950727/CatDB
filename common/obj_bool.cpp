@@ -61,6 +61,11 @@ String Bool::to_string() const
 		return String("false");
 }
 
+Object_s Bool::copy()
+{
+	return Bool::make_object(value);
+}
+
 Object_s Bool::operator+(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

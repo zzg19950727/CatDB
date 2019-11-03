@@ -54,6 +54,11 @@ String Error::to_string() const
 	return String(err_string(err_code));
 }
 
+Object_s Error::copy()
+{
+	return Error::make_object(err_code);
+}
+
 Object_s Error:: op_and (const Object_s & other)
 {
 	Log(LOG_ERR, "Object", "error object do not support and operation");

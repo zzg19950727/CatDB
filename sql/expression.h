@@ -76,7 +76,7 @@ namespace CatDB {
 			enum ExprType {
 				Const = 0,
 				Column,
-				SubplanFilter,
+				Subplan,
 				Unary,
 				Binary,
 				Ternary,
@@ -124,22 +124,20 @@ namespace CatDB {
 			u32 alias_table_id;
 		};
 
-		class SubplanFilterExpression : public Expression
+		class SubplanExpression : public Expression
 		{
 		public:
-			SubplanFilterExpression() = delete;
-			SubplanFilterExpression(const Plan_s& subplan);
+			SubplanExpression() = delete;
+			SubplanExpression(const Plan_s& subplan);
 		public:
-			static Expression_s make_subplan_filter_expression(const Plan_s& subplan);
-			u32 set_alias_table(u32 table);
-			u32 get_alias_table()const;
+			static Expression_s make_subplan_expression(const Plan_s& subplan, bool correlated);
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
 		private:
 			Object_s result;
 			Plan_s subplan;
-			u32 alias_table;
+			bool is_correlated;
 		};
 
 		class UnaryExpression :public Expression

@@ -63,6 +63,11 @@ String Number::to_string() const
 		return std::to_string(data);
 }
 
+Object_s Number::copy()
+{
+	return Number::make_object(data);
+}
+
 Object_s Number::operator+(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

@@ -118,6 +118,11 @@ String DateTime::to_string() const
 		return DatetimeToString(data);
 }
 
+Object_s DateTime::copy()
+{
+	return DateTime::make_object(data);
+}
+
 Object_s DateTime::operator+(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

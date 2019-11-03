@@ -73,6 +73,11 @@ String Varchar::to_string() const
 		return String((char*)data->buf);
 }
 
+Object_s Varchar::copy()
+{
+	return Varchar::make_object(data);
+}
+
 Object_s Varchar::operator==(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

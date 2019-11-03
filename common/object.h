@@ -3,12 +3,13 @@
 #include "type.h"
 
 #define T_NULL		0x80000000
-#define T_BOOL		0x1
+#define T_BOOL		0x01
 #define T_NUMBER	0x02
 #define T_DATETIME	0x03
 #define T_VARCHAR	0x04
-#define T_LIST		0x5
-#define T_ERROR_RESULT	0x6
+#define T_LIST		0x05
+#define T_QUERY_RESULT	0x06
+#define T_ERROR_RESULT	0x07
 
 namespace CatDB {
 	namespace Common {
@@ -43,6 +44,7 @@ namespace CatDB {
 			virtual bool bool_value() = 0;
 			virtual u32 hash();
 			virtual String to_string()const;
+			virtual Object_s copy();
 
 			//要求实现的类型支持一下所有运算
 			//不支持的类型返回对应的错误对象
@@ -86,6 +88,7 @@ namespace CatDB {
 			u32 set_error_code(u32 code);
 			u32 get_error_code(u32& code);
 			String to_string()const override;
+			Object_s copy()override;
 
 			Object_s op_and (const Object_s& other) override;
 			Object_s op_or (const Object_s& other) override;
@@ -106,6 +109,7 @@ namespace CatDB {
 			u32 set_value(bool value);
 			u32 get_value(bool& value);
 			String to_string()const override;
+			Object_s copy()override;
 
 			Object_s operator+(const Object_s& other) override;
 			Object_s operator-(const Object_s& other) override;
@@ -132,6 +136,7 @@ namespace CatDB {
 			u32 hash() override;
 			double value() const;
 			String to_string()const override;
+			Object_s copy()override;
 
 			Object_s operator+(const Object_s& other) override;
 			Object_s operator-(const Object_s& other) override;
@@ -161,6 +166,7 @@ namespace CatDB {
 			bool bool_value() override;
 			u32 hash() override;
 			String to_string()const override;
+			Object_s copy()override;
 			static time_t StringToDatetime(const String& str);
 			static String DatetimeToString(time_t t);
 			static String CurrentDatetime();
@@ -191,6 +197,7 @@ namespace CatDB {
 			bool bool_value() override;
 			u32 hash() override;
 			String to_string()const override;
+			Object_s copy()override;
 
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;

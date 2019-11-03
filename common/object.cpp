@@ -86,6 +86,11 @@ String Object::to_string() const
 	return String();
 }
 
+Object_s Object::copy()
+{
+	return Error::make_object(ERR_EXPR_TYPE);
+}
+
 Object_s Object::operator+(const Object_s & other)
 {
 	Log(LOG_ERR, "Object", "object %u do not support add operation", obj_type);

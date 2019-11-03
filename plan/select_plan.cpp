@@ -255,6 +255,14 @@ PhyOperator_s SelectPlan::get_root_operator()
 	return root_operator;
 }
 
+void SelectPlan::reset_for_correlated_subquery(const Row_s & row)
+{
+	if (!root_operator) {
+		return;
+	}
+	root_operator->reopen(row);
+}
+
 /*
  * 解析where子句块，切分成and连接的谓词分析
  */
@@ -424,9 +432,18 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		}
 		break;
 	case ExprStmt::Query:
-		Log(LOG_ERR, "SelectPlan", "subquery in select`s where stmt not support yet");
-		ret = ERROR_LEX_STMT;
+	{
+		QueryStmt* query_stmt = dynamic_cast<QueryStmt*>(expr_stmt);
+		Plan_s subplan = Plan::make_plan(query_stmt->query_stmt);
+		ret = subplan->build_plan();
+		if (ret != SUCCESS){
+			break;
+		}
+		//TODO暂时只支持不相关子查询
+		expr = SubplanExpression::make_subplan_expression(subplan, false);
+		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::List:
 	{
 		ListStmt* list = dynamic_cast<ListStmt*>(expr_stmt);
@@ -1256,12 +1273,13 @@ u32 SelectPlan::make_access_row_desc()
 
 u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 {
+	u32 ret = SUCCESS;
 	if (table_list.size() == 0) {
 		Log(LOG_ERR, "SelectPlan", "from list must have more than one table");
-		return NO_TABLE_FOR_SELECT;
+		ret = NO_TABLE_FOR_SELECT;
 	}
 	else if (table_list.size() == 1) {
-		return make_table_scan(table_list[0], op);
+		ret = make_table_scan(table_list[0], op);
 	}
 	else {
 		PhyOperator_s left_root_operator;
@@ -1305,13 +1323,14 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 					right_op, join_equal_cond, join_cond, id);
 			}
 		}
-		if (filter_after_join) {
-			Filter_s filter = Filter::make_filter(filter_after_join);
-			left_root_operator = PlanFilter::make_plan_filter(left_root_operator, filter);
-		}
 		op = left_root_operator;
-		return SUCCESS;
+		ret = SUCCESS;
 	}
+	if (filter_after_join) {
+		Filter_s filter = Filter::make_filter(filter_after_join);
+		op = PlanFilter::make_plan_filter(op, filter);
+	}
+	return ret;
 }
 
 u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)

@@ -8,33 +8,59 @@
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-CatDB::Common::HashTable::HashTable()
+enum { PRIME_NUM = 24 };
+static const u32 PRIME_LIST[PRIME_NUM] =
 {
+	53l,         97l,         193l,       389l,       769l,
+	1543l,       3079l,       6151l,      12289l,     24593l,
+	49157l,      98317l,      196613l,    393241l,    786433l,
+	1572869l,    3145739l,    6291469l,   12582917l,  25165843l,
+	50331653l,   100663319l,  201326611l, 402653189l
+};
+inline u32 cal_next_prime(u32 n)
+{
+	u32 ret = n;
+	if (n > 0)
+	{
+		const u32* first = PRIME_LIST;
+		const u32* last = PRIME_LIST + PRIME_NUM;
+		const u32* pos = std::lower_bound(first, last, n);
+		ret = ((pos == last) ? *(last - 1) : *pos);
+	}
+	return ret;
 }
 
-CatDB::Common::HashTable::~HashTable()
+HashTable::HashTable(u32 num)
+	:is_empty(true)
+{
+	num = 6000000;
+	this->bucket_num = cal_next_prime(num);
+}
+
+HashTable::~HashTable()
 {
 
 }
 
-void CatDB::Common::HashTable::clear()
+void HashTable::clear()
 {
 	buckets.clear();
 }
 
-bool CatDB::Common::HashTable::empty() const
+bool HashTable::empty() const
 {
-	return buckets.empty();
+	return is_empty;
 }
 
-u32 CatDB::Common::HashTable::build(const Row_s & row)
+u32 HashTable::build(const Row_s & row)
 {
 	u32 hash_value = hash(hash_cols, row);
 	buckets[hash_value].push_back(row);
+	is_empty = false;
 	return SUCCESS;
 }
 
-u32 CatDB::Common::HashTable::probe(const Row_s & row)
+u32 HashTable::probe(const Row_s & row)
 {
 	u32 hash_value = hash(probe_cols, row);
 	if (buckets.find(hash_value) == buckets.cend()){
@@ -49,7 +75,7 @@ u32 CatDB::Common::HashTable::probe(const Row_s & row)
 	}
 }
 
-u32 CatDB::Common::HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
+u32 HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
 {
 	u32 hash_value = hash(probe_cols, row);
 	if (buckets.find(hash_value) == buckets.cend()){
@@ -74,73 +100,106 @@ u32 CatDB::Common::HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
 	}
 }
 
-u32 CatDB::Common::HashTable::add_hash_column(const Expression_s & col_expr)
+u32 HashTable::add_hash_column(const Expression_s & col_expr)
 {
 	hash_cols.push_back(col_expr);
 	return SUCCESS;
 }
 
-void CatDB::Common::HashTable::clear_hash_columns()
+void HashTable::clear_hash_columns()
 {
 	hash_cols.clear();
 }
 
-u32 CatDB::Common::HashTable::add_probe_column(const Expression_s & col_expr)
+u32 HashTable::add_probe_column(const Expression_s & col_expr)
 {
 	probe_cols.push_back(col_expr);
 	return SUCCESS;
 }
 
-void CatDB::Common::HashTable::clear_probe_columns()
+void HashTable::clear_probe_columns()
 {
 	probe_cols.clear();
 }
 
-u32 CatDB::Common::HashTable::set_probe_condition(const Expression_s & probe_expr)
+u32 HashTable::set_probe_condition(const Expression_s & probe_expr)
 {
 	probe_condition = probe_expr;
 	return SUCCESS;
 }
 
-u32 CatDB::Common::HashTable::bucket_count() const
+u32 HashTable::bucket_count() const
 {
 	return buckets.size();
 }
 
-u32 CatDB::Common::HashTable::sort_bucket(u32 idx)
+HashTable::BucketIterator HashTable::begin_bucket()
 {
-	if (idx >= buckets.size()){
-		Log(LOG_ERR, "HashTable", "idx %u bigger than bucket size %u", idx, buckets.size());
+	if (buckets.empty()) {
+		return buckets.end();
+	}
+	auto iter =  buckets.begin();
+	if (!iter->second.empty()) {
+		return iter;
+	}
+	while (iter != buckets.end()) {
+		if (!iter->second.empty()) {
+			return iter;
+		}
+		else {
+			++iter;
+		}
+	}
+	return iter;
+}
+
+HashTable::BucketIterator HashTable::end_bucket()
+{
+	return buckets.end();
+}
+
+u32 HashTable::sort_bucket(BucketIterator & iter)
+{
+	if (iter == buckets.end()) {
+		Log(LOG_ERR, "HashTable", "end of buckets");
 		return ERR_BUCKET_IDX;
 	}
 	auto less_func = std::bind(&HashTable::less, this, std::placeholders::_1, std::placeholders::_2);
-	u32 i = 0;
-	auto iter = buckets.begin();
-	for (; iter != buckets.end(); ++iter, ++i){
-		if (i == idx){
-			break;
-		}
-	}
 	std::sort(iter->second.begin(), iter->second.end(), less_func);
 	return SUCCESS;
 }
 
-const Vector<Row_s>& CatDB::Common::HashTable::bucket(u32 idx)
+const Vector<Row_s>& HashTable::bucket(const BucketIterator & iter)
 {
-	if (idx >= buckets.size()){
-		Log(LOG_ERR, "HashTable", "idx %u bigger than bucket size %u", idx, buckets.size());
-		//TODO 错误处理？
+	if (iter == buckets.end()) {
+		Log(LOG_TRACE, "HashTable", "end of buckets");
+		//TODO 错误处理
 	}
-	u32 i = 0;
-	for (auto iter = buckets.cbegin(); iter != buckets.cend(); ++iter, ++i){
-		if (i == idx)
-			return iter->second;
-	}
-	//naver goto here
-	return buckets.cbegin()->second;
+	return iter->second;
 }
 
-bool CatDB::Common::HashTable::less(const Row_s & lhs, const Row_s & rhs)
+bool HashTable::bucket_empty(const BucketIterator & iter)
+{
+	if (iter == buckets.end()) {
+		return true;
+	}
+	else {
+		return iter->second.empty();
+	}
+}
+
+u32 HashTable::next_none_empty_bucket(BucketIterator & iter)
+{
+	while (iter != buckets.end()) {
+		++iter;
+		if (iter != buckets.end() && !iter->second.empty()) {
+			return SUCCESS;
+		}
+	}
+	return END_OF_BUCKETS;
+}
+
+bool HashTable::less(const Row_s & lhs, const Row_s & rhs)
 {
 	for (u32 i = 0; i < hash_cols.size(); ++i){
 		Object_s left = hash_cols[i]->get_result(lhs);
@@ -157,7 +216,7 @@ bool CatDB::Common::HashTable::less(const Row_s & lhs, const Row_s & rhs)
 	return false;
 }
 
-u32 CatDB::Common::HashTable::hash(Vector<Expression_s>& cols, const Row_s & row)
+u32 HashTable::hash(Vector<Expression_s>& cols, const Row_s & row)
 {
 	Hash<u32> hash;
 	u32 value = 0;
@@ -177,10 +236,10 @@ u32 CatDB::Common::HashTable::hash(Vector<Expression_s>& cols, const Row_s & row
 			value = hash(value + obj->hash());
 		}
 	}
-	return value;
+	return value % bucket_num;
 }
 
-bool CatDB::Common::HashTable::equal(const Row_s & lhs, const Row_s & rhs)
+bool HashTable::equal(const Row_s & lhs, const Row_s & rhs)
 {
 	bool equal = true;
 	if (probe_cols.empty()){

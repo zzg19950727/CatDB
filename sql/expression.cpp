@@ -1,4 +1,6 @@
 ﻿#include "expression.h"
+#include "query_result.h"
+#include "select_plan.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
@@ -29,6 +31,14 @@ Operation::OperationType Operation::get_type() const
 
 Object_s Operation::calc(Object_s & obj)
 {
+	if (obj->get_type() == T_QUERY_RESULT 
+		&& !(type == ExprStmt::OP_EXISTS || type == ExprStmt::OP_NOT_EXISTS)) {
+		QueryResult* result = dynamic_cast<QueryResult*>(obj.get());
+		u32 ret = result->cast_to_simple_object(obj);
+		if (ret != SUCCESS) {
+			return Error::make_object(ret);
+		}
+	}
 	switch (type)
 	{
 	case ExprStmt::OP_NOT:
@@ -49,6 +59,21 @@ Object_s Operation::calc(Object_s & obj)
 
 Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
 {
+	if (first_obj->get_type() == T_QUERY_RESULT) {
+		QueryResult* result = dynamic_cast<QueryResult*>(first_obj.get());
+		u32 ret = result->cast_to_simple_object(first_obj);
+		if (ret != SUCCESS) {
+			return Error::make_object(ret);
+		}
+	}
+	else if (second_obj->get_type() == T_QUERY_RESULT 
+		&& !(type == ExprStmt::OP_IN || type == ExprStmt::OP_NOT_IN)) {
+		QueryResult* result = dynamic_cast<QueryResult*>(second_obj.get());
+		u32 ret = result->cast_to_simple_object(second_obj);
+		if (ret != SUCCESS) {
+			return Error::make_object(ret);
+		}
+	}
 	switch (type)
 	{
 	case ExprStmt::OP_ADD:
@@ -128,7 +153,7 @@ Object_s Operation::do_equal(Object_s & first_obj, Object_s & second_obj)
 	return first_obj->operator==(second_obj);
 }
 
-Object_s CatDB::Sql::Operation::do_not_equal(Object_s & first_obj, Object_s & second_obj)
+Object_s Operation::do_not_equal(Object_s & first_obj, Object_s & second_obj)
 {
 	Object_s result = first_obj->operator==(second_obj);
 	return result->op_not();
@@ -139,7 +164,7 @@ Object_s Operation::do_greater(Object_s & first_obj, Object_s & second_obj)
 	return first_obj->operator>(second_obj);
 }
 
-Object_s CatDB::Sql::Operation::do_GE(Object_s & first_obj, Object_s & second_obj)
+Object_s Operation::do_GE(Object_s & first_obj, Object_s & second_obj)
 {
 	Object_s result = first_obj->operator>(second_obj);
 	if (result->get_type() == T_ERROR_RESULT) {
@@ -162,7 +187,7 @@ Object_s Operation::do_less(Object_s & first_obj, Object_s & second_obj)
 	return first_obj->operator<(second_obj);
 }
 
-Object_s CatDB::Sql::Operation::do_LE(Object_s & first_obj, Object_s & second_obj)
+Object_s Operation::do_LE(Object_s & first_obj, Object_s & second_obj)
 {
 	Object_s result = first_obj->operator<(second_obj);
 	if (result->get_type() == T_ERROR_RESULT) {
@@ -185,7 +210,7 @@ Object_s Operation::do_between(Object_s & first_obj, Object_s & second_obj, Obje
 	return first_obj->between(second_obj, third_obj);
 }
 
-Object_s CatDB::Sql::Operation::do_not_between(Object_s & first_obj, Object_s & second_obj, Object_s & third_obj)
+Object_s Operation::do_not_between(Object_s & first_obj, Object_s & second_obj, Object_s & third_obj)
 {
 	Object_s result = first_obj->between(second_obj, third_obj);
 	return result->op_not();
@@ -237,12 +262,12 @@ Object_s Operation::do_not(Object_s & first_obj)
 	return first_obj->op_not();
 }
 
-Object_s CatDB::Sql::Operation::do_like(Object_s & first_obj, Object_s & second_obj)
+Object_s Operation::do_like(Object_s & first_obj, Object_s & second_obj)
 {
 	return first_obj->like(second_obj);
 }
 
-Object_s CatDB::Sql::Operation::do_not_like(Object_s & first_obj, Object_s & second_obj)
+Object_s Operation::do_not_like(Object_s & first_obj, Object_s & second_obj)
 {
 	Object_s result = first_obj->like(second_obj);
 	return result->op_not();
@@ -280,12 +305,12 @@ Object_s ConstExpression::get_result(const Row_s & row)
 		return Error::make_object(INVALID_OBJECT);
 }
 
-Expression::ExprType CatDB::Sql::ConstExpression::get_type() const
+Expression::ExprType ConstExpression::get_type() const
 {
 	return Expression::Const;
 }
 
-void CatDB::Sql::ConstExpression::reset(const Row_s & row)
+void ConstExpression::reset(const Row_s & row)
 {
 }
 
@@ -305,18 +330,18 @@ u32 ColumnExpression::set_column_desc(ColumnDesc & desc)
 	return SUCCESS;
 }
 
-const ColumnDesc & CatDB::Sql::ColumnExpression::get_column_desc() const
+const ColumnDesc & ColumnExpression::get_column_desc() const
 {
 	return col_desc;
 }
 
-u32 CatDB::Sql::ColumnExpression::set_alias_table_id(u32 table_id)
+u32 ColumnExpression::set_alias_table_id(u32 table_id)
 {
 	alias_table_id = table_id;
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::ColumnExpression::get_alias_table_id() const
+u32 ColumnExpression::get_alias_table_id() const
 {
 	return alias_table_id;
 }
@@ -332,12 +357,12 @@ Object_s ColumnExpression::get_result(const Row_s & row)
 		return Error::make_object(ret);
 }
 
-Expression::ExprType CatDB::Sql::ColumnExpression::get_type() const
+Expression::ExprType ColumnExpression::get_type() const
 {
 	return Expression::Column;
 }
 
-void CatDB::Sql::ColumnExpression::reset(const Row_s & row)
+void ColumnExpression::reset(const Row_s & row)
 {
 }
 
@@ -362,12 +387,12 @@ Object_s UnaryExpression::get_result(const Row_s & row)
 	return op.calc(obj);
 }
 
-Expression::ExprType CatDB::Sql::UnaryExpression::get_type() const
+Expression::ExprType UnaryExpression::get_type() const
 {
 	return Expression::Unary;
 }
 
-void CatDB::Sql::UnaryExpression::reset(const Row_s & row)
+void UnaryExpression::reset(const Row_s & row)
 {
 	expr->reset(row);
 }
@@ -399,12 +424,12 @@ Object_s BinaryExpression::get_result(const Row_s & row)
 	return op.calc(first_obj, second_obj);
 }
 
-Expression::ExprType CatDB::Sql::BinaryExpression::get_type() const
+Expression::ExprType BinaryExpression::get_type() const
 {
 	return Expression::Binary;
 }
 
-void CatDB::Sql::BinaryExpression::reset(const Row_s & row)
+void BinaryExpression::reset(const Row_s & row)
 {
 	first_expr->reset(row);
 	second_expr->reset(row);
@@ -442,19 +467,19 @@ Object_s TernaryExpression::get_result(const Row_s & row)
 	return op.calc(first_obj, second_obj, third_obj);
 }
 
-Expression::ExprType CatDB::Sql::TernaryExpression::get_type() const
+Expression::ExprType TernaryExpression::get_type() const
 {
 	return Expression::Ternary;
 }
 
-void CatDB::Sql::TernaryExpression::reset(const Row_s & row)
+void TernaryExpression::reset(const Row_s & row)
 {
 	first_expr->reset(row);
 	second_expr->reset(row);
 	third_expr->reset(row);
 }
 
-CatDB::Sql::AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op)
+AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op)
 	:expr(expr),
 	op(op),
 	row_count(0)
@@ -462,16 +487,16 @@ CatDB::Sql::AggregateExpression::AggregateExpression(const Expression_s& expr, A
 	
 }
 
-CatDB::Sql::AggregateExpression::~AggregateExpression()
+AggregateExpression::~AggregateExpression()
 {
 }
 
-Expression_s CatDB::Sql::AggregateExpression::make_aggregate_expression(const Expression_s& expr, AggrType op)
+Expression_s AggregateExpression::make_aggregate_expression(const Expression_s& expr, AggrType op)
 {
 	return Expression_s(new AggregateExpression(expr, op));
 }
 
-Object_s CatDB::Sql::AggregateExpression::get_result(const Row_s &)
+Object_s AggregateExpression::get_result(const Row_s &)
 {
 	//如果聚合函数没有任何输入
 	if (!result){
@@ -489,17 +514,17 @@ Object_s CatDB::Sql::AggregateExpression::get_result(const Row_s &)
 	}
 }
 
-Expression::ExprType CatDB::Sql::AggregateExpression::get_type() const
+Expression::ExprType AggregateExpression::get_type() const
 {
 	return Expression::Aggregate;
 }
 
-void CatDB::Sql::AggregateExpression::reset(const Row_s & row)
+void AggregateExpression::reset(const Row_s & row)
 {
 	expr->reset(row);
 }
 
-u32 CatDB::Sql::AggregateExpression::add_row(const Row_s & row)
+u32 AggregateExpression::add_row(const Row_s & row)
 {
 	switch (op)
 	{
@@ -518,16 +543,16 @@ u32 CatDB::Sql::AggregateExpression::add_row(const Row_s & row)
 	}
 }
 
-void CatDB::Sql::AggregateExpression::reset()
+void AggregateExpression::reset()
 {
 	result.reset();
 	row_count = 0;
 }
 
-u32 CatDB::Sql::AggregateExpression::sum(const Row_s & row)
+u32 AggregateExpression::sum(const Row_s & row)
 {
 	if (!result){
-		result = expr->get_result(row);
+		result = expr->get_result(row)->copy();
 		if (result->get_type() == T_ERROR_RESULT)
 			return EXPR_CALC_ERR;
 		else
@@ -541,7 +566,7 @@ u32 CatDB::Sql::AggregateExpression::sum(const Row_s & row)
 	}
 }
 
-u32 CatDB::Sql::AggregateExpression::count(const Row_s &)
+u32 AggregateExpression::count(const Row_s &)
 {
 	if (!result){
 		result = Number::make_object(1);
@@ -551,14 +576,14 @@ u32 CatDB::Sql::AggregateExpression::count(const Row_s &)
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::AggregateExpression::avg(const Row_s & row)
+u32 AggregateExpression::avg(const Row_s & row)
 {
 	sum(row);
 	++row_count;
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::AggregateExpression::max(const Row_s & row)
+u32 AggregateExpression::max(const Row_s & row)
 {
 	Object_s obj = expr->get_result(row);
 	if (!result){
@@ -571,7 +596,7 @@ u32 CatDB::Sql::AggregateExpression::max(const Row_s & row)
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::AggregateExpression::min(const Row_s & row)
+u32 AggregateExpression::min(const Row_s & row)
 {
 	Object_s obj = expr->get_result(row);
 	if (!result){
@@ -584,41 +609,46 @@ u32 CatDB::Sql::AggregateExpression::min(const Row_s & row)
 	return SUCCESS;
 }
 
-CatDB::Sql::SubplanFilterExpression::SubplanFilterExpression(const Plan_s& subplan)
+SubplanExpression::SubplanExpression(const Plan_s& subplan)
 	:subplan(subplan)
 {
 }
 
-Expression_s CatDB::Sql::SubplanFilterExpression::make_subplan_filter_expression(const Plan_s& subplan)
+Expression_s SubplanExpression::make_subplan_expression(const Plan_s& subplan, bool correlated)
 {
-	return Expression_s(new SubplanFilterExpression(subplan));
+	SubplanExpression* expr = new SubplanExpression(subplan);
+	expr->is_correlated = correlated;
+	return Expression_s(expr);
 }
 
-u32 CatDB::Sql::SubplanFilterExpression::set_alias_table(u32 table)
+Object_s SubplanExpression::get_result(const Row_s & row)
 {
-	alias_table = table;
-	return SUCCESS;
-}
-
-u32 CatDB::Sql::SubplanFilterExpression::get_alias_table() const
-{
-	return alias_table;
-}
-
-Object_s CatDB::Sql::SubplanFilterExpression::get_result(const Row_s & row)
-{
-	if (!result)
-		return Object::make_null_object();
-	else
+	if (result && !is_correlated) {
 		return result;
+	}
+	else if (subplan->type() != Plan::SELECT) {
+		return Error::make_object(ERROR_LEX_STMT);
+	}
+	SelectPlan* query = dynamic_cast<SelectPlan*>(subplan.get());
+	if (result && is_correlated) {
+		query->reset_for_correlated_subquery(row);
+	}
+	u32 ret = query->execute();
+	if (ret != SUCCESS) {
+		result = Error::make_object(ret);
+	}
+	else {
+		result = query->get_result();
+	}
+	return result;
 }
 
-Expression::ExprType CatDB::Sql::SubplanFilterExpression::get_type() const
+Expression::ExprType SubplanExpression::get_type() const
 {
-	return Expression::SubplanFilter;
+	return Expression::Subplan;
 }
 
-void CatDB::Sql::SubplanFilterExpression::reset(const Row_s & row)
+void SubplanExpression::reset(const Row_s & row)
 {
 	
 }

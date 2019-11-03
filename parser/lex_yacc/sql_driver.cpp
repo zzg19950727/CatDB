@@ -22,6 +22,10 @@ void CatDB::SqlDriver::reset()
 int CatDB::SqlDriver::parse_sql(const String & sql)
 {
 	String query = sql + ";";
+	for (u32 i = 0; i < query.size(); ++i) {
+		if (query[i] == '\n')
+			query[i] = ' ';
+	}
 	query_stream.clear();
 	query_stream << query;
 	//m_parser.set_debug_level(1);

@@ -258,7 +258,7 @@
 %%
 
 sql_stmt:
-	stmt
+	stmt ";"
     {
 		driver.result = $1;
 		YYACCEPT;
@@ -636,6 +636,8 @@ expr:
 		make_binary_stmt($$, $1, $4, ExprStmt::OP_NOT_IN);
     }
   ;
+
+
 
 in_expr:
     select_with_parens

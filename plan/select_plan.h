@@ -18,6 +18,7 @@ namespace CatDB {
 		DECLARE(Filter);
 		DECLARE(Expression);
 		using Common::Row_s;
+		using Common::RowDesc;
 		using Parser::Stmt_s;
 		using Sql::Filter_s;
 		using Sql::Expression_s;
@@ -41,6 +42,8 @@ namespace CatDB {
 			u32 get_column_from_select_list(const String& column_name, ColumnDesc& col_desc);
 			u32 get_query_row_desc(RowDesc& row_desc);
 			PhyOperator_s get_root_operator();
+			void reset_for_correlated_subquery(const Row_s& row);
+
 		private:
 			/*第一个pair指定join的两张表，第二个pair指定join condition和join equal condition
 			  join condition包含join equal condition*/
