@@ -33,7 +33,7 @@ inline u32 cal_next_prime(u32 n)
 HashTable::HashTable(u32 num)
 	:is_empty(true)
 {
-	num = 6000000;
+	num = 8000000;
 	this->bucket_num = cal_next_prime(num);
 }
 

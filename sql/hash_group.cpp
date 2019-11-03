@@ -122,6 +122,7 @@ u32 HashGroup::reopen(const Row_s & row)
 
 u32 HashGroup::get_next_row(Row_s & row)
 {
+retry:
 	if (cur_bucket == hash_table.end_bucket() || hash_table.empty() || end_of_bucket){
 		//如果没有子节点没有任何输入，则输出对应聚合函数结果一次
 		if (hash_table.empty() && !out_when_empty_input){
@@ -156,8 +157,13 @@ u32 HashGroup::get_next_row(Row_s & row)
 		cur_bucket_pos = 0;
 	}
 	row = make_row(cur_group_row);
+	if (!row) {
+		return ERROR_COLUMN_VALUE;
+	}
+	//递归太深导致栈溢出
 	if (filter && !(*filter)(row))
-		return get_next_row(row);
+		goto retry;
+		//return get_next_row(row);
 	else
 		return SUCCESS;
 }
@@ -233,8 +239,10 @@ u32 HashGroup::add_row_to_agg_func(const Row_s & row)
 
 Row_s HashGroup::make_row(const Row_s& row)
 {
-	RowDesc row_desc(group_cols.size() + agg_funcs.size());
-	Row_s new_row = Row::make_row(row_desc);
+	Row_s new_row;
+	u32 size = group_cols.size() + agg_funcs.size();
+	RowDesc row_desc(size);
+	new_row = Row::make_row(row_desc);
 	u32 i = 0;
 	for (; i < group_cols.size(); ++i) {
 		ColumnExpression* column = dynamic_cast<ColumnExpression*>(group_cols[i].get());

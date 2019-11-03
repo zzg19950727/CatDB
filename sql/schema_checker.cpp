@@ -76,7 +76,7 @@ bool SchemaChecker::have_column(const String& database, const String& table_name
 		return have_column_system(database, table_name, column_name);
 	}
 	else {
-		String query = R"(select * from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+		String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" and col.name=")" + column_name + R"(";)";
 		Object_s result;

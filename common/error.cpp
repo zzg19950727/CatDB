@@ -85,7 +85,15 @@ const char * err_string(u32 err_code)
 		case DATABASE_NOT_EXISTS:
 			return "database not exists";
 		case TABLE_EXISTS:
-			return "table exists";
+			return "table exists"; 
+		case SUBQUERY_RESULT_MUST_BE_ONE_COLUMN:
+			return "subquery`s result must be one column";
+		case SUBQUERY_RESULT_MUST_BE_ONE_ROW:
+			return "subquery`s result must be one row";
+		case END_OF_BUCKETS:
+			return "end of hash table buckets";
+		case SET_ROW_DESC_ERROR:
+			return "row desc error in set operation";
 		default:
 			return "";
 	}

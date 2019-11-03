@@ -41,7 +41,7 @@ namespace CatDB {
 			u32 get_alias_table_id()const;
 			u32 get_column_from_select_list(const String& column_name, ColumnDesc& col_desc);
 			u32 get_query_row_desc(RowDesc& row_desc);
-			PhyOperator_s get_root_operator();
+			const Vector<String>& get_all_output_column() const;
 			void reset_for_correlated_subquery(const Row_s& row);
 
 		private:
@@ -100,7 +100,9 @@ namespace CatDB {
 			u32 resolve_select_list(const Stmt_s& select_list);
 			//如果排序列不在基表，则在查询生成列中解析
 			u32 resolve_column_from_select_list(const Stmt_s& expr_stmt, Expression_s& expr);
+			//添加每张表需要访问的列
 			u32 add_access_column(TableStmt* table, const ColumnDesc& col_desc);
+			//生成对应的计划
 			u32 make_access_row_desc();
 			u32 make_join_plan(PhyOperator_s& op);
 			u32 make_table_scan(TableStmt* table, PhyOperator_s& op);
@@ -109,6 +111,7 @@ namespace CatDB {
 			u32 make_query_plan(PhyOperator_s& op);
 			u32 make_distinct_plan(PhyOperator_s& op);
 			u32 make_limit_plan(PhyOperator_s& op);
+			u32 make_set_plan(PhyOperator_s& op);
 			
 		private:
 			//select list语句块中出现过的聚合函数
@@ -135,10 +138,12 @@ namespace CatDB {
 			HashMap<JoinableTables, JoinConditions> join_info;
 			//聚合列
 			Vector<Expression_s> group_cols;
-			//having过滤谓词表达式
-			Expression_s having_filter;
 			//排序列
 			Vector<Expression_s> sort_cols;
+			//如果是集合查询，则分别保存左右集合的计划
+			Plan_s first_plan, second_plan;
+			//having过滤谓词表达式
+			Expression_s having_filter;
 			//limit相关
 			u32 limit_offset, limit_size;
 			//当前在解析select_list还是having语句块，用于区分聚合函数的解析处理

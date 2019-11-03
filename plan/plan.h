@@ -53,6 +53,7 @@ namespace CatDB {
 			virtual u32 optimizer() = 0;
 			virtual PlanType type() const = 0;
 			void set_error_code(u32 code);
+			PhyOperator_s get_root_operator();
 		protected:
 			Stmt_s lex_stmt;
 			Object_s result;

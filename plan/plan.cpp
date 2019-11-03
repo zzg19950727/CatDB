@@ -34,6 +34,7 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 		return DeletePlan::make_delete_plan(lex_stmt);
 	case Stmt::Update:
 		return UpdatePlan::make_update_plan(lex_stmt);
+	case Stmt::Expr:
 	case Stmt::Select:
 		return SelectPlan::make_select_plan(lex_stmt);
 	case Stmt::CreateTable:
@@ -89,4 +90,9 @@ void Plan::set_error_code(u32 code)
 	}
 	QueryResult* query = dynamic_cast<QueryResult*>(result.get());
 	query->set_error_code(code);
+}
+
+PhyOperator_s Plan::get_root_operator()
+{
+	return root_operator;
 }

@@ -55,35 +55,38 @@ Plan_s SelectPlan::make_select_plan(const Stmt_s& lex_insert_stmt)
 	return Plan_s(plan);
 }
 
+/*执行select计划*/
 u32 SelectPlan::execute()
 {
 	if (!root_operator) {
 		return_result(PLAN_NOT_BUILD);
 	}
+	//打开顶层算子
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
 		return_result(ret);
 	}
-
-	affect_rows_ = 0;
-	Row_s row;
-	if (!result) {
-		result = QueryResult::make_query_result();
-	}
-	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+	//设置输出title
 	RowDesc row_desc(select_list_name.size());
 	result_title = Row::make_row(row_desc);
 	for (u32 i = 0; i < select_list_name.size(); ++i) {
 		Object_s label = Varchar::make_object(select_list_name[i]);
 		result_title->set_cell(i, label);
 	}
-	
+	//创建查询结果对象
+	affect_rows_ = 0;
+	Row_s row;
+	if (!result) {
+		result = QueryResult::make_query_result();
+	}
+	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
 		query_result->add_row(row);
 		++affect_rows_;
 	}
+	//关闭算子
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
 		return_result(ret);
@@ -98,17 +101,31 @@ u32 SelectPlan::execute()
 
 u32 SelectPlan::build_plan()
 {
-	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Select)
+	if (!lex_stmt)
 	{
-		if (lex_stmt && lex_stmt->stmt_type() == Stmt::Expr)
-		{
-			Log(LOG_ERR, "SelectPlan", "set operation not support yet");
-		}
 		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
 		return_result(ERROR_LEX_STMT);
 	}
+	else if (lex_stmt->stmt_type() == Stmt::Expr)
+	{
+		ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
+		if (expr->expr_stmt_type() == ExprStmt::Query) {
+			Log(LOG_TRACE, "SelectPlan", "build subquery plan");
+			QueryStmt* query = dynamic_cast<QueryStmt*>(expr);
+			lex_stmt = query->query_stmt;
+		}
+		else if (expr->expr_stmt_type() == ExprStmt::Binary) {
+			//生成交、并、补计划
+			return_result(make_set_plan(root_operator));
+		}
+		else {
+			Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
+			return_result(ERROR_LEX_STMT);
+		}
+	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
+	//是否有distinct、limit
 	SelectStmt* lex = dynamic_cast<SelectStmt*>(lex_stmt.get());
 	is_distinct = lex->is_distinct;
 	asc = lex->asc_desc;
@@ -116,61 +133,73 @@ u32 SelectPlan::build_plan()
 		have_limit = true;
 	else
 		have_limit = false;
+	//获取引用表
 	u32 ret = get_ref_tables(lex->from_stmts);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
 		return_result( ret );
 	}
+	//解析select输出列
 	ret = resolve_select_list(lex->select_expr_list);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
 		return_result(ret);
 	}
+	//解析where子句
 	ret = resolve_where_stmt(lex->where_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
 		return_result(ret);
 	}
+	//解析group子句
 	ret = resolve_group_stmt(lex->group_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
 		return_result(ret);
 	}
+	//解析having子句
 	ret = resolve_having_stmt(lex->having_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
 		return_result(ret);
 	}
+	//解析sort子句
 	ret = resolve_sort_stmt(lex->order_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
 		return_result(ret);
 	}
+	//解析limit子句
 	ret = resolve_limit_stmt(lex->limit_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
 		return_result(ret);
 	}
+	//根据每张表的访问列生成每张表的行描述
 	ret = make_access_row_desc();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
 		return_result(ret);
 	}
+	//选择最优join顺序
 	ret = choos_best_join_order();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "choose best join order failed");
 		return_result(ret);
 	}
+	//生成join计划
 	ret = make_join_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make join plan failed");
 		return_result(ret);
 	}
+	//生成group计划
 	ret = make_group_pan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make group plan failed");
 		return_result(ret);
 	}
+	//需要排序的是基表列，则可以先执行排序，再执行select投影算子
 	if (!is_sort_query_result) {
 		ret = make_sort_plan(root_operator);
 		if (ret != SUCCESS) {
@@ -183,6 +212,7 @@ u32 SelectPlan::build_plan()
 			return_result(ret);
 		}
 	}
+	//否则需要先投影select列再排序
 	else {
 		ret = make_query_plan(root_operator);
 		if (ret != SUCCESS) {
@@ -195,11 +225,13 @@ u32 SelectPlan::build_plan()
 			return_result(ret);
 		}
 	}
+	//生成distinct计划
 	ret = make_distinct_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
 		return_result(ret);
 	}
+	//生成limit计划
 	ret = make_limit_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make limit plan failed");
@@ -250,9 +282,9 @@ u32 SelectPlan::get_query_row_desc(RowDesc & row_desc)
 	return SUCCESS;
 }
 
-PhyOperator_s SelectPlan::get_root_operator()
+const Vector<String>& SelectPlan::get_all_output_column() const
 {
-	return root_operator;
+	return select_list_name;
 }
 
 void SelectPlan::reset_for_correlated_subquery(const Row_s & row)
@@ -573,6 +605,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 					select_list.push_back(expr);
 				}
+				const Vector<String>& columns = plan->get_all_output_column();
+				for (u32 j = 0; j < columns.size(); ++j) {
+					select_list_name.push_back(columns[j]);
+				}
 			}
 			else {
 				RowDesc row_desc;
@@ -590,6 +626,14 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 					select_list.push_back(expr);
 					add_access_column(table, col_desc);
+				}
+				Vector<Pair<String, String>> columns;
+				ret = checker->desc_table(table->database, table->table_name, columns);
+				if (ret != SUCCESS) {
+					return ret;
+				}
+				for (u32 j = 0; j < columns.size(); ++j) {
+					select_list_name.push_back(columns[j].first);
 				}
 			}
 		}
@@ -612,6 +656,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 				select_list.push_back(expr);
 			}
+			const Vector<String>& columns = plan->get_all_output_column();
+			for (u32 j = 0; j < columns.size(); ++j) {
+				select_list_name.push_back(columns[j]);
+			}
 		}
 		else {
 			SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -631,6 +679,14 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 				select_list.push_back(expr);
 				add_access_column(table, col_desc);
+			}
+			Vector<Pair<String, String>> columns;
+			ret = checker->desc_table(table->database, table->table_name, columns);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			for (u32 j = 0; j < columns.size(); ++j) {
+				select_list_name.push_back(columns[j].first);
 			}
 		}
 	}
@@ -1438,4 +1494,68 @@ u32 SelectPlan::make_limit_plan(PhyOperator_s & op)
 		op = Limit::make_limit(op, limit_size, limit_offset);
 	}
 	return SUCCESS;
+}
+
+u32 SelectPlan::make_set_plan(PhyOperator_s & op)
+{
+	u32 ret = ERROR_LEX_STMT;
+	ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
+	if (expr->expr_stmt_type() != ExprStmt::Binary) {
+		return ret;
+	}
+	BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr);
+	first_plan = SelectPlan::make_select_plan(binary_stmt->first_expr_stmt);
+	if (!first_plan) {
+		return ret;
+	}
+	ret = first_plan->build_plan();
+	if (ret != SUCCESS) {
+		return ret;
+	}
+	second_plan = SelectPlan::make_select_plan(binary_stmt->second_expr_stmt);
+	if (!second_plan) {
+		return ret;
+	}
+	ret = second_plan->build_plan();
+	if (ret != SUCCESS) {
+		return ret;
+	}
+	SelectPlan* first_select = dynamic_cast<SelectPlan*>(first_plan.get());
+	SelectPlan* second_select = dynamic_cast<SelectPlan*>(second_plan.get());
+	RowDesc first_row_desc, second_row_desc;
+	first_select->get_query_row_desc(first_row_desc);
+	second_select->get_query_row_desc(second_row_desc);
+	if (first_row_desc.get_column_num() != second_row_desc.get_column_num()) {
+		return SET_ROW_DESC_ERROR;
+	}
+	switch (binary_stmt->op_type)
+	{
+	case ExprStmt::OP_UNION:
+	{
+		root_operator = HashUnion::make_hash_union(first_plan->get_root_operator(), second_plan->get_root_operator());
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::OP_UNION_ALL:
+	{
+		root_operator = UnionAll::make_union_all(first_plan->get_root_operator(), second_plan->get_root_operator());
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::OP_EXCEPT:
+	{
+		root_operator = HashExcept::make_hash_except(first_plan->get_root_operator(), second_plan->get_root_operator());
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::OP_INTERSECT:
+	{
+		root_operator = HashIntersect::make_hash_intersect(first_plan->get_root_operator(), second_plan->get_root_operator());
+		ret = SUCCESS;
+		break;
+	}
+	default:
+		break;
+	}
+	return ret;
 }
