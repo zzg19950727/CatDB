@@ -59,8 +59,29 @@ String Number::to_string() const
 {
 	if (is_null())
 		return String("NULL");
-	else
-		return std::to_string(data);
+	String str = std::to_string(data);
+	u32 pos = str.size();
+	for (u32 i = 0; i < str.size(); ++i) {
+		if (str[i] == '.') {
+			pos = i;
+			break;
+		}
+	}
+	if (pos == str.size()) {
+		return str;
+	}
+	for (u32 i = str.size() - 1; i >= pos; --i) {
+		if (str[i] == '0' || str[i] == '.') {
+			str[i] = 0;
+		}
+		else {
+			break;
+		}
+	}
+	while (*str.rbegin() == 0) {
+		str.erase(str.end()-1);
+	}
+	return str;
 }
 
 Object_s Number::copy()

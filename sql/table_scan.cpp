@@ -70,9 +70,10 @@ u32 CatDB::Sql::TableScan::reset()
 
 u32 CatDB::Sql::TableScan::reopen(const Row_s & row)
 {
-	filter->reset(row);
-	table_space->reset();
-	return SUCCESS;
+	if (filter) {
+		filter->reset(row);
+	}
+	return table_space->open();
 }
 
 u32 CatDB::Sql::TableScan::get_next_row(Row_s & row)

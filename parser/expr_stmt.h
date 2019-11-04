@@ -7,7 +7,11 @@ namespace CatDB {
 	namespace Common {
 		DECLARE(Object);
 	}
+	namespace Sql {
+		DECLARE(Plan);
+	}
 	namespace Parser {
+		using Sql::Plan_s;
 		using Common::Object_s;
 		DECLARE(Stmt);
 		//表达式语句
@@ -110,6 +114,7 @@ namespace CatDB {
 		public:
 			String database;
 			String table_name;
+			Plan_s subplan;
 			bool is_tmp_table;
 		};
 		//子查询语句

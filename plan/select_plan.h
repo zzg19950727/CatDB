@@ -33,6 +33,9 @@ namespace CatDB {
 		public:
 			~SelectPlan();
 			static Plan_s make_select_plan(const Stmt_s& lex_insert_stmt);
+			static  Plan_s make_select_plan(const Vector<TableStmt*>& grandparent_query_tables,
+				const Vector<TableStmt*>& parent_query_tables,
+				const Stmt_s& lex_insert_stmt);
 			u32 execute();
 			u32 build_plan();
 			u32 optimizer();
@@ -67,10 +70,15 @@ namespace CatDB {
 			u32 resolve_column_desc(ColumnStmt* column_stmt, ColumnDesc& col_desc);
 			//从from list中搜索表
 			u32 find_table(const String& table_name, TableStmt*& table);
+			//从父查询中搜索表
+			u32 find_table_from_parent(const String& table_name, TableStmt*& table);
+			bool find_table_from_parent(TableStmt* table);
 			//从from list中搜索含有指定列的表
 			u32 who_have_column(ColumnStmt* column_stmt, TableStmt*& table);
 			//从from list中搜索含有指定列的表
 			u32 who_have_column(const String& column_name, TableStmt*& table);
+			//从父查询中搜索含有指定列的表
+			u32 which_partent_table_have_column(const String& column_name, TableStmt*& table);
 			//解析from语句块为table list
 			u32 get_ref_tables(const Stmt_s& from_stmt);
 			//如果from中出现子查询
@@ -114,6 +122,14 @@ namespace CatDB {
 			u32 make_set_plan(PhyOperator_s& op);
 			
 		private:
+			//每张表需要访问的列
+			HashMap<TableStmt*, Vector<ColumnDesc> > parent_table_access_column;
+			HashMap<TableStmt*, Vector<ColumnDesc> > table_access_column;
+			HashMap<TableStmt*, RowDesc > table_access_row_desc;
+			//两表连接条件信息
+			HashMap<JoinableTables, JoinConditions> join_info;
+			//每张表的过滤谓词
+			HashMap<TableStmt*, Expression_s> table_filters;
 			//select list语句块中出现过的聚合函数
 			Vector<Expression_s> aggr_exprs;
 			//select list语句块中每一个输出表达式，聚合函数预处理过，详见select_list解析函数
@@ -122,20 +138,12 @@ namespace CatDB {
 			Vector<String> select_list_name;
 			//from list的表
 			Vector<TableStmt*> table_list;
-			//子查询生成的临时表
-			HashMap<String, SelectPlan*> tmp_table_list;
+			//来至父查询的表，当前查询可能是相关子查询，引用了父查询的表
+			Vector<TableStmt*> parent_table_list;
+			//引用了的父查询的表
+			Vector<TableStmt*> ref_parent_table_list;
 			//需要保存临时表的引用，防止内存释放
 			Vector<Stmt_s> tmp_table_handle;
-			Vector<Plan_s> tmp_plans;
-			/*不能用于table scan和join的filter，比如or条件连接的双表谓词*/
-			Expression_s filter_after_join;
-			//每张表的过滤谓词
-			HashMap<TableStmt*, Expression_s> table_filters;
-			//每张表需要访问的列
-			HashMap<TableStmt*, Vector<ColumnDesc> > table_access_column;
-			HashMap<TableStmt*, RowDesc > table_access_row_desc;
-			//两表连接条件信息
-			HashMap<JoinableTables, JoinConditions> join_info;
 			//聚合列
 			Vector<Expression_s> group_cols;
 			//排序列
@@ -144,12 +152,16 @@ namespace CatDB {
 			Plan_s first_plan, second_plan;
 			//having过滤谓词表达式
 			Expression_s having_filter;
+			/*不能用于table scan和join的filter，比如or条件连接的双表谓词*/
+			Expression_s filter_after_join;
 			//limit相关
 			u32 limit_offset, limit_size;
 			//当前在解析select_list还是having语句块，用于区分聚合函数的解析处理
 			u32 resolve_select_list_or_having;
 			//查询生成的临时表ID
 			u32 alias_table_id;
+			//当前是否是在解析where子句，用于判断是否能引用外部查询列
+			bool is_resolve_where;
 			//查询列是否去重
 			bool is_distinct;
 			//排序列是否是查询的生成列

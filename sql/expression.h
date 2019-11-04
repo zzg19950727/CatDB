@@ -114,14 +114,12 @@ namespace CatDB {
 			static Expression_s make_column_expression(const ColumnDesc& desc);
 			u32 set_column_desc(ColumnDesc& desc);
 			const ColumnDesc& get_column_desc()const;
-			u32 set_alias_table_id(u32 table_id);
-			u32 get_alias_table_id()const;
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
 		private:
 			Common::ColumnDesc col_desc;
-			u32 alias_table_id;
+			Object_s result;
 		};
 
 		class SubplanExpression : public Expression

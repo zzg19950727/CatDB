@@ -89,6 +89,7 @@ String ColumnStmt::to_string() const
 }
 
 TableStmt::TableStmt()
+	:is_tmp_table(false)
 {
 }
 
@@ -107,7 +108,6 @@ Stmt_s TableStmt::make_table_stmt(const String & database, const String & table_
 	stmt->database = database;
 	stmt->table_name = table_name;
 	stmt->alias_name = table_name;
-	stmt->is_tmp_table = false;
 	return Stmt_s(stmt);
 }
 

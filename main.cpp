@@ -106,7 +106,7 @@ void print_query_result(QueryResult* result, const Row_s& title)
 				length[i] = cell->to_string().length();
 		}
 	}
-	if (result->size() == 0)
+	if (result->size() == 0 || result->size() > 100)
 		return;
 	print_line(col_count);
 	print_row(title);
@@ -172,7 +172,7 @@ void parser_test()
 			else {
 				Object_s result = plan->get_result();
 				QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
-				//print_query_result(query_result, plan->get_result_title());
+				print_query_result(query_result, plan->get_result_title());
 			}
 		}
 	}

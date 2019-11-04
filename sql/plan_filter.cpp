@@ -35,7 +35,9 @@ u32 PlanFilter::reset()
 
 u32 PlanFilter::reopen(const Row_s & row)
 {
-	filter->reset(row);
+	if (filter) {
+		filter->reset(row);
+	}
 	return child->reopen(row);
 }
 

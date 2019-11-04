@@ -335,24 +335,15 @@ const ColumnDesc & ColumnExpression::get_column_desc() const
 	return col_desc;
 }
 
-u32 ColumnExpression::set_alias_table_id(u32 table_id)
-{
-	alias_table_id = table_id;
-	return SUCCESS;
-}
-
-u32 ColumnExpression::get_alias_table_id() const
-{
-	return alias_table_id;
-}
-
 Object_s ColumnExpression::get_result(const Row_s & row)
 {
-	Object_s result;
-
-	u32 ret = row->get_cell(col_desc, result);
-	if (ret == SUCCESS)
+	if (result) {
 		return result;
+	}
+	Object_s cell;
+	u32 ret = row->get_cell(col_desc, cell);
+	if (ret == SUCCESS)
+		return cell;
 	else
 		return Error::make_object(ret);
 }
@@ -364,6 +355,7 @@ Expression::ExprType ColumnExpression::get_type() const
 
 void ColumnExpression::reset(const Row_s & row)
 {
+	row->get_cell(col_desc, result);
 }
 
 UnaryExpression::UnaryExpression(const Expression_s& expr, const Operation & op)
@@ -630,7 +622,7 @@ Object_s SubplanExpression::get_result(const Row_s & row)
 		return Error::make_object(ERROR_LEX_STMT);
 	}
 	SelectPlan* query = dynamic_cast<SelectPlan*>(subplan.get());
-	if (result && is_correlated) {
+	if (is_correlated) {
 		query->reset_for_correlated_subquery(row);
 	}
 	u32 ret = query->execute();
@@ -650,5 +642,8 @@ Expression::ExprType SubplanExpression::get_type() const
 
 void SubplanExpression::reset(const Row_s & row)
 {
-	
+	SelectPlan* plan = dynamic_cast<SelectPlan*>(subplan.get());
+	if (plan) {
+		plan->reset_for_correlated_subquery(row);
+	}
 }

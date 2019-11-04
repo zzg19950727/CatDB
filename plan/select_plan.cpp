@@ -37,6 +37,7 @@ SelectPlan::SelectPlan()
 	alias_table_id(0),
 	is_distinct(false),
 	is_sort_query_result(false),
+	is_resolve_where(false),
 	asc(true),
 	have_limit(false)
 {
@@ -52,6 +53,21 @@ Plan_s SelectPlan::make_select_plan(const Stmt_s& lex_insert_stmt)
 {
 	SelectPlan* plan = new SelectPlan;
 	plan->set_lex_stmt(lex_insert_stmt);
+	return Plan_s(plan);
+}
+
+Plan_s SelectPlan::make_select_plan(const Vector<TableStmt*>& grandparent_query_tables, 
+	const Vector<TableStmt*>& parent_query_tables, 
+	const Stmt_s & lex_insert_stmt)
+{
+	SelectPlan* plan = new SelectPlan;
+	plan->set_lex_stmt(lex_insert_stmt);
+	for (u32 i = 0; i < grandparent_query_tables.size(); ++i) {
+		plan->parent_table_list.push_back(grandparent_query_tables[i]);
+	}
+	for (u32 i = 0; i < parent_query_tables.size(); ++i) {
+		plan->parent_table_list.push_back(parent_query_tables[i]);
+	}
 	return Plan_s(plan);
 }
 
@@ -146,7 +162,9 @@ u32 SelectPlan::build_plan()
 		return_result(ret);
 	}
 	//解析where子句
+	is_resolve_where = true;
 	ret = resolve_where_stmt(lex->where_stmt);
+	is_resolve_where = false;
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
 		return_result(ret);
@@ -292,6 +310,7 @@ void SelectPlan::reset_for_correlated_subquery(const Row_s & row)
 	if (!root_operator) {
 		return;
 	}
+	result.reset();
 	root_operator->reopen(row);
 }
 
@@ -359,8 +378,10 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 			if (ret != SUCCESS) {
 				return ret;
 			}
-			//两张表的列构成连接条件
-			if (first_table->alias_name != second_table->alias_name) {
+			//两张表的列构成连接条件，前提是两张表都不是来至父查询，并且两张表不是同一张表
+			if(!find_table_from_parent(first_table)
+				&& !find_table_from_parent(second_table)
+				&& first_table->alias_name != second_table->alias_name) {
 				if (binary_stmt->op_type == ExprStmt::OP_EQ) {
 					Expression_s expr;
 					u32 ret = resolve_expr(stmt, expr);
@@ -466,13 +487,28 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	case ExprStmt::Query:
 	{
 		QueryStmt* query_stmt = dynamic_cast<QueryStmt*>(expr_stmt);
-		Plan_s subplan = Plan::make_plan(query_stmt->query_stmt);
-		ret = subplan->build_plan();
+		Plan_s plan = SelectPlan::make_select_plan(parent_table_list, table_list,query_stmt->query_stmt);
+		ret = plan->build_plan();
 		if (ret != SUCCESS){
 			break;
 		}
-		//TODO暂时只支持不相关子查询
-		expr = SubplanExpression::make_subplan_expression(subplan, false);
+		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
+		bool is_correlated = !subplan->ref_parent_table_list.empty();
+		//如果子查询引用了当前查询的父查询的表，则同样需要添加到当前查询的引用列表中
+		for (u32 i = 0; i < subplan->ref_parent_table_list.size(); ++i) {
+			TableStmt* table = subplan->ref_parent_table_list[i];
+			if (find_table_from_parent(table)) {
+				ref_parent_table_list.push_back(table);
+			}
+		}
+		//如果子查询引用了当前查询的表的列，则同样需要添加到当前查询的引用列中
+		for (auto iter = subplan->parent_table_access_column.cbegin(); iter != subplan->parent_table_access_column.cend(); ++iter) {
+			const Vector<ColumnDesc>& access_column = iter->second;
+			for (u32 j = 0; j < access_column.size(); ++j) {
+				add_access_column(iter->first, access_column[j]);
+			}
+		}
+		expr = SubplanExpression::make_subplan_expression(plan, is_correlated);
 		ret = SUCCESS;
 		break;
 	}
@@ -595,7 +631,7 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 			TableStmt* table = table_list[i];
 			if (table->is_tmp_table) {
 				RowDesc row_desc;
-				SelectPlan* plan = tmp_table_list[table->table_name];
+				SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
 				if (!plan || plan->get_query_row_desc(row_desc) != SUCCESS) {
 					return COLUMN_NOT_EXISTS;
 				}
@@ -646,7 +682,7 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 		}
 		if (table->is_tmp_table) {
 			RowDesc row_desc;
-			SelectPlan* plan = tmp_table_list[table->table_name];
+			SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
 			if (!plan || plan->get_query_row_desc(row_desc) != SUCCESS) {
 				return COLUMN_NOT_EXISTS;
 			}
@@ -773,30 +809,32 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 		ret = true;
 		break;
 	case ExprStmt::Column:
+	{
 		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+		TableStmt *table1 = nullptr, *table2 = nullptr;
+		u32 code = who_have_column(column_stmt, table1);
+		if (code != SUCCESS) {
+			ret = false;
+			break;
+		}
+		if (find_table_from_parent(table1)) {
+			ret = true;
+			break;
+		}
 		//在此之前没有出现过列相关谓词
 		if (table == nullptr) {
-			u32 rt = who_have_column(column_stmt, table);
-			if (rt != SUCCESS) {
-				ret = false;
-			}
-			else {
-				ret = true;
-			}
+			table = table1;
+			ret = true;
 		}
 		//在此之前出现过列相关谓词
+		else if(table != table1){
+			ret = false;
+		}
 		else {
-			TableStmt* tb = nullptr;
-			u32 rt = who_have_column(column_stmt, tb);
-			//如果列相关谓词不属于同一张表，表示不是基表过滤谓词
-			if (rt != SUCCESS || table != tb) {
-				ret = false;
-			}
-			else {
-				ret = true;
-			}
+			ret = true;
 		}
 		break;
+	}
 	case ExprStmt::List:
 		ret = true;
 		break;
@@ -848,8 +886,15 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 	if (ret != SUCCESS) {
 		return ret;
 	}
+	//如果引用的列来至父查询的表，注明
+	if (find_table_from_parent(table)) {
+		if (!is_resolve_where) {
+			return ERROR_LEX_STMT;
+		}
+		ref_parent_table_list.push_back(table);
+	}
 	if (table->is_tmp_table) {
-		SelectPlan* plan = tmp_table_list[table->table_name];
+		SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
 		if (!plan || plan->get_column_from_select_list(column_stmt->column, col_desc) != SUCCESS) {
 			return COLUMN_NOT_EXISTS;
 		}
@@ -890,6 +935,38 @@ u32 SelectPlan::find_table(const String & table_name, TableStmt*& table)
 		return TABLE_REDEFINE;
 }
 
+u32 SelectPlan::find_table_from_parent(const String & table_name, TableStmt *& table)
+{
+	u32 find = 0;
+	//在父查询中搜索
+	for (u32 i = 0; i < parent_table_list.size(); ++i) {
+		//如果引用的表没有使用别名，在解析的时候会使用真实表明表示别名
+		//所以这里只需要搜索表的别名
+		if (table_name == parent_table_list[i]->alias_name) {
+			++find;
+			table = parent_table_list[i];
+		}
+	}
+	if (find == 1)
+		return SUCCESS;
+	else if (find == 0)
+		return TABLE_NOT_EXISTS;
+	else
+		return TABLE_REDEFINE;
+}
+
+bool SelectPlan::find_table_from_parent(TableStmt * table)
+{
+	for (u32 i = 0; i < parent_table_list.size(); ++i) {
+		//如果引用的表没有使用别名，在解析的时候会使用真实表明表示别名
+		//所以这里只需要搜索表的别名
+		if (table == parent_table_list[i]) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /*
  * 从from list中搜索包含指定列的表
  */
@@ -899,14 +976,24 @@ u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 	if (column_stmt->table.empty()) {
 		u32 ret = who_have_column(column_stmt->column, table);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
-			return ret;
+			ret = which_partent_table_have_column(column_stmt->column, table);
+			if (ret != SUCCESS) {
+				Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
+				return ret;
+			}
 		}
 	}
 	//SQL中指定了列所属的表
 	else {
 		u32 ret = find_table(column_stmt->table, table);
-		if (ret != SUCCESS) {
+		if (ret == TABLE_NOT_EXISTS) {
+			ret = find_table_from_parent(column_stmt->table, table);
+			if (ret != SUCCESS) {
+				Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
+				return ret;
+			}
+		}
+		else if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
 			return ret;
 		}
@@ -923,7 +1010,7 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 	u32 find = 0;
 	for (u32 i = 0; i < table_list.size(); ++i) {
 		if (table_list[i]->is_tmp_table) {
-			SelectPlan* plan = tmp_table_list[table_list[i]->table_name];
+			SelectPlan* plan = dynamic_cast<SelectPlan*>(table_list[i]->subplan.get());
 			ColumnDesc col_desc;
 			if (plan && plan->get_column_from_select_list(column_name, col_desc) == SUCCESS) {
 				++find;
@@ -933,6 +1020,32 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 		else if (checker->have_column(table_list[i]->database, table_list[i]->table_name, column_name)) {
 			++find;
 			table = table_list[i];
+		}
+	}
+	if (find == 1)
+		return SUCCESS;
+	else if (find == 0)
+		return COLUMN_NOT_EXISTS;
+	else
+		return TABLE_REDEFINE;
+}
+u32 SelectPlan::which_partent_table_have_column(const String & column_name, TableStmt *& table)
+{
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	u32 find = 0;
+	for (u32 i = 0; i < parent_table_list.size(); ++i) {
+		if (parent_table_list[i]->is_tmp_table) {
+			SelectPlan* plan = dynamic_cast<SelectPlan*>(parent_table_list[i]->subplan.get());
+			ColumnDesc col_desc;
+			if (plan && plan->get_column_from_select_list(column_name, col_desc) == SUCCESS) {
+				++find;
+				table = parent_table_list[i];
+			}
+		}
+		else if (checker->have_column(parent_table_list[i]->database, parent_table_list[i]->table_name, column_name)) {
+			++find;
+			table = parent_table_list[i];
 		}
 	}
 	if (find == 1)
@@ -987,11 +1100,10 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 
 u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 {
-	Plan_s plan = Plan::make_plan(subquery->query_stmt);
-	if (!plan || plan->type() != Plan::SELECT) {
+	Plan_s plan = SelectPlan::make_select_plan(subquery->query_stmt);
+	if (!plan) {
 		return ERROR_LEX_STMT;
 	}
-	tmp_plans.push_back(plan);
 	u32 ret = plan->build_plan();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "resolve subquery in from list failed");
@@ -1001,11 +1113,11 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	if (find_table(subquery->alias_name, table) == SUCCESS) {
 		return TABLE_EXISTS;
 	}
-	tmp_table_list[subquery->alias_name] = dynamic_cast<SelectPlan*>(plan.get());
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery->alias_name);
 	tmp_table_handle.push_back(stmt);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
+	table->subplan = plan;
 	table_list.push_back(table);
 	return SUCCESS;
 }
@@ -1283,22 +1395,44 @@ u32 SelectPlan::resolve_column_from_select_list(const Stmt_s& stmt, Expression_s
 
 u32 SelectPlan::add_access_column(TableStmt* table, const ColumnDesc& col_desc)
 {
-	if (table_access_column.find(table) == table_access_column.cend()) {
-		Vector<ColumnDesc> access_columns;
-		access_columns.push_back(col_desc);
-		table_access_column[table] = access_columns;
-	}
-	else {
-		bool find = false;
-		Vector<ColumnDesc>& access_columns = table_access_column[table];
-		for (u32 i = 0; i <access_columns.size(); ++i) {
-			if (access_columns[i] == col_desc) {
-				find = true;
-				break;
+	if (find_table_from_parent(table)) {
+		if (parent_table_access_column.find(table) == parent_table_access_column.cend()) {
+			Vector<ColumnDesc> access_columns;
+			access_columns.push_back(col_desc);
+			parent_table_access_column[table] = access_columns;
+		}
+		else {
+			bool find = false;
+			Vector<ColumnDesc>& access_columns = parent_table_access_column[table];
+			for (u32 i = 0; i < access_columns.size(); ++i) {
+				if (access_columns[i] == col_desc) {
+					find = true;
+					break;
+				}
+			}
+			if (!find) {
+				access_columns.push_back(col_desc);
 			}
 		}
-		if (!find) {
+	}
+	else {
+		if (table_access_column.find(table) == table_access_column.cend()) {
+			Vector<ColumnDesc> access_columns;
 			access_columns.push_back(col_desc);
+			table_access_column[table] = access_columns;
+		}
+		else {
+			bool find = false;
+			Vector<ColumnDesc>& access_columns = table_access_column[table];
+			for (u32 i = 0; i < access_columns.size(); ++i) {
+				if (access_columns[i] == col_desc) {
+					find = true;
+					break;
+				}
+			}
+			if (!find) {
+				access_columns.push_back(col_desc);
+			}
 		}
 	}
 	return SUCCESS;
@@ -1396,7 +1530,7 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 		filter = Filter::make_filter(table_filters[table]);
 	}
 	if (table->is_tmp_table) {
-		SelectPlan* plan = tmp_table_list[table->table_name];
+		SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
 		if (!plan) {
 			return ERROR_LEX_STMT;
 		}

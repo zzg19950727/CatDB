@@ -33,7 +33,9 @@ bool CatDB::Sql::Filter::operator()(Row_s & row)
 void CatDB::Sql::Filter::reset(const Row_s & row)
 {
 	//TODO reset expression
-	expr->reset(row);
+	if (expr) {
+		expr->reset(row);
+	}
 }
 
 Filter_s CatDB::Sql::Filter::make_filter(const Expression_s & expr)

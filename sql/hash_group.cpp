@@ -104,7 +104,9 @@ u32 HashGroup::reopen(const Row_s & row)
 	reset_agg_func();
 	cur_bucket_pos = 0;
 	out_when_empty_input = false;
-	
+	if (filter) {
+		filter->reset(row);
+	}
 	u32 ret = child->reopen(row);
 	if (ret != SUCCESS) {
 		return ret;
