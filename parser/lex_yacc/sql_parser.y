@@ -520,16 +520,6 @@ expr:
 	{ 
 		$$ = $1;
 	}
-  | "+" expr %prec UMINUS
-    {
-		//正数表达式
-		$$ = $2;
-    }
-  | "-" expr %prec UMINUS
-    {
-		//负数表达式
-		make_unary_stmt($$, $2, ExprStmt::OP_MINUS);
-    }
   | expr "+" expr 
 	{
 		//构建加法二元表达式 

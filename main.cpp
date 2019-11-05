@@ -172,7 +172,7 @@ void parser_test()
 			else {
 				Object_s result = plan->get_result();
 				QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
-				//print_query_result(query_result, plan->get_result_title());
+				print_query_result(query_result, plan->get_result_title());
 			}
 		}
 	}

@@ -17,11 +17,15 @@ namespace CatDB {
 		DECLARE(Plan);
 		DECLARE(Filter);
 		DECLARE(Expression);
+		DECLARE(DeletePlan);
+		DECLARE(UpdatePlan);
 		using Common::Row_s;
 		using Common::RowDesc;
 		using Parser::Stmt_s;
 		using Sql::Filter_s;
 		using Sql::Expression_s;
+		using Sql::DeletePlan;
+		using Sql::UpdatePlan;
 		using Parser::TableStmt;
 		using Parser::ColumnStmt;
 		using Parser::QueryStmt;
@@ -170,6 +174,9 @@ namespace CatDB {
 			bool asc;
 			// «∑Ò”–limit
 			bool have_limit;
+
+			friend class DeletePlan;
+			friend class UpdatePlan;
 		};
 	}
 }

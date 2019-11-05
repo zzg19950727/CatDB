@@ -1,4 +1,5 @@
 #include "schema_checker.h"
+#include "select_plan.h"
 #include "delete_plan.h"
 #include "delete_stmt.h"
 #include "expression.h"
@@ -86,7 +87,7 @@ u32 DeletePlan::build_plan()
 	DeleteStmt* lex = dynamic_cast<DeleteStmt*>(lex_stmt.get());
 	assert(lex->table);
 	//构建物理算子
-	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
+	table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
 	//将where子句转换为filter
@@ -175,9 +176,32 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		ret = SUCCESS;
 		break;
 	case ExprStmt::Query:
-		Log(LOG_ERR, "DeletePlan", "subquery in delete`s where stmt not support yet");
-		ret = ERROR_LEX_STMT;
+	{
+		QueryStmt* query_stmt = dynamic_cast<QueryStmt*>(expr_stmt);
+		Vector<TableStmt*> parent_table_list;
+		Vector<TableStmt*> table_list;
+		table_list.push_back(table);
+		Plan_s plan = SelectPlan::make_select_plan(parent_table_list, table_list, query_stmt->query_stmt);
+		ret = plan->build_plan();
+		if (ret != SUCCESS) {
+			break;
+		}
+		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
+		bool is_correlated = !subplan->ref_parent_table_list.empty();
+		//如果子查询引用了当前查询的表的列，则同样需要添加到当前查询的引用列中
+		for (auto iter = subplan->parent_table_access_column.cbegin(); iter != subplan->parent_table_access_column.cend(); ++iter) {
+			if (iter->first != table) {
+				continue;
+			}
+			const Vector<ColumnDesc>& access_column = iter->second;
+			for (u32 j = 0; j < access_column.size(); ++j) {
+				add_access_column(access_column[j]);
+			}
+		}
+		expr = SubplanExpression::make_subplan_expression(plan, is_correlated);
+		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::List:
 	{
 		ListStmt* list = dynamic_cast<ListStmt*>(expr_stmt);

@@ -1,5 +1,6 @@
 #ifndef DELETE_PLAN_H
 #define DELETE_PLAN_H
+#include "expr_stmt.h"
 #include "type.h"
 #include "plan.h"
 #include "row.h"
@@ -7,6 +8,7 @@
 namespace CatDB {
 	namespace Parser {
 		DECLARE(Stmt);
+		DECLARE(TableStmt);
 	}
 	namespace Common {
 		DECLARE(Row);
@@ -18,6 +20,7 @@ namespace CatDB {
 		using Common::Row_s;
 		using Common::ColumnDesc;
 		using Parser::Stmt_s;
+		using Parser::TableStmt;
 		using Sql::Filter_s;
 		using Sql::Expression_s;
 
@@ -39,6 +42,7 @@ namespace CatDB {
 		private:
 			String database;
 			String table_name;
+			TableStmt* table;
 			Vector<ColumnDesc> access_columns;
 		};
 	}
