@@ -108,7 +108,6 @@ u32 InsertPlan::build_plan()
 			set_error_code(ret);
 			return ret;
 		}
-
 		values.push_back(row);
 	}
 	set_error_code(SUCCESS);

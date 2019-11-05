@@ -21,7 +21,7 @@ namespace CatDB {
 		{
 			u32 page_checksum;	//校验和
 			u32 table_id;		//所属表空间
-			u32 page_offset;	//表空间内的偏移
+			u32 page_offset;	//表空间内的偏移，虚拟地址，以16K压缩地址，真正的地址需要向左移14位
 			u32 page_pre;		//上一页
 			u32 page_next;		//下一页
 		};
@@ -30,6 +30,8 @@ namespace CatDB {
 		 * 后10位为页内row_id从0x0 ~ 0x3ff
 		 * 由于page_offset是地址的所以row_id整体是递增且唯一的，
 		 * 同时可以根据row_id直接定位到page的位置*/
+		u64 get_real_page_offset(u32 page_offset);
+		u32 get_virtual_page_offset(u64 page_offset);
 		u32 get_page_offset_from_row_id(u32 row_id);
 		u32 get_beg_row_id_from_page_offset(u32 page_offset);
 

@@ -15,6 +15,8 @@ using CatDB::Parser::ExprStmt;
 using CatDB::Parser::AggrStmt;
 using CatDB::SqlDriver;
 
+
+
 void splite(const String& line, char c, Vector<String>& list)
 {
 	String tmp;
@@ -60,6 +62,85 @@ bool execute_sql(const String& query)
 			return false;
 		}
 		return true;
+	}
+}
+
+void create_table()
+{
+	Vector<String> sqls = {
+		R"(CREATE TABLE NATION(N_NATIONKEY  NUMBER,
+			N_NAME       VARCHAR,
+			N_REGIONKEY  NUMBER,
+			N_COMMENT    VARCHAR);)",
+
+		R"(CREATE TABLE REGION(R_REGIONKEY  NUMBER,
+		R_NAME       VARCHAR,
+		R_COMMENT    VARCHAR);)",
+
+		R"(CREATE TABLE PART(P_PARTKEY     NUMBER,
+		P_NAME        VARCHAR,
+		P_MFGR        VARCHAR,
+		P_BRAND       VARCHAR,
+		P_TYPE        VARCHAR,
+		P_SIZE        NUMBER,
+		P_CONTAINER   VARCHAR,
+		P_RETAILPRICE NUMBER,
+		P_COMMENT     VARCHAR);)",
+
+		R"(CREATE TABLE SUPPLIER(S_SUPPKEY     NUMBER,
+		S_NAME        VARCHAR,
+		S_ADDRESS     VARCHAR,
+		S_NATIONKEY   NUMBER,
+		S_PHONE       VARCHAR,
+		S_ACCTBAL     NUMBER,
+		S_COMMENT     VARCHAR);)",
+
+		R"(CREATE TABLE PARTSUPP(PS_PARTKEY     NUMBER,
+		PS_SUPPKEY     NUMBER,
+		PS_AVAILQTY    NUMBER,
+		PS_SUPPLYCOST  NUMBER ,
+		PS_COMMENT     VARCHAR);)",
+
+		R"(CREATE TABLE CUSTOMER(C_CUSTKEY     NUMBER,
+		C_NAME        VARCHAR,
+		C_ADDRESS     VARCHAR,
+		C_NATIONKEY   NUMBER,
+		C_PHONE       VARCHAR,
+		C_ACCTBAL     NUMBER  ,
+		C_MKTSEGMENT  VARCHAR,
+		C_COMMENT     VARCHAR);)",
+
+		R"(CREATE TABLE ORDERS(O_ORDERKEY       NUMBER,
+		O_CUSTKEY        NUMBER,
+		O_ORDERSTATUS    VARCHAR,
+		O_TOTALPRICE     NUMBER,
+		O_ORDERDATE      DATETIME,
+		O_ORDERPRIORITY  VARCHAR,
+		O_CLERK          VARCHAR,
+		O_SHIPPRIORITY   NUMBER,
+		O_COMMENT        VARCHAR);)",
+
+		R"(CREATE TABLE LINEITEM(L_ORDERKEY    NUMBER,
+		L_PARTKEY     NUMBER,
+		L_SUPPKEY     NUMBER,
+		L_LINENUMBER  NUMBER,
+		L_QUANTITY    NUMBER,
+		L_EXTENDEDPRICE  NUMBER,
+		L_DISCOUNT    NUMBER,
+		L_TAX         NUMBER,
+		L_RETURNFLAG  VARCHAR,
+		L_LINESTATUS  VARCHAR,
+		L_SHIPDATE    DATETIME,
+		L_COMMITDATE  DATETIME,
+		L_RECEIPTDATE DATETIME,
+		L_SHIPINSTRUCT VARCHAR,
+		L_SHIPMODE     VARCHAR,
+		L_COMMENT      VARCHAR);)"
+	};
+	execute_sql("create database tpch");
+	execute_sql("use tpch");
+	for (u32 i = 0; i < sqls.size(); ++i) {
+		execute_sql(sqls[i]);
 	}
 }
 
@@ -202,7 +283,7 @@ void load_part_data()
 		tmp[tmp.size() - 1] = ')';
 		cache += tmp + ",";
 		++n;
-		if (n >= 2000) {
+		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql+cache)) {
 				n = 0;
@@ -260,7 +341,7 @@ void load_customer_data()
 		tmp[tmp.size() - 1] = ')';
 		cache += tmp + ",";
 		++n;
-		if (n >= 2000) {
+		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
 				n = 0;
@@ -314,7 +395,7 @@ void load_partsupp_data()
 		tmp[tmp.size() - 1] = ')';
 		cache += tmp + ",";
 		++n;
-		if (n >= 2000) {
+		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
 				n = 0;
@@ -353,6 +434,7 @@ void load_orders_data()
 	String sql = "insert into tpch.orders values";
 	String cache;
 	u32 n = 0;
+	
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
@@ -372,7 +454,7 @@ void load_orders_data()
 		tmp[tmp.size() - 1] = ')';
 		cache += tmp + ",";
 		++n;
-		if (n >= 2000) {
+		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
 				n = 0;
@@ -411,11 +493,14 @@ void load_lineitem_data()
 	String sql = "insert into tpch.lineitem values";
 	String cache;
 	u32 n = 0;
+	u32 count = 0;
+	u32 err = 0;
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
 		splite(line, '|', values);
 		if (values.size() != 16) {
+			++err;
 			continue;
 		}
 		values[8] = "\"" + values[8] + "\"";
@@ -433,7 +518,8 @@ void load_lineitem_data()
 		tmp[tmp.size() - 1] = ')';
 		cache += tmp + ",";
 		++n;
-		if (n >= 2000) {
+		++count;
+		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
 				n = 0;
@@ -457,11 +543,12 @@ void load_lineitem_data()
 			return;
 		}
 	}
-	std::cout << "load lineitem success" << std::endl;
+	std::cout << "load lineitem success " << count << " ,err:" << err << std::endl;
 }
 
 void load_tpch_data()
-{
+{/*
+	create_table();
 	load_nation_data();
 	load_region_data();
 	load_supplier_data();
@@ -469,5 +556,5 @@ void load_tpch_data()
 	load_customer_data();
 	load_partsupp_data();
 	load_orders_data();
-	load_lineitem_data();
+	load_lineitem_data();*/
 }

@@ -8,6 +8,7 @@ using namespace CatDB::Storage;
 using namespace CatDB::Common;
 static String data_dir = "D:\\CatDB\\build\\data\\";
 static String recycle_dir = "D:\\CatDB\\build\\data\\recycle";
+
 TableSpace::TableSpace()
 	:cur_page_offset(0)
 {
@@ -247,8 +248,8 @@ u32 TableSpace::create_page(u32 page_offset, Page_s& page)
 	if (page_offset == 0)
 		page_pre = 0;
 	else
-		page_pre = page_offset - PAGE_SIZE;
-	page_next = page_offset + PAGE_SIZE;
+		page_pre = page_offset - 1;
+	page_next = page_offset + 1;
 	u32 beg_row_id = get_beg_row_id_from_page_offset(page_offset);
 	page = Page::make_page(io, get_table_id(), page_offset, page_pre, page_next, beg_row_id);
 	pages[page_offset] = page;

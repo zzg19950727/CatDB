@@ -9,14 +9,31 @@
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
+u64 CatDB::Storage::get_real_page_offset(u32 page_offset)
+{
+	u64 offset = static_cast<u64>(page_offset);
+	return (offset << 14);
+}
+
+u32 CatDB::Storage::get_virtual_page_offset(u64 page_offset)
+{
+	page_offset >>= 14;
+	if (page_offset > 0x7FFFFFFF) {
+		Log(LOG_ERR, "Storage", "page offset overflow");
+		return 0;
+	}
+	u32 offset = static_cast<u32>(page_offset);
+	return offset;
+}
+
 u32 CatDB::Storage::get_page_offset_from_row_id(u32 row_id)
 {
-	return (row_id >> 10) << 14;
+	return (row_id >> 10);
 }
 
 u32 CatDB::Storage::get_beg_row_id_from_page_offset(u32 page_offset)
 {
-	return (page_offset >> 14) << 10;
+	return (page_offset) << 10;
 }
 
 u32 RawRecord::size() const
