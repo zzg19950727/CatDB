@@ -21,7 +21,7 @@ Varchar::Varchar(const RawData & data)
 	Log(LOG_TRACE, "Object", "make varchar object, value %s", this->data->buf);
 }
 
-CatDB::Common::Varchar::Varchar(const String & str)
+Varchar::Varchar(const String & str)
 {
 	obj_width = str.size();
 	obj_type = T_VARCHAR;
@@ -34,7 +34,7 @@ Object_s Varchar::make_object(const Buffer_s & buf)
 	return Object_s(new Varchar(buf));
 }
 
-Object_s CatDB::Common::Varchar::make_object(const String & buf)
+Object_s Varchar::make_object(const String & buf)
 {
 	return Object_s(new Varchar(buf));
 }
@@ -62,11 +62,11 @@ bool Varchar::bool_value()
 u32 Varchar::hash()
 {
 	if (is_null()) {
-		Hash<String> hash;
-		return hash(String((char*)data->buf));
+		return 0;
 	}
 	else {
-		return 0;
+		Hash<String> hash;
+		return hash(String((char*)data->buf));
 	}
 }
 
@@ -149,7 +149,7 @@ Object_s Varchar::operator<(const Object_s & other)
 	}
 }
 
-Object_s CatDB::Common::Varchar::exists()
+Object_s Varchar::exists()
 {
 	if (is_null()) {
 		return Object::make_null_object();
@@ -159,7 +159,7 @@ Object_s CatDB::Common::Varchar::exists()
 	}
 }
 
-Object_s CatDB::Common::Varchar::between(const Object_s & left, const Object_s & right)
+Object_s Varchar::between(const Object_s & left, const Object_s & right)
 {
 	if (is_null() || left->is_null() || right->is_null()) {
 		return Object::make_null_object();
@@ -179,7 +179,7 @@ Object_s CatDB::Common::Varchar::between(const Object_s & left, const Object_s &
 	}
 }
 
-Object_s CatDB::Common::Varchar::like(const Object_s & other)
+Object_s Varchar::like(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {
 		return Object::make_null_object();

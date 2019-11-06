@@ -53,6 +53,8 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 		return DescTablePlan::make_desc_table_plan(lex_stmt);
 	case Stmt::UseDatabase:
 		return UseDatabasePlan::make_use_database_plan(lex_stmt);
+	case Stmt::Analyze:
+		return AnalyzePlan::make_analyze_plan(lex_stmt);
 	default:
 		return Plan_s();
 	}

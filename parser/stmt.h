@@ -24,7 +24,8 @@ namespace CatDB {
 				ShowTables,
 				ShowDatabases,
 				DescTable,
-				UseDatabase
+				UseDatabase,
+				Analyze
 			};
 			Stmt();
 			virtual ~Stmt();

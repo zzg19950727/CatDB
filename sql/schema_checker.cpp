@@ -821,6 +821,9 @@ u32 SchemaChecker::analyze_table_system(const String & database, const String & 
 		return ret;
 	}
 	for (u32 i = 0; i < columns.size(); ++i) {
+		if (columns[i].second == "varchar") {
+			continue;
+		}
 		ret = analyze_column_statis(database, table, columns[i].first);
 		if (ret != SUCCESS) {
 			Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s failed", database.c_str(), table.c_str(), column.c_str());

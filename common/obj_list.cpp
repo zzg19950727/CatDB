@@ -44,12 +44,17 @@ bool ObjList::bool_value()
 
 u32 ObjList::hash()
 {
-	Hash<u32> hash;
-	u32 ret = 0;
-	for (u32 i = 0; i < list.size(); ++i) {
-		ret += list[i]->hash();
+	if (is_null()) {
+		return 0;
 	}
-	return hash(ret);
+	else {
+		Hash<u32> hash;
+		u32 ret = 0;
+		for (u32 i = 0; i < list.size(); ++i) {
+			ret += list[i]->hash();
+		}
+		return hash(ret);
+	}
 }
 
 String ObjList::to_string() const

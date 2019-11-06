@@ -292,3 +292,61 @@ Plan::PlanType UseDatabasePlan::type() const
 {
 	return Plan::UseDatabase;
 }
+
+AnalyzePlan::AnalyzePlan()
+{
+}
+
+AnalyzePlan::~AnalyzePlan()
+{
+}
+
+Plan_s AnalyzePlan::make_analyze_plan(const Stmt_s & lex_show_stmt)
+{
+	AnalyzePlan* plan = new AnalyzePlan();
+	plan->set_lex_stmt(lex_show_stmt);
+	return Plan_s(plan);
+}
+
+u32 AnalyzePlan::execute()
+{
+	if (database.empty() || table.empty()) {
+		set_error_code(PLAN_NOT_BUILD);
+		return PLAN_NOT_BUILD;
+	}
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	u32 id;
+	u32 ret = checker->analyze_table(database, table);
+	if (ret != SUCCESS) {
+		set_error_code(ret);
+		return ret;
+	}
+	set_error_code(SUCCESS);
+	return SUCCESS;
+}
+
+u32 AnalyzePlan::build_plan()
+{
+	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Analyze)
+	{
+		Log(LOG_ERR, "AnalyzePlan", "error lex stmt when build analyze table plan");
+		set_error_code(ERROR_LEX_STMT);
+		return ERROR_LEX_STMT;
+	}
+	AnalyzeStmt* lex = dynamic_cast<AnalyzeStmt*>(lex_stmt.get());
+	database = lex->database;
+	table = lex->table;
+	set_error_code(SUCCESS);
+	return SUCCESS;
+}
+
+u32 AnalyzePlan::optimizer()
+{
+	return SUCCESS;
+}
+
+Plan::PlanType AnalyzePlan::type() const
+{
+	return Plan::Analyze;
+}

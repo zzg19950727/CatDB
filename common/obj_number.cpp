@@ -47,11 +47,11 @@ bool Number::bool_value()
 u32 Number::hash()
 {
 	if (is_null()) {
-		Hash<double> hash;
-		return hash(data);
+		return 0;
 	}
 	else {
-		return 0;
+		Hash<double> hash;
+		return hash(data);
 	}
 }
 

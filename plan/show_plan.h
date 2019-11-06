@@ -67,6 +67,22 @@ namespace CatDB {
 		private:
 			String database;
 		};
+
+		class AnalyzePlan :public Plan
+		{
+		protected:
+			AnalyzePlan();
+		public:
+			~AnalyzePlan();
+			static Plan_s make_analyze_plan(const Stmt_s& lex_show_stmt);
+			u32 execute();
+			u32 build_plan();
+			u32 optimizer();
+			PlanType type() const;
+		private:
+			String database;
+			String table;
+		};
 	}
 }
 

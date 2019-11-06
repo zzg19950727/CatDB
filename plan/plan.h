@@ -32,7 +32,8 @@ namespace CatDB {
 				ShowTables,
 				ShowDatabases,
 				DescTable,
-				UseDatabase
+				UseDatabase,
+				Analyze
 			};
 		protected:
 			Plan();

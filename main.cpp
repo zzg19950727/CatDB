@@ -221,7 +221,7 @@ int main()
 	//load_tpch_data();
 	Timer timer;
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-	//checker->analyze_table("test", "*");
+	//checker->analyze_table("tpch", "*");
 	return 0;
 }
 

@@ -52,6 +52,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "<="			{ return CatDB::SqlParser::make_CMP_LE(loc); }
 "like"			{ return CatDB::SqlParser::make_LIKE(loc); }
 "between"		{ return CatDB::SqlParser::make_BETWEEN(loc); }
+"analyze"		{ return CatDB::SqlParser::make_ANALYZE(loc); }
 "in"			{ return CatDB::SqlParser::make_IN(loc); }
 "is"			{ return CatDB::SqlParser::make_IS(loc); }
 "any"			{ return CatDB::SqlParser::make_ANY(loc); }

@@ -51,6 +51,19 @@ namespace CatDB {
 		public:
 			String database;
 		};
+
+		class AnalyzeStmt : public Stmt
+		{
+		private:
+			AnalyzeStmt();
+		public:
+			~AnalyzeStmt();
+			StmtType stmt_type()const;
+			static Stmt_s make_analyze_stmt();
+		public:
+			String database;
+			String table;
+		};
 	}
 }
 

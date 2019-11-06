@@ -72,3 +72,21 @@ Stmt_s UseDatabaseStmt::make_use_database_stmt()
 {
 	return Stmt_s(new UseDatabaseStmt);
 }
+
+AnalyzeStmt::AnalyzeStmt()
+{
+}
+
+AnalyzeStmt::~AnalyzeStmt()
+{
+}
+
+Stmt::StmtType AnalyzeStmt::stmt_type() const
+{
+	return Stmt::Analyze;
+}
+
+Stmt_s AnalyzeStmt::make_analyze_stmt()
+{
+	return Stmt_s(new AnalyzeStmt());
+}

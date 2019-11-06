@@ -199,6 +199,7 @@
 %token CMP_LE
 %token LIKE
 %token BETWEEN
+%token ANALYZE
 %token IN
 %token IS
 %token ANY
@@ -249,7 +250,7 @@
 %type<Stmt_s>		expr_list expr simple_expr arith_expr in_expr column_ref expr_const func_expr
 %type<Stmt_s>		insert_stmt insert_vals_list insert_vals
 %type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt show_stmt
-%type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt
+%type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt analyze_stmt
 %type<Stmt_s>		create_stmt table_element_list table_element column_definition
 %type<std::string>	column_label database_name relation_name column_name function_name ident string datetime
 %type<double>		number
@@ -275,6 +276,7 @@ stmt:
   | drop_stmt			{ $$ = $1; }
   | desc_stmt			{ $$ = $1; }
   | use_stmt			{ $$ = $1; }
+  | analyze_stmt		{ $$ = $1; }
   | /*EMPTY*/			{ yyerror("unknow stmt"); }
 	;
 
@@ -1106,6 +1108,41 @@ data_type:
 		$$ = stmt;
 	}
   ;
+   /**************************************************************
+ *
+ *	analyze table define
+ *
+ **************************************************************/
+ analyze_stmt:
+    ANALYZE TABLE database_name "." relation_name
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = $3;
+		analyze_stmt->table = $5;
+		$$ = stmt;
+    }
+  | ANALYZE TABLE database_name "." "*"
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = $3;
+		analyze_stmt->table = "*";
+		$$ = stmt;
+    }
+  | ANALYZE TABLE "*" "." "*"
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = "*";
+		analyze_stmt->table = "*";
+		$$ = stmt;
+    }
+  ;
+  
  /**************************************************************
  *
  *	name define
