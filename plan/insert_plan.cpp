@@ -156,13 +156,23 @@ u32 InsertPlan::check_column_value(const Stmt_s& list, const RowDesc& row_desc)c
 
 u32 InsertPlan::resolve_row(const Stmt_s& list, const RowDesc& row_desc, Row_s& row)
 {
+	ColumnDesc col_desc;
 	row = Row::make_row(row_desc);
 	ExprStmt* expr = dynamic_cast<ExprStmt*>(list.get());
 	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr);
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 		ExprStmt* expr_value = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
 		ConstStmt* value = dynamic_cast<ConstStmt*>(expr_value);
-		row->set_cell(i, value->value);
+		Object_s cell = value->value;
+		u32 ret = row_desc.get_column_desc(i, col_desc);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		ret = cast_to(col_desc.get_data_type(), cell);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		row->set_cell(i, cell);
 	}
 	return SUCCESS;
 }

@@ -27,6 +27,9 @@ namespace CatDB {
 			static RawData* make_row_data(void* ptr);
 		};
 
+		u32 string_to_type(const String& str);
+		u32 cast_to(u32 type, Object_s& obj);
+
 		class Object
 		{
 		protected:

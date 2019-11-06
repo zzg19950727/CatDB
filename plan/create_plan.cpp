@@ -37,12 +37,16 @@ u32 CreateTablePlan::execute()
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	u32 ret = TableSpace::create_table(database, table);
+	u32 ret = checker->add_table(database, table, columns);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;
 	}
-	ret = checker->add_table(database, table, columns);
+	ret = TableSpace::create_table(database, table);
+	if (ret != SUCCESS) {
+		set_error_code(ret);
+		return ret;
+	}
 	set_error_code(ret);
 	return ret;
 }

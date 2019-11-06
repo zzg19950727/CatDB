@@ -36,7 +36,7 @@ u32 SchemaChecker::get_row_desc(const String& database, const String& table_name
 			return ret;
 		}
 	}
-	String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+	String query = R"(select col.id, col.type from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" order by col.id;)";
 	Object_s result;
@@ -59,7 +59,7 @@ u32 SchemaChecker::get_column_desc(const String& database, const String& table_n
 			return ret;
 		}
 	}
-	String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+	String query = R"(select col.id,col.table_id,col.type from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" and col.name=")" + column_name + R"(";)";
 	Object_s result;
@@ -69,10 +69,9 @@ u32 SchemaChecker::get_column_desc(const String& database, const String& table_n
 		Log(LOG_ERR, "SchemaChecker", "query column failed");
 	}
 	else {
-		u32 column_id;
-		ret = get_id_from_result(column_id, result);
+		ret = get_columns_desc_from_result(col_desc, result);
 		if (ret == SUCCESS) {
-			col_desc.set_tid_cid(table_id, column_id);
+			col_desc.set_tid(table_id);
 		}
 	}
 	return ret;
@@ -525,6 +524,57 @@ u32 SchemaChecker::get_columns_from_result(Vector<Pair<String, String>>& list, c
 	return SUCCESS;
 }
 
+u32 SchemaChecker::get_columns_desc_from_result(ColumnDesc & col_desc, const Object_s & result)
+{
+	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+	if (query_result->size() != 1) {
+		return SYSTEM_SCHEMA_ERROR;
+	}
+	else {
+		Row_s row;
+		u32 ret = query_result->get_row(0, row);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SchemaChecker", "query columns_desc failed");
+			return SYSTEM_SCHEMA_ERROR;
+		}
+		else {
+			if (row->get_row_desc().get_column_num() != 3) {
+				Log(LOG_ERR, "SchemaChecker", "query columns_desc failed, query result type error");
+				return SYSTEM_SCHEMA_ERROR;
+			}
+			else {
+				Object_s cell1;
+				row->get_cell(0, cell1);
+				if (cell1->get_type() != T_NUMBER) {
+					Log(LOG_ERR, "SchemaChecker", "query failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
+				}
+				Object_s cell2;
+				row->get_cell(1, cell2);
+				if (cell2->get_type() != T_NUMBER) {
+					Log(LOG_ERR, "SchemaChecker", "query failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
+				}
+				Object_s cell3;
+				row->get_cell(2, cell3);
+				if (cell3->get_type() != T_VARCHAR) {
+					Log(LOG_ERR, "SchemaChecker", "query failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
+				}
+				Number* num = dynamic_cast<Number*>(cell1.get());
+				u32 cid = static_cast<u32>(num->value());
+				num = dynamic_cast<Number*>(cell2.get());
+				u32 tid = static_cast<u32>(num->value());
+				Varchar* str = dynamic_cast<Varchar*>(cell3.get());
+				u32 type = string_to_type(str->to_string());
+				col_desc.set_tid_cid(tid, cid);
+				col_desc.set_data_type(type);
+			}
+		}
+	}
+	return SUCCESS;
+}
+
 u32 SchemaChecker::get_row_desc_from_result(u32 table_id, RowDesc & row_desc, const Object_s & result)
 {
 	ColumnDesc col_desc;
@@ -535,27 +585,34 @@ u32 SchemaChecker::get_row_desc_from_result(u32 table_id, RowDesc & row_desc, co
 		Row_s row;
 		u32 ret = query_result->get_row(i, row);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SchemaChecker", "query column failed");
+			Log(LOG_ERR, "SchemaChecker", "query row desc failed");
 			return SYSTEM_SCHEMA_ERROR;
 		}
 		else {
-			if (row->get_row_desc().get_column_num() != 1) {
-				Log(LOG_ERR, "SchemaChecker", "query column failed, query result type error");
+			if (row->get_row_desc().get_column_num() != 2) {
+				Log(LOG_ERR, "SchemaChecker", "query row desc failed, query result type error");
 				return SYSTEM_SCHEMA_ERROR;
 			}
 			else {
-				Object_s cell;
-				row->get_cell(0, cell);
-				if (cell->get_type() != T_NUMBER) {
-					Log(LOG_ERR, "SchemaChecker", "query column failed, query result type error");
+				Object_s cell1;
+				row->get_cell(0, cell1);
+				if (cell1->get_type() != T_NUMBER) {
+					Log(LOG_ERR, "SchemaChecker", "query row desc failed, query result type error");
 					return SYSTEM_SCHEMA_ERROR;
 				}
-				else {
-					Number* col_id = dynamic_cast<Number*>(cell.get());
-					u32 id = static_cast<u32>(col_id->value());
-					col_desc.set_tid_cid(table_id, id);
-					row_desc.add_column_desc(col_desc);
+				Object_s cell2;
+				row->get_cell(1, cell2);
+				if (cell2->get_type() != T_VARCHAR) {
+					Log(LOG_ERR, "SchemaChecker", "query row desc failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
 				}
+				Number* num = dynamic_cast<Number*>(cell1.get());
+				u32 cid = static_cast<u32>(num->value());
+				Varchar* str = dynamic_cast<Varchar*>(cell2.get());
+				u32 type = string_to_type(str->to_string());
+				col_desc.set_tid_cid(table_id, cid);
+				col_desc.set_data_type(type);
+				row_desc.add_column_desc(col_desc);
 			}
 		}
 	}
@@ -615,26 +672,35 @@ u32 SchemaChecker::get_row_desc_system(const String & database, const String & t
 	u32 ret = SUCCESS;
 	if (table_name == "sys_databases") {
 		col_desc.set_tid_cid(table_id, 0);
+		col_desc.set_data_type(T_NUMBER);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 1);
+		col_desc.set_data_type(T_VARCHAR);
 		row_desc.add_column_desc(col_desc);
 	}
 	else if (table_name == "sys_tables") {
 		col_desc.set_tid_cid(table_id, 0);
+		col_desc.set_data_type(T_NUMBER);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 1);
+		col_desc.set_data_type(T_VARCHAR);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 2);
+		col_desc.set_data_type(T_NUMBER);
 		row_desc.add_column_desc(col_desc);
 	}
 	else if (table_name == "sys_columns") {
 		col_desc.set_tid_cid(table_id, 0);
+		col_desc.set_data_type(T_NUMBER);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 1);
+		col_desc.set_data_type(T_VARCHAR);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 2);
+		col_desc.set_data_type(T_NUMBER);
 		row_desc.add_column_desc(col_desc);
 		col_desc.set_tid_cid(table_id, 3);
+		col_desc.set_data_type(T_VARCHAR);
 		row_desc.add_column_desc(col_desc);
 	}
 	else {
@@ -650,9 +716,11 @@ u32 SchemaChecker::get_column_desc_system(const String & database, const String 
 	if (table_name == "sys_databases") {
 		if (column_name == "id") {
 			col_desc.set_tid_cid(table_id, 0);
+			col_desc.set_data_type(T_NUMBER);
 		}
 		else if(column_name == "name") {
 			col_desc.set_tid_cid(table_id, 1);
+			col_desc.set_data_type(T_VARCHAR);
 		}
 		else {
 			ret = SYSTEM_SCHEMA_ERROR;
@@ -661,12 +729,15 @@ u32 SchemaChecker::get_column_desc_system(const String & database, const String 
 	else if (table_name == "sys_tables") {
 		if (column_name == "id") {
 			col_desc.set_tid_cid(table_id, 0);
+			col_desc.set_data_type(T_NUMBER);
 		}
 		else if (column_name == "name") {
 			col_desc.set_tid_cid(table_id, 1);
+			col_desc.set_data_type(T_VARCHAR);
 		}
 		else if (column_name == "db_id") {
 			col_desc.set_tid_cid(table_id, 2);
+			col_desc.set_data_type(T_NUMBER);
 		}
 		else {
 			ret = SYSTEM_SCHEMA_ERROR;
@@ -675,15 +746,19 @@ u32 SchemaChecker::get_column_desc_system(const String & database, const String 
 	else if (table_name == "sys_columns") {
 		if (column_name == "id") {
 			col_desc.set_tid_cid(table_id, 0);
+			col_desc.set_data_type(T_NUMBER);
 		}
 		else if (column_name == "name") {
 			col_desc.set_tid_cid(table_id, 1);
+			col_desc.set_data_type(T_VARCHAR);
 		}
 		else if (column_name == "table_id") {
 			col_desc.set_tid_cid(table_id, 2);
+			col_desc.set_data_type(T_NUMBER);
 		}
 		else if (column_name == "type") {
 			col_desc.set_tid_cid(table_id, 3);
+			col_desc.set_data_type(T_VARCHAR);
 		}
 		else {
 			ret = SYSTEM_SCHEMA_ERROR;

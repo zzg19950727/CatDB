@@ -59,6 +59,7 @@ namespace CatDB {
 			u32 get_name_from_result(Vector<String>& list, const Object_s& result);
 			//从系统查询中解析表信息
 			u32 get_columns_from_result(Vector<Pair<String, String>>& list, const Object_s& result);
+			u32 get_columns_desc_from_result(ColumnDesc& col_desc, const Object_s& result);
 			//从系统查询中解析行描述
 			u32 get_row_desc_from_result(u32 table_id, RowDesc& row_desc, const Object_s& result);
 			//执行系统SQL

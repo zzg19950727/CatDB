@@ -1,4 +1,4 @@
-﻿#include "table_space.h"
+﻿	#include "table_space.h"
 #include "IoService.h"
 #include "error.h"
 #include "page.h"
@@ -118,7 +118,20 @@ u32 TableSpace::update_row(const Row_s & row)
 	Page_s page;
 	u32 ret = get_page_from_row_id(row_id, page);
 	if (ret == SUCCESS){
-		return page->update_row(row_id, row);
+		Row_s old_row = row;
+		ret = page->update_row(row_id, old_row);
+		if (ret == ROW_DATA_TOO_LONG) {
+			ret = insert_row(old_row);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			else {
+				return delete_row(row_id);
+			}
+		}
+		else {
+			return ret;
+		}
 	}else{
 		Log(LOG_ERR, "TableSpace", "can not get row %u `s page,%s", row_id, err_string(ret));
 		return ret;

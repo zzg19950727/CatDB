@@ -11,12 +11,17 @@ namespace CatDB {
 		{
 		public:
 			ColumnDesc();
+			void set_tid(u32 table_id);
+			void set_cid(u32 column_id);
 			void set_tid_cid(u32 table_id, u32 column_id);
 			void get_tid_cid(u32& table_id, u32& column_id)const;
 			int operator==(const ColumnDesc& other)const;
+			u32 get_data_type()const;
+			void set_data_type(u32 type);
 		private:
 			u32 table_id;
 			u32 column_id;
+			u32 data_type;
 		};
 
 		class RowDesc

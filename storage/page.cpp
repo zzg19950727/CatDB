@@ -205,11 +205,10 @@ u32 Page::insert_row(u32& row_id, const Row_s & row)
 	return ret;
 }
 
-u32 Page::update_row(u32 row_id, const Row_s & row)
+u32 Page::update_row(u32 row_id, Row_s & row)
 {
 	Row_s old_row;
 	u32 ret = SUCCESS;
-	bool have_none_fix_data = false;
 
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i){
 		Object_s cell;
@@ -220,8 +219,7 @@ u32 Page::update_row(u32 row_id, const Row_s & row)
 			//目前只支持定长数据的原地更新
 			if (!cell->is_fixed_length()){
 				Log(LOG_INFO, "Page", "found none fixed column when update row %u", row->get_row_id());
-				have_none_fix_data = true;
-				return ROW_DATA_TOO_LONG;
+				return update_none_fix_row(row_id, row);
 			}
 		}else{
 			return ret;
@@ -372,6 +370,39 @@ u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 	row->set_alias_table_id(file_header_->table_id);
 	Log(LOG_TRACE, "Page", "project row %u success", id);
 	return SUCCESS;
+}
+
+u32 Page::update_none_fix_row(u32 row_id, Row_s & row)
+{
+	Row_s old_row;
+	u32 ret = SUCCESS;
+
+	RowInfo* info = nullptr;
+	ret = search_row(row_id, info);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
+		return ret;
+	}
+	ret = project_row(info, old_row);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
+		return ret;
+	}
+	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i) {
+		ColumnDesc col_desc;
+		row->get_row_desc().get_column_desc(i, col_desc);
+		u32 idx;
+		ret = old_row->get_row_desc().get_column_idx(col_desc, idx);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "Page", "column %u not found when update row", i);
+			break;
+		}
+		Object_s cell;
+		row->get_cell(i, cell);
+		old_row->set_cell(idx, cell);
+	}
+	row = old_row;
+	return ROW_DATA_TOO_LONG;
 }
 
 u32 Page::write_row(RawRecord * record, const Row_s & row)

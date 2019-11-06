@@ -93,15 +93,13 @@ u32 Update::get_next_row(Row_s &row)
 			if (filter){
 				if ((*filter)(row)){
                     new_row->set_row_id( row->get_row_id() );
-                    table_space->update_row(new_row);
-					return SUCCESS;
+                    return table_space->update_row(new_row);
 				}else{
 					continue;
 				}
 			}else{
                 new_row->set_row_id( row->get_row_id() );
-                table_space->update_row(new_row);
-				return SUCCESS;
+                return table_space->update_row(new_row);
 			}
         }
     }

@@ -15,7 +15,7 @@ const char * err_string(u32 err_code)
 		case ERR_ROW_DESC:
 			return "row desc error";
 		case ROW_DATA_TOO_LONG:
-			return "row data too long";
+			return "update none fix data type not support yet";
 		case NO_MORE_PAGE_FREE_SPACE:
 			return "no more page free space";
 		case NO_MORE_ROWS:

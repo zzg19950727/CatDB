@@ -176,7 +176,6 @@
 %token COMMA	","
 %token PERIOD	"."
 %token SEMICOLON ";"
-%token AP		 "'"
 
 %token<std::string>	STRING
 %token<std::string>	IDENT
@@ -513,6 +512,7 @@ table_factor:
 		//将新的表达式加入到表达式列表
 		list_stmt_push($$, $1, $3);
     }
+  
   ;
 
 expr:
@@ -1152,13 +1152,15 @@ ident:
 	IDENT		{ str_to_lower($1);$$ = $1; }
 	;
 
+datetime:
+	DATETIME string	{ $$ = $2; }
+  ;
+ 
 string:
 	STRING 		{ $$ = $1; }
   ;	
 
-datetime:
-	"'" TIMESTAMP "'"	{ $$ = $2; }
-  ;
+
 
 number:
 	NUMERIC		{ $$ = std::stod($1); }

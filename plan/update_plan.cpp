@@ -367,7 +367,13 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 		return ret;
 	}
 	cell = const_stmt->value;
-	return SUCCESS;
+	ret = cast_to(col_desc.get_data_type(), cell);
+	if (ret != SUCCESS) {
+		return ret;
+	}
+	else {
+		return SUCCESS;
+	}
 }
 
 void UpdatePlan::add_access_column(const ColumnDesc & col_desc)

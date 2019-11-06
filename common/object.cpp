@@ -199,3 +199,62 @@ void Object::accumulate(const Object_s& other)
 {
 	Log(LOG_ERR, "Object", "object %u do not support accumulate operation", obj_type);
 }
+
+u32 CatDB::Common::string_to_type(const String & str)
+{
+	u32 type = T_NULL;
+	if (str == "number") {
+		type = T_NUMBER;
+	}
+	else if (str == "datetime") {
+		type = T_DATETIME;
+	}
+	else if (str == "varchar") {
+		type = T_VARCHAR;
+	}
+	return type;
+}
+
+/*目前支持NULL值转换为对应类型的NULL，varchar转datetime*/
+u32 CatDB::Common::cast_to(u32 type, Object_s & obj)
+{
+	if (!obj) {
+		return CAST_DATA_ERROR;
+	}
+	else if (obj->get_type() == type) {
+		return SUCCESS;
+	}
+	else if (obj->is_null()) {
+		switch (type)
+		{
+		case T_NUMBER:
+			obj = Object_s(new Number(0));
+			break;
+		case T_DATETIME:
+			obj = Object_s(new DateTime(0));
+			break;
+		case T_VARCHAR:
+			obj = Object_s(new Varchar(""));
+			break;
+		}
+		if (!obj) {
+			return CAST_DATA_ERROR;
+		}
+		else {
+			obj->set_null();
+			return SUCCESS;
+		}
+	}
+	else if (obj->get_type() == T_VARCHAR && type == T_DATETIME) {
+		obj = DateTime::make_object(obj->to_string());
+		if (!obj) {
+			return CAST_DATA_ERROR;
+		}
+		else {
+			return SUCCESS;
+		}
+	}
+	else {
+		return CAST_DATA_ERROR;
+	}
+}

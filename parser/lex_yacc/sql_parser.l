@@ -29,6 +29,7 @@ date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
 timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 %x beg_str
+%x beg_str2
 %x beg_ident
 %%
 
@@ -61,6 +62,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "create"		{ return CatDB::SqlParser::make_CREATE(loc); }
 "database"		{ return CatDB::SqlParser::make_DATABASE(loc); }
 "databases"		{ return CatDB::SqlParser::make_DATABASES(loc); }
+"date"			{ return CatDB::SqlParser::make_DATETIME(loc); }
 "datetime"		{ return CatDB::SqlParser::make_DATETIME(loc); }
 "delete"		{ return CatDB::SqlParser::make_DELETE(loc); }
 "desc"			{ return CatDB::SqlParser::make_DESC(loc); }
@@ -99,7 +101,6 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "-"				{ return CatDB::SqlParser::make_MINUS(loc); }
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
-"'"				{ return CatDB::SqlParser::make_AP(loc); }
 
 \"				{parse_str.clear();BEGIN(beg_str);}
 <beg_str>\"         {
@@ -117,7 +118,24 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 						while( *tmp_ptr )
 							parse_str += *tmp_ptr++;
 					}
-				
+
+'					{parse_str.clear();BEGIN(beg_str2);}
+<beg_str2>'         {
+						BEGIN(INITIAL);
+						return CatDB::SqlParser::make_STRING(parse_str,loc);
+					}
+<beg_str2>\\n		parse_str += '\n';
+<beg_str2>\\t		parse_str += '\t';
+<beg_str2>\\r		parse_str += '\r';
+<beg_str2>\\b		parse_str += '\b';
+<beg_str2>\\f		parse_str += '\f';
+<beg_str2>\\(.|\n)	parse_str += yytext[1];
+<beg_str2>[^\\\n']+ {
+						tmp_ptr = yytext;
+						while( *tmp_ptr )
+							parse_str += *tmp_ptr++;
+					}
+
 `					{parse_str.clear();BEGIN(beg_ident);}
 <beg_ident>`    	{
 						BEGIN(INITIAL);
@@ -132,8 +150,5 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 {space}
 {number}		{ return CatDB::SqlParser::make_NUMERIC(yytext,loc);	}
 {ident}			{ return CatDB::SqlParser::make_IDENT(yytext,loc);	} 
-{date}			{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	} 
-{time}			{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	} 
-{timestamp}		{ return CatDB::SqlParser::make_TIMESTAMP(yytext,loc);	}
 <<EOF>>			{ yyterminate(); }
 %%

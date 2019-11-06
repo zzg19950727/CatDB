@@ -11,6 +11,16 @@ ColumnDesc::ColumnDesc()
 {
 }
 
+void ColumnDesc::set_tid(u32 table_id)
+{
+	this->table_id = table_id;
+}
+
+void ColumnDesc::set_cid(u32 column_id)
+{
+	this->column_id = column_id;
+}
+
 void ColumnDesc::set_tid_cid(u32 table_id, u32 column_id)
 {
 	this->table_id = table_id;
@@ -26,6 +36,16 @@ void ColumnDesc::get_tid_cid(u32 & table_id, u32 & column_id) const
 int ColumnDesc::operator==(const ColumnDesc & other) const
 {
 	return table_id == other.table_id && column_id == other.column_id;
+}
+
+u32 ColumnDesc::get_data_type()const
+{
+	return data_type;
+}
+
+void ColumnDesc::set_data_type(u32 type)
+{
+	data_type = type;
 }
 
 RowDesc::RowDesc()

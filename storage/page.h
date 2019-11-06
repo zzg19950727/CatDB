@@ -80,7 +80,7 @@ namespace CatDB {
 			u32 get_free_space()const;
 			u32 select_row(u32 row_id, Row_s& row)const;
 			u32 insert_row(u32& row_id, const Row_s& row);
-			u32 update_row(u32 row_id, const Row_s& row);
+			u32 update_row(u32 row_id, Row_s& row);
 			u32 delete_row(u32 row_id);
 
 			u32 page_size()const;
@@ -95,6 +95,7 @@ namespace CatDB {
 			Page(const Buffer_s& buffer, IoService_s& io_service);
 			u32 project_all_column(RawRecord* record, Row_s& row)const;
 			u32 project_row(RowInfo* row_info, Row_s& row)const;
+			u32 update_none_fix_row(u32 row_id, Row_s& row);
 			u32 write_row(RawRecord* record, const Row_s& row);
 			u32 search_row(u32 row_id, RowInfo*& info)const;
 			u32 set_row_id_deleted(u32& row_id);
