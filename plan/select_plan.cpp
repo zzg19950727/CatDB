@@ -737,52 +737,7 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 	if (expr_stmt->expr_stmt_type() != ExprStmt::Column) {
 		return ERROR_LEX_STMT;
 	}
-	ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
-	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-	assert(checker);
-	if (column_stmt->table == "*") {
-		assert(table_list.size());
-		TableStmt* table = table_list[0];
-		if (!table->is_tmp_table) {
-			RowDesc row_desc;
-			u32 ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-			if (ret != SUCCESS) {
-				return ret;
-			}
-			assert(row_desc.get_column_num());
-			ColumnDesc col_desc;
-			row_desc.get_column_desc(0, col_desc);
-			u32 tid, cid;
-			col_desc.get_tid_cid(tid, cid);
-			tid = checker->get_table_id(table->database, table->alias_name);
-			col_desc.set_tid_cid(tid, cid);
-			expr = ColumnExpression::make_column_expression(col_desc);
-			add_access_column(table, col_desc);
-		}
-	}
-	else {
-		TableStmt* table = nullptr;
-		u32 ret = find_table(column_stmt->table, table);
-		if (ret != SUCCESS) {
-			return ret;
-		}
-		if (!table->is_tmp_table) {
-			RowDesc row_desc;
-			ret = checker->get_row_desc(table->database, table->table_name, row_desc);
-			if (ret != SUCCESS) {
-				return ret;
-			}
-			assert(row_desc.get_column_num());
-			ColumnDesc col_desc;
-			row_desc.get_column_desc(0, col_desc);
-			u32 tid, cid;
-			col_desc.get_tid_cid(tid, cid);
-			tid = checker->get_table_id(table->database, table->alias_name);
-			col_desc.set_tid_cid(tid, cid);
-			expr = ColumnExpression::make_column_expression(col_desc);
-			add_access_column(table, col_desc);
-		}
-	}
+	expr.reset();
 	return SUCCESS;
 }
 /*

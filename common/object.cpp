@@ -78,7 +78,7 @@ void Object::set_null()
 
 u32 Object::hash()
 {
-	return u32();
+	return 0;
 }
 
 String Object::to_string() const

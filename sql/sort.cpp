@@ -86,14 +86,25 @@ bool CatDB::Sql::Sort::greater(const Row_s & lhs, const Row_s & rhs) const
 	for (u32 i = 0; i < sort_cols.size(); ++i){
 		Object_s left = sort_cols[i]->get_result(lhs);
 		Object_s right = sort_cols[i]->get_result(rhs);
-		Object_s result = left->operator==(right);
-		if (result->bool_value())
+		if (left->is_null() && right->is_null()) {
 			continue;
-		result = left->operator>(right);
-		if (result->bool_value())
+		}
+		else if (left->is_null()) {
 			return true;
-		else
+		}
+		else if (right->is_null()) {
 			return false;
+		}
+		else {
+			Object_s result = left->operator==(right);
+			if (result->bool_value())
+				continue;
+			result = left->operator>(right);
+			if (result->bool_value())
+				return true;
+			else
+				return false;
+		}
 	}
 	return false;
 }
@@ -103,14 +114,25 @@ bool CatDB::Sql::Sort::less(const Row_s & lhs, const Row_s & rhs) const
 	for (u32 i = 0; i < sort_cols.size(); ++i){
 		Object_s left = sort_cols[i]->get_result(lhs);
 		Object_s right = sort_cols[i]->get_result(rhs);
-		Object_s result = left->operator==(right);
-		if (result->bool_value())
+		if (left->is_null() && right->is_null()) {
 			continue;
-		result = left->operator>(right);
-		if (result->bool_value())
-			return false;
-		else
+		}
+		else if (left->is_null()) {
 			return true;
+		}
+		else if (right->is_null()) {
+			return false;
+		}
+		else {
+			Object_s result = left->operator==(right);
+			if (result->bool_value())
+				continue;
+			result = left->operator>(right);
+			if (result->bool_value())
+				return false;
+			else
+				return true;
+		}
 	}
 	return false;
 }

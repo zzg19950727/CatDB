@@ -24,6 +24,7 @@ class_name&operator=(const class_name&)=delete;
 
 typedef unsigned char u8;
 typedef unsigned int u32;
+typedef double	f64;
 typedef unsigned long long u64;
 typedef std::string String;
 typedef std::chrono::system_clock Clock;

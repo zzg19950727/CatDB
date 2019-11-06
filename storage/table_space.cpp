@@ -150,6 +150,12 @@ u32 TableSpace::delete_all_row()
 	}
 }
 
+u64 TableSpace::table_space_size(const String & database, const String & table_name)
+{
+	String table_path = data_dir + database + "\\" + table_name;
+	return IoService::get_file_size(table_path);
+}
+
 u32 TableSpace::delete_table(const String& database, const String& table_name)
 {
 	IoService_s io = IoService::make_io_service();

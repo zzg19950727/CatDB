@@ -61,8 +61,13 @@ bool Varchar::bool_value()
 
 u32 Varchar::hash()
 {
-	Hash<String> hash;
-	return hash(String((char*)data->buf));
+	if (is_null()) {
+		Hash<String> hash;
+		return hash(String((char*)data->buf));
+	}
+	else {
+		return 0;
+	}
 }
 
 String Varchar::to_string() const

@@ -155,6 +155,21 @@ u32 IoService::clear_file(const String& table_file)
 	}
 }
 
+u64 IoService::get_file_size(const String & table_file)
+{
+	FILE* fp = fopen(table_file.c_str(), "rb+");
+	if (!fp) {
+		return 0;
+	}
+	else {
+		fseek(fp, 0, SEEK_END);
+		fpos_t size;
+		fgetpos(fp, &size);
+		fclose(fp);
+		return size;
+	}
+}
+
 u32 IoService::make_dir(const String & dir)
 {
 	String cmd = "mkdir " + dir;

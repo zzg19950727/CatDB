@@ -45,6 +45,7 @@
 #define SUBQUERY_RESULT_MUST_BE_ONE_ROW	0x2a
 #define END_OF_BUCKETS			0x2b
 #define SET_ROW_DESC_ERROR		0x2c
+#define CAN_NOT_ANALYZE_SYSTEM	0x2d
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

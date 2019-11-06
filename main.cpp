@@ -212,8 +212,6 @@ void schema_checker_test()
 	for (u32 i = 0; i < desc.size(); ++i) {
 		std::cout << desc[i].first << "," << desc[i].second << std::endl;
 	}
-
-	
 }
 
 int main()
@@ -221,6 +219,9 @@ int main()
 	//schema_checker_test();
 	parser_test();
 	//load_tpch_data();
+	Timer timer;
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	//checker->analyze_table("test", "*");
 	return 0;
 }
 

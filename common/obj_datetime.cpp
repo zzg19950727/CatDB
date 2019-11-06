@@ -106,8 +106,13 @@ bool DateTime::bool_value()
 
 u32 DateTime::hash()
 {
-	Hash<double> hash;
-	return hash(data);
+	if (is_null()) {
+		Hash<double> hash;
+		return hash(data);
+	}
+	else{
+		return 0;
+	}
 }
 
 String DateTime::to_string() const

@@ -543,23 +543,28 @@ void AggregateExpression::reset()
 
 u32 AggregateExpression::sum(const Row_s & row)
 {
-	if (!result){
-		result = expr->get_result(row)->copy();
-		if (result->get_type() == T_ERROR_RESULT)
-			return EXPR_CALC_ERR;
-		else
-			return SUCCESS;
-	}else{
-		Object_s obj = expr->get_result(row);
-		if (result->get_type() == T_ERROR_RESULT)
-			return EXPR_CALC_ERR;
-		result->accumulate(obj);
+	Object_s value = expr->get_result(row);
+	if (value->get_type() == T_ERROR_RESULT)
+		return EXPR_CALC_ERR;
+	else if (value->is_null())
 		return SUCCESS;
+	if (!result){
+		result = value->copy();
+	}else{
+		result->accumulate(value);
 	}
+	return SUCCESS;
 }
 
-u32 AggregateExpression::count(const Row_s &)
+u32 AggregateExpression::count(const Row_s &row)
 {
+	if (expr) {
+		Object_s value = expr->get_result(row);
+		if (value->get_type() == T_ERROR_RESULT)
+			return EXPR_CALC_ERR;
+		else if (value->is_null())
+			return SUCCESS;
+	}
 	if (!result){
 		result = Number::make_object(1);
 	}else{
@@ -577,12 +582,16 @@ u32 AggregateExpression::avg(const Row_s & row)
 
 u32 AggregateExpression::max(const Row_s & row)
 {
-	Object_s obj = expr->get_result(row);
+	Object_s value = expr->get_result(row);
+	if (value->get_type() == T_ERROR_RESULT)
+		return EXPR_CALC_ERR;
+	else if (value->is_null())
+		return SUCCESS;
 	if (!result){
-		result = obj;
+		result = value;
 	}else{
-		if (obj->operator>(result)->bool_value()){
-			result = obj;
+		if (value->operator>(result)->bool_value()){
+			result = value;
 		}
 	}
 	return SUCCESS;
@@ -590,12 +599,16 @@ u32 AggregateExpression::max(const Row_s & row)
 
 u32 AggregateExpression::min(const Row_s & row)
 {
-	Object_s obj = expr->get_result(row);
+	Object_s value = expr->get_result(row);
+	if (value->get_type() == T_ERROR_RESULT)
+		return EXPR_CALC_ERR;
+	else if (value->is_null())
+		return SUCCESS;
 	if (!result){
-		result = obj;
+		result = value;
 	}else{
-		if (obj->operator<(result)->bool_value()){
-			result = obj;
+		if (value->operator<(result)->bool_value()){
+			result = value;
 		}
 	}
 	return SUCCESS;

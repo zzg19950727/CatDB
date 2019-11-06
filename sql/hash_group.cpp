@@ -210,6 +210,9 @@ bool HashGroup::euqal(const Row_s & lhs, const Row_s & rhs)
 	for (u32 i = 0; i < group_cols.size(); ++i){
 		Object_s lhs_value = group_cols[i]->get_result(lhs);
 		Object_s rhs_value = group_cols[i]->get_result(rhs);
+		if (lhs_value->is_null() && rhs_value->is_null()) {
+			return true;
+		}
 		Object_s result = lhs_value->operator==(rhs_value);
 		if (!result->bool_value()){
 			return false;

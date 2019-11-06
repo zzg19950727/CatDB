@@ -29,6 +29,7 @@ namespace CatDB {
 			u32 update_row(const Row_s& row);
 			u32 delete_row(u32 row_id);
 			u32 delete_all_row();
+			static u64 table_space_size(const String& database, const String& table_name);
 			static u32 delete_table(const String& database, const String& table_name);
 			static u32 create_table(const String& database, const String& table_name);
 			static u32 delete_database(const String& database);

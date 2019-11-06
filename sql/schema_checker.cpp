@@ -1,5 +1,6 @@
 #include "schema_checker.h"
 #include "query_result.h"
+#include "table_space.h"
 #include "sql_driver.h"
 #include "object.h"
 #include "error.h"
@@ -9,11 +10,13 @@
 
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
+using namespace CatDB::Storage;
 using CatDB::SqlDriver;
 
 SchemaChecker_s SchemaChecker::make_schema_checker()
 {
-	return SchemaChecker_s(new SchemaChecker());
+	static SchemaChecker_s checker(new SchemaChecker());
+	return checker;
 }
 
 u32 SchemaChecker::get_table_id(const String& database, const String& table_name)
@@ -24,71 +27,78 @@ u32 SchemaChecker::get_table_id(const String& database, const String& table_name
 
 u32 SchemaChecker::get_row_desc(const String& database, const String& table_name, RowDesc& row_desc)
 {
+	u32 ret = SUCCESS;
 	u32 table_id = get_table_id(database, table_name);
+	
 	if (database == "system") {
-		return get_row_desc_system(database, table_name, row_desc);
+		ret = get_row_desc_system(database, table_name, row_desc);
+		if (ret == SUCCESS) {
+			return ret;
+		}
 	}
-	else {
-		String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+	String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" order by col.id;)";
-		Object_s result;
-		u32 ret = execute_sys_sql(query, result);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SchemaChecker", "query row desc failed");
-		}
-		else {
-			ret = get_row_desc_from_result(table_id, row_desc, result);
-		}
-		return ret;
+	Object_s result;
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SchemaChecker", "query row desc failed");
 	}
+	else {
+		ret = get_row_desc_from_result(table_id, row_desc, result);
+	}
+	return ret;
 }
 
 u32 SchemaChecker::get_column_desc(const String& database, const String& table_name, const String& column_name, ColumnDesc& col_desc)
 {
+	u32 ret = SUCCESS;
 	if (database == "system") {
-		return get_column_desc_system(database, table_name, column_name, col_desc);
+		ret = get_column_desc_system(database, table_name, column_name, col_desc);
+		if (ret == SUCCESS) {
+			return ret;
+		}
 	}
-	else {
-		String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+	String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" and col.name=")" + column_name + R"(";)";
-		Object_s result;
-		u32 ret = execute_sys_sql(query, result);
-		u32 table_id = get_table_id(database, table_name);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SchemaChecker", "query column failed");
-		}
-		else {
-			u32 column_id;
-			ret = get_column_id_from_result(column_id, result);
-			if (ret == SUCCESS) {
-				col_desc.set_tid_cid(table_id, column_id);
-			}
-		}
-		return ret;
+	Object_s result;
+	ret = execute_sys_sql(query, result);
+	u32 table_id = get_table_id(database, table_name);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SchemaChecker", "query column failed");
 	}
+	else {
+		u32 column_id;
+		ret = get_id_from_result(column_id, result);
+		if (ret == SUCCESS) {
+			col_desc.set_tid_cid(table_id, column_id);
+		}
+	}
+	return ret;
 }
 
 bool SchemaChecker::have_column(const String& database, const String& table_name, const String& column_name)
 {
 	if (database == "system") {
-		return have_column_system(database, table_name, column_name);
+		bool ret = true;
+		ret = have_column_system(database, table_name, column_name);
+		if (ret) {
+			return ret;
+		}
 	}
-	else {
-		String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
+	String query = R"(select col.id from system.sys_databases as db,system.sys_tables as tb,system.sys_columns as col 
 				where db.id = tb.db_id and tb.id = col.table_id 
 				and db.name=")" + database + R"(" and tb.name=")" + table_name + R"(" and col.name=")" + column_name + R"(";)";
-		Object_s result;
-		u32 ret = execute_sys_sql(query, result);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SchemaChecker", "query column failed");
-			return false;
-		}
-		else {
-			QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
-			return query_result->size() > 0;
-		}
+	Object_s result;
+	u32 ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SchemaChecker", "query column failed");
+		return false;
+	}
+	else {
+		QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+		return query_result->size() > 0;
 	}
 }
 
@@ -273,7 +283,7 @@ u32 SchemaChecker::get_database_id(const String & database, u32 & id)
 		return false;
 	}
 	else {
-		return get_column_id_from_result(id, result);
+		return get_id_from_result(id, result);
 	}
 }
 
@@ -289,7 +299,50 @@ u32 SchemaChecker::get_table_id(const String & database, const String & table, u
 		return false;
 	}
 	else {
-		return get_column_id_from_result(id, result);
+		return get_id_from_result(id, result);
+	}
+}
+
+u32 SchemaChecker::analyze_table(const String & database, const String & table)
+{
+	if (database == "system") {
+		Log(LOG_WARN, "AnalyzeStatis", "skip analyze system database");
+		return CAN_NOT_ANALYZE_SYSTEM;
+	}
+	else if (database == "*") {
+		Vector<String> databases;
+		u32 ret = show_database(databases);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		for (u32 i = 0; i < databases.size(); ++i) {
+			if (databases[i] == "system") {
+				continue;
+			}
+			Vector<String> tables;
+			u32 ret = show_tables(databases[i], tables);
+			if (ret != SUCCESS) {
+				continue;
+			}
+			for (u32 j = 0; j < tables.size(); ++j) {
+				ret = analyze_table_system(databases[i], tables[j]);
+			}
+		}
+		return ret;
+	}
+	else if (table == "*") {
+		Vector<String> tables;
+		u32 ret = show_tables(database, tables);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		for (u32 i = 0; i < tables.size(); ++i) {
+			ret = analyze_table_system(database, tables[i]);
+		}
+		return ret;
+	}
+	else {
+		return analyze_table_system(database, table);
 	}
 }
 
@@ -302,7 +355,7 @@ u32 SchemaChecker::get_last_database_id(u32 & id)
 		Log(LOG_ERR, "SchemaChecker", "query last database id failed");
 	}
 	else {
-		ret = get_column_id_from_result(id, result);
+		ret = get_id_from_result(id, result);
 		if (ret != SUCCESS) {
 			id = 0;
 			ret = SUCCESS;
@@ -320,7 +373,7 @@ u32 SchemaChecker::get_last_table_id(const String & database, u32 & id)
 		Log(LOG_ERR, "SchemaChecker", "query last table id failed");
 	}
 	else {
-		ret = get_column_id_from_result(id, result);
+		ret = get_id_from_result(id, result);
 		if (ret != SUCCESS) {
 			id = 0;
 			ret = SUCCESS;
@@ -329,7 +382,7 @@ u32 SchemaChecker::get_last_table_id(const String & database, u32 & id)
 	return ret;
 }
 
-u32 SchemaChecker::get_column_id_from_result(u32 & id, const Object_s & result)
+u32 SchemaChecker::get_id_from_result(u32 & id, const Object_s & result)
 {
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	if (query_result->size() != 1) {
@@ -339,24 +392,59 @@ u32 SchemaChecker::get_column_id_from_result(u32 & id, const Object_s & result)
 		Row_s row;
 		u32 ret = query_result->get_row(0, row);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SchemaChecker", "query column failed");
+			Log(LOG_ERR, "SchemaChecker", "query id failed");
 			return SYSTEM_SCHEMA_ERROR;
 		}
 		else {
 			if (row->get_row_desc().get_column_num() != 1) {
-				Log(LOG_ERR, "SchemaChecker", "query column failed, query result type error");
+				Log(LOG_ERR, "SchemaChecker", "query id failed, query result type error");
 				return SYSTEM_SCHEMA_ERROR;
 			}
 			else {
 				Object_s cell;
 				row->get_cell(0, cell);
 				if (cell->get_type() != T_NUMBER) {
-					Log(LOG_ERR, "SchemaChecker", "query column failed, query result type error");
+					Log(LOG_ERR, "SchemaChecker", "query id failed, query result type error");
 					return SYSTEM_SCHEMA_ERROR; 
 				}
 				else {
 					Number* col_id = dynamic_cast<Number*>(cell.get());
 					id = static_cast<u32>(col_id->value());
+					return SUCCESS;
+				}
+			}
+		}
+	}
+}
+
+u32 SchemaChecker::get_value_from_result(double & value, const Object_s & result)
+{
+	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+	if (query_result->size() != 1) {
+		return SYSTEM_SCHEMA_ERROR;
+	}
+	else {
+		Row_s row;
+		u32 ret = query_result->get_row(0, row);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "SchemaChecker", "query value failed");
+			return SYSTEM_SCHEMA_ERROR;
+		}
+		else {
+			if (row->get_row_desc().get_column_num() != 1) {
+				Log(LOG_ERR, "SchemaChecker", "query value failed, query result type error");
+				return SYSTEM_SCHEMA_ERROR;
+			}
+			else {
+				Object_s cell;
+				row->get_cell(0, cell);
+				if (cell->get_type() != T_NUMBER) {
+					Log(LOG_ERR, "SchemaChecker", "query value failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
+				}
+				else {
+					Number* col_value = dynamic_cast<Number*>(cell.get());
+					value = col_value->value();
 					return SUCCESS;
 				}
 			}
@@ -642,4 +730,164 @@ bool SchemaChecker::have_column_system(const String &, const String & table_name
 	else {
 		return false;
 	}
+}
+
+u32 SchemaChecker::analyze_table_system(const String & database, const String & table)
+{
+	Vector<Pair<String, String>> columns;
+	u32 ret = desc_table(database, table, columns);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
+		return ret;
+	}
+	ret = analyze_table_statis(database, table);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s failed", database.c_str(), table.c_str());
+		return ret;
+	}
+	for (u32 i = 0; i < columns.size(); ++i) {
+		ret = analyze_column_statis(database, table, columns[i].first);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s failed", database.c_str(), table.c_str(), column.c_str());
+		}
+	}
+	return SUCCESS;
+}
+
+u32 SchemaChecker::analyze_table_statis(const String & database, const String & table)
+{
+	u32 table_id;
+	u32 ret = get_table_id(database, table, table_id);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
+		return ret;
+	}
+	u32 row_count = 0;
+	u64 file_size = TableSpace::table_space_size(database, table);
+	if (file_size > 0) {
+		String query = "select count(*) from " + database + "." + table +";";
+		Object_s result;
+		ret = execute_sys_sql(query, result);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "query %s.%s count failed", database.c_str(), table.c_str());
+			return ret;
+		}
+		else {
+			ret = get_id_from_result(row_count, result);
+			if (ret != SUCCESS) {
+				Log(LOG_WARN, "AnalyzeStatic", "get %s.%s count failed", database.c_str(), table.c_str());
+				return ret;
+			}
+		}
+	}
+	String cur_time = DateTime::CurrentDatetime();
+	String query = "insert into system.table_statis values("
+		+ std::to_string(table_id) + ","
+		+ std::to_string(row_count) + ","
+		+ std::to_string(file_size) + ","
+		+ "'" + cur_time + "');";
+	Object_s result;
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s statis failed", database.c_str(), table.c_str());
+	}
+	return ret;
+}
+
+u32 SchemaChecker::analyze_column_statis(const String & database, const String & table, const String & column, bool varchar_type)
+{
+	u32 tid, cid;
+	ColumnDesc col_desc;
+	u32 ret = get_column_desc(database, table, column, col_desc);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "%s.%s:%s not exists", database.c_str(), table.c_str(), column.c_str());
+		return ret;
+	}
+	col_desc.get_tid_cid(tid, cid);
+	ret = get_table_id(database, table, tid);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
+		return ret;
+	}
+	u32 ndv, null_count;
+	String max_value, min_value;
+	//NDV统计
+	String query = "select count(*) from ( select distinct `" + column + "` from `" + database + "`.`" + table + "`) as tmp;";
+	Object_s result;
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s NDV failed", database.c_str(), table.c_str(), column.c_str());
+		return ret;
+	}
+	else {
+		ret = get_id_from_result(ndv, result);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s NDV failed", database.c_str(), table.c_str(), column.c_str());
+			return ret;
+		}
+	}
+	//null count统计
+	query = "select count(`" + column + "`) from `" + database + "`.`" + table + "` where `" + column + "`  is null;";
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s null count failed", database.c_str(), table.c_str(), column.c_str());
+		return ret;
+	}
+	else {
+		ret = get_id_from_result(null_count, result);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s null count failed", database.c_str(), table.c_str(), column.c_str());
+			return ret;
+		}
+	}
+	//获取最大值
+	query = "select max(`" + column + "`) from `" + database + "`.`" + table + "`;";
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s max value failed", database.c_str(), table.c_str(), column.c_str());
+		return ret;
+	}
+	else {
+		double value;
+		ret = get_value_from_result(value, result);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s max value failed", database.c_str(), table.c_str(), column.c_str());
+			max_value = "NULL";
+		}
+		else {
+			max_value = std::to_string(value);
+		}
+	}
+	//获取最小值
+	query = "select min(`" + column + "`) from `" + database + "`.`" + table + "`;";
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s min value failed", database.c_str(), table.c_str(), column.c_str());
+		return ret;
+	}
+	else {
+		double value;
+		ret = get_value_from_result(value, result);
+		if (ret != SUCCESS) {
+			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s min value failed", database.c_str(), table.c_str(), column.c_str());
+			min_value = "NULL";
+		}
+		else {
+			min_value = std::to_string(value);
+		}
+	}
+	String cur_time = DateTime::CurrentDatetime();
+	query = "insert into system.column_statis values("
+		+ std::to_string(tid) + ","
+		+ std::to_string(cid) + ","
+		+ std::to_string(ndv) + ","
+		+ std::to_string(null_count) + ","
+		+ max_value + ","
+		+ min_value + ","
+		+ "'" + cur_time + "');";
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s statis failed", database.c_str(), table.c_str(), column.c_str());
+	}
+	return ret;
 }

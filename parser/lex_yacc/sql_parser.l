@@ -28,7 +28,8 @@ ident	{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
 timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
-%x str
+%x beg_str
+%x beg_ident
 %%
 
 "bool"			{ return CatDB::SqlParser::make_BOOL(loc); }
@@ -42,6 +43,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "and"			{ return CatDB::SqlParser::make_AND(loc); }
 "not"			{ return CatDB::SqlParser::make_NOT(loc); }
 "!="			{ return CatDB::SqlParser::make_CMP_NE(loc); }
+"<>"			{ return CatDB::SqlParser::make_CMP_NE(loc); }
 ">="			{ return CatDB::SqlParser::make_CMP_GE(loc); }
 ">"				{ return CatDB::SqlParser::make_CMP_GT(loc); }
 "="				{ return CatDB::SqlParser::make_CMP_EQ(loc); }
@@ -99,22 +101,33 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
 "'"				{ return CatDB::SqlParser::make_AP(loc); }
 
-\"				{parse_str.clear();BEGIN(str);}
-<str>\"         {
-				BEGIN(INITIAL);
-				return CatDB::SqlParser::make_STRING(parse_str,loc);
-				}
-<str>\\n		parse_str += '\n';
-<str>\\t		parse_str += '\t';
-<str>\\r		parse_str += '\r';
-<str>\\b		parse_str += '\b';
-<str>\\f		parse_str += '\f';
-<str>\\(.|\n)	parse_str += yytext[1];
-<str>[^\\\n\"]+ {
-				tmp_ptr = yytext;
-				while( *tmp_ptr )
-				parse_str += *tmp_ptr++;
-				}
+\"				{parse_str.clear();BEGIN(beg_str);}
+<beg_str>\"         {
+						BEGIN(INITIAL);
+						return CatDB::SqlParser::make_STRING(parse_str,loc);
+					}
+<beg_str>\\n		parse_str += '\n';
+<beg_str>\\t		parse_str += '\t';
+<beg_str>\\r		parse_str += '\r';
+<beg_str>\\b		parse_str += '\b';
+<beg_str>\\f		parse_str += '\f';
+<beg_str>\\(.|\n)	parse_str += yytext[1];
+<beg_str>[^\\\n\"]+ {
+						tmp_ptr = yytext;
+						while( *tmp_ptr )
+							parse_str += *tmp_ptr++;
+					}
+				
+`					{parse_str.clear();BEGIN(beg_ident);}
+<beg_ident>`    	{
+						BEGIN(INITIAL);
+						return CatDB::SqlParser::make_IDENT(parse_str,loc);
+					}
+<beg_ident>[^\\\n`]+  {
+						tmp_ptr = yytext;
+						while( *tmp_ptr )
+							parse_str += *tmp_ptr++;
+					}
 
 {space}
 {number}		{ return CatDB::SqlParser::make_NUMERIC(yytext,loc);	}

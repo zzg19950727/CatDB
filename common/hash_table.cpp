@@ -204,14 +204,25 @@ bool HashTable::less(const Row_s & lhs, const Row_s & rhs)
 	for (u32 i = 0; i < hash_cols.size(); ++i){
 		Object_s left = hash_cols[i]->get_result(lhs);
 		Object_s right = hash_cols[i]->get_result(rhs);
-		Object_s result = left->operator==(right);
-		if (result->bool_value())
+		if (left->is_null() && right->is_null()) {
 			continue;
-		result = left->operator>(right);
-		if (result->bool_value())
-			return false;
-		else
+		}
+		else if (left->is_null()) {
 			return true;
+		}
+		else if (right->is_null()) {
+			return false;
+		}
+		else {
+			Object_s result = left->operator==(right);
+			if (result->bool_value())
+				continue;
+			result = left->operator>(right);
+			if (result->bool_value())
+				return false;
+			else
+				return true;
+		}
 	}
 	return false;
 }
@@ -251,6 +262,9 @@ bool HashTable::equal(const Row_s & lhs, const Row_s & rhs)
 			Object_s r_lhs, r_rhs;
 			lhs->get_cell(i, r_lhs);
 			rhs->get_cell(i, r_rhs);
+			if (r_lhs->is_null() && r_rhs->is_null()) {
+				return true;
+			}
 			Object_s result = r_lhs->operator==(r_rhs);
 			if (!result->bool_value()){
 				return false;
@@ -261,6 +275,9 @@ bool HashTable::equal(const Row_s & lhs, const Row_s & rhs)
 		for (u32 i = 0; i < probe_cols.size(); ++i){
 			Object_s r_lhs = probe_cols[i]->get_result(lhs);
 			Object_s r_rhs = probe_cols[i]->get_result(rhs);
+			if (r_lhs->is_null() && r_rhs->is_null()) {
+				return true;
+			}
 			Object_s result = r_lhs->operator==(r_rhs);
 			if (!result->bool_value()){
 				return false;
