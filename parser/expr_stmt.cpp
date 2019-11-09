@@ -89,7 +89,8 @@ String ColumnStmt::to_string() const
 }
 
 TableStmt::TableStmt()
-	:is_tmp_table(false)
+	:join_type(0),
+	is_tmp_table(false)
 {
 }
 

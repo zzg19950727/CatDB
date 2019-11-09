@@ -258,7 +258,7 @@ u32 RowAgent::add_row(const Row_s & row)
 u32 RowAgent::get_cell(const ColumnDesc & c_desc, Object_s & cell) const
 {
 	for (u32 i = 0; i < agent_row.size(); ++i){
-		if (agent_row[i]->get_cell(c_desc, cell) == SUCCESS){
+		if (agent_row[i]->get_cell(c_desc, cell) == SUCCESS) {
 			return SUCCESS;
 		}
 	}

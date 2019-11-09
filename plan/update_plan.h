@@ -48,6 +48,8 @@ namespace CatDB {
 			String table_name;
 			TableStmt* table;
 			Vector<ColumnDesc> access_columns;
+			Row_s new_row;
+			Filter_s filter;
 		};
 	}
 }

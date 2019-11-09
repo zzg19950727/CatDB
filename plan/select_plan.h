@@ -19,6 +19,7 @@ namespace CatDB {
 		DECLARE(Expression);
 		DECLARE(DeletePlan);
 		DECLARE(UpdatePlan);
+		DECLARE(SqlRewriter);
 		using Common::Row_s;
 		using Common::RowDesc;
 		using Parser::Stmt_s;
@@ -26,6 +27,7 @@ namespace CatDB {
 		using Sql::Expression_s;
 		using Sql::DeletePlan;
 		using Sql::UpdatePlan;
+		using Parser::ExprStmt;
 		using Parser::TableStmt;
 		using Parser::ColumnStmt;
 		using Parser::QueryStmt;
@@ -50,12 +52,19 @@ namespace CatDB {
 			u32 get_query_row_desc(RowDesc& row_desc);
 			const Vector<String>& get_all_output_column() const;
 			void reset_for_correlated_subquery(const Row_s& row);
+			bool is_simple_scalar_group()const;
+			bool is_correlated_query()const;
 
 		private:
 			/*第一个pair指定join的两张表，第二个pair指定join condition和join equal condition
 			  join condition包含join equal condition*/
 			typedef Pair<TableStmt*, TableStmt*> JoinableTables;
 			typedef Pair<Expression_s, Expression_s> JoinConditions;
+			struct SubqueryInfo {
+				Expression_s expr;
+				ExprStmt::OperationType op;
+				Plan_s subplan;
+			};
 			//解析where子句，拆分成一个一个and连接的stmt
 			u32 resolve_where_stmt(const Stmt_s& where_stmt);
 			//解析单个stmt，可能是连接谓词，可能是基表过滤谓词，也可能是普通的过滤谓词
@@ -63,15 +72,16 @@ namespace CatDB {
 			//当前语句块如果是列描述则返回列描述，否则返回null
 			ColumnStmt* resolve_column_stmt(const Stmt_s& stmt);
 			//将语句块转换成表达式
-			u32 resolve_expr(const Stmt_s& expr_stmt, Expression_s& expr);
+			u32 resolve_expr(const Stmt_s& expr_stmt, Expression_s& expr, bool& have_parent_column);
 			//解析select list中的*列
 			u32 resolve_all_column_in_select_list(const Stmt_s& stmt);
 			//解析count聚合函数内的*表达式
 			u32 resolve_all_column_in_count_agg(const Stmt_s& stmt, Expression_s& expr);
 			//判断当前谓词块是否是基表过滤谓词
 			bool is_table_filter(const Stmt_s& expr_stmt, TableStmt*& table);
+			bool is_table_filter(const Expression_s& expr, TableStmt*& table);
 			//根据列语句块获取列描述
-			u32 resolve_column_desc(ColumnStmt* column_stmt, ColumnDesc& col_desc);
+			u32 resolve_column_desc(ColumnStmt* column_stmt, ColumnDesc& col_desc, bool& from_partent);
 			//从from list中搜索表
 			u32 find_table(const String& table_name, TableStmt*& table);
 			//从父查询中搜索表
@@ -81,6 +91,7 @@ namespace CatDB {
 			u32 who_have_column(ColumnStmt* column_stmt, TableStmt*& table);
 			//从from list中搜索含有指定列的表
 			u32 who_have_column(const String& column_name, TableStmt*& table);
+			u32 who_have_column(const ColumnDesc& col_desc, TableStmt*& table);
 			//从父查询中搜索含有指定列的表
 			u32 which_partent_table_have_column(const String& column_name, TableStmt*& table);
 			//解析from语句块为table list
@@ -132,6 +143,8 @@ namespace CatDB {
 			HashMap<TableStmt*, RowDesc > table_access_row_desc;
 			//两表连接条件信息
 			HashMap<JoinableTables, JoinConditions> join_info;
+			//由子查询改写生成的临时表
+			HashMap<TableStmt*, JoinConditions> sub_query_tmp_tables;
 			//每张表的过滤谓词
 			HashMap<TableStmt*, Expression_s> table_filters;
 			//select list语句块中出现过的聚合函数
@@ -148,6 +161,8 @@ namespace CatDB {
 			Vector<TableStmt*> ref_parent_table_list;
 			//需要保存临时表的引用，防止内存释放
 			Vector<Stmt_s> tmp_table_handle;
+			//保存子查询，待改写结束后统一生成计划
+			Vector<Plan_s> subquerys;
 			//聚合列
 			Vector<Expression_s> group_cols;
 			//排序列
@@ -177,6 +192,7 @@ namespace CatDB {
 
 			friend class DeletePlan;
 			friend class UpdatePlan;
+			friend class SqlRewriter;
 		};
 	}
 }

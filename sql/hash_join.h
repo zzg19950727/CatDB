@@ -12,7 +12,7 @@ namespace CatDB {
 		using Common::Row_s;
 		DECLARE(Expression);
 
-		class HashJoin : public DoubleChildPhyOperator
+		class HashJoin : public JoinPhyOperator
 		{
 		private:
 			HashJoin() = delete;
@@ -41,6 +41,12 @@ namespace CatDB {
 		private:
 			u32 init_hash_table();
 			u32 build_hash_table();
+			u32 join(Row_s &row);
+			u32 semi_join(Row_s &row);
+			u32 anti_join(Row_s &row);
+			u32 left_outer_join(Row_s &row);
+			u32 right_outer_join(Row_s &row);
+			u32 full_outer_join(Row_s &row);
 
 		private:
 			Common::HashTable hash_table;

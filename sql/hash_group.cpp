@@ -125,7 +125,7 @@ u32 HashGroup::reopen(const Row_s & row)
 u32 HashGroup::get_next_row(Row_s & row)
 {
 retry:
-	if (cur_bucket == hash_table.end_bucket() || hash_table.empty() || end_of_bucket){
+	if (cur_bucket == hash_table.end_bucket() || end_of_bucket){
 		//如果没有子节点没有任何输入，则输出对应聚合函数结果一次
 		if (hash_table.empty() && !out_when_empty_input){
 			//make row
@@ -252,7 +252,12 @@ Row_s HashGroup::make_row(const Row_s& row)
 	for (; i < group_cols.size(); ++i) {
 		ColumnExpression* column = dynamic_cast<ColumnExpression*>(group_cols[i].get());
 		new_row->get_row_desc().set_column_desc(i, column->get_column_desc());
-		new_row->set_cell(i, group_cols[i]->get_result(row));
+		if (row) {
+			new_row->set_cell(i, group_cols[i]->get_result(row));
+		}
+		else {
+			new_row->set_cell(i, Object::make_null_object());
+		}
 	}
 	Row_s tmp_null;
 	for (u32 j = 0; j < agg_funcs.size(); ++i, ++j) {

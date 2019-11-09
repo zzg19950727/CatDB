@@ -146,7 +146,6 @@ void parser_test()
 			break;
 		}
 		
-		Timer timer;
 		int ret = parser.parse_sql(query);
 		
 		if (parser.is_sys_error())
@@ -155,13 +154,24 @@ void parser_test()
 			std::cout << parser.syntax_error() << std::endl;
 		else {
 			plan = Plan::make_plan(parser.parse_result());
-			u32 ret = plan->build_plan();
-			if (ret != SUCCESS) {
-				Object_s result = plan->get_result();
-				if (result)
-					std::cout << "build plan failed:" << result->to_string() << std::endl;
-				continue;
+			{
+				Timer timer;
+				u32 ret = plan->optimizer();
+				if (ret != SUCCESS) {
+					Object_s result = plan->get_result();
+					if (result)
+						std::cout << "build plan failed:" << result->to_string() << std::endl;
+					continue;
+				}
+				ret = plan->build_plan();
+				if (ret != SUCCESS) {
+					Object_s result = plan->get_result();
+					if (result)
+						std::cout << "build plan failed:" << result->to_string() << std::endl;
+					continue;
+				}
 			}
+			Timer timer;
 			ret = plan->execute();
 			if (ret != SUCCESS) {
 				Object_s result = plan->get_result();
@@ -224,4 +234,3 @@ int main()
 	//checker->analyze_table("tpch", "*");
 	return 0;
 }
-

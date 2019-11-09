@@ -349,10 +349,10 @@ u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 	}
 	const RowDesc& desc = row->get_row_desc();
 	//反序列化所需的列
+	u32 table_id, column_id;
 	for (u32 i = 0; i < desc.get_column_num(); ++i){
 		ColumnDesc col_desc;
 		if (desc.get_column_desc(i, col_desc) == SUCCESS){
-			u32 table_id, column_id;
 			col_desc.get_tid_cid(table_id, column_id);
 			if (column_id < record->column_count){
 				//定位列所在元数据
@@ -365,9 +365,9 @@ u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 			return ERR_ROW_DESC;
 		}
 	}
+	row->set_alias_table_id(table_id);
 	u32 id = row_info->row_id;
 	row->set_row_id(id);
-	row->set_alias_table_id(file_header_->table_id);
 	Log(LOG_TRACE, "Page", "project row %u success", id);
 	return SUCCESS;
 }

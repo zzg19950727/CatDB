@@ -634,7 +634,19 @@ u32 SchemaChecker::execute_sys_sql(const String & sql, Object_s& result)
 	}
 	else {
 		Plan_s plan = Plan::make_plan(parser.parse_result());
-		u32 ret = plan->build_plan();
+		u32 ret = plan->optimizer();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				Log(LOG_ERR, "SchemaChecker", "resolve sys sql plan error:%s", result->to_string().c_str());
+				return SYSTEM_SCHEMA_ERROR;
+			}
+			else {
+				Log(LOG_ERR, "SchemaChecker", "resolve sys sql plan error");
+				return SYSTEM_SCHEMA_ERROR;
+			}
+		}
+		ret = plan->build_plan();
 		if (ret != SUCCESS) {
 			Object_s result = plan->get_result();
 			if (result) {

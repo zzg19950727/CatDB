@@ -115,6 +115,8 @@ namespace CatDB {
 			String database;
 			String table_name;
 			Plan_s subplan;
+			u32 join_type;
+			u32 table_id;
 			bool is_tmp_table;
 		};
 		//子查询语句

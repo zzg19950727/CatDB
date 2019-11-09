@@ -41,3 +41,23 @@ DoubleChildPhyOperator::DoubleChildPhyOperator(const PhyOperator_s & left, const
 DoubleChildPhyOperator::~DoubleChildPhyOperator()
 {
 }
+
+JoinPhyOperator::JoinPhyOperator(const PhyOperator_s & left, const PhyOperator_s & right)
+	:DoubleChildPhyOperator(left, right),
+	type(JoinPhyOperator::Join)
+{
+}
+
+JoinPhyOperator::~JoinPhyOperator()
+{
+}
+
+JoinPhyOperator::JoinType JoinPhyOperator::join_type() const
+{
+	return type;
+}
+
+void JoinPhyOperator::set_join_type(JoinType type)
+{
+	this->type = type;
+}

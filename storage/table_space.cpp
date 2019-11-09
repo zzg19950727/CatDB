@@ -1,4 +1,4 @@
-﻿	#include "table_space.h"
+﻿#include "table_space.h"
 #include "IoService.h"
 #include "error.h"
 #include "page.h"
@@ -24,6 +24,7 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 	TableSpace* table_space = new TableSpace;
 	table_space->database = database;
 	table_space->table_name = table_name;
+	table_space->alias_table_id = table_space->get_table_id();
 	return TableSpace_s(table_space);
 }
 

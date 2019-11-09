@@ -75,6 +75,20 @@ u32 DeletePlan::execute()
 
 u32 DeletePlan::build_plan()
 {
+	root_operator = Delete::make_delete(database, table_name, filter);
+	if (access_columns.size() > 0) {
+		RowDesc row_desc(access_columns.size());
+		for (u32 i = 0; i < access_columns.size(); ++i) {
+			row_desc.set_column_desc(i, access_columns[i]);
+		}
+		root_operator->set_access_desc(row_desc);
+	}
+	set_error_code(SUCCESS);
+	return SUCCESS;
+}
+
+u32 DeletePlan::optimizer()
+{
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Delete)
 	{
 		Log(LOG_ERR, "DeletePlan", "error lex stmt when build delete plan");
@@ -91,28 +105,12 @@ u32 DeletePlan::build_plan()
 	database = table->database;
 	table_name = table->table_name;
 	//将where子句转换为filter
-	Filter_s filter;
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "DeletePlan", "create filter from where stmt error:%s", err_string(ret));
 		set_error_code(ret);
 		return ret;
 	}
-	root_operator = Delete::make_delete(database, table_name, filter);
-	if (access_columns.size() > 0) {
-		RowDesc row_desc(access_columns.size());
-		for (u32 i = 0; i < access_columns.size(); ++i) {
-			row_desc.set_column_desc(i, access_columns[i]);
-		}
-		root_operator->set_access_desc(row_desc);
-	}
-	set_error_code(SUCCESS);
-	return SUCCESS;
-}
-
-u32 DeletePlan::optimizer()
-{
-	//TODO:add later
 	return SUCCESS;
 }
 
@@ -144,29 +142,26 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
-	Expression_s first_expr, second_expr, third_expr;
-	ConstStmt* const_stmt;
-	ColumnStmt* column_stmt;
-	ColumnDesc col_desc;
-	UnaryExprStmt* unary_stmt;
-	BinaryExprStmt* binary_stmt;
-	TernaryExprStmt* ternary_stmt;
 	u32 ret;
 
 	switch (expr_stmt->expr_stmt_type())
 	{
 	case ExprStmt::Const:
-		const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+	{
+		ConstStmt* const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
 		expr = ConstExpression::make_const_expression(const_stmt->value);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Column:
-		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+	{
+		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		if (!checker->have_column(database, table_name, column_stmt->column)) {
 			Log(LOG_ERR, "DeletePlan", "%s.%s do not have column %s",
 				database.c_str(), table_name.c_str(), column_stmt->column.c_str());
 			return COLUMN_NOT_EXISTS;
 		}
+		ColumnDesc col_desc;
 		ret = checker->get_column_desc(database, table_name, column_stmt->column, col_desc);
 		if (ret != SUCCESS) {
 			break;
@@ -175,6 +170,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Query:
 	{
 		QueryStmt* query_stmt = dynamic_cast<QueryStmt*>(expr_stmt);
@@ -182,6 +178,10 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Vector<TableStmt*> table_list;
 		table_list.push_back(table);
 		Plan_s plan = SelectPlan::make_select_plan(parent_table_list, table_list, query_stmt->query_stmt);
+		ret = plan->optimizer();
+		if (ret != SUCCESS) {
+			break;
+		}
 		ret = plan->build_plan();
 		if (ret != SUCCESS) {
 			break;
@@ -215,7 +215,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 			if (expr_stmt->expr_stmt_type() != ExprStmt::Const) {
 				return ERROR_LEX_STMT;
 			}
-			const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+			ConstStmt* const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
 			obj_list->add_object(const_stmt->value);
 		}
 		expr = ConstExpression::make_const_expression(obj);
@@ -223,11 +223,15 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	}
 	case ExprStmt::Aggregate:
+	{
 		Log(LOG_ERR, "DeletePlan", "aggregate stmt in delete`s where stmt not support");
 		ret = ERROR_LEX_STMT;
 		break;
+	}
 	case ExprStmt::Unary:
-		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
+	{
+		UnaryExprStmt* unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
+		Expression_s first_expr;
 		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "DeletePlan", "create unary expression`s first expression failed");
@@ -236,8 +240,11 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Binary:
-		binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
+	{
+		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
+		Expression_s first_expr, second_expr;
 		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "DeletePlan", "create binary expression`s first expression failed");
@@ -251,8 +258,11 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Ternary:
-		ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
+	{
+		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
+		Expression_s first_expr, second_expr, third_expr;
 		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "DeletePlan", "create ternary expression`s first expression failed");
@@ -271,6 +281,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	default:
 		Log(LOG_ERR, "DeletePlan", "unknown expr stmt in delete`s where stmt");
 		ret = ERROR_LEX_STMT;

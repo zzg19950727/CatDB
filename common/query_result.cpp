@@ -91,12 +91,7 @@ Object_s QueryResult::in(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->is_null()) {
-		if (list.empty()) {
-			return Bool::make_object(true);
-		}
-		else {
-			return Bool::make_object(false);
-		}
+		return Object::make_null_object();
 	}
 	else {
 		bool find = false;
@@ -125,7 +120,7 @@ Object_s QueryResult::not_in(const Object_s & other)
 			return Bool::make_object(true);
 		}
 		else {
-			return Bool::make_object(false);
+			return Object::make_null_object();
 		}
 	}
 	else {

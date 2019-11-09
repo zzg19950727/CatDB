@@ -1,4 +1,5 @@
 #include "schema_checker.h"
+#include "sql_rewrite.h"
 #include "select_plan.h"
 #include "select_stmt.h"
 #include "expression.h"
@@ -117,84 +118,11 @@ u32 SelectPlan::execute()
 
 u32 SelectPlan::build_plan()
 {
-	if (!lex_stmt)
-	{
-		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
-		return_result(ERROR_LEX_STMT);
-	}
-	else if (lex_stmt->stmt_type() == Stmt::Expr)
-	{
-		ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
-		if (expr->expr_stmt_type() == ExprStmt::Query) {
-			Log(LOG_TRACE, "SelectPlan", "build subquery plan");
-			QueryStmt* query = dynamic_cast<QueryStmt*>(expr);
-			lex_stmt = query->query_stmt;
-		}
-		else if (expr->expr_stmt_type() == ExprStmt::Binary) {
-			//生成交、并、补计划
-			return_result(make_set_plan(root_operator));
-		}
-		else {
-			Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
-			return_result(ERROR_LEX_STMT);
-		}
-	}
-	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-	assert(checker);
-	//是否有distinct、limit
-	SelectStmt* lex = dynamic_cast<SelectStmt*>(lex_stmt.get());
-	is_distinct = lex->is_distinct;
-	asc = lex->asc_desc;
-	if (lex->limit_stmt)
-		have_limit = true;
-	else
-		have_limit = false;
-	//获取引用表
-	u32 ret = get_ref_tables(lex->from_stmts);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
-		return_result( ret );
-	}
-	//解析select输出列
-	ret = resolve_select_list(lex->select_expr_list);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
-		return_result(ret);
-	}
-	//解析where子句
-	is_resolve_where = true;
-	ret = resolve_where_stmt(lex->where_stmt);
-	is_resolve_where = false;
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
-		return_result(ret);
-	}
-	//解析group子句
-	ret = resolve_group_stmt(lex->group_columns);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
-		return_result(ret);
-	}
-	//解析having子句
-	ret = resolve_having_stmt(lex->having_stmt);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
-		return_result(ret);
-	}
-	//解析sort子句
-	ret = resolve_sort_stmt(lex->order_columns);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
-		return_result(ret);
-	}
-	//解析limit子句
-	ret = resolve_limit_stmt(lex->limit_stmt);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
-		return_result(ret);
+	for (u32 i = 0; i < subquerys.size(); ++i) {
+		subquerys[i]->build_plan();
 	}
 	//根据每张表的访问列生成每张表的行描述
-	ret = make_access_row_desc();
+	u32 ret = make_access_row_desc();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
 		return_result(ret);
@@ -260,8 +188,84 @@ u32 SelectPlan::build_plan()
 
 u32 SelectPlan::optimizer()
 {
-	//TODO:add later
-	return SUCCESS;
+	if (!lex_stmt)
+	{
+		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
+		return_result(ERROR_LEX_STMT);
+	}
+	else if (lex_stmt->stmt_type() == Stmt::Expr)
+	{
+		ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
+
+		if (expr->expr_stmt_type() == ExprStmt::Query) {
+			Log(LOG_TRACE, "SelectPlan", "build subquery plan");
+			QueryStmt* query = dynamic_cast<QueryStmt*>(expr);
+			lex_stmt = query->query_stmt;
+		}
+		else if (expr->expr_stmt_type() == ExprStmt::Binary) {
+			//生成交、并、补计划
+			return_result(make_set_plan(root_operator));
+		}
+		else {
+			Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
+			return_result(ERROR_LEX_STMT);
+		}
+	}
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	//是否有distinct、limit
+	SelectStmt* lex = dynamic_cast<SelectStmt*>(lex_stmt.get());
+	is_distinct = lex->is_distinct;
+	asc = lex->asc_desc;
+	if (lex->limit_stmt)
+		have_limit = true;
+	else
+		have_limit = false;
+	//获取引用表
+	u32 ret = get_ref_tables(lex->from_stmts);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
+		return_result(ret);
+	}
+	//解析select输出列
+	ret = resolve_select_list(lex->select_expr_list);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
+		return_result(ret);
+	}
+	//解析where子句
+	is_resolve_where = true;
+	ret = resolve_where_stmt(lex->where_stmt);
+	is_resolve_where = false;
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
+		return_result(ret);
+	}
+	//解析group子句
+	ret = resolve_group_stmt(lex->group_columns);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
+		return_result(ret);
+	}
+	//解析having子句
+	ret = resolve_having_stmt(lex->having_stmt);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
+		return_result(ret);
+	}
+	//解析sort子句
+	ret = resolve_sort_stmt(lex->order_columns);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
+		return_result(ret);
+	}
+	//解析limit子句
+	ret = resolve_limit_stmt(lex->limit_stmt);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
+		return_result(ret);
+	}
+	return ret;
 }
 
 Plan::PlanType SelectPlan::type() const
@@ -314,6 +318,16 @@ void SelectPlan::reset_for_correlated_subquery(const Row_s & row)
 	root_operator->reopen(row);
 }
 
+bool SelectPlan::is_simple_scalar_group() const
+{
+	return group_cols.empty() && (aggr_exprs.size() == 1);
+}
+
+bool SelectPlan::is_correlated_query() const
+{
+	return !ref_parent_table_list.empty();
+}
+
 /*
  * 解析where子句块，切分成and连接的谓词分析
  */
@@ -360,44 +374,41 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 	if (stmt->stmt_type() != Stmt::Expr) {
 		return ERROR_LEX_STMT;
 	}
+	bool have_parent_column = false;
+	Expression_s expr;
+	u32 ret = resolve_expr(stmt, expr, have_parent_column);
+	if (ret != SUCCESS) {
+		return ret;
+	}
 
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
-	if (expr_stmt->expr_stmt_type() == ExprStmt::Binary) {
-		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
-		ColumnStmt* first_column = resolve_column_stmt(binary_stmt->first_expr_stmt);
-		ColumnStmt* second_column = resolve_column_stmt(binary_stmt->second_expr_stmt);
+	if (expr->get_type() == Expression::Binary) {
+		BinaryExpression* binary_expr = dynamic_cast<BinaryExpression*>(expr.get());
 		//可能是join条件
-		if (first_column && second_column) {
+		if (binary_expr->first_expr->get_type() == Expression::Column
+			&& binary_expr->second_expr->get_type() == Expression::Column) {
 			TableStmt* first_table = nullptr;
 			TableStmt* second_table = nullptr;
-			u32 ret = who_have_column(first_column, first_table);
+			ColumnExpression* first_column = dynamic_cast<ColumnExpression*>(binary_expr->first_expr.get());
+			ColumnExpression* second_column = dynamic_cast<ColumnExpression*>(binary_expr->second_expr.get());
+			u32 ret = who_have_column(first_column->col_desc, first_table);
 			if (ret != SUCCESS) {
 				return ret;
 			}
-			ret = who_have_column(second_column, second_table);
+			ret = who_have_column(second_column->col_desc, second_table);
 			if (ret != SUCCESS) {
 				return ret;
 			}
 			//两张表的列构成连接条件，前提是两张表都不是来至父查询，并且两张表不是同一张表
 			if(!find_table_from_parent(first_table)
 				&& !find_table_from_parent(second_table)
-				&& first_table->alias_name != second_table->alias_name) {
-				if (binary_stmt->op_type == ExprStmt::OP_EQ) {
-					Expression_s expr;
-					u32 ret = resolve_expr(stmt, expr);
-					if (ret != SUCCESS) {
-						return ret;
-					}
+				&& first_table->table_id != second_table->table_id) {
+				if (binary_expr->op.get_type() == ExprStmt::OP_EQ) {
 					add_join_equal_cond(JoinableTables(first_table, second_table), expr);
 					add_join_cond(JoinableTables(first_table, second_table), expr);
 					return SUCCESS;
 				}
 				else {
-					Expression_s expr;
-					u32 ret = resolve_expr(stmt, expr);
-					if (ret != SUCCESS) {
-						return ret;
-					}
 					add_join_cond(JoinableTables(first_table, second_table), expr);
 					return SUCCESS;
 				}
@@ -406,13 +417,8 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 	}
 
 	//检查是否是单张表的过滤谓词
-	Expression_s expr;
-	u32 ret = resolve_expr(stmt, expr);
-	if (ret != SUCCESS) {
-		return ret;
-	}
 	TableStmt* table = nullptr;
-	if (is_table_filter(stmt, table)) {
+	if (is_table_filter(expr, table)) {
 		add_table_filter(table, expr);
 	}
 	else {
@@ -442,32 +448,26 @@ ColumnStmt * SelectPlan::resolve_column_stmt(const Stmt_s & stmt)
 /*
  * 将谓词语句块转换为表达式
  */
-u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
+u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_parent_column)
 {
 	if (stmt->stmt_type() != Stmt::Expr) {
 		return ERROR_LEX_STMT;
 	}
-
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
-	Expression_s first_expr, second_expr, third_expr;
-	ConstStmt* const_stmt = nullptr;
-	ColumnStmt* column_stmt = nullptr;
-	ColumnDesc col_desc;
-	AggrStmt* agg_stmt = nullptr;
-	UnaryExprStmt* unary_stmt = nullptr;
-	BinaryExprStmt* binary_stmt = nullptr;
-	TernaryExprStmt* ternary_stmt = nullptr;
 	u32 ret;
 
 	switch (expr_stmt->expr_stmt_type())
 	{
 	case ExprStmt::Const:
-		const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+	{
+		ConstStmt* const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
 		expr = ConstExpression::make_const_expression(const_stmt->value);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Column:
-		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+	{
+		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		if (!resolve_select_list_or_having && column_stmt->is_all_column()) {
 			Log(LOG_ERR, "SelectPlan", "* can only exists in select list or count(*)");
 			return ERROR_LEX_STMT;
@@ -476,7 +476,8 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 			return HAVE_ALL_COLUMN_STMT;
 		}
 		else {
-			ret = resolve_column_desc(column_stmt, col_desc);
+			ColumnDesc col_desc;
+			ret = resolve_column_desc(column_stmt, col_desc, have_parent_column);
 			if (ret != SUCCESS) {
 				break;
 			}
@@ -484,16 +485,18 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 			ret = SUCCESS;
 		}
 		break;
+	}
 	case ExprStmt::Query:
 	{
 		QueryStmt* query_stmt = dynamic_cast<QueryStmt*>(expr_stmt);
 		Plan_s plan = SelectPlan::make_select_plan(parent_table_list, table_list,query_stmt->query_stmt);
-		ret = plan->build_plan();
-		if (ret != SUCCESS){
+		ret = plan->optimizer();
+		if (ret != SUCCESS) {
 			break;
 		}
+		subquerys.push_back(plan);
 		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
-		bool is_correlated = !subplan->ref_parent_table_list.empty();
+		bool is_correlated = subplan->is_correlated_query();
 		//如果子查询引用了当前查询的父查询的表，则同样需要添加到当前查询的引用列表中
 		for (u32 i = 0; i < subplan->ref_parent_table_list.size(); ++i) {
 			TableStmt* table = subplan->ref_parent_table_list[i];
@@ -508,7 +511,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 				add_access_column(iter->first, access_column[j]);
 			}
 		}
-		expr = SubplanExpression::make_subplan_expression(plan, is_correlated);
+		expr = SubplanExpression::make_subplan_expression(plan, is_correlated, query_stmt->to_string());
 		ret = SUCCESS;
 		break;
 	}
@@ -525,7 +528,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 			if (expr_stmt->expr_stmt_type() != ExprStmt::Const) {
 				return ERROR_LEX_STMT;
 			}
-			const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+			ConstStmt*const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
 			obj_list->add_object(const_stmt->value);
 		}
 		expr = ConstExpression::make_const_expression(obj);
@@ -533,13 +536,19 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	}
 	case ExprStmt::Aggregate:
+	{
 		if (!resolve_select_list_or_having) {
 			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
 			return ERROR_LEX_STMT;
 		}
-		
-		agg_stmt = dynamic_cast<AggrStmt*>(expr_stmt);
-		ret = resolve_expr(agg_stmt->aggr_expr, expr);
+		//scalar group不支持having
+		else if (resolve_select_list_or_having == 1 && group_cols.empty()) {
+			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
+			return ERROR_LEX_STMT;
+		}
+
+		AggrStmt* agg_stmt = dynamic_cast<AggrStmt*>(expr_stmt);
+		ret = resolve_expr(agg_stmt->aggr_expr, expr, have_parent_column);
 		if (ret == HAVE_ALL_COLUMN_STMT) {
 			if (agg_stmt->aggr_func != AggrStmt::COUNT) {
 				Log(LOG_ERR, "SelectPlan", "only count aggregation can have * expression");
@@ -558,49 +567,94 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func);
 		aggr_exprs.push_back(expr);
 		//为了统一表达式计算框架把聚合表达式替换成group算子输出列描述，因为聚合函数本身由group算子计算
+		ColumnDesc col_desc;
 		col_desc.set_tid_cid(alias_table_id, aggr_exprs.size() - 1);
 		expr = ColumnExpression::make_column_expression(col_desc);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Unary:
-		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
-		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
+	{
+		UnaryExprStmt* unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
+		Expression_s first_expr;
+		ret = resolve_expr(unary_stmt->expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create unary expression`s first expression failed");
 			break;
 		}
+		//如果是子查询，则进行操作符检查和改写
+		if (first_expr->get_type() == Expression::Subplan) {
+			SqlRewriter_s sql_rewriter = SqlRewriter::make_sql_rewriter(this, first_expr, Expression_s(), unary_stmt->op_type);
+			ret = sql_rewriter->rewrite_for_select(expr);
+			if (ret == SUCCESS) {
+				break;
+			}
+			else if (ret != CAN_NOT_REWRITE) {
+				break;
+			}
+		}
 		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Binary:
-		binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
-
-		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
+	{
+		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
+		Expression_s first_expr, second_expr;
+		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create binary expression`s first expression failed");
 			break;
 		}
-		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr);
+		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create binary expression`s second expression failed");
 			break;
 		}
+		//如果是子查询，则进行操作符检查和改写
+		if (first_expr->get_type() == Expression::Subplan
+			&& second_expr->get_type() == Expression::Subplan) {
+			Log(LOG_INFO, "SelectPlan", "subquery op subquery rewrite not support yet");
+		}
+		else if (first_expr->get_type() == Expression::Subplan) {
+			SqlRewriter_s sql_rewriter = SqlRewriter::make_sql_rewriter(this, first_expr, second_expr, binary_stmt->op_type);
+			ret = sql_rewriter->rewrite_for_select(expr);
+			if (ret == SUCCESS) {
+				break;
+			}
+			else if (ret != CAN_NOT_REWRITE) {
+				break;
+			}
+		}
+		else if (second_expr->get_type() == Expression::Subplan) {
+			SqlRewriter_s sql_rewriter = SqlRewriter::make_sql_rewriter(this, second_expr, first_expr, binary_stmt->op_type);
+			ret = sql_rewriter->rewrite_for_select(expr);
+			if (ret == SUCCESS) {
+				break;
+			}
+			else if (ret != CAN_NOT_REWRITE) {
+				break;
+			}
+		}
 		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	case ExprStmt::Ternary:
-		ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
-		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
+	{
+		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
+		Expression_s first_expr, second_expr, third_expr;
+		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create ternary expression`s first expression failed");
 			break;
 		}
-		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr);
+		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create ternary expression`s second expression failed");
 			break;
 		}
-		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr);
+		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr, have_parent_column);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "create ternary expression`s third expression failed");
 			break;
@@ -608,6 +662,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
 		ret = SUCCESS;
 		break;
+	}
 	default:
 		Log(LOG_ERR, "SelectPlan", "unknown expr stmt in select`s where stmt");
 		ret = ERROR_LEX_STMT;
@@ -752,37 +807,35 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 	}
 
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
-	ColumnStmt* column_stmt;
-	UnaryExprStmt* unary_stmt;
-	BinaryExprStmt* binary_stmt;
-	TernaryExprStmt* ternary_stmt;
 	bool ret = true;
 
 	switch (expr_stmt->expr_stmt_type())
 	{
 	case ExprStmt::Const:
+	{
 		ret = true;
 		break;
+	}
 	case ExprStmt::Column:
 	{
-		column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
-		TableStmt *table1 = nullptr, *table2 = nullptr;
-		u32 code = who_have_column(column_stmt, table1);
+		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
+		TableStmt *table_belong = nullptr;
+		u32 code = who_have_column(column_stmt, table_belong);
 		if (code != SUCCESS) {
 			ret = false;
 			break;
 		}
-		if (find_table_from_parent(table1)) {
-			ret = true;
+		if (find_table_from_parent(table_belong)) {
+			ret = false;
 			break;
 		}
 		//在此之前没有出现过列相关谓词
 		if (table == nullptr) {
-			table = table1;
+			table = table_belong;
 			ret = true;
 		}
 		//在此之前出现过列相关谓词
-		else if(table != table1){
+		else if(table != table_belong){
 			ret = false;
 		}
 		else {
@@ -791,14 +844,19 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 		break;
 	}
 	case ExprStmt::List:
+	{
 		ret = true;
 		break;
+	}
 	case ExprStmt::Unary:
-		unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
+	{
+		UnaryExprStmt* unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
 		ret = is_table_filter(unary_stmt->expr_stmt, table);
 		break;
+	}
 	case ExprStmt::Binary:
-		binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
+	{
+		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
 		ret = is_table_filter(binary_stmt->first_expr_stmt, table);
 		if (!ret) {
 			break;
@@ -807,8 +865,10 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 			ret = is_table_filter(binary_stmt->second_expr_stmt, table);
 		}
 		break;
+	}
 	case ExprStmt::Ternary:
-		ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
+	{
+		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
 		ret = is_table_filter(ternary_stmt->first_expr_stmt, table);
 		if (!ret) {
 			break;
@@ -823,6 +883,98 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 			}
 		}
 		break;
+	}
+	default:
+		ret = false;
+	}
+	return ret;
+}
+
+bool SelectPlan::is_table_filter(const Expression_s & expr, TableStmt *& table)
+{
+	bool ret = false;
+	switch (expr->get_type())
+	{
+	case Expression::Const:
+	{
+		ret = true;
+		break;
+	}
+	case Expression::Column:
+	{
+		ColumnExpression* column_expr = dynamic_cast<ColumnExpression*>(expr.get());
+		TableStmt *table_belong = nullptr;
+		u32 code = who_have_column(column_expr->col_desc, table_belong);
+		if (code != SUCCESS) {
+			ret = false;
+			break;
+		}
+		if (find_table_from_parent(table_belong)) {
+			ret = false;
+			break;
+		}
+		//在此之前没有出现过列相关谓词
+		if (table == nullptr) {
+			table = table_belong;
+			ret = true;
+		}
+		//在此之前出现过列相关谓词
+		else if (table != table_belong) {
+			ret = false;
+		}
+		else {
+			ret = true;
+		}
+		break;
+	}
+	case Expression::Subplan:
+	{
+		SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(expr.get());
+		if (subplan_expr->subplan->type() == Plan::SELECT) {
+			SelectPlan* select_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
+			ret = !select_plan->is_correlated_query();
+		}
+		else {
+			ret = false;
+		}
+		break;
+	}
+	case Expression::Unary:
+	{
+		UnaryExpression* unary_expr = dynamic_cast<UnaryExpression*>(expr.get());
+		ret = is_table_filter(unary_expr->expr, table);
+		break;
+	}
+	case Expression::Binary:
+	{
+		BinaryExpression* binary_expr = dynamic_cast<BinaryExpression*>(expr.get());
+		ret = is_table_filter(binary_expr->first_expr, table);
+		if (!ret) {
+			break;
+		}
+		else {
+			ret = is_table_filter(binary_expr->second_expr, table);
+		}
+		break;
+	}
+	case Expression::Ternary:
+	{
+		TernaryExpression* ternary_expr = dynamic_cast<TernaryExpression*>(expr.get());
+		ret = is_table_filter(ternary_expr->first_expr, table);
+		if (!ret) {
+			break;
+		}
+		else {
+			ret = is_table_filter(ternary_expr->second_expr, table);
+			if (!ret) {
+				break;
+			}
+			else {
+				ret = is_table_filter(ternary_expr->third_expr, table);
+			}
+		}
+		break;
+	}
 	default:
 		ret = false;
 	}
@@ -832,10 +984,11 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 /*
  * 获取列描述
  */
-u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_desc)
+u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_desc, bool& from_partent)
 {
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
+	from_partent = false;
 	TableStmt* table = nullptr;
 	u32 ret = who_have_column(column_stmt, table);
 	if (ret != SUCCESS) {
@@ -847,6 +1000,7 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 			return ERROR_LEX_STMT;
 		}
 		ref_parent_table_list.push_back(table);
+		from_partent = true;
 	}
 	if (table->is_tmp_table) {
 		SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
@@ -984,6 +1138,36 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 	else
 		return TABLE_REDEFINE;
 }
+u32 SelectPlan::who_have_column(const ColumnDesc & col_desc, TableStmt *& table)
+{
+	u32 tid, cid;
+	col_desc.get_tid_cid(tid, cid);
+	u32 find = 0;
+	for (u32 i = 0; i < table_list.size(); ++i) {
+		if (table_list[i]->table_id == tid) {
+			++find;
+			table = table_list[i];
+		}
+	}
+	if (find == 1)
+		return SUCCESS;
+	else if (find > 1)
+		return TABLE_REDEFINE;
+	//当前查询中没有找到，则继续向上层父查询查找
+	find = 0;
+	for (u32 i = 0; i < parent_table_list.size(); ++i) {
+		if (parent_table_list[i]->table_id == tid) {
+			++find;
+			table = table_list[i];
+		}
+	}
+	if (find == 1)
+		return SUCCESS;
+	else if (find == 0)
+		return COLUMN_NOT_EXISTS;
+	else
+		return TABLE_REDEFINE;
+}
 u32 SelectPlan::which_partent_table_have_column(const String & column_name, TableStmt *& table)
 {
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -1023,6 +1207,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 		return ERROR_LEX_STMT;
 	}
 	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr_stmt);
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 		if (list_stmt->stmt_list[i]->stmt_type() != Stmt::Expr) {
 			return ERROR_LEX_STMT;
@@ -1046,6 +1231,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 				return NOT_UNIQUE_TABLE;
 			}
 			else {
+				table->table_id = checker->get_table_id(table->database, table->alias_name);
 				table_list.push_back(table);
 			}
 		}
@@ -1055,15 +1241,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 
 u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 {
-	Plan_s plan = SelectPlan::make_select_plan(subquery->query_stmt);
-	if (!plan) {
-		return ERROR_LEX_STMT;
-	}
-	u32 ret = plan->build_plan();
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "resolve subquery in from list failed");
-		return ret;
-	}
+	//构建临时表
 	TableStmt* table = nullptr;
 	if (find_table(subquery->alias_name, table) == SUCCESS) {
 		return TABLE_EXISTS;
@@ -1072,7 +1250,28 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	tmp_table_handle.push_back(stmt);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
+	//生产临时表的实际查询计划
+	Plan_s plan = SelectPlan::make_select_plan(subquery->query_stmt);
+	if (!plan) {
+		return ERROR_LEX_STMT;
+	}
+	//生产临时表ID
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	SelectPlan* tmp_table = dynamic_cast<SelectPlan*>(plan.get());
+	u32 table_id = checker->get_table_id(table->database, table->alias_name);
+	tmp_table->set_alias_table_id(table_id);
+	//解析子查询
+	u32 ret = plan->optimizer();
+	if (ret != SUCCESS) {
+		return ret;
+	}
+	ret = plan->build_plan();
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "resolve subquery in from list failed");
+		return ret;
+	}
 	table->subplan = plan;
+	table->table_id = table_id;
 	table_list.push_back(table);
 	return SUCCESS;
 }
@@ -1210,9 +1409,13 @@ u32 SelectPlan::resolve_group_stmt(const Stmt_s & group_stmt)
 			return ERROR_LEX_STMT;
 		}
 		Expression_s column;
-		u32 ret = resolve_expr(list_stmt->stmt_list[i], column);
+		bool have_parent_column = false;
+		u32 ret = resolve_expr(list_stmt->stmt_list[i], column, have_parent_column);
 		if (ret != SUCCESS) {
 			return ret;
+		}
+		else if (have_parent_column) {
+			return ERROR_LEX_STMT;
 		}
 		group_cols.push_back(column);
 	}
@@ -1225,7 +1428,8 @@ u32 SelectPlan::resolve_having_stmt(const Stmt_s & having_stmt)
 		return SUCCESS;
 	}
 	resolve_select_list_or_having = 1;
-	u32 ret = resolve_expr(having_stmt, having_filter);
+	bool have_parent_column = false;
+	u32 ret = resolve_expr(having_stmt, having_filter, have_parent_column);
 	resolve_select_list_or_having = 0;
 	return ret;
 }
@@ -1276,12 +1480,16 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 		}
 		else {
 			//如果在select list中没有找到排序列，再从基表中查找
-			ret = resolve_expr(list_stmt->stmt_list[i], column);
+			bool have_parent_column = false;
+			ret = resolve_expr(list_stmt->stmt_list[i], column, have_parent_column);
 			if (ret != SUCCESS) {
 				return ret;
 			}
 			else if (is_sort_query_result) {
 				Log(LOG_ERR, "SelectPlan", "暂时不支持排序同时出现在基表和select list");
+				return ERROR_LEX_STMT;
+			}
+			else if (have_parent_column) {
 				return ERROR_LEX_STMT;
 			}
 		}
@@ -1309,7 +1517,8 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 	u32 ret = SUCCESS;
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 		Expression_s expr;
-		ret = resolve_expr(list_stmt->stmt_list[i], expr);
+		bool have_parent_column = false;
+		ret = resolve_expr(list_stmt->stmt_list[i], expr, have_parent_column);
 		if (ret == HAVE_ALL_COLUMN_STMT) {
 			ret = resolve_all_column_in_select_list(list_stmt->stmt_list[i]);
 			if (ret != SUCCESS) {
@@ -1317,6 +1526,10 @@ u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 			}
 		}
 		else if (ret != SUCCESS) {
+			break;
+		}
+		else if (have_parent_column) {
+			ret = ERROR_LEX_STMT;
 			break;
 		}
 		else {
@@ -1466,6 +1679,27 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 				u32 id = checker->get_table_id(right_table->database, right_table->alias_name);
 				left_root_operator = HashJoin::make_hash_join(left_root_operator, 
 					right_op, join_equal_cond, join_cond, id);
+			}
+			JoinPhyOperator* join_op = dynamic_cast<JoinPhyOperator*>(left_root_operator.get());
+			switch (right_table->join_type) {
+			case JoinPhyOperator::Join:
+				join_op->set_join_type(JoinPhyOperator::Join);
+				break;
+			case JoinPhyOperator::SemiJoin:
+				join_op->set_join_type(JoinPhyOperator::SemiJoin);
+				break;
+			case JoinPhyOperator::AntiJoin:
+				join_op->set_join_type(JoinPhyOperator::AntiJoin);
+				break;
+			case JoinPhyOperator::LeftOuterJoin:
+				join_op->set_join_type(JoinPhyOperator::LeftOuterJoin);
+				break;
+			case JoinPhyOperator::RightOuterJoin:
+				join_op->set_join_type(JoinPhyOperator::RightOuterJoin);
+				break;
+			case JoinPhyOperator::FullOuterJoin:
+				join_op->set_join_type(JoinPhyOperator::FullOuterJoin);
+				break;
 			}
 		}
 		op = left_root_operator;

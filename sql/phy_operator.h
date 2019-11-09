@@ -87,6 +87,27 @@ namespace CatDB {
 		private:
 			DoubleChildPhyOperator() = delete;
 		};
+
+		class JoinPhyOperator :public DoubleChildPhyOperator
+		{
+		public:
+			enum JoinType {
+				Join=0,
+				SemiJoin,
+				AntiJoin,
+				LeftOuterJoin,
+				RightOuterJoin,
+				FullOuterJoin
+			};
+			JoinPhyOperator(const PhyOperator_s& left, const PhyOperator_s& right);
+			virtual ~JoinPhyOperator();
+			JoinType join_type()const;
+			void set_join_type(JoinType type);
+		protected:
+			JoinType type;
+		private:
+			JoinPhyOperator() = delete;
+		};
 	}
 }
 

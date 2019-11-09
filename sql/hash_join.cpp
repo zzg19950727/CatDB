@@ -6,17 +6,17 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 
-CatDB::Sql::HashJoin::HashJoin(const PhyOperator_s & left_child, const PhyOperator_s & right_child)
-	:DoubleChildPhyOperator(left_child, right_child)
+HashJoin::HashJoin(const PhyOperator_s & left_child, const PhyOperator_s & right_child)
+	:JoinPhyOperator(left_child, right_child)
 {
 
 }
 
-CatDB::Sql::HashJoin::~HashJoin()
+HashJoin::~HashJoin()
 {
 }
 
-PhyOperator_s CatDB::Sql::HashJoin::make_hash_join(const PhyOperator_s & left_child, 
+PhyOperator_s HashJoin::make_hash_join(const PhyOperator_s & left_child, 
 	const PhyOperator_s & right_child,
 	const Expression_s& equal_cond,
 	const Expression_s& join_cond,
@@ -30,39 +30,39 @@ PhyOperator_s CatDB::Sql::HashJoin::make_hash_join(const PhyOperator_s & left_ch
 	return PhyOperator_s(op);
 }
 
-u32 CatDB::Sql::HashJoin::set_equal_condition(const Expression_s & equal_cond)
+u32 HashJoin::set_equal_condition(const Expression_s & equal_cond)
 {
 	equal_condition = equal_cond;
 	return SUCCESS;
 }
 
-Expression_s CatDB::Sql::HashJoin::get_equal_condition() const
+Expression_s HashJoin::get_equal_condition() const
 {
 	return equal_condition;
 }
 
-u32 CatDB::Sql::HashJoin::set_join_condition(const Expression_s & join_cond)
+u32 HashJoin::set_join_condition(const Expression_s & join_cond)
 {
 	join_condition = join_cond;
 	return SUCCESS;
 }
 
-Expression_s CatDB::Sql::HashJoin::get_join_condition() const
+Expression_s HashJoin::get_join_condition() const
 {
 	return join_condition;
 }
 
-void CatDB::Sql::HashJoin::set_probe_table_id(u32 id)
+void HashJoin::set_probe_table_id(u32 id)
 {
 	probe_table_id = id;
 }
 
-u32 CatDB::Sql::HashJoin::get_probe_table_id() const
+u32 HashJoin::get_probe_table_id() const
 {
 	return probe_table_id;
 }
 
-u32 CatDB::Sql::HashJoin::open()
+u32 HashJoin::open()
 {
 	u32 ret = left_child->open();
 	if (ret == SUCCESS){
@@ -81,7 +81,7 @@ u32 CatDB::Sql::HashJoin::open()
 	}
 }
 
-u32 CatDB::Sql::HashJoin::close()
+u32 HashJoin::close()
 {
 	u32 ret1 = left_child->close();
 	u32 ret2 = right_child->close();
@@ -92,7 +92,7 @@ u32 CatDB::Sql::HashJoin::close()
 	}
 }
 
-u32 CatDB::Sql::HashJoin::reset()
+u32 HashJoin::reset()
 {
 	u32 ret = left_child->reset();
 	if (ret == SUCCESS){
@@ -110,7 +110,7 @@ u32 CatDB::Sql::HashJoin::reset()
 	}
 }
 
-u32 CatDB::Sql::HashJoin::reopen(const Row_s & row)
+u32 HashJoin::reopen(const Row_s & row)
 {
 	u32 ret1 = left_child->reopen(row);
 	u32 ret2 = right_child->reopen(row);
@@ -126,33 +126,32 @@ u32 CatDB::Sql::HashJoin::reopen(const Row_s & row)
 		return SUCCESS;
 }
 
-u32 CatDB::Sql::HashJoin::get_next_row(Row_s & row)
+u32 HashJoin::get_next_row(Row_s & row)
 {
-	if (!probe_result.empty()){
-		Row_s left_row = probe_result.front();
-		probe_result.pop();
-		row = Row::join_row(left_row, last_probe_row);
-		return SUCCESS;
+	switch (JoinPhyOperator::type) {
+	case JoinPhyOperator::Join:
+		return join(row);
+	case JoinPhyOperator::SemiJoin:
+		return semi_join(row);
+	case JoinPhyOperator::AntiJoin:
+		return anti_join(row);
+	case JoinPhyOperator::LeftOuterJoin:
+		return left_outer_join(row);
+	case JoinPhyOperator::RightOuterJoin:
+		return right_outer_join(row);
+	case JoinPhyOperator::FullOuterJoin:
+		return full_outer_join(row);
+	default:
+		return NO_MORE_ROWS;
 	}
-	while (right_child->get_next_row(row) == SUCCESS){
-		u32 ret = hash_table.probe(row, probe_result);
-		if (ret == SUCCESS){
-			last_probe_row = row;
-			Row_s left_row = probe_result.front();
-			probe_result.pop();
-			row = Row::join_row(left_row, last_probe_row);
-			return SUCCESS;
-		}
-	}
-	return NO_MORE_ROWS;
 }
 
-u32 CatDB::Sql::HashJoin::type() const
+u32 HashJoin::type() const
 {
 	return PhyOperator::HASH_JOIN;
 }
 
-u32 CatDB::Sql::HashJoin::init_hash_table()
+u32 HashJoin::init_hash_table()
 {
 	hash_table.clear_hash_columns();
 	hash_table.clear_probe_columns();
@@ -191,12 +190,74 @@ u32 CatDB::Sql::HashJoin::init_hash_table()
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::HashJoin::build_hash_table()
+u32 HashJoin::build_hash_table()
 {
 	hash_table.clear();
 	Row_s row;
-	while (left_child->get_next_row(row) == SUCCESS){
+	while (left_child->get_next_row(row) == SUCCESS) {
 		hash_table.build(row);
 	}
 	return SUCCESS;
+}
+
+u32 HashJoin::join(Row_s & row)
+{
+	if (!probe_result.empty()) {
+		Row_s left_row = probe_result.front();
+		probe_result.pop();
+		row = Row::join_row(left_row, last_probe_row);
+		return SUCCESS;
+	}
+	while (right_child->get_next_row(row) == SUCCESS) {
+		u32 ret = hash_table.probe(row, probe_result);
+		if (ret == SUCCESS) {
+			last_probe_row = row;
+			Row_s left_row = probe_result.front();
+			probe_result.pop();
+			row = Row::join_row(left_row, last_probe_row);
+			return SUCCESS;
+		}
+	}
+	return NO_MORE_ROWS;
+}
+
+u32 HashJoin::semi_join(Row_s & row)
+{
+	if (!probe_result.empty()) {
+		Row_s left_row = probe_result.front();
+		probe_result.pop();
+		row = left_row;
+		return SUCCESS;
+	}
+	while (right_child->get_next_row(row) == SUCCESS) {
+		u32 ret = hash_table.probe(row, probe_result);
+		if (ret == SUCCESS) {
+			last_probe_row = row;
+			Row_s left_row = probe_result.front();
+			probe_result.pop();
+			row = left_row;
+			return SUCCESS;
+		}
+	}
+	return NO_MORE_ROWS;
+}
+
+u32 HashJoin::anti_join(Row_s & row)
+{
+	return NO_MORE_ROWS;
+}
+
+u32 HashJoin::left_outer_join(Row_s & row)
+{
+	return NO_MORE_ROWS;
+}
+
+u32 HashJoin::right_outer_join(Row_s & row)
+{
+	return NO_MORE_ROWS;
+}
+
+u32 HashJoin::full_outer_join(Row_s & row)
+{
+	return NO_MORE_ROWS;
 }

@@ -592,11 +592,6 @@ expr:
 		//构建or二元表达式
 		make_binary_stmt($$, $1, $3, ExprStmt::OP_OR);
     }
-  | NOT expr
-    {
-		//构建not一元表达式
-		make_unary_stmt($$, $2, ExprStmt::OP_NOT);
-    }
   | expr IS NULLX
     {
 		//构建is null表达式
@@ -703,6 +698,11 @@ simple_expr:
   | EXISTS select_with_parens
     {
     	make_unary_stmt($$, $2, ExprStmt::OP_EXISTS);
+    }
+  | NOT EXISTS select_with_parens
+    {
+		//构建not一元表达式
+		make_unary_stmt($$, $3, ExprStmt::OP_NOT_EXISTS);
     }
   ;
 

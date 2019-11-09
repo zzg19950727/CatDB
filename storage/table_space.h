@@ -52,7 +52,7 @@ namespace CatDB {
 			String table_name;
 			IoService_s io;
 			u32 cur_page_offset;
-
+			u32 alias_table_id;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)
 		};

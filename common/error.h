@@ -47,6 +47,7 @@
 #define SET_ROW_DESC_ERROR		0x2c
 #define CAN_NOT_ANALYZE_SYSTEM	0x2d
 #define CAST_DATA_ERROR			0x2e
+#define CAN_NOT_REWRITE			0x2f
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

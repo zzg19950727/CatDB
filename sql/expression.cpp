@@ -619,10 +619,11 @@ SubplanExpression::SubplanExpression(const Plan_s& subplan)
 {
 }
 
-Expression_s SubplanExpression::make_subplan_expression(const Plan_s& subplan, bool correlated)
+Expression_s SubplanExpression::make_subplan_expression(const Plan_s& subplan, bool correlated, const String& alias)
 {
 	SubplanExpression* expr = new SubplanExpression(subplan);
 	expr->is_correlated = correlated;
+	expr->alias_name = alias;
 	return Expression_s(expr);
 }
 

@@ -12,7 +12,7 @@ namespace CatDB {
 		DECLARE(Expression);
 		DECLARE(Filter);
 
-		class NestedLoopJoin : public DoubleChildPhyOperator
+		class NestedLoopJoin : public JoinPhyOperator
 		{
 		private:
 			NestedLoopJoin() = delete;
@@ -30,8 +30,19 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
-
+			
 		private:
+			//缓存右表的执行结果
+			u32 cache_right_table();
+			u32 join(Row_s &row);
+			u32 semi_join(Row_s &row);
+			u32 anti_join(Row_s &row);
+			u32 left_outer_join(Row_s &row);
+			u32 right_outer_join(Row_s &row);
+			u32 full_outer_join(Row_s &row);
+		private:
+			Vector<Row_s> right_tables;
+			u32 right_pos;
 			Filter_s join_condition;
 			Row_s left_row;
 		};

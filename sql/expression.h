@@ -117,7 +117,7 @@ namespace CatDB {
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
-		private:
+		public:
 			Common::ColumnDesc col_desc;
 			Object_s result;
 		};
@@ -128,13 +128,15 @@ namespace CatDB {
 			SubplanExpression() = delete;
 			SubplanExpression(const Plan_s& subplan);
 		public:
-			static Expression_s make_subplan_expression(const Plan_s& subplan, bool correlated);
+			static Expression_s make_subplan_expression(const Plan_s& subplan, bool correlated, const String& alias="");
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
-		private:
+			
+		public:
 			Object_s result;
 			Plan_s subplan;
+			String alias_name;
 			bool is_correlated;
 		};
 
