@@ -69,6 +69,7 @@ namespace CatDB {
 			u32 resolve_where_stmt(const Stmt_s& where_stmt);
 			//解析单个stmt，可能是连接谓词，可能是基表过滤谓词，也可能是普通的过滤谓词
 			u32 resolve_simple_stmt(const Stmt_s& expr_stmt);
+			u32 resolve_simple_expr(const Expression_s& expr);
 			//当前语句块如果是列描述则返回列描述，否则返回null
 			ColumnStmt* resolve_column_stmt(const Stmt_s& stmt);
 			//将语句块转换成表达式
@@ -143,8 +144,6 @@ namespace CatDB {
 			HashMap<TableStmt*, RowDesc > table_access_row_desc;
 			//两表连接条件信息
 			HashMap<JoinableTables, JoinConditions> join_info;
-			//由子查询改写生成的临时表
-			HashMap<TableStmt*, JoinConditions> sub_query_tmp_tables;
 			//每张表的过滤谓词
 			HashMap<TableStmt*, Expression_s> table_filters;
 			//select list语句块中出现过的聚合函数
@@ -163,6 +162,8 @@ namespace CatDB {
 			Vector<Stmt_s> tmp_table_handle;
 			//保存子查询，待改写结束后统一生成计划
 			Vector<Plan_s> subquerys;
+			//相关子查询的相关谓词
+			Vector<Expression_s> corrected_predicates;
 			//聚合列
 			Vector<Expression_s> group_cols;
 			//排序列

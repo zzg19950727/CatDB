@@ -1,5 +1,6 @@
 #include "nested_loop_join.h"
 #include "expression.h"
+#include "object.h"
 #include "filter.h"
 #include "error.h"
 #include "row.h"
@@ -235,7 +236,8 @@ u32 NestedLoopJoin::anti_join(Row_s & row)
 			row = right_tables[right_pos++];
 			Row_s new_row = RowAgent::make_agent_row(row, left_row);
 			if (join_condition) {
-				if ((*join_condition)(new_row)) {
+				Object_s result = join_condition->get_result(new_row);
+				if (result->bool_value()) {
 					is_in = true;
 					break;
 				}

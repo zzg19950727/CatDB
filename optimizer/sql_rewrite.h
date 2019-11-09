@@ -52,6 +52,12 @@ namespace CatDB {
 			//为select plan改写JA型的查询，用semi join改写
 			u32 rewrite_for_select_JA_semi(Expression_s& expr);
 
+
+			u32 rewrite_select_list(u32 new_table_id);
+			u32 rewrite_expr(Expression_s& expr, u32 new_table_id);
+			bool is_column_eq_expr(const Expression_s& expr);
+			u32 rewrite_group_by_for_JA(u32 new_table_id);
+
 		private:
 			Expression_s subquery_expr;
 			Plan_s subquery;
@@ -60,6 +66,7 @@ namespace CatDB {
 			Expression_s lhs;
 			ExprStmt::OperationType op_type;
 			String subquery_alias;
+			static u32 tmp_table_id;
 			bool is_correlated;
 		};
 	}

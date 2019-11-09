@@ -6,17 +6,17 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 
-CatDB::Sql::Filter::Filter(const Expression_s & expr)
+Filter::Filter(const Expression_s & expr)
 	:expr(expr)
 {
 }
 
-CatDB::Sql::Filter::~Filter()
+Filter::~Filter()
 {
 
 }
 
-bool CatDB::Sql::Filter::operator()(Row_s & row)
+bool Filter::operator()(Row_s & row)
 {
 	if (expr) {
 		Object_s result = expr->get_result(row);
@@ -30,7 +30,12 @@ bool CatDB::Sql::Filter::operator()(Row_s & row)
 	}
 }
 
-void CatDB::Sql::Filter::reset(const Row_s & row)
+Object_s Filter::get_result(const Row_s & row)
+{
+	return expr->get_result(row);
+}
+
+void Filter::reset(const Row_s & row)
 {
 	//TODO reset expression
 	if (expr) {
@@ -38,7 +43,7 @@ void CatDB::Sql::Filter::reset(const Row_s & row)
 	}
 }
 
-Filter_s CatDB::Sql::Filter::make_filter(const Expression_s & expr)
+Filter_s Filter::make_filter(const Expression_s & expr)
 {
 	return Filter_s(new Filter(expr));
 }

@@ -162,11 +162,7 @@ Object_s Object:: op_and (const Object_s & other)
 
 Object_s Object:: op_or (const Object_s & other)
 {
-	if (is_null() || other->is_null()){
-		return Object::make_null_object();
-	}else{
-		return Bool::make_object(bool_value() || other->bool_value());
-	}
+	return Bool::make_object(bool_value() || other->bool_value());
 }
 
 Object_s Object::exists()

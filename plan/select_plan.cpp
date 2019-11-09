@@ -380,12 +380,22 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 	if (ret != SUCCESS) {
 		return ret;
 	}
-
-	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
+	//如果是相关子查询的相关谓词，则等待改写结束后继续解析
+	if (have_parent_column) {
+		corrected_predicates.push_back(expr);
+		return SUCCESS;
+	}
 	if (expr->get_type() == Expression::Binary) {
 		BinaryExpression* binary_expr = dynamic_cast<BinaryExpression*>(expr.get());
+		if (binary_expr->op.get_type() == ExprStmt::OP_AND) {
+			ret = resolve_simple_expr(binary_expr->first_expr);
+			if (ret == SUCCESS) {
+				ret = resolve_simple_expr(binary_expr->second_expr);
+			}
+			return ret;
+		}
 		//可能是join条件
-		if (binary_expr->first_expr->get_type() == Expression::Column
+		else if (binary_expr->first_expr->get_type() == Expression::Column
 			&& binary_expr->second_expr->get_type() == Expression::Column) {
 			TableStmt* first_table = nullptr;
 			TableStmt* second_table = nullptr;
@@ -401,6 +411,61 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 			}
 			//两张表的列构成连接条件，前提是两张表都不是来至父查询，并且两张表不是同一张表
 			if(!find_table_from_parent(first_table)
+				&& !find_table_from_parent(second_table)
+				&& first_table->table_id != second_table->table_id) {
+				if (binary_expr->op.get_type() == ExprStmt::OP_EQ) {
+					add_join_equal_cond(JoinableTables(first_table, second_table), expr);
+					add_join_cond(JoinableTables(first_table, second_table), expr);
+					return SUCCESS;
+				}
+				else {
+					add_join_cond(JoinableTables(first_table, second_table), expr);
+					return SUCCESS;
+				}
+			}
+		}
+	}
+
+	//检查是否是单张表的过滤谓词
+	TableStmt* table = nullptr;
+	if (is_table_filter(expr, table)) {
+		add_table_filter(table, expr);
+	}
+	else {
+		//普通过滤谓词在完成所有join后使用
+		make_and_expression(filter_after_join, expr);
+	}
+	return SUCCESS;
+}
+
+u32 SelectPlan::resolve_simple_expr(const Expression_s & expr)
+{
+	if (expr->get_type() == Expression::Binary) {
+		BinaryExpression* binary_expr = dynamic_cast<BinaryExpression*>(expr.get());
+		if (binary_expr->op.get_type() == ExprStmt::OP_AND) {
+			u32 ret = resolve_simple_expr(binary_expr->first_expr);
+			if (ret == SUCCESS) {
+				ret = resolve_simple_expr(binary_expr->second_expr);
+			}
+			return ret;
+		}
+		//可能是join条件
+		else if (binary_expr->first_expr->get_type() == Expression::Column
+			&& binary_expr->second_expr->get_type() == Expression::Column) {
+			TableStmt* first_table = nullptr;
+			TableStmt* second_table = nullptr;
+			ColumnExpression* first_column = dynamic_cast<ColumnExpression*>(binary_expr->first_expr.get());
+			ColumnExpression* second_column = dynamic_cast<ColumnExpression*>(binary_expr->second_expr.get());
+			u32 ret = who_have_column(first_column->col_desc, first_table);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			ret = who_have_column(second_column->col_desc, second_table);
+			if (ret != SUCCESS) {
+				return ret;
+			}
+			//两张表的列构成连接条件，前提是两张表都不是来至父查询，并且两张表不是同一张表
+			if (!find_table_from_parent(first_table)
 				&& !find_table_from_parent(second_table)
 				&& first_table->table_id != second_table->table_id) {
 				if (binary_expr->op.get_type() == ExprStmt::OP_EQ) {
@@ -589,7 +654,20 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			if (ret == SUCCESS) {
 				break;
 			}
-			else if (ret != CAN_NOT_REWRITE) {
+			else if (ret == CAN_NOT_REWRITE) {
+				//没有改写成功则需要继续解析子查询的相关谓词
+				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(first_expr.get());
+				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
+				u32 ret;
+				for (u32 i = 0; i < subquery_plan->corrected_predicates.size(); ++i) {
+					ret = subquery_plan->resolve_simple_expr(subquery_plan->corrected_predicates[i]);
+					if (ret != SUCCESS) {
+						break;
+					}
+				}
+			}
+			else {
+				//meet error
 				break;
 			}
 		}
@@ -622,7 +700,20 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			if (ret == SUCCESS) {
 				break;
 			}
-			else if (ret != CAN_NOT_REWRITE) {
+			else if (ret == CAN_NOT_REWRITE) {
+				//没有改写成功则需要继续解析子查询的相关谓词
+				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(first_expr.get());
+				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
+				u32 ret;
+				for (u32 i = 0; i < subquery_plan->corrected_predicates.size(); ++i) {
+					ret = subquery_plan->resolve_simple_expr(subquery_plan->corrected_predicates[i]);
+					if (ret != SUCCESS) {
+						break;
+					}
+				}
+			}
+			else {
+				//meet error
 				break;
 			}
 		}
@@ -632,7 +723,20 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			if (ret == SUCCESS) {
 				break;
 			}
-			else if (ret != CAN_NOT_REWRITE) {
+			else if (ret == CAN_NOT_REWRITE) {
+				//没有改写成功则需要继续解析子查询的相关谓词
+				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(second_expr.get());
+				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
+				u32 ret;
+				for (u32 i = 0; i < subquery_plan->corrected_predicates.size(); ++i) {
+					ret = subquery_plan->resolve_simple_expr(subquery_plan->corrected_predicates[i]);
+					if (ret != SUCCESS) {
+						break;
+					}
+				}
+			}
+			else {
+				//meet error
 				break;
 			}
 		}
@@ -988,7 +1092,6 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 {
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	from_partent = false;
 	TableStmt* table = nullptr;
 	u32 ret = who_have_column(column_stmt, table);
 	if (ret != SUCCESS) {
@@ -1158,7 +1261,7 @@ u32 SelectPlan::who_have_column(const ColumnDesc & col_desc, TableStmt *& table)
 	for (u32 i = 0; i < parent_table_list.size(); ++i) {
 		if (parent_table_list[i]->table_id == tid) {
 			++find;
-			table = table_list[i];
+			table = parent_table_list[i];
 		}
 	}
 	if (find == 1)
@@ -1670,7 +1773,8 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 				return ret;
 			}
 			//没有等值连接条件的连接只能选择nested loop算法
-			if (!join_equal_cond) {
+			//目前只有nested loop算法支持anti join
+			if (!join_equal_cond || right_table->join_type == JoinPhyOperator::AntiJoin) {
 				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
 			}
 			else {

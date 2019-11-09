@@ -94,6 +94,12 @@ const char * err_string(u32 err_code)
 			return "end of hash table buckets";
 		case SET_ROW_DESC_ERROR:
 			return "row desc error in set operation";
+		case CAN_NOT_ANALYZE_SYSTEM:
+			return "can not analyze system database";
+		case CAST_DATA_ERROR:
+			return "cast data error";
+		case CAN_NOT_REWRITE:
+			return "can not rewrite sql";
 		default:
 			return "";
 	}

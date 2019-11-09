@@ -5,9 +5,11 @@
 namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
+		DECLARE(Object);
 	}
 	namespace Sql {
 		using Common::Row_s;
+		using Common::Object_s;
 		DECLARE(Expression);
 		DECLARE(Filter);
 
@@ -20,6 +22,7 @@ namespace CatDB {
 			~Filter();
 			static Filter_s make_filter(const Expression_s& expr);
 			bool operator()(Row_s &row);
+			Object_s get_result(const Row_s& row);
 			void reset(const Row_s& row);
 		private:
 			Expression_s expr;
