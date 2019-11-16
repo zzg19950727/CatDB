@@ -86,6 +86,8 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
 		return do_div(first_obj, second_obj);
 	case ExprStmt::OP_EQ:
 		return do_equal(first_obj, second_obj);
+	case ExprStmt::OP_ANTI_EQ:
+		return do_anti_equal(first_obj, second_obj);
 	case ExprStmt::OP_NE:
 		return do_not_equal(first_obj, second_obj);
 	case ExprStmt::OP_GT:
@@ -151,6 +153,16 @@ Object_s Operation::do_div(Object_s & first_obj, Object_s & second_obj)
 Object_s Operation::do_equal(Object_s & first_obj, Object_s & second_obj)
 {
 	return first_obj->operator==(second_obj);
+}
+
+Object_s Operation::do_anti_equal(Object_s & first_obj, Object_s & second_obj)
+{
+	if (first_obj->is_null() || second_obj->is_null()) {
+		return Bool::make_object(true);
+	}
+	else {
+		return first_obj->operator==(second_obj);
+	}
 }
 
 Object_s Operation::do_not_equal(Object_s & first_obj, Object_s & second_obj)

@@ -100,6 +100,42 @@ u32 HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
 	}
 }
 
+u32 HashTable::probe_and_drop(const Row_s & row)
+{
+	u32 hash_value = hash(probe_cols, row);
+	bool found = false;
+	if (buckets.find(hash_value) == buckets.cend()) {
+		return ROW_NOT_FOUND;
+	}
+	else {
+		const auto& bucket = buckets[hash_value];
+		Vector<Row_s> new_bucket;
+		for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
+			Row_s new_row = RowAgent::make_agent_row(row, *iter);
+			Object_s result = probe_condition->get_result(new_row);
+			if (result->get_type() == T_ERROR_RESULT) {
+				Log(LOG_WARN, "HashTable", "probe condition calc error");
+				new_bucket.push_back(*iter);
+				continue;
+			}
+			else if (result->bool_value()) {
+				found = true;
+				continue;
+			}
+			else {
+				new_bucket.push_back(*iter);
+			}
+		}
+		buckets[hash_value] = new_bucket;
+	}
+	if (!found) {
+		return ROW_NOT_FOUND;
+	}
+	else {
+		return SUCCESS;
+	}
+}
+
 u32 HashTable::add_hash_column(const Expression_s & col_expr)
 {
 	hash_cols.push_back(col_expr);

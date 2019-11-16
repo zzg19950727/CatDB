@@ -41,6 +41,7 @@ namespace CatDB {
 			Object_s do_mul(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_div(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_equal(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_anti_equal(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not_equal(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_greater(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_GE(Object_s& first_obj, Object_s& second_obj);

@@ -1474,7 +1474,10 @@ u32 SelectPlan::add_table_filter(TableStmt * table, const Expression_s & filter)
  */
 u32 SelectPlan::make_and_expression(Expression_s & expr, const Expression_s & other)
 {
-	if (!expr) {
+	if (!other) {
+		return SUCCESS;
+	}
+	else if (!expr) {
 		expr = other;
 		return SUCCESS;
 	}
@@ -1774,7 +1777,10 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 			}
 			//没有等值连接条件的连接只能选择nested loop算法
 			//目前只有nested loop算法支持anti join
-			if (!join_equal_cond || right_table->join_type == JoinPhyOperator::AntiJoin) {
+			if (right_table->join_type == JoinPhyOperator::AntiJoin) {
+				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
+			}
+			else if (!join_equal_cond) {
 				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
 			}
 			else {

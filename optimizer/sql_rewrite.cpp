@@ -115,7 +115,7 @@ u32 SqlRewriter::rewrite_for_select_N_semi(Expression_s& ret_expr)
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
-
+	table->op_type = op_type;
 	parent_query_plan->table_list.push_back(table);
 	parent_query_plan->tmp_table_handle.push_back(stmt);
 	return SUCCESS;
@@ -126,7 +126,7 @@ u32 SqlRewriter::rewrite_for_select_N_semi(Expression_s& ret_expr)
 * 连接条件为NOT IN的表达式与子查询的select list相等
 */
 u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
-{
+{ 
 	if (subquery_plan->select_list.size() != 1
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs) {
@@ -152,17 +152,13 @@ u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
 	// a is null or b is null or a=b
 	//目前只支持NESTED LOOP改写Anti join
 	Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
-	Expression_s first_exr = UnaryExpression::make_unary_expression(lhs, ExprStmt::OP_IS_NULL);
-	Expression_s second_exr = UnaryExpression::make_unary_expression(rhs, ExprStmt::OP_IS_NULL);
-	Expression_s third_exr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_EQ);
-	ret_expr = BinaryExpression::make_binary_expression(first_exr, second_exr, ExprStmt::OP_OR);
-	ret_expr = BinaryExpression::make_binary_expression(ret_expr, third_exr, ExprStmt::OP_OR);
+	ret_expr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_ANTI_EQ);
 
 	//为子查询生成临时表ID
 	table->join_type = JoinPhyOperator::AntiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
-
+	table->op_type = op_type;
 	parent_query_plan->table_list.push_back(table);
 	parent_query_plan->tmp_table_handle.push_back(stmt);
 	return SUCCESS;
@@ -215,7 +211,7 @@ u32 SqlRewriter::rewrite_for_select_J_semi(Expression_s& ret_expr)
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
-
+	table->op_type = op_type;
 	parent_query_plan->table_list.push_back(table);
 	parent_query_plan->tmp_table_handle.push_back(stmt);
 	return SUCCESS;
@@ -263,18 +259,14 @@ u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 	}
 	if (op_type == ExprStmt::OP_NOT_IN) {
 		Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
-		Expression_s first_exr = UnaryExpression::make_unary_expression(lhs, ExprStmt::OP_IS_NULL);
-		Expression_s second_exr = UnaryExpression::make_unary_expression(rhs, ExprStmt::OP_IS_NULL);
-		Expression_s third_exr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_EQ);
-		second_exr = BinaryExpression::make_binary_expression(first_exr, second_exr, ExprStmt::OP_OR);
-		third_exr = BinaryExpression::make_binary_expression(second_exr, third_exr, ExprStmt::OP_OR);
-		ret_expr = BinaryExpression::make_binary_expression(ret_expr, third_exr, ExprStmt::OP_AND);
+		rhs = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_ANTI_EQ);
+		ret_expr = BinaryExpression::make_binary_expression(rhs, ret_expr, ExprStmt::OP_AND);
 	}
 	//为子查询生成临时表ID
 	table->join_type = JoinPhyOperator::AntiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
-
+	table->op_type = op_type;
 	parent_query_plan->table_list.push_back(table);
 	parent_query_plan->tmp_table_handle.push_back(stmt);
 	return SUCCESS;
@@ -328,7 +320,7 @@ u32 SqlRewriter::rewrite_for_select_JA_semi(Expression_s& ret_expr)
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
-
+	table->op_type = op_type;
 	parent_query_plan->table_list.push_back(table);
 	parent_query_plan->tmp_table_handle.push_back(stmt);
 	return SUCCESS;
@@ -437,6 +429,52 @@ bool SqlRewriter::is_column_eq_expr(const Expression_s& expr)
 	}
 }
 
+u32 rewrite_agg_list(Expression_s& expr, u32 new_table_id)
+{
+	u32 ret = SUCCESS;
+	switch (expr->get_type())
+	{
+		case Expression::Const:
+		{
+			break;
+		}
+		case Expression::Column:
+		{
+			ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+			col_expr->col_desc.set_tid(new_table_id);
+			break;
+		}
+		case Expression::Unary:
+		{
+			UnaryExpression* unary = dynamic_cast<UnaryExpression*>(expr.get());
+			ret = rewrite_agg_list(unary->expr, new_table_id);
+			break;
+		}
+		case Expression::Binary:
+		{
+			BinaryExpression* binary = dynamic_cast<BinaryExpression*>(expr.get());
+			ret = rewrite_agg_list(binary->first_expr, new_table_id);
+			if (ret == SUCCESS) {
+				ret = rewrite_agg_list(binary->second_expr, new_table_id);
+			}
+			break;
+		}
+		case Expression::Ternary:
+		{
+			TernaryExpression* ternary = dynamic_cast<TernaryExpression*>(expr.get());
+			ret = rewrite_agg_list(ternary->first_expr, new_table_id);
+			if (ret == SUCCESS) {
+				ret = rewrite_agg_list(ternary->second_expr, new_table_id);
+				if (ret == SUCCESS) {
+					ret = rewrite_agg_list(ternary->third_expr, new_table_id);
+				}
+			}
+			break;
+		}
+	}
+	return ret;
+}
+
 u32 SqlRewriter::rewrite_group_by_for_JA(u32 new_table_id)
 {
 	for (u32 i = 0; i < subquery_plan->corrected_predicates.size(); ++i) {
@@ -475,7 +513,6 @@ u32 SqlRewriter::rewrite_group_by_for_JA(u32 new_table_id)
 			}
 		}
 	}
-	ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(subquery_plan->select_list[0].get());
-	col_expr->col_desc.set_tid(new_table_id);
-	return SUCCESS;
+	
+	return rewrite_agg_list(subquery_plan->select_list[0], new_table_id);
 }

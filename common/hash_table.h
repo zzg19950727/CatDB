@@ -23,6 +23,8 @@ namespace CatDB {
 			u32 probe(const Row_s& row);
 			//hash join使用
 			u32 probe(const Row_s& row, Queue<Row_s>& out_rows);
+			//探测成功后删除目标
+			u32 probe_and_drop(const Row_s& row);
 			u32 add_hash_column(const Expression_s& col_expr);
 			void clear_hash_columns();
 			u32 add_probe_column(const Expression_s& col_expr);

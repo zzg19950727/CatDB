@@ -36,6 +36,7 @@ namespace CatDB {
 				OP_MUL,
 				OP_DIV,
 				OP_EQ,
+				OP_ANTI_EQ,
 				OP_NE,
 				OP_GE,
 				OP_GT,
@@ -114,8 +115,12 @@ namespace CatDB {
 		public:
 			String database;
 			String table_name;
+			//如果是子查询，则临时表由查询生成
 			Plan_s subplan;
+			//如果是由子查询改写的临时表，则标记连接类型
 			u32 join_type;
+			//如果是由子查询改写的临时表，则标记子查询的操作符
+			u32 op_type;
 			u32 table_id;
 			bool is_tmp_table;
 		};

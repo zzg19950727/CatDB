@@ -16,6 +16,7 @@ namespace CatDB {
 			enum OperatorType {
 				TABLE_SCAN = 0,
 				HASH_JOIN,
+				HASH_NULL_AWARE_ANTI_JOIN,
 				MERGE_JOIN,
 				NESTED_LOOP_JOIN,
 				SORT,
