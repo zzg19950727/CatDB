@@ -1,4 +1,4 @@
-﻿#include "IoService.h"
+﻿#include "storage.h"
 #include "buffer.h"
 #include "object.h"
 #include "error.h"
@@ -50,10 +50,8 @@ RawRecord * RawRecord::make_raw_record(void * ptr)
 	return reinterpret_cast<RawRecord*>(ptr);
 }
 
-Page::Page(const Buffer_s & buffer, IoService_s& io_service)
-	:buffer_(buffer),
-	io_service_(io_service),
-	is_dirty(false)
+Page::Page(const Buffer_s & buffer)
+	:buffer_(buffer)
 {
 	file_header_ = reinterpret_cast<FileHeader*>(buffer->buf);
 	page_header_ = reinterpret_cast<PageHeader*>(buffer->buf + sizeof(FileHeader));
@@ -65,32 +63,39 @@ Page::Page(const Buffer_s & buffer, IoService_s& io_service)
 
 Page::~Page()
 {
-	//写回脏数据
-	if (is_dirty){
-		if (!io_service_->is_open()){
-			Log(LOG_ERR, "Page", "IO service not open");
-			return;
-		}
-		Log(LOG_INFO, "Page", "page %u is dirty and need write to disk", file_header_->page_offset);
-		u32 ret = io_service_->write_page(this);
-		if (ret != SUCCESS){
-			Log(LOG_ERR, "Page", "write page error, error code:%u", ret);
-		}
+	Log(LOG_INFO, "Page", "free page %u", file_header_->page_offset);
+	CatEngine_s engine = CatEngine::make_cat_engine();
+	u32 ret = engine->free_page_buffer(database, table, page_offset());
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "Page", "free page error, error code:%u", ret);
 	}
-	
 }
 
 Page_s Page::make_page(
-	IoService_s& io_service,
+	const String & database, 
+	const String & table, 
+	Buffer_s & buffer)
+{
+	Page* page = new Page(buffer);
+	page->database = database;
+	page->table = table;
+	return Page_s(page);
+}
+
+Page_s Page::make_page(
+	const String& database,
+	const String& table,
+	Buffer_s& buffer,
 	u32 table_id,
 	u32 page_offset,
 	u32 page_pre,
 	u32 page_next,
 	u32 beg_row_id)
 {
-	u32 length = PAGE_SIZE;
-	Buffer_s buffer = Buffer::make_buffer(length);
-	Page* page = new Page(buffer, io_service);
+	u32 length = buffer->length;
+	Page* page = new Page(buffer);
+	page->database = database;
+	page->table = table;
 	//初始化file header
 	page->file_header_->page_checksum = 0;
 	page->file_header_->table_id = table_id;
@@ -198,7 +203,7 @@ u32 Page::insert_row(u32& row_id, const Row_s & row)
 		//更新页的空闲空间信息
 		free_space_ += row_width(row);
 		//设置页含有脏数据
-		is_dirty = true;
+		buffer_->is_dirty = true;
 		row->set_row_id(row_id);
 		Log(LOG_TRACE, "Page", "insert row %u into page %u success", row->get_row_id(), file_header_->page_offset);
 	}
@@ -251,7 +256,7 @@ u32 Page::update_row(u32 row_id, Row_s & row)
 	if (ret == SUCCESS){
 		Log(LOG_TRACE, "Page", "update row %u success", row_id);
 		//设置页含有脏数据
-		is_dirty = true;
+		buffer_->is_dirty = true;
 	}
 	return ret;
 }
@@ -268,7 +273,7 @@ u32 Page::delete_row(u32 row_id)
 		if (ret == SUCCESS){
 			Log(LOG_TRACE, "Page", "delete row %u success", row_id);
 			//设置页含有脏数据
-			is_dirty = true;
+			buffer_->is_dirty = true;
 		}
 		return ret;
 	}

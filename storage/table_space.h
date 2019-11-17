@@ -9,7 +9,6 @@ namespace CatDB {
 	namespace Storage {
 		DECLARE(Page);
 		DECLARE(TableSpace);
-		DECLARE(IoService);
 		using Common::Row_s;
 		/*简单存储引擎*/
 		class TableSpace
@@ -40,6 +39,7 @@ namespace CatDB {
 			u32 get_page_from_offset(u32 page_offset, Page_s& page);
 			u32 read_page(u32 page_offset, Page_s& page);
 			u32 create_page(u32 page_offset, Page_s& page);
+			u32 free_page(u32 page_offset);
 			u32 get_last_page(Page_s& page);
 			u32 get_table_id()const;
 			void reset_all_page();
@@ -50,7 +50,6 @@ namespace CatDB {
 			HashMap<u32, Page_s>  pages;
 			String database;
 			String table_name;
-			IoService_s io;
 			u32 cur_page_offset;
 			u32 alias_table_id;
 		private:

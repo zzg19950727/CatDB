@@ -46,7 +46,7 @@ u32 IoService::open(const String & table_file)
 	}
 }
 
-bool CatDB::Storage::IoService::is_open() const
+bool IoService::is_open() const
 {
 	return file_handle != 0;
 }
@@ -54,23 +54,8 @@ bool CatDB::Storage::IoService::is_open() const
 u32 IoService::read_page(Page_s & page)
 {
 	u32 offset = page->page_offset();
-	u32 size = page->page_size();
-	const Buffer_s& buffer = page->page_buffer();
-	//如果在文件已经读取到结尾时，fstream的对象会将内部的eof state置位，
-	//这时使用seekg（）函数不能将该状态去除，需要使用clear（）
-	/*最大只能支持4G，用fsetpos替换
-	offset = offset << 14;
-	if (fseek(file_handle, offset, SEEK_SET) != 0){
-		Log(LOG_ERR, "IoService", "set offset %u error when read page!", offset);
-		return UNKNOWN_PAGE_OFFSET;
-	}*/
-	fpos_t real_offset = get_real_page_offset(offset);
-	if (fsetpos(file_handle, &real_offset) != 0) {
-		Log(LOG_ERR, "IoService", "set offset error when read page!");
-		return UNKNOWN_PAGE_OFFSET;
-	}
-	u32 ret = fread(buffer->buf, 1, size, file_handle);
-	if (ret != size){
+	u32 ret = read_page(offset, page->page_buffer());
+	if (ret != SUCCESS){
 		Log(LOG_ERR, "IoService", "read page error:%u", ret);
 		return BAD_PAGE_IN_FILE;
 	}
@@ -79,33 +64,48 @@ u32 IoService::read_page(Page_s & page)
 	return SUCCESS;
 }
 
-u32 IoService::write_page(const Page_s & page)
+u32 IoService::read_page(u32 offset, const Buffer_s & buf)
 {
-	return write_page(page.get());
+	u32 size = buf->length;
+	fpos_t real_offset = get_real_page_offset(offset);
+	if (fsetpos(file_handle, &real_offset) != 0) {
+		Log(LOG_ERR, "IoService", "set offset error when read page!");
+		return UNKNOWN_PAGE_OFFSET;
+	}
+	u32 ret = fread(buf->buf, 1, size, file_handle);
+	if (ret != size) {
+		Log(LOG_ERR, "IoService", "read page error:%u", ret);
+		return BAD_PAGE_IN_FILE;
+	}
+	Log(LOG_TRACE, "IoService", "read page %u, size %u", offset, size);
+	return SUCCESS;
 }
 
-u32 IoService::write_page(const Page * page)
+u32 IoService::write_page(const Page_s & page)
 {
 	u32 offset = page->page_offset();
-	u32 size = page->page_size();
-	const Buffer_s& buffer = page->page_buffer();
-	/*最大只能支持4G，用fsetpos替换
-	offset <<= 14;
-	if (fseek(file_handle, offset, SEEK_SET) != 0){
-		Log(LOG_ERR, "IoService", "set offset %u error when write page!", offset);
-		return UNKNOWN_PAGE_OFFSET;
-	}*/
+	u32 ret = write_page(offset, page->page_buffer());
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "IoService", "write page error:%u", ret);
+		return BAD_PAGE_IN_FILE;
+	}
+	return SUCCESS;
+}
+
+u32 IoService::write_page(u32 offset, const Buffer_s & buffer)
+{
+	u32 size = buffer->length;
 	fpos_t real_offset = get_real_page_offset(offset);
 	if (fsetpos(file_handle, &real_offset) != 0) {
 		Log(LOG_ERR, "IoService", "set offset error when write page!");
 		return UNKNOWN_PAGE_OFFSET;
 	}
 	u32 ret = fwrite(buffer->buf, 1, size, file_handle);
-	if (ret != size){
+	if (ret != size) {
 		Log(LOG_ERR, "IoService", "write page error:%u", ret);
 		return WRITE_PAGE_ERROR;
 	}
-	Log(LOG_TRACE, "IoService", "read page %u, size %u", offset, size);
+	Log(LOG_TRACE, "IoService", "write page %u, size %u", offset, size);
 	return SUCCESS;
 }
 

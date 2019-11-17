@@ -48,6 +48,7 @@
 #define CAN_NOT_ANALYZE_SYSTEM	0x2d
 #define CAST_DATA_ERROR			0x2e
 #define CAN_NOT_REWRITE			0x2f
+#define UNKNOWN_PAGE_BUFFER		0x30
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

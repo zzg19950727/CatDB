@@ -13,6 +13,7 @@ namespace CatDB {
 			static Buffer_s make_buffer(u32 size);
 			u32 length;
 			u8* buf;
+			bool is_dirty;
 		private:
 			Buffer(u32 len, u8* ptr);
 		private:

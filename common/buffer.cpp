@@ -4,7 +4,8 @@ using namespace CatDB::Common;
 
 Buffer::Buffer(u32 len, u8 * ptr)
 	:length(len),
-	buf(ptr)
+	buf(ptr),
+	is_dirty(false)
 {
 }
 
