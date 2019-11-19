@@ -228,6 +228,7 @@ u32 HashJoin::semi_join(Row_s & row)
 	while (right_child->get_next_row(row) == SUCCESS) {
 		u32 ret = hash_table.probe(row, probe_result);
 		if (ret == SUCCESS) {
+			hash_table.probe_and_drop(row);
 			last_probe_row = row;
 			Row_s left_row = probe_result.front();
 			probe_result.pop();
@@ -413,70 +414,73 @@ u32 HashNullAwareAntiJoin::init_hash_table()
 	hash_table.clear_hash_columns();
 	hash_table.clear_probe_columns();
 	hash_table.set_probe_condition(join_condition);
-	Queue<Expression_s> expr_queue;
-	expr_queue.push(equal_condition);
-	while (!expr_queue.empty()) {
-		Expression_s expr = expr_queue.front();
-		expr_queue.pop();
-		if (expr->get_type() == Expression::Column) {
-			ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
-			const ColumnDesc& desc = col_expr->get_column_desc();
-			u32 table_id, column_id;
-			desc.get_tid_cid(table_id, column_id);
-			if (table_id != probe_table_id) {
-				hash_table.add_hash_column(expr);
+	if (equal_condition) {
+		Queue<Expression_s> expr_queue;
+		expr_queue.push(equal_condition);
+		while (!expr_queue.empty()) {
+			Expression_s expr = expr_queue.front();
+			expr_queue.pop();
+			if (expr->get_type() == Expression::Column) {
+				ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+				const ColumnDesc& desc = col_expr->get_column_desc();
+				u32 table_id, column_id;
+				desc.get_tid_cid(table_id, column_id);
+				if (table_id != probe_table_id) {
+					hash_table.add_hash_column(expr);
+				}
+				else {
+					hash_table.add_probe_column(expr);
+				}
 			}
-			else {
-				hash_table.add_probe_column(expr);
-			}
-		}
-		else if (expr->get_type() == Expression::Binary) {
-			BinaryExpression* bin_expr = dynamic_cast<BinaryExpression*>(expr.get());
-			if (bin_expr->op.get_type() == Parser::ExprStmt::OP_AND) {
-				expr_queue.push(bin_expr->first_expr);
-				expr_queue.push(bin_expr->second_expr);
-			}
-			else if (bin_expr->op.get_type() == Parser::ExprStmt::OP_ANTI_EQ) {
-				expr_queue.push(bin_expr->first_expr);
-				expr_queue.push(bin_expr->second_expr);
+			else if (expr->get_type() == Expression::Binary) {
+				BinaryExpression* bin_expr = dynamic_cast<BinaryExpression*>(expr.get());
+				if (bin_expr->op.get_type() == Parser::ExprStmt::OP_AND) {
+					expr_queue.push(bin_expr->first_expr);
+					expr_queue.push(bin_expr->second_expr);
+				}
+				else if (bin_expr->op.get_type() == Parser::ExprStmt::OP_EQ) {
+					expr_queue.push(bin_expr->first_expr);
+					expr_queue.push(bin_expr->second_expr);
+				}
+				else {
+					Log(LOG_ERR, "HashNullAwareAntiJoin", "either 'anti equal' or 'and' operation found in equal condition");
+					return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
+				}
 			}
 			else {
 				Log(LOG_ERR, "HashNullAwareAntiJoin", "either 'anti equal' or 'and' operation found in equal condition");
 				return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
 			}
 		}
-		else {
-			Log(LOG_ERR, "HashNullAwareAntiJoin", "either 'anti equal' or 'and' operation found in equal condition");
-			return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
-		}
 	}
-
-	if (anti_equal_condition->get_type() == Expression::Binary) {
-		BinaryExpression* bin_expr = dynamic_cast<BinaryExpression*>(anti_equal_condition.get());
-		if (bin_expr->first_expr->get_type() == Expression::Column) {
-			ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(bin_expr->first_expr.get());
-			u32 table_id, column_id;
-			col_expr->col_desc.get_tid_cid(table_id, column_id);
-			if (table_id != probe_table_id) {
-				anti_build_col = bin_expr->first_expr;
-				hash_table.add_hash_column(bin_expr->first_expr);
+	if (anti_equal_condition) {
+		if (anti_equal_condition->get_type() == Expression::Binary) {
+			BinaryExpression* bin_expr = dynamic_cast<BinaryExpression*>(anti_equal_condition.get());
+			if (bin_expr->first_expr->get_type() == Expression::Column) {
+				ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(bin_expr->first_expr.get());
+				u32 table_id, column_id;
+				col_expr->col_desc.get_tid_cid(table_id, column_id);
+				if (table_id != probe_table_id) {
+					anti_build_col = bin_expr->first_expr;
+					hash_table.add_hash_column(bin_expr->first_expr);
+				}
+				else {
+					anti_probe_col = bin_expr->first_expr;
+					hash_table.add_probe_column(bin_expr->first_expr);
+				}
 			}
-			else {
-				anti_probe_col = bin_expr->first_expr;
-				hash_table.add_probe_column(bin_expr->first_expr);
-			}
-		}
-		if (bin_expr->second_expr->get_type() == Expression::Column) {
-			ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(bin_expr->second_expr.get());
-			u32 table_id, column_id;
-			col_expr->col_desc.get_tid_cid(table_id, column_id);
-			if (table_id != probe_table_id) {
-				anti_build_col = bin_expr->second_expr;
-				hash_table.add_hash_column(bin_expr->second_expr);
-			}
-			else {
-				anti_probe_col = bin_expr->second_expr;
-				hash_table.add_probe_column(bin_expr->second_expr);
+			if (bin_expr->second_expr->get_type() == Expression::Column) {
+				ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(bin_expr->second_expr.get());
+				u32 table_id, column_id;
+				col_expr->col_desc.get_tid_cid(table_id, column_id);
+				if (table_id != probe_table_id) {
+					anti_build_col = bin_expr->second_expr;
+					hash_table.add_hash_column(bin_expr->second_expr);
+				}
+				else {
+					anti_probe_col = bin_expr->second_expr;
+					hash_table.add_probe_column(bin_expr->second_expr);
+				}
 			}
 		}
 	}
@@ -489,20 +493,25 @@ u32 HashNullAwareAntiJoin::build_hash_table()
 	Row_s row;
 	bool right_empty = true;
 	bool right_have_null = false;
-	while (right_child->get_next_row(row) == SUCCESS) {
-		right_empty = false;
-		Object_s result = anti_probe_col->get_result(row);
-		if (result->is_null()) {
-			right_have_null = true;
-			break;
+
+	if (anti_probe_col) {
+		while (right_child->get_next_row(row) == SUCCESS) {
+			right_empty = false;
+			Object_s result = anti_probe_col->get_result(row);
+			if (result->is_null()) {
+				right_have_null = true;
+				break;
+			}
 		}
 	}
 	if (!right_have_null) {
 		while (left_child->get_next_row(row) == SUCCESS) {
-			if (!right_empty) {
-				Object_s result = anti_build_col->get_result(row);
-				if (result->is_null()) {
-					continue;
+			if (!right_empty && anti_build_col) {
+				if (anti_build_col) {
+					Object_s result = anti_build_col->get_result(row);
+					if (result->is_null()) {
+						continue;
+					}
 				}
 			}
 			hash_table.build(row);

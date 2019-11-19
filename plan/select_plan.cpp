@@ -1778,7 +1778,17 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 			//没有等值连接条件的连接只能选择nested loop算法
 			//目前只有nested loop算法支持anti join
 			if (right_table->join_type == JoinPhyOperator::AntiJoin) {
-				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
+				SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+				assert(checker);
+				u32 id = checker->get_table_id(right_table->database, right_table->alias_name);
+				left_root_operator = HashNullAwareAntiJoin::make_hash_null_aware_anti_join(
+					left_root_operator,
+					right_op,
+					right_table->anti_cond,
+					join_equal_cond,
+					join_cond,
+					id);
+				//left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);
 			}
 			else if (!join_equal_cond) {
 				left_root_operator = NestedLoopJoin::make_nested_loop_join(left_root_operator, right_op, join_cond);

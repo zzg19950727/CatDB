@@ -82,6 +82,7 @@ u32 DeletePlan::build_plan()
 			row_desc.set_column_desc(i, access_columns[i]);
 		}
 		root_operator->set_access_desc(row_desc);
+		root_operator->set_access_desc(row_desc);
 	}
 	set_error_code(SUCCESS);
 	return SUCCESS;

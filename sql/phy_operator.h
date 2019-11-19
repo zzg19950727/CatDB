@@ -60,7 +60,7 @@ namespace CatDB {
 			virtual u32 type() const = 0;
 			void set_access_desc(const RowDesc& desc);
 			void set_output_desc(const RowDesc& desc);
-		protected:
+		public:
 			RowDesc access_desc;
 			RowDesc output_desc;
 		private:

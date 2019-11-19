@@ -9,7 +9,7 @@ using namespace CatDB::Storage;
 
 CatEngine::CatEngine()
 	:data_dir("D:\\CatDB\\build\\data\\"),
-	max_buffer_blocks(2553)
+	max_buffer_blocks(2560)
 {
 	init_cache_manager();
 }

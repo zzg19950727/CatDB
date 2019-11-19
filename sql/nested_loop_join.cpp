@@ -180,13 +180,7 @@ u32 NestedLoopJoin::join(Row_s & row)
 u32 NestedLoopJoin::semi_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	if (!left_row) {
-		ret = left_child->get_next_row(left_row);
-		if (ret != SUCCESS) {
-			return ret;
-		}
-	}
-	for (;;) {
+	while (left_child->get_next_row(left_row) == SUCCESS) {
 		while (right_pos < right_tables.size()) {
 			row = right_tables[right_pos++];
 			Row_s new_row = RowAgent::make_agent_row(row, left_row);
@@ -204,33 +198,15 @@ u32 NestedLoopJoin::semi_join(Row_s & row)
 				return SUCCESS;
 			}
 		}
-		ret = left_child->get_next_row(left_row);
-		if (ret == NO_MORE_ROWS) {
-			break;
-		}
-		else if (ret == SUCCESS) {
-			right_pos = 0;
-			continue;
-		}
-		else {
-			break;
-		}
 	}
-	return ret;
+	return NO_MORE_ROWS;
 }
 
 u32 NestedLoopJoin::anti_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	for (;;) {
+	while(left_child->get_next_row(left_row) == SUCCESS) {
 		right_pos = 0;
-		ret = left_child->get_next_row(left_row);
-		if (ret == NO_MORE_ROWS) {
-			break;
-		}
-		else if (ret != SUCCESS) {
-			break;
-		}
 		bool is_in = false;
 		while (right_pos < right_tables.size()) {
 			row = right_tables[right_pos++];
@@ -254,20 +230,20 @@ u32 NestedLoopJoin::anti_join(Row_s & row)
 			return SUCCESS;
 		}
 	}
-	return ret;
+	return NO_MORE_ROWS;
 }
 
 u32 NestedLoopJoin::left_outer_join(Row_s & row)
 {
-	return u32();
+	return NO_MORE_ROWS;
 }
 
 u32 NestedLoopJoin::right_outer_join(Row_s & row)
 {
-	return u32();
+	return NO_MORE_ROWS;
 }
 
 u32 NestedLoopJoin::full_outer_join(Row_s & row)
 {
-	return u32();
+	return NO_MORE_ROWS;
 }

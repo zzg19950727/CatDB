@@ -9,10 +9,12 @@ namespace CatDB {
 	}
 	namespace Sql {
 		DECLARE(Plan);
+		DECLARE(Expression);
 	}
 	namespace Parser {
 		using Sql::Plan_s;
 		using Common::Object_s;
+		using Sql::Expression_s;
 		DECLARE(Stmt);
 		//表达式语句
 		class ExprStmt : public Stmt
@@ -121,6 +123,8 @@ namespace CatDB {
 			u32 join_type;
 			//如果是由子查询改写的临时表，则标记子查询的操作符
 			u32 op_type;
+			//如果是anti join，则保存anti join expr
+			Expression_s anti_cond;
 			u32 table_id;
 			bool is_tmp_table;
 		};

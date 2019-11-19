@@ -153,6 +153,7 @@ u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
 	//目前只支持NESTED LOOP改写Anti join
 	Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
 	ret_expr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_ANTI_EQ);
+	table->anti_cond = ret_expr;
 
 	//为子查询生成临时表ID
 	table->join_type = JoinPhyOperator::AntiJoin;
@@ -260,6 +261,7 @@ u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 	if (op_type == ExprStmt::OP_NOT_IN) {
 		Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
 		rhs = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_ANTI_EQ);
+		table->anti_cond = rhs;
 		ret_expr = BinaryExpression::make_binary_expression(rhs, ret_expr, ExprStmt::OP_AND);
 	}
 	//为子查询生成临时表ID

@@ -62,6 +62,7 @@ u32 HashGroup::set_filter(const Filter_s & filter)
 void HashGroup::set_agg_table_id(u32 id)
 {
 	agg_table_id = id;
+
 }
 
 u32 HashGroup::get_agg_table_id() const

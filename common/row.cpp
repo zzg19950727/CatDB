@@ -153,10 +153,9 @@ Row_s Row::join_row(const Row_s & left_row, const Row_s & right_row)
 	return Row_s(row);
 }
 
-Row_s Row::left_outer_join_row(const Row_s & left_row, const Row_s & right_row)
+Row_s Row::left_outer_join_row(const Row_s & left_row, const RowDesc & right_desc)
 {
 	const RowDesc& left_desc = left_row->get_row_desc();
-	const RowDesc& right_desc = right_row->get_row_desc();
 	u32 left_column_count = left_desc.get_column_num();
 	u32 right_column_count = right_desc.get_column_num();
 	RowDesc desc(left_column_count + right_column_count);
@@ -178,6 +177,35 @@ Row_s Row::left_outer_join_row(const Row_s & left_row, const Row_s & right_row)
 	}
 	for (u32 i = 0; i < right_column_count; ++i) {
 		Object_s cell = Object::make_null_object();
+		row->set_cell(left_column_count + i, cell);
+	}
+	return Row_s(row);
+}
+
+Row_s Row::right_outer_join_row(const RowDesc & left_desc, const Row_s & right_row)
+{
+	const RowDesc& right_desc = right_row->get_row_desc();
+	u32 left_column_count = left_desc.get_column_num();
+	u32 right_column_count = right_desc.get_column_num();
+	RowDesc desc(left_column_count + right_column_count);
+	for (u32 i = 0; i < left_column_count; ++i) {
+		ColumnDesc col_desc;
+		left_desc.get_column_desc(i, col_desc);
+		desc.set_column_desc(i, col_desc);
+	}
+	for (u32 i = 0; i < right_column_count; ++i) {
+		ColumnDesc col_desc;
+		right_desc.get_column_desc(i, col_desc);
+		desc.set_column_desc(left_column_count + i, col_desc);
+	}
+	Row* row = new Row(desc);
+	for (u32 i = 0; i < left_column_count; ++i) {
+		Object_s cell = Object::make_null_object();
+		row->set_cell(i, cell);
+	}
+	for (u32 i = 0; i < right_column_count; ++i) {
+		Object_s cell;
+		right_row->get_cell(i, cell);
 		row->set_cell(left_column_count + i, cell);
 	}
 	return Row_s(row);

@@ -26,6 +26,8 @@ void PhyOperator::set_output_desc(const RowDesc& desc)
 SingleChildPhyOperator::SingleChildPhyOperator(const PhyOperator_s & child)
 	:child(child)
 {
+	set_access_desc(child->output_desc);
+	set_output_desc(child->output_desc);
 }
 
 SingleChildPhyOperator::~SingleChildPhyOperator()
@@ -36,6 +38,18 @@ DoubleChildPhyOperator::DoubleChildPhyOperator(const PhyOperator_s & left, const
 	:left_child(left),
 	right_child(right)
 {
+	ColumnDesc col_desc;
+	RowDesc new_output_desc;
+	for (u32 i = 0; i < left->output_desc.get_column_num(); ++i) {
+		left->output_desc.get_column_desc(i, col_desc);
+		new_output_desc.add_column_desc(col_desc);
+	}
+	for (u32 i = 0; i < right->output_desc.get_column_num(); ++i) {
+		right->output_desc.get_column_desc(i, col_desc);
+		new_output_desc.add_column_desc(col_desc);
+	}
+	set_access_desc(new_output_desc);
+	set_output_desc(new_output_desc);
 }
 
 DoubleChildPhyOperator::~DoubleChildPhyOperator()
