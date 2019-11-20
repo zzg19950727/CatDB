@@ -33,8 +33,9 @@ inline u32 cal_next_prime(u32 n)
 HashTable::HashTable(u32 num)
 	:is_empty(true)
 {
-	num = 6000000;
+	num = 50000;
 	this->bucket_num = cal_next_prime(num);
+	buckets = TableType(this->bucket_num);
 }
 
 HashTable::~HashTable()
@@ -44,7 +45,7 @@ HashTable::~HashTable()
 
 void HashTable::clear()
 {
-	buckets.clear();
+	//buckets.clear();
 }
 
 bool HashTable::empty() const
@@ -63,34 +64,27 @@ u32 HashTable::build(const Row_s & row)
 u32 HashTable::probe(const Row_s & row)
 {
 	u32 hash_value = hash(probe_cols, row);
-	if (buckets.find(hash_value) == buckets.cend()){
-		return ROW_NOT_FOUND;
-	}else{
-		const auto& bucket = buckets[hash_value];
-		for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter){
-			if (equal(*iter, row))
-				return SUCCESS;
-		}
-		return ROW_NOT_FOUND;
+	const auto& bucket = buckets[hash_value];
+	for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
+		if (equal(*iter, row))
+			return SUCCESS;
 	}
+	return ROW_NOT_FOUND;
 }
 
 u32 HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
 {
 	u32 hash_value = hash(probe_cols, row);
-	if (buckets.find(hash_value) == buckets.cend()){
-		return ROW_NOT_FOUND;
-	}else{
-		const auto& bucket = buckets[hash_value];
-		for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter){
-			Row_s new_row = RowAgent::make_agent_row(row, *iter);
-			Object_s result = probe_condition->get_result(new_row);
-			if (result->get_type() == T_ERROR_RESULT){
-				Log(LOG_WARN, "HashTable", "probe condition calc error");
-				continue;
-			}else if (result->bool_value()){
-				out_rows.push(*iter);
-			}
+	const auto& bucket = buckets[hash_value];
+	for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
+		Row_s new_row = RowAgent::make_agent_row(row, *iter);
+		Object_s result = probe_condition->get_result(new_row);
+		if (result->get_type() == T_ERROR_RESULT) {
+			Log(LOG_WARN, "HashTable", "probe condition calc error");
+			continue;
+		}
+		else if (result->bool_value()) {
+			out_rows.push(*iter);
 		}
 	}
 	if (out_rows.empty()){
@@ -104,30 +98,25 @@ u32 HashTable::probe_and_drop(const Row_s & row)
 {
 	u32 hash_value = hash(probe_cols, row);
 	bool found = false;
-	if (buckets.find(hash_value) == buckets.cend()) {
-		return ROW_NOT_FOUND;
-	}
-	else {
-		const auto& bucket = buckets[hash_value];
-		Vector<Row_s> new_bucket;
-		for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
-			Row_s new_row = RowAgent::make_agent_row(row, *iter);
-			Object_s result = probe_condition->get_result(new_row);
-			if (result->get_type() == T_ERROR_RESULT) {
-				Log(LOG_WARN, "HashTable", "probe condition calc error");
-				new_bucket.push_back(*iter);
-				continue;
-			}
-			else if (result->bool_value()) {
-				found = true;
-				continue;
-			}
-			else {
-				new_bucket.push_back(*iter);
-			}
+	const auto& bucket = buckets[hash_value];
+	Vector<Row_s> new_bucket;
+	for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
+		Row_s new_row = RowAgent::make_agent_row(row, *iter);
+		Object_s result = probe_condition->get_result(new_row);
+		if (result->get_type() == T_ERROR_RESULT) {
+			Log(LOG_WARN, "HashTable", "probe condition calc error");
+			new_bucket.push_back(*iter);
+			continue;
 		}
-		buckets[hash_value] = new_bucket;
+		else if (result->bool_value()) {
+			found = true;
+			continue;
+		}
+		else {
+			new_bucket.push_back(*iter);
+		}
 	}
+	buckets[hash_value] = new_bucket;
 	if (!found) {
 		return ROW_NOT_FOUND;
 	}
@@ -175,11 +164,11 @@ HashTable::BucketIterator HashTable::begin_bucket()
 		return buckets.end();
 	}
 	auto iter =  buckets.begin();
-	if (!iter->second.empty()) {
+	if (!iter->empty()) {
 		return iter;
 	}
 	while (iter != buckets.end()) {
-		if (!iter->second.empty()) {
+		if (!iter->empty()) {
 			return iter;
 		}
 		else {
@@ -201,7 +190,7 @@ u32 HashTable::sort_bucket(BucketIterator & iter)
 		return ERR_BUCKET_IDX;
 	}
 	auto less_func = std::bind(&HashTable::less, this, std::placeholders::_1, std::placeholders::_2);
-	std::sort(iter->second.begin(), iter->second.end(), less_func);
+	std::sort(iter->begin(), iter->end(), less_func);
 	return SUCCESS;
 }
 
@@ -211,7 +200,7 @@ const Vector<Row_s>& HashTable::bucket(const BucketIterator & iter)
 		Log(LOG_TRACE, "HashTable", "end of buckets");
 		//TODO 错误处理
 	}
-	return iter->second;
+	return *iter;
 }
 
 bool HashTable::bucket_empty(const BucketIterator & iter)
@@ -220,7 +209,7 @@ bool HashTable::bucket_empty(const BucketIterator & iter)
 		return true;
 	}
 	else {
-		return iter->second.empty();
+		return iter->empty();
 	}
 }
 
@@ -228,7 +217,7 @@ u32 HashTable::next_none_empty_bucket(BucketIterator & iter)
 {
 	while (iter != buckets.end()) {
 		++iter;
-		if (iter != buckets.end() && !iter->second.empty()) {
+		if (iter != buckets.end() && !iter->empty()) {
 			return SUCCESS;
 		}
 	}

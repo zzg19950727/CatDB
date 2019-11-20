@@ -135,9 +135,8 @@ void parser_test()
 		}
 		else {
 			query = "insert into t2 values";
-			for (u32 i = 0; i < 600; ++i) {
-				query += "(" + std::to_string(rand() % 100000) + "," + std::to_string(rand() % 100000) + ","
-					 + std::to_string(rand() % 100000) + "),";
+			for (u32 i = 0; i < 6000; ++i) {
+				query += "(" + std::to_string(rand() % 100000)+"),";
 			}
 			query[query.size() - 1] = ';';
 		}
@@ -171,6 +170,7 @@ void parser_test()
 					continue;
 				}
 			}
+			
 			Timer timer;
 			ret = plan->execute();
 			if (ret != SUCCESS) {

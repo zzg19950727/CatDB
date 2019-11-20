@@ -1224,7 +1224,7 @@ u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 		if (table_list[i]->is_tmp_table) {
 			SelectPlan* plan = dynamic_cast<SelectPlan*>(table_list[i]->subplan.get());
 			ColumnDesc col_desc;
-			if (plan && plan->get_column_from_select_list(column_name, col_desc) == SUCCESS) {
+			if (plan && !find && plan->get_column_from_select_list(column_name, col_desc) == SUCCESS) {
 				++find;
 				table = table_list[i];
 			}

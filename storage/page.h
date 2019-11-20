@@ -12,6 +12,7 @@ namespace CatDB {
 	}
 	namespace Storage {
 		DECLARE(Page);
+		DECLARE(IoService);
 		using Common::Buffer_s;
 		using Common::Row_s;
 
@@ -63,13 +64,7 @@ namespace CatDB {
 		public:
 			~Page();
 			static Page_s make_page(
-				const String& database,
-				const String& table,
-				Buffer_s& buffer);
-			static Page_s make_page(
-				const String& database,
-				const String& table,
-				Buffer_s& buffer,
+				IoService_s& io_service,
 				u32 table_id,
 				u32 page_offset,
 				u32 page_pre,
@@ -97,7 +92,7 @@ namespace CatDB {
 			bool have_free_space_insert(const Row_s& row);
 
 		private:
-			Page(const Buffer_s& buffer);
+			Page(const Buffer_s& buffer, IoService_s& io_service);
 			u32 project_all_column(RawRecord* record, Row_s& row)const;
 			u32 project_row(RowInfo* row_info, Row_s& row)const;
 			u32 update_none_fix_row(u32 row_id, Row_s& row);
@@ -107,7 +102,6 @@ namespace CatDB {
 			bool row_id_deleted(u32 row_id)const;
 			u32 row_width(const Row_s& row)const;
 
-			String database, table;
 			Buffer_s		buffer_;		//数据所在内存
 			FileHeader* file_header_;	//文件信息
 			PageHeader* page_header_;	//页信息
@@ -117,6 +111,9 @@ namespace CatDB {
 
 			//用于快速扫描所有行数据
 			u32 row_idx_;
+			//保证脏数据写回表空间
+			IoService_s io_service_;
+			bool is_dirty;
 
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Page)

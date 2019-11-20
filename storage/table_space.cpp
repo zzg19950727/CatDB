@@ -1,17 +1,18 @@
 ﻿#include "table_space.h"
 #include "IoService.h"
-#include "storage.h"
 #include "error.h"
 #include "page.h"
 #include "row.h"
 #include "log.h"
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
+static String data_dir = "D:\\CatDB\\build\\data\\";
+static String recycle_dir = "D:\\CatDB\\build\\data\\recycle";
 
 TableSpace::TableSpace()
 	:cur_page_offset(0)
 {
-	;
+	io = IoService::make_io_service();
 }
 
 TableSpace::~TableSpace()
@@ -30,6 +31,8 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 u32 TableSpace::open()
 {
 	Log(LOG_TRACE, "TableSpace", "open table space");
+	String table_path = data_dir + database + "\\" + table_name;
+	io->open(table_path);
 	cur_page_offset = 0;
 	reset_all_page();
 	return SUCCESS;
@@ -58,9 +61,9 @@ u32 TableSpace::get_next_row(Row_s & row)
 		}
 		Log(LOG_TRACE, "TableSpace", "page %u have read end, load next page", cur_page_offset);
 		//读取下一页
+		pages.erase(pages.find(cur_page_offset));
 		cur_page_offset = page->next_page_offset();
 		//下一页不在内存中
-		free_page(page->page_offset());
 		ret = get_page_from_offset(cur_page_offset, page);
 		if (ret == END_OF_TABLE_SPACE) {
 			return ret;
@@ -151,7 +154,8 @@ u32 TableSpace::delete_row(u32 row_id)
 
 u32 TableSpace::delete_all_row()
 {
-	u32 ret = CatEngine::make_cat_engine()->delete_all_row(database, table_name);
+	String table_path = data_dir + database + "\\" + table_name;
+	u32 ret = io->clear_file(table_path);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
 		return ret;
@@ -163,27 +167,49 @@ u32 TableSpace::delete_all_row()
 
 u64 TableSpace::table_space_size(const String & database, const String & table_name)
 {
-	return CatEngine::make_cat_engine()->get_table_size(database, table_name);
+	String table_path = data_dir + database + "\\" + table_name;
+	return IoService::get_file_size(table_path);
 }
 
 u32 TableSpace::delete_table(const String& database, const String& table_name)
 {
-	return CatEngine::make_cat_engine()->delete_table(database, table_name);
+	IoService_s io = IoService::make_io_service();
+	String table_path = data_dir + database + "\\" + table_name;
+	u32 ret = io->delete_file(table_path);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "TableSpace", "delete table %s error:%s", table_name.c_str(), err_string(ret));
+		return ret;
+	}else {
+		return SUCCESS;
+	}
 }
 
 u32 TableSpace::create_table(const String& database, const String& table_name)
 {
-	return CatEngine::make_cat_engine()->create_table(database, table_name);
+	IoService_s io = IoService::make_io_service();
+	String table_path = data_dir + database + "\\" + table_name;
+	u32 ret = io->open(table_path);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "TableSpace", "create table %s error:%s", table_name.c_str(), err_string(ret));
+		return ret;
+	}else {
+		io->close();
+		return SUCCESS;
+	}
 }
 
 u32 TableSpace::delete_database(const String & database)
 {
-	return CatEngine::make_cat_engine()->delete_database(database);
+	String path = data_dir + database;
+	IoService::remove_dir(path);
+	return SUCCESS;
 }
 
 u32 TableSpace::create_database(const String & database)
 {
-	return CatEngine::make_cat_engine()->create_database(database);
+	String path = data_dir + database;
+	IoService::make_dir(path);
+	return SUCCESS;
 }
 
 u32 TableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
@@ -216,18 +242,17 @@ u32 TableSpace::get_page_from_offset(u32 page_offset, Page_s& page)
 u32 TableSpace::read_page(u32 page_offset, Page_s& page)
 {
 	u32 offset = 0;
-	u32 ret = CatEngine::make_cat_engine()->end_page_offset(database, table_name, offset);
+	u32 ret = io->end_offset(offset);
 	if (ret == EMPTY_TABLE_SPACE || offset < page_offset) {
 		Log(LOG_INFO, "TableSpace", "page %u not in table space", page_offset);
 		return END_OF_TABLE_SPACE;
 	}
-	Buffer_s buffer;
-	ret = CatEngine::make_cat_engine()->get_page_buffer(database, table_name, page_offset, buffer);
+	page = Page::make_page(io, get_table_id(), page_offset, 0, 0, page_offset);
+	ret = io->read_page(page);
 	if (ret != SUCCESS) {
 		return ret;
 	}
 	else {
-		page = Page::make_page(database, table_name, buffer);
 		ret = page->open();
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "TableSpace", "open page %u failed,%s", cur_page_offset, err_string(ret));
@@ -247,27 +272,16 @@ u32 TableSpace::create_page(u32 page_offset, Page_s& page)
 		page_pre = page_offset - 1;
 	page_next = page_offset + 1;
 	u32 beg_row_id = get_beg_row_id_from_page_offset(page_offset);
-	Buffer_s buffer;
-	CatEngine::make_cat_engine()->create_new_page_buffer(database, table_name, page_offset, buffer);
-	page = Page::make_page(database, table_name, buffer, get_table_id(), page_offset, page_pre, page_next, beg_row_id);
+	page = Page::make_page(io, get_table_id(), page_offset, page_pre, page_next, beg_row_id);
 	pages[page_offset] = page;
 	page->open();
-	return SUCCESS;
-}
-
-u32 TableSpace::free_page(u32 page_offset)
-{
-	auto iter = pages.find(page_offset);
-	if (iter != pages.end()) {
-		pages.erase(iter);
-	}
 	return SUCCESS;
 }
 
 u32 TableSpace::get_last_page(Page_s& page)
 {
 	u32 offset = 0;
-	u32 ret = CatEngine::make_cat_engine()->end_page_offset(database, table_name, offset);
+	u32 ret = io->end_offset(offset);
 	//空表
 	if (ret == EMPTY_TABLE_SPACE) {
 		//内存中也没有数据页

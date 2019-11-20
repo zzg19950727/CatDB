@@ -33,6 +33,8 @@ template<typename T>
 using shared_ptr = std::shared_ptr<T>;
 template<typename T1, typename T2>
 using HashMap = std::map<T1, T2>;
+template<typename T1, typename T2>
+using UnorderedHashMap = std::unordered_map<T1, T2>;
 template<typename T>
 using HashSet = std::unordered_set<T>;
 template<typename T>

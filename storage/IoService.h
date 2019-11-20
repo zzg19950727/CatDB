@@ -3,13 +3,10 @@
 #include "type.h"
 
 namespace CatDB {
-	namespace Common {
-		DECLARE(Buffer);
-	}
 	namespace Storage {
 		DECLARE(Page);
 		DECLARE(IoService);
-		using Common::Buffer_s;
+
 		class IoService
 		{
 		private:
@@ -20,9 +17,8 @@ namespace CatDB {
 			u32 open(const String& table_file);
 			bool is_open()const;
 			u32 read_page(Page_s& page);
-			u32 read_page(u32 offset, const Buffer_s& buf);
 			u32 write_page(const Page_s& page);
-			u32 write_page(u32 offset, const Buffer_s& buf);
+			u32 write_page(const Page* page);
 			u32 end_offset(u32& offset);
 			void close();
 			bool eof()const;
