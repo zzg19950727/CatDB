@@ -22,7 +22,7 @@ namespace CatDB {
 		public:
 			enum PlanType {
 				INSERT = 0,
-				DELETE,
+				DELETE_PLAN,
 				UPDATE,
 				SELECT,
 				CreateTable,

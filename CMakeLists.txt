@@ -12,6 +12,8 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/parser/lex_yacc
 	${PROJECT_SOURCE_DIR}/plan
 	${PROJECT_SOURCE_DIR}/optimizer
+	${PROJECT_SOURCE_DIR}/server
+	${PROJECT_SOURCE_DIR}/server/packet
     )
 
 aux_source_directory(. SrcFiles)
@@ -22,9 +24,10 @@ add_subdirectory(sql)
 add_subdirectory(parser)
 add_subdirectory(plan)
 add_subdirectory(optimizer)
+add_subdirectory(server)
 
 add_executable(CatDB ${SrcFiles})
-target_link_libraries(CatDB common storage sql parser plan optimizer)
+target_link_libraries(CatDB common storage sql parser plan optimizer server)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

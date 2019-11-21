@@ -49,6 +49,11 @@
 #define CAST_DATA_ERROR			0x2e
 #define CAN_NOT_REWRITE			0x2f
 #define UNKNOWN_PAGE_BUFFER		0x30
+#define SIZE_OVERFLOW			0x31
+#define OBJ_TYPE_ERROR			0x32
+#define ERR_UNEXPECTED			0x33
+#define INVALID_ARGUMENT		0x34
+#define MAX_ERROR_CODE			0x35
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

@@ -2,6 +2,7 @@
 #include <cassert>
 #include <chrono>
 #include "tpch.h"
+#include "server.h"
 #include "schema_checker.h"
 #include "query_result.h"
 #include "sql_driver.h"
@@ -226,6 +227,8 @@ void schema_checker_test()
 
 int main()
 {
+	CatDB::Server::ServerService service("catdb.conf");
+	service.run();
 	//schema_checker_test();
 	parser_test();
 	//load_tpch_data();

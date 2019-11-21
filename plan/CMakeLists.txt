@@ -5,6 +5,6 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/sql
 	${PROJECT_SOURCE_DIR}/parser
     )
-aux_source_directory(. DIR_SQL_SRCS)
-add_library(plan ${DIR_SQL_SRCS})
+aux_source_directory(. DIR_PLAN_SRCS)
+add_library(plan ${DIR_PLAN_SRCS})
 target_link_libraries(plan sql parser common storage)

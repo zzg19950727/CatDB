@@ -23,6 +23,7 @@ class_name(const class_name&)=delete;\
 class_name&operator=(const class_name&)=delete;
 
 typedef unsigned char u8;
+typedef unsigned short	u16;
 typedef unsigned int u32;
 typedef double	f64;
 typedef unsigned long long u64;

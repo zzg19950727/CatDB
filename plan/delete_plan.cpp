@@ -117,7 +117,7 @@ u32 DeletePlan::optimizer()
 
 Plan::PlanType DeletePlan::type() const
 {
-	return Plan::DELETE;
+	return Plan::DELETE_PLAN;
 }
 
 u32 DeletePlan::resolve_filter(const Stmt_s& where_stmt, Filter_s& filter)

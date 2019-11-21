@@ -3,13 +3,16 @@
 #include "type.h"
 
 #define T_NULL		0x80000000
+#define T_MIN_TYPE	0x00
 #define T_BOOL		0x01
 #define T_NUMBER	0x02
 #define T_DATETIME	0x03
 #define T_VARCHAR	0x04
-#define T_LIST		0x05
-#define T_QUERY_RESULT	0x06
-#define T_ERROR_RESULT	0x07
+#define T_NULL_TYPE	0x05
+#define T_MAX_TYPE	0x06
+#define T_LIST		0x07
+#define T_QUERY_RESULT	0x08
+#define T_ERROR_RESULT	0x09
 
 namespace CatDB {
 	namespace Common {
