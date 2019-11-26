@@ -54,10 +54,14 @@ void ServerService::new_connection(int fd, NetService::Event e)
 			return;
 		}
 		Loginer loginer(client_fd);
-		loginer.login();
-		auto ptr = std::make_shared<RequestHandle>(client_fd, *this);
-		ptr->set_delete_handle(ptr);
-		++m_clients;
+		if (loginer.login() == SUCCESS) {
+			auto ptr = std::make_shared<RequestHandle>(client_fd, *this);
+			ptr->set_delete_handle(ptr);
+			++m_clients;
+		}
+		else {
+			Log(LOG_WARN, "ServerService", "login failed");
+		}
 	}
 }
 

@@ -1,15 +1,34 @@
 #include "request_handle.h"
+#include "schema_checker.h"
+#include "query_result.h"
+#include "sql_driver.h"
+#include "resheader_packet.h"
+#include "field_packet.h"
+#include "error_packet.h"
+#include "eof_packet.h"
+#include "row_packet.h"
+#include "ok_packet.h"
+#include "buffer.h"
+#include "global.h"
 #include "server.h"
 #include "error.h"
+#include "plan.h"
+#include "util.h"
+#include "row.h"
 #include "log.h"
 #define BLOCK_SIZE	2048
+
 using namespace CatDB::Server;
+using namespace CatDB;
+using namespace CatDB::Sql;
+using CatDB::SqlDriver;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
 	m_read_cache(service.config().cache_size()),
 	m_write_cache(service.config().cache_size()),
-	m_server_service(service)
+	m_server_service(service),
+	cur_database("test")
 {
 	NetService::CallbackFunc func = std::bind(&RequestHandle::notify_socket,this, std::placeholders::_1, std::placeholders::_2);
 	if(m_server_service.m_net_service.register_io(m_fd, NetService::E_RW, func) < 0)
@@ -50,15 +69,14 @@ void RequestHandle::read_socket(int fd)
 	buffer.length = len;
 	buffer.data = data;
 	m_read_cache.write(buffer);
-	
-	Header head;
+
 	bool state = true;
 	while(state)
 	{
 		buffer.length = BLOCK_SIZE;
-		if(state=m_read_cache.read_package(head,buffer))
+		if(state=m_read_cache.read_package(buffer))
 		{
-			handle_request((unsigned char*)buffer.data, buffer.length);
+			handle_request(buffer.data, buffer.length);
 		}
 	}
 	//disconnect
@@ -103,10 +121,242 @@ void RequestHandle::close_connection()
 	m_fd = -1;
 }
 
-template <typename T>
-std::shared_ptr<T> make_shared_array(size_t size)
+u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 {
-    return std::shared_ptr<T>(new T[size], std::default_delete<T[]>());
+	int ret = SUCCESS;
+	int32_t pkt_len = 0;
+	int64_t len_pos = 0;
+	int64_t pos = 0;
+
+	uint64_t size = packet.get_serialize_size() + PACKET_HEADER_SIZE;
+	Common::Buffer_s buf = Common::Buffer::make_buffer(size);
+	char* buff = NULL;
+	buff = reinterpret_cast<char*>(buf->buf);
+	pos += 3;
+	Util::store_int1(buff, size, seq, pos);
+	ret = packet.serialize(buff, size, pos);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "serialize packet failed packet is %p ret is %d", packet, ret);
+	}
+	else
+	{
+		len_pos = 0;
+		// 写入包的长度
+		pkt_len = static_cast<int32_t>(pos - PACKET_HEADER_SIZE);
+		Util::store_int3(buff, size, pkt_len, len_pos);
+		if (!m_write_cache.write_package((const char*)buf->buf, pos))
+		{
+			Log(LOG_ERR, "RequestHandle", "RequestHandle write_cache full,drop response");
+		}
+	}
+	return ret;
+}
+
+u32 RequestHandle::send_ok_packet()
+{
+	int ret = SUCCESS;
+	OKPacket okpacket;
+	ret = post_packet(okpacket, ++seq);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "failed to send ok packet to mysql client ret is %d", ret);
+	}
+	return ret;
+}
+
+u32 RequestHandle::send_error_packet(u32 err_code, const String & msg)
+{
+	int ret = SUCCESS;
+	ErrorPacket epacket;
+	epacket.set_message(msg);
+	epacket.set_errcode(static_cast<int>( err_code ));
+	ret = post_packet(epacket, ++seq);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "failed to send error packet to mysql client ret is %d", ret);
+	}
+	return ret;
+}
+
+u32 RequestHandle::send_result_set(const Plan_s& plan)
+{
+	int ret = SUCCESS;
+	int64_t buffer_length = 0;
+	int64_t buffer_pos = 0;
+	u32 MAX_PACKET_LENGTH = 1024000;
+	Common::Buffer_s buf = Common::Buffer::make_buffer(MAX_PACKET_LENGTH);
+	char *data_buffer = reinterpret_cast<char *>(buf->buf);
+	buffer_length = MAX_PACKET_LENGTH;
+	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, plan)))
+	{
+		Log(LOG_WARN, "RequestHandle", "process resheasder packet failed ret is %d", ret);
+	}
+	else if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
+	{
+		Log(LOG_WARN, "RequestHandle", "process field packet failed ret is %d", ret);
+	}
+	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
+	{
+		Log(LOG_WARN, "RequestHandle", "process field eof packet failed ret is %d", ret);
+	}
+	else if (SUCCESS != (ret = process_row_packets(buf, buffer_pos, plan)))
+	{
+		Log(LOG_WARN, "RequestHandle", "process row packet failed ret is %d", ret);
+	}
+	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
+	{
+		Log(LOG_WARN, "RequestHandle", "process row eof packet failed ret is %d", ret);
+	}
+	if (SUCCESS == ret)
+	{
+		Log(LOG_INFO, "RequestHandle",  "send result set to client");
+		
+	}
+	return ret;
+}
+
+u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s& plan)
+{
+	int ret = SUCCESS;
+	ResheaderPacket header;
+	header.set_field_count(plan->get_result_title()->get_row_desc().get_column_num());
+	header.set_seq(static_cast<uint8_t>(seq+1));
+	ret = process_single_packet(buff, buff_pos, header);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "process resheader packet failed ret is %d", ret);
+	}
+	return ret;
+}
+
+u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+{
+	int ret = SUCCESS;
+	for (u32 i = 0; i < plan->get_result_title()->get_row_desc().get_column_num(); ++i)
+	{
+		Object_s cell;
+		plan->get_result_title()->get_cell(i, cell);
+		FieldPacket packet(cell->to_string());
+		packet.set_seq(seq + 1);
+		process_single_packet(buff, buff_pos, packet);
+	}
+	return ret;
+}
+
+u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+{
+	int ret = SUCCESS;
+	EofPacket eof;
+	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
+	eof.set_warning_count(0);
+	eof.set_seq(static_cast<uint8_t>(seq + 1));
+	eof.set_server_status(0);
+	ret = process_single_packet(buff, buff_pos, eof);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "process eof packet failed ret is %d", ret);
+	}
+	return ret;
+}
+
+u32 RequestHandle::process_row_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+{
+	int ret = SUCCESS;
+	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
+	for (u32 i = 0; i < query_result->size(); ++i)
+	{
+		Row_s row;
+		query_result->get_row(i, row);
+		RowPacket packet(row);
+		packet.set_seq(seq + 1);
+		process_single_packet(buff, buff_pos, packet);
+	}
+	return ret;
+}
+
+u32 RequestHandle::process_single_packet(Common::Buffer_s & buff, int64_t & buff_pos, Packet & packet)
+{
+	return post_packet(packet, ++seq);
+	int ret = SUCCESS;
+	int sret = SUCCESS;
+	ret = packet.encode( reinterpret_cast<char*>(buff->buf), buff->length, buff_pos);
+	if (SIZE_OVERFLOW == ret) //buff not enough to hold this packet
+	{
+		m_write_cache.write_package(reinterpret_cast<char*>(buff->buf), buff_pos);
+		//now we can reuse message buffer
+		buff_pos = 0;
+		ret = packet.encode(reinterpret_cast<char*>(buff->buf), buff->length, buff_pos);
+		++seq;
+	}
+	return ret;
+}
+
+u32 RequestHandle::do_not_support()
+{
+	int ret = SUCCESS;
+	ErrorPacket epacket;
+	const char * msg ="cmd not support yet.";
+	epacket.set_message(msg);
+	epacket.set_errcode(ERR_UNEXPECTED);
+	ret = post_packet(epacket, ++seq);
+	if (SUCCESS != ret)
+	{
+		Log(LOG_ERR, "RequestHandle", "failed to send error packet to mysql client ret is %d",ret);
+	}
+	return ret;
+}
+
+u32 RequestHandle::do_cmd_query(const String& query)
+{
+	SqlDriver parser;
+	Plan_s plan;
+
+	parser.set_global_database(cur_database);
+	int ret = parser.parse_sql(query);
+
+	if (parser.is_sys_error()) {
+		return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
+	}
+	else if (parser.is_syntax_error()) {
+		return send_error_packet(ERR_UNEXPECTED, parser.syntax_error());
+	}
+	else {
+		plan = Plan::make_plan(parser.parse_result());
+		u32 ret = plan->optimizer();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return send_error_packet(ERR_UNEXPECTED, result->to_string());
+			}
+			else {
+				return send_error_packet(ERR_UNEXPECTED, "unknown error");
+			}
+		}
+		ret = plan->build_plan();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return send_error_packet(ERR_UNEXPECTED, result->to_string());
+			}
+			else {
+				return send_error_packet(ERR_UNEXPECTED, "unknown error");
+			}
+		}
+		ret = plan->execute();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return send_error_packet(ERR_UNEXPECTED, result->to_string());
+			}
+			else {
+				return send_error_packet(ERR_UNEXPECTED, "unknown error");
+			}
+		}
+		else {
+			return send_result_set(plan);
+		}
+	}
 }
 
 void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len)
@@ -119,7 +369,36 @@ void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char>
 	}
 }
 
-void RequestHandle::handle_request(unsigned char* buf, size_t len)
+void RequestHandle::handle_request(char* buf, size_t len)
 {
-	
+	enum enum_server_command command;
+	command = (enum enum_server_command)(unsigned char)buf[0];
+	seq = 0;
+	switch (command)
+	{
+		case COM_INIT_DB:
+		{
+			String db(buf + 1, len - 1);
+			SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+			assert(checker);
+			u32 id;
+			u32 ret = checker->get_database_id(db, id);
+			if (ret != SUCCESS) {
+				send_error_packet(ret, "database not exists");
+			}
+			else {
+				cur_database = db;
+				send_ok_packet();
+			}
+			break;
+		}
+		case COM_QUERY:
+		{
+			String query(buf + 1, len - 1);
+			do_cmd_query(query);
+			break;
+		}
+		default:
+			do_not_support();
+	}
 }

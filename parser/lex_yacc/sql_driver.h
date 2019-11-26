@@ -15,6 +15,7 @@ namespace CatDB {
 		SqlScanner m_scanner;
 		std::stringstream query_stream;
 		Parser::Stmt_s result;
+		String global_database;
 		String syntax_error_;
 		String sys_error_;
 		
@@ -28,6 +29,8 @@ namespace CatDB {
 		String sys_error()const;
 		String syntax_error()const;
 		String error_position();
+		void set_global_database(const String& database);
+		const String& get_global_database();
 		void set_sys_error(const String& err);
 		void set_syntax_error(const String& err);
 		void set_lex_debug(bool debug);

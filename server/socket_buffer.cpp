@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "socket_buffer.h"
+#include "util.h"
 #define MAGIC	0xa2b3c4d5
 using namespace CatDB::Server;
 
@@ -188,49 +189,37 @@ inline unsigned int small_end_to_local(unsigned int n)
 bool BufferCache::write_package(const char* buffer, unsigned int len)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	Header head;
-	head.magic = MAGIC;
-	head.length = len;
 	Buffer buf;
-	buf.capacity = sizeof(head);
-	buf.length = sizeof(head);
-	buf.data = reinterpret_cast<char*>(&head);
-	if(write(buf) == 0)
-		return false;
-	
 	buf.capacity = len;
 	buf.length = len;
 	buf.data = (char*)buffer;
 	if(write(buf) == 0)
 		return false;
-	return true;
+	else
+		return true;
 }
 
-bool BufferCache::read_package(Header& head, Buffer& buffer)
+bool BufferCache::read_package(Buffer& buffer)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	
-	if(size() < sizeof(Header))
-		return false;
-	
+	char tmp[PACKET_HEADER_SIZE];
 	Buffer buf;
-	buf.capacity = sizeof(Header);
-	buf.length = sizeof(Header);
-	buf.data = (char*)&head;
+	buf.capacity = PACKET_HEADER_SIZE;
+	buf.length = PACKET_HEADER_SIZE;
+	buf.data = tmp;
 
 	have_a_look(buf);
-	if(head.magic != MAGIC)
-	{
-		return false;
-	}
-	if(size() < sizeof(Header)+head.length)
+	uint32_t packet_len = 0;
+	char* buf_pos = tmp;
+	Util::get_uint3(buf_pos, packet_len);
+	if(size() < packet_len + PACKET_HEADER_SIZE)
 		return false;
 
-	buffer_realloc(buffer, head.length);
+	buffer_realloc(buffer, packet_len);
 
-	buf.length = sizeof(Header);
+	buf.length = PACKET_HEADER_SIZE;
 	read(buf);
-	buffer.length = head.length;
+	buffer.length = packet_len;
 	read(buffer);
 	return true;
 }

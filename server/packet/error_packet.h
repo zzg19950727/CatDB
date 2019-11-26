@@ -31,15 +31,15 @@ namespace CatDB
 			/**
 			* set error code and sql state string.
 			*
-			* @note OB_ERROR shouldn't passing to this function for
+			* @note ERROR shouldn't passing to this function for
 			* hostorical reason.
 			*
 			* @note It will make a negation and truncate it from 4 bytes
 			* (int) to 2 bytes (uint16_t) for fitting msyql protocol.
 			*
-			* @param errcode oceanbase error code
+			* @param  error code
 			*/
-			int set_oberrcode(int errcode)
+			int set_errcode(int errcode)
 			{
 				errcode_ = static_cast<uint16_t>(-errcode);
 				return set_sqlstate(State::get_instance().get_jdbc_state(errcode));

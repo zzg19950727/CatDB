@@ -1152,7 +1152,7 @@ relation_factor:
 	relation_name
 	{
 		//构建表表达式
-		Stmt_s table = TableStmt::make_table_stmt(g_database, $1);
+		Stmt_s table = TableStmt::make_table_stmt(driver.get_global_database(), $1);
 		check(table);
 		$$ = table;
 	}

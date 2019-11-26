@@ -67,6 +67,16 @@ String CatDB::SqlDriver::error_position()
 	return msg;
 }
 
+void CatDB::SqlDriver::set_global_database(const String & database)
+{
+	global_database = database;
+}
+
+const String & CatDB::SqlDriver::get_global_database()
+{
+	return global_database;
+}
+
 void CatDB::SqlDriver::set_sys_error(const String & err)
 {
 	sys_error_ = error_position() + "\n" + err;

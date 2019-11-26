@@ -3,15 +3,6 @@
 #include <mutex>
 namespace CatDB {
 	namespace Server {
-		struct Header
-		{
-			int magic;
-			int length;
-			Header()
-				:length(0)
-			{}
-		};
-
 		struct Buffer
 		{
 			int capacity;
@@ -54,7 +45,7 @@ namespace CatDB {
 			BufferCache(int size);
 			~BufferCache();
 			bool write_package(const char* buf, unsigned int len);
-			bool read_package(Header& head, Buffer& buf);
+			bool read_package(Buffer& buf);
 		};
 	}
 }

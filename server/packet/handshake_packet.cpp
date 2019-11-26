@@ -8,8 +8,8 @@ using namespace CatDB::Server;
 HandshakePacket::HandshakePacket()
 {
 	protocol_version_ = 10;//Protocol::HandshakeV10
-	server_version_ = "5.5.1";
-	thread_id_ = 100;
+	server_version_ = "CatDB 0.4";
+	thread_id_ = 0;
 	memset(scramble_buff_, 'a', 8);
 	filler_ = 0;
 	//0xF7FF, 多个flag的组合，其中支持4.1 协议的flag置了1,

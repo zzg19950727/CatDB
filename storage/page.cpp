@@ -365,7 +365,7 @@ u32 Page::project_row(RowInfo * row_info, Row_s & row)const
 			return ERR_ROW_DESC;
 		}
 	}
-	row->set_alias_table_id(table_id);
+	//row->set_alias_table_id(table_id);
 	u32 id = row_info->row_id;
 	row->set_row_id(id);
 	Log(LOG_TRACE, "Page", "project row %u success", id);
