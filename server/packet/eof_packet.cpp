@@ -8,7 +8,7 @@ using namespace CatDB::Server;
 EofPacket::EofPacket()
 	:field_count_(0xfe),
 	warning_count_(0),
-	server_status_(0)
+	server_status_(0x0002)
 {
 
 }

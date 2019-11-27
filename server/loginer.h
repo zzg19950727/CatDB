@@ -56,7 +56,7 @@ namespace CatDB
 				String db_name_;
 				String auth_response_;
 			};
-			Loginer(int client_fd);
+			Loginer(int client_id, int client_fd);
 			~Loginer();
 			/**
 			* Perform handshake, authorize client
@@ -92,6 +92,7 @@ namespace CatDB
 			int read_data(int fd, char* buffer, size_t length);
 		private:
 			LoginInfo login_info_;
+			int client_id;
 			int client_fd;
 		};
 	}

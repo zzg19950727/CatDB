@@ -17,7 +17,7 @@ typedef int socklen_t;
 #endif	//_WIN32
 using namespace CatDB::Server;
 
-int CatDB::Server::start_listen(int port, int listen_n)
+int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
 {
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0)
@@ -29,7 +29,7 @@ int CatDB::Server::start_listen(int port, int listen_n)
 	struct sockaddr_in server_addr;
 	memset(&server_addr, 0, sizeof(struct sockaddr_in));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_addr.s_addr = inet_addr(ip);// htonl(INADDR_ANY);
 	server_addr.sin_port = htons(port);
 	if (bind(fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
 	{
@@ -55,12 +55,12 @@ int CatDB::Server::accept_connection(int fd)
 	return client_fd;
 }
 
-size_t CatDB::Server::net_read(int fd, char* buf, size_t len)\
+int CatDB::Server::net_read(int fd, char* buf, size_t len)\
 {
 	return read(fd, buf, len);
 }
 
-size_t CatDB::Server::net_write(int fd, char* buf, size_t len)
+int CatDB::Server::net_write(int fd, char* buf, size_t len)
 {
 	return write(fd, buf, len);
 }

@@ -11,21 +11,25 @@ namespace CatDB {
 		class ShowTablesStmt : public Stmt
 		{
 		private:
-			ShowTablesStmt();
+			ShowTablesStmt(const String& database);
 		public:
 			~ShowTablesStmt();
 			StmtType stmt_type()const;
-			static Stmt_s make_show_tables_stmt();
+			static Stmt_s make_show_tables_stmt(const String& database);
+		public:
+			String database;
 		};
 
 		class ShowDatabasesStmt : public Stmt
 		{
 		private:
-			ShowDatabasesStmt();
+			ShowDatabasesStmt(bool is_select_current_database);
 		public:
 			~ShowDatabasesStmt();
 			StmtType stmt_type()const;
-			static Stmt_s make_show_databases_stmt();
+			static Stmt_s make_show_databases_stmt(bool is_select_current_database);
+		public:
+			bool is_select_current_database;
 		};
 
 		class DescTableStmt : public Stmt
@@ -37,6 +41,7 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_desc_table_stmt();
 		public:
+			String database;
 			Stmt_s table;
 		};
 

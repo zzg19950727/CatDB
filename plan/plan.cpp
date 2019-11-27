@@ -11,6 +11,8 @@
 #include "object.h"
 #include "error.h"
 #include "log.h"
+
+using namespace CatDB::Server;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
@@ -97,4 +99,9 @@ void Plan::set_error_code(u32 code)
 PhyOperator_s Plan::get_root_operator()
 {
 	return root_operator;
+}
+
+void Plan::set_thd(RequestHandle_s & thd)
+{
+	this->thd = thd;
 }

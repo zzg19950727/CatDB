@@ -12,9 +12,10 @@ namespace CatDB {
 			String ip()const;
 			int port()const;
 			int max_client_count()const;
-			int worker_count()const;
-			int epoll_workers()const;
+			String data_dir()const;
+			String recycle_dir()const;
 			int cache_size()const;
+			int thread_pool_size()const;
 		private:
 			Config m_config;
 		};

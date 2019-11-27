@@ -45,7 +45,6 @@
 	using namespace CatDB;
 	using namespace CatDB::Parser;
 	using namespace CatDB::Common;
-	extern String g_database;
 }
 
 %{
@@ -207,6 +206,7 @@
 %token AS
 %token ASC
 %token BY
+%token COLUMNS
 %token CREATE
 %token DATETIME
 %token DATABASE
@@ -239,6 +239,19 @@
 %token VALUES
 %token VARCHAR
 %token WHERE
+%token TINYINT
+%token SMALLINT
+%token MEDIUMINT
+%token BIGINT
+%token DECIMAL
+%token NUMERIC_SYM
+%token REAL
+%token CHAR
+%token BINARY
+%token VARBINARY
+%token TIMESTAMP_SYM
+%token DATE
+%token TIME
 %token END 0
 
 %type<Stmt_s>		sql_stmt stmt select_stmt select_with_parens select_no_parens
@@ -252,7 +265,7 @@
 %type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt show_stmt
 %type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt analyze_stmt
 %type<Stmt_s>		create_stmt table_element_list table_element column_definition
-%type<std::string>	column_label database_name relation_name column_name function_name ident string datetime
+%type<std::string>	simple_function_expr column_label database_name relation_name column_name function_name ident string datetime
 %type<double>		number
 %start sql_stmt
 %%
@@ -342,6 +355,10 @@ select_no_parens:
 		//构建except二元表达式
 		make_binary_stmt($$, $1, $3, ExprStmt::OP_EXCEPT);
     }
+  | SELECT simple_function_expr
+	{
+		$$ = ShowDatabasesStmt::make_show_databases_stmt(true);
+	}
 	;
 
 opt_distinct:
@@ -406,7 +423,7 @@ opt_select_limit:
   | LIMIT limit_expr "," limit_expr
     {
 		//构建limit表达式
-		Stmt_s stmt = LimitStmt::make_limit_stmt($2, $4);
+		Stmt_s stmt = LimitStmt::make_limit_stmt($4, $2);
 		check(stmt);
 		$$ = stmt;
     }
@@ -822,14 +839,15 @@ func_expr:
 		aggr->aggr_expr = $3;
 		$$ = stmt;
     }
-  | function_name "(" ")"
-    {
-		//sys function
-		yyerror("system function %s not support yet", $1.c_str());
-		YYABORT;
-    }
   ;
 
+simple_function_expr:
+	DATABASE "(" ")"
+    {
+		$$ = "database";
+    }
+	;
+	
 distinct_or_all:
     ALL
     {
@@ -1017,22 +1035,65 @@ column_definition:
   ;
 
 data_type:
-    NUMBER
-    {
-		$$ = ColumnDefineStmt::NUMBER;
-    }
-  | DATETIME
-    { 
-		$$ = ColumnDefineStmt::DATETIME;
-	}
-  | VARCHAR
-    {
-		$$ = ColumnDefineStmt::VARCHAR;
-    }
+  TINYINT
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | SMALLINT
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | MEDIUMINT
+    { $$ = ColumnDefineStmt::NUMBER; }
   | INT
-	{
-		$$ = ColumnDefineStmt::INT;
-	}
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | BIGINT
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | DECIMAL opt_decimal
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | NUMERIC_SYM opt_decimal
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | BOOL
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | FLOAT opt_float
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | REAL
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | DOUBLE opt_decimal
+    { $$ = ColumnDefineStmt::NUMBER; }
+  | CHAR opt_char_length
+    { $$ = ColumnDefineStmt::VARCHAR; }
+  | BINARY opt_char_length
+    { $$ = ColumnDefineStmt::VARCHAR; }
+  | VARCHAR opt_char_length
+    { $$ = ColumnDefineStmt::VARCHAR; }
+  | VARBINARY opt_char_length
+    { $$ = ColumnDefineStmt::VARCHAR; }
+  | TIMESTAMP_SYM opt_time_precision
+    { $$ = ColumnDefineStmt::DATETIME; }
+  | DATETIME
+    { $$ = ColumnDefineStmt::DATETIME; }
+  | DATE
+    { $$ = ColumnDefineStmt::DATETIME; }
+  | TIME opt_time_precision
+    { $$ = ColumnDefineStmt::DATETIME; }
+  ;
+  
+opt_decimal:
+    "(" number "," number ")" 	{ }
+  | "(" number ")" 				{ }
+  | /*EMPTY*/ 					{ }
+  ;
+
+opt_float:
+    "(" number ")"    { }
+  | /*EMPTY*/         { }
+  ;
+
+opt_time_precision:
+    "(" number ")"    { }
+  | /*EMPTY*/         { }
+  ;
+
+opt_char_length:
+    "(" number ")"    { }
+  | /*EMPTY*/         { }
   ;
 
 /**************************************************************
@@ -1067,11 +1128,19 @@ data_type:
  show_stmt:
     SHOW DATABASES
     {
-		$$ = ShowDatabasesStmt::make_show_databases_stmt();
+		$$ = ShowDatabasesStmt::make_show_databases_stmt(false);
     }
 	| SHOW TABLES
 	{
-		$$ = ShowTablesStmt::make_show_tables_stmt();
+		$$ = ShowTablesStmt::make_show_tables_stmt(driver.get_global_database());
+	}
+	| SHOW COLUMNS FROM relation_factor
+	{
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = $4;
+		$$ = stmt;
 	}
   ;
  use_stmt:
@@ -1196,8 +1265,6 @@ datetime:
 string:
 	STRING 		{ $$ = $1; }
   ;	
-
-
 
 number:
 	NUMERIC		{ $$ = std::stod($1); }

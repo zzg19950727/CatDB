@@ -22,6 +22,8 @@ namespace CatDB {
 			u32 build_plan();
 			u32 optimizer();
 			PlanType type() const;
+		public:
+			String database;
 		};
 
 		class ShowDatabasesPlan : public Plan
@@ -35,6 +37,8 @@ namespace CatDB {
 			u32 build_plan();
 			u32 optimizer();
 			PlanType type() const;
+		private:
+			bool is_select_current_database;
 		};
 
 		class DescTablePlan : public Plan

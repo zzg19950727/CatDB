@@ -55,15 +55,18 @@ void RequestHandle::notify_socket(int fd, NetService::Event e)
 	else if(e == NetService::E_WRITE)
 		write_socket(fd);
 }
-
+#include <errno.h>
 void RequestHandle::read_socket(int fd)
 {
 	char data[BLOCK_SIZE];
-	size_t len = BLOCK_SIZE;
+	int len = BLOCK_SIZE;
 	
 	len = net_read(fd, data, len);
 	Log(LOG_TRACE, "RequestHandle", "RequestHandle::read_socket fd %d recv %zu bytes data",m_fd,len);
-
+	if (len < 0) {
+		close_connection();
+		return;
+	}
 	Buffer buffer;
 	buffer.capacity = BLOCK_SIZE;
 	buffer.length = len;
@@ -220,7 +223,12 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 {
 	int ret = SUCCESS;
 	ResheaderPacket header;
-	header.set_field_count(plan->get_result_title()->get_row_desc().get_column_num());
+	if (plan->get_result_title()) {
+		header.set_field_count(plan->get_result_title()->get_row_desc().get_column_num());
+	}
+	else {
+		header.set_field_count(0);
+	}
 	header.set_seq(static_cast<uint8_t>(seq+1));
 	ret = process_single_packet(buff, buff_pos, header);
 	if (SUCCESS != ret)
@@ -233,7 +241,11 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
 {
 	int ret = SUCCESS;
-	for (u32 i = 0; i < plan->get_result_title()->get_row_desc().get_column_num(); ++i)
+	u32 column_count = 0;
+	if (plan->get_result_title()) {
+		column_count = plan->get_result_title()->get_row_desc().get_column_num();
+	}
+	for (u32 i = 0; i < column_count; ++i)
 	{
 		Object_s cell;
 		plan->get_result_title()->get_cell(i, cell);
@@ -248,7 +260,6 @@ u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_p
 {
 	int ret = SUCCESS;
 	EofPacket eof;
-	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
 	eof.set_warning_count(0);
 	eof.set_seq(static_cast<uint8_t>(seq + 1));
 	eof.set_server_status(0);
@@ -264,7 +275,11 @@ u32 RequestHandle::process_row_packets(Common::Buffer_s & buff, int64_t & buff_p
 {
 	int ret = SUCCESS;
 	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
-	for (u32 i = 0; i < query_result->size(); ++i)
+	u32 row_size = 0;
+	if (query_result) {
+		row_size = query_result->size();
+	}
+	for (u32 i = 0; i < row_size; ++i)
 	{
 		Row_s row;
 		query_result->get_row(i, row);
@@ -323,6 +338,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 	}
 	else {
 		plan = Plan::make_plan(parser.parse_result());
+		plan->set_thd(m_self);
 		u32 ret = plan->optimizer();
 		if (ret != SUCCESS) {
 			Object_s result = plan->get_result();
@@ -354,7 +370,16 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			}
 		}
 		else {
-			return send_result_set(plan);
+			if (plan->type() == Plan::SELECT
+				|| plan->type() == Plan::ShowDatabases
+				|| plan->type() == Plan::ShowTables
+				|| plan->type() == Plan::DescTable) {
+				return send_result_set(plan);
+			}
+			else {
+				return send_ok_packet();
+			}
+			
 		}
 	}
 }

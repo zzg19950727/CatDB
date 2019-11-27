@@ -118,6 +118,10 @@ u32 SelectPlan::execute()
 
 u32 SelectPlan::build_plan()
 {
+	//如果是集合运算，则已经生成计划，直接返回
+	if (root_operator) {
+		return SUCCESS;
+	}
 	for (u32 i = 0; i < subquerys.size(); ++i) {
 		subquerys[i]->build_plan();
 	}
@@ -204,7 +208,8 @@ u32 SelectPlan::optimizer()
 		}
 		else if (expr->expr_stmt_type() == ExprStmt::Binary) {
 			//生成交、并、补计划
-			return_result(make_set_plan(root_operator));
+			u32 ret = make_set_plan(root_operator);
+			return_result(ret);
 		}
 		else {
 			Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
@@ -1951,12 +1956,20 @@ u32 SelectPlan::make_set_plan(PhyOperator_s & op)
 	if (!first_plan) {
 		return ret;
 	}
+	ret = first_plan->optimizer();
+	if (ret != SUCCESS) {
+		return ret;
+	}
 	ret = first_plan->build_plan();
 	if (ret != SUCCESS) {
 		return ret;
 	}
 	second_plan = SelectPlan::make_select_plan(binary_stmt->second_expr_stmt);
 	if (!second_plan) {
+		return ret;
+	}
+	ret = second_plan->optimizer();
+	if (ret != SUCCESS) {
 		return ret;
 	}
 	ret = second_plan->build_plan();
@@ -2000,5 +2013,7 @@ u32 SelectPlan::make_set_plan(PhyOperator_s & op)
 	default:
 		break;
 	}
+	select_list = first_select->select_list;
+	select_list_name = first_select->select_list_name;
 	return ret;
 }

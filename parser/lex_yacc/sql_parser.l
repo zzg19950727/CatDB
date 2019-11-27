@@ -60,10 +60,11 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "as"			{ return CatDB::SqlParser::make_AS(loc); }
 "asc"			{ return CatDB::SqlParser::make_ASC(loc); }
 "by"			{ return CatDB::SqlParser::make_BY(loc); }
+"columns"		{ return CatDB::SqlParser::make_COLUMNS(loc); }
 "create"		{ return CatDB::SqlParser::make_CREATE(loc); }
 "database"		{ return CatDB::SqlParser::make_DATABASE(loc); }
 "databases"		{ return CatDB::SqlParser::make_DATABASES(loc); }
-"date"			{ return CatDB::SqlParser::make_DATETIME(loc); }
+"date"			{ return CatDB::SqlParser::make_DATE(loc); }
 "datetime"		{ return CatDB::SqlParser::make_DATETIME(loc); }
 "delete"		{ return CatDB::SqlParser::make_DELETE(loc); }
 "desc"			{ return CatDB::SqlParser::make_DESC(loc); }
@@ -93,6 +94,18 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "values"		{ return CatDB::SqlParser::make_VALUES(loc); }
 "varchar"		{ return CatDB::SqlParser::make_VARCHAR(loc); }
 "where"			{ return CatDB::SqlParser::make_WHERE(loc); }
+"tinyint"		{ return CatDB::SqlParser::make_TINYINT(loc); }
+"smallint"		{ return CatDB::SqlParser::make_SMALLINT(loc); }
+"mediumint"		{ return CatDB::SqlParser::make_MEDIUMINT(loc); }
+"bigint"		{ return CatDB::SqlParser::make_BIGINT(loc); }
+"decimal"		{ return CatDB::SqlParser::make_DECIMAL(loc); }
+"numeric"		{ return CatDB::SqlParser::make_NUMERIC_SYM(loc); }
+"real"			{ return CatDB::SqlParser::make_REAL(loc); }
+"char"			{ return CatDB::SqlParser::make_CHAR(loc); }
+"binary"		{ return CatDB::SqlParser::make_BINARY(loc); }
+"varbinary"		{ return CatDB::SqlParser::make_VARBINARY(loc); }
+"timestamp"		{ return CatDB::SqlParser::make_TIMESTAMP_SYM(loc); }
+"time"			{ return CatDB::SqlParser::make_TIME(loc); }
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
 ","				{ return CatDB::SqlParser::make_COMMA(loc); }
@@ -102,8 +115,8 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "-"				{ return CatDB::SqlParser::make_MINUS(loc); }
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
-
 \"				{parse_str.clear();BEGIN(beg_str);}
+
 <beg_str>\"         {
 						BEGIN(INITIAL);
 						return CatDB::SqlParser::make_STRING(parse_str,loc);

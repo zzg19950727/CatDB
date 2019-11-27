@@ -49,20 +49,23 @@ int ServerServiceConfig::cache_size()const
 		return std::stoi(size);
 }
 
-int ServerServiceConfig::worker_count()const
+int ServerServiceConfig::thread_pool_size() const
 {
-	String count = m_config.value("worker_count");
-	if(count.empty() || std::stoi(count)<=0)
-		return 600;
+	String thread_pool_size = m_config.value("thread_pool_size");
+	if (thread_pool_size.empty() || std::stoi(thread_pool_size) <= 0)
+		return 1234;
 	else
-		return std::stoi(count);
+		return std::stoi(thread_pool_size);
 }
 
-int ServerServiceConfig::epoll_workers()const
+String ServerServiceConfig::data_dir()const
 {
-	String count = m_config.value("epoll_workers");
-	if(count.empty() || std::stoi(count)<=0)
-		return 40;
-	else
-		return std::stoi(count);
+	String dir = m_config.value("data_dir");
+	return dir;
+}
+
+String ServerServiceConfig::recycle_dir()const
+{
+	String dir = m_config.value("recycle_dir");
+	return dir;
 }

@@ -20,8 +20,9 @@ Loginer::LoginInfo::LoginInfo()
 	, user_name_(), db_name_(), auth_response_()
 {
 }
-Loginer::Loginer(int client_fd)
+Loginer::Loginer(int client_id, int client_fd)
 	: login_info_(),
+	client_id(client_id),
 	client_fd(client_fd)
 {
 
@@ -64,9 +65,7 @@ int Loginer::handshake()
 	int ret = SUCCESS;
 	HandshakePacket packet;
 
-	//int32_t length = packet.get_serialize_size();
-	//length += MYSQL_PACKET_HEADER_SIZE;
-
+	packet.set_thread_id(client_id);
 	Buffer_s buffer = Buffer::make_buffer(MAX_LEN);
 	int64_t pos = 0;
 	ret = packet.serialize((char*)buffer->buf, buffer->length, pos);

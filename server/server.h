@@ -31,6 +31,7 @@ namespace CatDB {
 			
 			int m_fd;
 			int m_clients;
+			int m_thread_id;
 
 			friend class RequestHandle;
 		};

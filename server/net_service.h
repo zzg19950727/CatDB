@@ -10,10 +10,10 @@
 
 namespace CatDB {
 	namespace Server {
-		int start_listen(int port, int listen_n);
+		int start_listen(const char* ip, int port, int listen_n);
 		int accept_connection(int fd);
-		size_t net_read(int fd, char* buf, size_t len);
-		size_t net_write(int fd, char* buf, size_t len);
+		int net_read(int fd, char* buf, size_t len);
+		int net_write(int fd, char* buf, size_t len);
 		void net_close(int fd);
 		class NetService
 		{

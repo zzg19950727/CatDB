@@ -46,9 +46,10 @@ namespace CatDB {
 			ServerService& m_server_service;
 			BufferCache m_read_cache;
 			BufferCache m_write_cache;
-			String cur_database;
 			int seq;
 			int m_fd;
+		public:
+			String cur_database;
 		};
 	}
 }

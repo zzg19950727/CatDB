@@ -27,7 +27,7 @@ void Config::read_file(const char* path)
 	if (!file.is_open())
 		return ;
 
-	std::regex regex("[\\s]*([a-zA-Z0-9_]+)[\\s]*[=][\\s]*([a-zA-Z0-9_\.]+)[\\s]*");
+	std::regex regex("[\\s]*([a-zA-Z0-9_]+)[\\s]*[=][\\s]*([a-zA-Z0-9_\./:]+)[\\s]*");
 	while (!file.eof())
 	{
 		String config;

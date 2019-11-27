@@ -53,6 +53,9 @@ bool CatDB::Storage::IoService::is_open() const
 
 u32 IoService::read_page(Page_s & page)
 {
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 	u32 offset = page->page_offset();
 	u32 size = page->page_size();
 	const Buffer_s& buffer = page->page_buffer();
@@ -86,6 +89,9 @@ u32 IoService::write_page(const Page_s & page)
 
 u32 IoService::write_page(const Page * page)
 {
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 	u32 offset = page->page_offset();
 	u32 size = page->page_size();
 	const Buffer_s& buffer = page->page_buffer();
@@ -111,6 +117,9 @@ u32 IoService::write_page(const Page * page)
 
 u32 IoService::end_offset(u32& offset)
 {
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 	fseek(file_handle, 0, SEEK_END);
 	fpos_t size;
 	fgetpos(file_handle, &size);
@@ -130,6 +139,9 @@ void IoService::close()
 
 bool IoService::eof() const
 {
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 	return feof(file_handle) != 0;
 }
 

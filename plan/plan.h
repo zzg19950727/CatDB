@@ -10,12 +10,16 @@ namespace CatDB {
 		DECLARE(Row);
 		DECLARE(Object);
 	}
+	namespace Server {
+		DECLARE(RequestHandle);
+	}
 	namespace Sql {
 		DECLARE(Plan);
 		DECLARE(PhyOperator);
 		using Parser::Stmt_s;
 		using Common::Row_s;
 		using Common::Object_s;
+		using Server::RequestHandle_s;
 
 		class Plan
 		{
@@ -55,11 +59,13 @@ namespace CatDB {
 			virtual PlanType type() const = 0;
 			void set_error_code(u32 code);
 			PhyOperator_s get_root_operator();
+			void set_thd(RequestHandle_s& thd);
 		protected:
 			Stmt_s lex_stmt;
 			Object_s result;
 			Row_s result_title;
 			PhyOperator_s root_operator;
+			RequestHandle_s thd;
 			u32 affect_rows_;
 		};
 	}

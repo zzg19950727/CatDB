@@ -44,6 +44,10 @@ namespace CatDB {
 			u32 get_table_id()const;
 			void reset_all_page();
 
+		public:
+			static String data_dir;
+			static String recycle_dir;
+
 		private:
 			//保证page有序析构
 			List<Page_s> pages_copy;
@@ -53,6 +57,7 @@ namespace CatDB {
 			IoService_s io;
 			u32 cur_page_offset;
 			u32 alias_table_id;
+		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)
 		};

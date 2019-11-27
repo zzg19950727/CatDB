@@ -1,18 +1,22 @@
 #include "request_handle.h"
+#include "table_space.h"
 #include "loginer.h"
 #include "server.h"
 #include "error.h"
 #include "log.h"
 
 using namespace CatDB::Server;
+using namespace CatDB::Storage;
 
 ServerService::ServerService(const String& config)
 	:m_config(config.c_str()),
-	m_net_service(m_config.max_client_count()),
-	m_workers(m_config.worker_count()),
-	m_clients(0)
+	m_net_service(0),
+	m_workers(m_config.thread_pool_size()),
+	m_clients(0),
+	m_thread_id(0)
 {
-	
+	TableSpace::data_dir = m_config.data_dir();
+	TableSpace::recycle_dir = m_config.recycle_dir();
 }
 
 ServerService::~ServerService()
@@ -22,7 +26,7 @@ ServerService::~ServerService()
 
 int ServerService::run()
 {
-	m_fd = start_listen(m_config.port(), m_config.max_client_count());
+	m_fd = start_listen(m_config.ip().c_str(), m_config.port(), m_config.max_client_count());
 	if (m_fd > 0)
 	{
 		NetService::CallbackFunc func = std::bind(&ServerService::new_connection, this, std::placeholders::_1, std::placeholders::_2);
@@ -53,11 +57,12 @@ void ServerService::new_connection(int fd, NetService::Event e)
 			net_close(client_fd);
 			return;
 		}
-		Loginer loginer(client_fd);
+		Loginer loginer(m_thread_id, client_fd);
 		if (loginer.login() == SUCCESS) {
 			auto ptr = std::make_shared<RequestHandle>(client_fd, *this);
 			ptr->set_delete_handle(ptr);
 			++m_clients;
+			++m_thread_id;
 		}
 		else {
 			Log(LOG_WARN, "ServerService", "login failed");

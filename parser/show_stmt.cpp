@@ -1,7 +1,8 @@
 #include "show_stmt.h"
 using namespace CatDB::Parser;
 
-ShowTablesStmt::ShowTablesStmt()
+ShowTablesStmt::ShowTablesStmt(const String& database)
+	:database(database)
 {
 }
 
@@ -14,17 +15,19 @@ Stmt::StmtType ShowTablesStmt::stmt_type() const
 	return Stmt::ShowTables;
 }
 
-Stmt_s ShowTablesStmt::make_show_tables_stmt()
+Stmt_s ShowTablesStmt::make_show_tables_stmt(const String& database)
 {
-	return Stmt_s(new ShowTablesStmt());
+	return Stmt_s(new ShowTablesStmt(database));
 }
 
-ShowDatabasesStmt::ShowDatabasesStmt()
+ShowDatabasesStmt::ShowDatabasesStmt(bool is_select_current_database)
+	:is_select_current_database(is_select_current_database)
 {
 }
 
 ShowDatabasesStmt::~ShowDatabasesStmt()
 {
+
 }
 
 Stmt::StmtType ShowDatabasesStmt::stmt_type() const
@@ -32,9 +35,9 @@ Stmt::StmtType ShowDatabasesStmt::stmt_type() const
 	return Stmt::ShowDatabases;
 }
 
-Stmt_s ShowDatabasesStmt::make_show_databases_stmt()
+Stmt_s ShowDatabasesStmt::make_show_databases_stmt(bool is_select_current_database)
 {
-	return Stmt_s(new ShowDatabasesStmt());
+	return Stmt_s(new ShowDatabasesStmt(is_select_current_database));
 }
 
 DescTableStmt::DescTableStmt()

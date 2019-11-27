@@ -1,4 +1,5 @@
 #include "schema_checker.h"
+#include "request_handle.h"
 #include "query_result.h"
 #include "show_plan.h"
 #include "show_stmt.h"
@@ -11,7 +12,7 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
-String g_database = "test";
+using namespace CatDB::Server;
 
 ShowTablesPlan::ShowTablesPlan()
 {
@@ -35,7 +36,7 @@ u32 ShowTablesPlan::execute()
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	Vector<String> tables;
-	u32 ret = checker->show_tables(g_database, tables);
+	u32 ret = checker->show_tables(database, tables);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;
@@ -46,7 +47,8 @@ u32 ShowTablesPlan::execute()
 	}
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	result_title = Row::make_row(row_desc);
-	Object_s table = Varchar::make_object("table");
+	String title = String("tables_in_") + database;
+	Object_s table = Varchar::make_object(title);
 	result_title->set_cell(0, table);
 	for (u32 i = 0; i < tables.size(); ++i) {
 		Row_s row = Row::make_row(row_desc);
@@ -66,6 +68,8 @@ u32 ShowTablesPlan::build_plan()
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
+	ShowTablesStmt* lex = dynamic_cast<ShowTablesStmt*>(lex_stmt.get());
+	database = lex->database;
 	set_error_code(SUCCESS);
 	return SUCCESS;
 }
@@ -81,6 +85,7 @@ Plan::PlanType ShowTablesPlan::type() const
 }
 
 ShowDatabasesPlan::ShowDatabasesPlan()
+	:is_select_current_database(false)
 {
 
 }
@@ -113,14 +118,23 @@ u32 ShowDatabasesPlan::execute()
 	}
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	result_title = Row::make_row(row_desc);
-	Object_s database = Varchar::make_object("database");
-	result_title->set_cell(0, database);
-
-	for (u32 i = 0; i < databases.size(); ++i) {
+	if (is_select_current_database) {
+		Object_s database = Varchar::make_object("database()");
+		result_title->set_cell(0, database);
 		Row_s row = Row::make_row(row_desc);
-		Object_s database = Varchar::make_object(databases[i]);
+		database = Varchar::make_object(thd->cur_database);
 		row->set_cell(0, database);
 		query_result->add_row(row);
+	}
+	else {
+		Object_s database = Varchar::make_object("database");
+		result_title->set_cell(0, database);
+		for (u32 i = 0; i < databases.size(); ++i) {
+			Row_s row = Row::make_row(row_desc);
+			Object_s database = Varchar::make_object(databases[i]);
+			row->set_cell(0, database);
+			query_result->add_row(row);
+		}
 	}
 	set_error_code(SUCCESS);
 	return SUCCESS;
@@ -134,6 +148,8 @@ u32 ShowDatabasesPlan::build_plan()
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
+	ShowDatabasesStmt* lex = dynamic_cast<ShowDatabasesStmt*>(lex_stmt.get());
+	is_select_current_database = lex->is_select_current_database;
 	return SUCCESS;
 }
 
@@ -164,6 +180,16 @@ Plan_s DescTablePlan::make_desc_table_plan(const Stmt_s& lex_show_stmt)
 	return Plan_s(plan);
 }
 
+String change_to_mysql_type(const String& type)
+{
+	if (type == "number") {
+		return "double";
+	}
+	else {
+		return type;
+	}
+}
+
 u32 DescTablePlan::execute()
 {
 	if (database.empty() || table.empty()) {
@@ -178,23 +204,39 @@ u32 DescTablePlan::execute()
 		set_error_code(ret);
 		return ret;
 	}
-	RowDesc row_desc(2);
+	RowDesc row_desc(6);
 	if (!result) {
 		result = QueryResult::make_query_result();
 	}
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
 	result_title = Row::make_row(row_desc);
-	Object_s name = Varchar::make_object("column_name");
+	Object_s name = Varchar::make_object("Field");
 	result_title->set_cell(0, name);
 	Object_s type = Varchar::make_object("type");
 	result_title->set_cell(1, type);
+	Object_s Null = Varchar::make_object("Null");
+	result_title->set_cell(2, Null);
+	Object_s key = Varchar::make_object("Key");
+	result_title->set_cell(3, key);
+	Object_s Default = Varchar::make_object("Default");
+	result_title->set_cell(4, Default);
+	Object_s extra = Varchar::make_object("Extra");
+	result_title->set_cell(5, extra);
 	
 	for (u32 i = 0; i < columns.size(); ++i) {
 		Row_s row = Row::make_row(row_desc);
-		Object_s name = Varchar::make_object(columns[i].first);
+		Object_s name = Varchar::make_object( change_to_mysql_type(columns[i].first) );
 		row->set_cell(0, name);
-		Object_s type = Varchar::make_object(columns[i].second);
+		Object_s type = Varchar::make_object( change_to_mysql_type(columns[i].second) );
 		row->set_cell(1, type);
+		Object_s Null = Varchar::make_object("YES");
+		row->set_cell(2, Null);
+		Object_s key = Varchar::make_object("");
+		row->set_cell(3, key);
+		Object_s Default = Varchar::make_object("NULL");
+		row->set_cell(4, Default);
+		Object_s extra = Varchar::make_object("");
+		row->set_cell(5, extra);
 		query_result->add_row(row);
 	}
 	set_error_code(SUCCESS);
@@ -264,7 +306,7 @@ u32 UseDatabasePlan::execute()
 		set_error_code(ret);
 		return ret;
 	}
-	g_database = database;
+	thd->cur_database = database;
 	set_error_code(SUCCESS);
 	return SUCCESS;
 }
