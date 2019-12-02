@@ -3,7 +3,7 @@
 
 int main()
 {
-	CatDB::Server::ServerService service("catdb.conf1");
+	CatDB::Server::ServerService service("catdb.conf");
 	service.run();
 	return 0;
 }

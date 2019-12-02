@@ -2,6 +2,7 @@
 #define REQUEST_HANDLE_H
 #include "socket_buffer.h"
 #include "net_service.h"
+#include "loginer.h"
 #include "packet.h"
 #include <memory>
 #include <string>
@@ -21,6 +22,7 @@ namespace CatDB {
 			RequestHandle(int fd, ServerService& service);
 			~RequestHandle();
 			void set_delete_handle(std::shared_ptr<RequestHandle>& self);
+			void set_login_info(const Loginer::LoginInfo& info);
 
 		private:
 			void notify_socket(int fd, NetService::Event e);
@@ -46,6 +48,7 @@ namespace CatDB {
 			ServerService& m_server_service;
 			BufferCache m_read_cache;
 			BufferCache m_write_cache;
+			Loginer::LoginInfo login_info;
 			int seq;
 			int m_fd;
 		public:

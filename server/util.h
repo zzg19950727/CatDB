@@ -428,7 +428,7 @@ namespace CatDB{
 		int Util::get_map(u32 type, const TypeMap *&map)
 		{
 			int ret = SUCCESS;
-			if (type <= T_MIN_TYPE || type >= T_MAX_TYPE)
+			if (type >= T_MAX_TYPE)
 			{
 				ret = OBJ_TYPE_ERROR;
 			}

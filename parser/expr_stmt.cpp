@@ -90,6 +90,7 @@ String ColumnStmt::to_string() const
 
 TableStmt::TableStmt()
 	:join_type(0),
+	select_rows(0),
 	is_tmp_table(false)
 {
 }

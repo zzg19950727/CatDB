@@ -46,6 +46,10 @@ namespace CatDB {
 
 			//收集统计信息
 			u32 analyze_table(const String& database, const String& table);
+			u32 statis_table_row_count(const String& database, const String& table);
+			u32 statis_column_ndv(const String& database, const String& table_name, const String& column_name);
+			u32 statis_column_max_value(const String& database, const String& table_name, const String& column_name);
+			u32 statis_column_min_value(const String& database, const String& table_name, const String& column_name);
 
 		private:
 			//获取最后一个数据库的ID

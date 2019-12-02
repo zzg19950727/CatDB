@@ -60,6 +60,11 @@ int Loginer::login()
 	return ret;
 }
 
+const Loginer::LoginInfo & Loginer::get_login_info() const
+{
+	return login_info_;
+}
+
 int Loginer::handshake()
 {
 	int ret = SUCCESS;

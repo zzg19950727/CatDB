@@ -35,6 +35,7 @@ using namespace CatDB::Parser;
 
 SelectPlan::SelectPlan()
 	:resolve_select_list_or_having(0),
+	select_rows(0),
 	alias_table_id(0),
 	is_distinct(false),
 	is_sort_query_result(false),
@@ -331,6 +332,15 @@ bool SelectPlan::is_simple_scalar_group() const
 bool SelectPlan::is_correlated_query() const
 {
 	return !ref_parent_table_list.empty();
+}
+
+u32 SelectPlan::get_select_rows()
+{
+	if (select_rows > 0) {
+		return select_rows;
+	}
+	//cal selectivity
+	return select_rows;
 }
 
 /*

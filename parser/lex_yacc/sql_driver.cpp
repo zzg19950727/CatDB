@@ -1,4 +1,4 @@
-#include "sql_driver.h"
+﻿#include "sql_driver.h"
 using namespace CatDB;
 
 SqlDriver::SqlDriver():
@@ -27,7 +27,7 @@ int CatDB::SqlDriver::parse_sql(const String & sql)
 			query[i] = ' ';
 	}
 	query_stream.clear();
-	query_stream << query;
+	query_stream << query; 
 	//m_parser.set_debug_level(1);
 	//m_scanner.set_debug(1);
 	m_scanner.switch_streams(&query_stream, 0);
@@ -56,15 +56,14 @@ String CatDB::SqlDriver::syntax_error() const
 
 String CatDB::SqlDriver::error_position()
 {
-	String msg = "(<==parse error!!!) ";
+	String msg[] = { "(—_—?)", "(๑•_•๑)", "(￣ε(#￣)", "(⊙ˍ⊙)", "╮(╯▽╰)╭","(°ʖ°)✧" };
 	auto pos = query_stream.tellg();
 	String sql;
 	std::getline(query_stream, sql);
 	query_stream.clear();
 	query_stream.seekp(pos);
-	query_stream << msg << sql;
-	msg = query_stream.str();
-	return msg;
+	query_stream << msg[rand()%6] << " " << sql;
+	return query_stream.str();
 }
 
 void CatDB::SqlDriver::set_global_database(const String & database)

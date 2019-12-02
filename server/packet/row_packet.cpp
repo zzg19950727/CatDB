@@ -49,7 +49,7 @@ int RowPacket::cell_str(const Object_s & obj, char * buf, const int64_t len, int
 		break;
 	default:
 		Log(LOG_WARN, "RowPacket", "invalid ob type=%d", obj->get_type());
-		ret = ERR_UNEXPECTED;
+		Util::store_obstr(buf, len, obj->to_string(), pos);
 		break;
 	}
 	return ret;

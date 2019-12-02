@@ -28,6 +28,9 @@ Plan::~Plan()
 
 Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 {
+	if (!lex_stmt) {
+		return Plan_s();
+	}
 	switch (lex_stmt->stmt_type())
 	{
 	case Stmt::Insert:

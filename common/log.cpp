@@ -4,6 +4,7 @@
 #include <string>
 #include <chrono>
 #include <cstdarg>
+#include "type.h"
 #include "log.h"
 #define LOG_SET		LOG_ERR
 
@@ -164,14 +165,33 @@ LogStream & LogStream::operator()(int log_level, const std::string & module)
 
 LogStream ostream;
 
+String put_time(time_t t)
+{
+	char tmp[255];
+	tm* time = localtime(&t);
+	if (time == NULL)
+	{
+		return "";
+	}
+	sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
+		time->tm_year + 1900,
+		time->tm_mon + 1,
+		time->tm_mday + 1,
+		time->tm_hour,
+		time->tm_min,
+		time->tm_sec
+	);
+	return String(tmp);
+}
+
 bool LogStream::print_info(const char * file, int line, const char * function)
 {
 	if (log_level > LOG_SET)
 		return false;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	*os << std::put_time(std::localtime(&t), "%F %T ");
+	*os << put_time(t);
 	*os << function;
-	//*os << file << "," << line << "," << function;
+	*os << file << "," << line << "," << function;
 	if (log_level == LOG_ERR)
 		*os << " [ERR][" << module << "] ";
 	else if (log_level == LOG_WARN)

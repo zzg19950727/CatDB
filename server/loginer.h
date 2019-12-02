@@ -64,6 +64,7 @@ namespace CatDB
 			*
 			*/
 			int login();
+			const LoginInfo& get_login_info()const;
 
 		private:
 			/**

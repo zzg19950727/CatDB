@@ -48,6 +48,12 @@ void RequestHandle::set_delete_handle(std::shared_ptr<RequestHandle>& self)
 	m_self.swap(self);
 }
 
+void RequestHandle::set_login_info(const Loginer::LoginInfo & info)
+{
+	login_info = info;
+	cur_database = info.db_name_;
+}
+
 void RequestHandle::notify_socket(int fd, NetService::Event e)
 {
 	if(e == NetService::E_READ)
@@ -55,7 +61,7 @@ void RequestHandle::notify_socket(int fd, NetService::Event e)
 	else if(e == NetService::E_WRITE)
 		write_socket(fd);
 }
-#include <errno.h>
+
 void RequestHandle::read_socket(int fd)
 {
 	char data[BLOCK_SIZE];
@@ -241,15 +247,32 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
 {
 	int ret = SUCCESS;
+	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
+	u32 row_size = 0;
+	Row_s row;
+	if (query_result) {
+		row_size = query_result->size();
+	}
+	if(row_size){
+		query_result->get_row(0, row);
+	}
 	u32 column_count = 0;
 	if (plan->get_result_title()) {
 		column_count = plan->get_result_title()->get_row_desc().get_column_num();
 	}
-	for (u32 i = 0; i < column_count; ++i)
-	{
+	for (u32 i = 0; i < column_count; ++i){
 		Object_s cell;
 		plan->get_result_title()->get_cell(i, cell);
 		FieldPacket packet(cell->to_string());
+		if (row) {
+			row->get_cell(i, cell);
+			if (cell->is_null()) {
+				packet.set_type(T_NULL);
+			}
+			else {
+				packet.set_type(cell->get_type());
+			}
+		}
 		packet.set_seq(seq + 1);
 		process_single_packet(buff, buff_pos, packet);
 	}
@@ -331,12 +354,17 @@ u32 RequestHandle::do_cmd_query(const String& query)
 	int ret = parser.parse_sql(query);
 
 	if (parser.is_sys_error()) {
+		return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
 	}
 	else if (parser.is_syntax_error()) {
+		return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.syntax_error());
 	}
-	else {
+	else if (!parser.parse_result()) {
+		return send_ok_packet();
+	}
+	else{
 		plan = Plan::make_plan(parser.parse_result());
 		plan->set_thd(m_self);
 		u32 ret = plan->optimizer();

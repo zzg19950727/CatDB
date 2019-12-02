@@ -1,12 +1,18 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
-#include <io.h>
 #include "IoService.h"
 #include "buffer.h"
 #include "error.h"
 #include "page.h"
 #include "log.h"
 
+#ifdef _WIN32
+#define SET_FILE_POS(fpos, u64_v)	(fpos) = (u64_v);
+#define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos);
+#else
+#define SET_FILE_POS(fpos, u64_v)	(fpos.__pos) = (u64_v);
+#define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos.__pos);
+#endif	//_WIN32
 using namespace CatDB::Storage;
 
 IoService::IoService()
@@ -59,15 +65,10 @@ u32 IoService::read_page(Page_s & page)
 	u32 offset = page->page_offset();
 	u32 size = page->page_size();
 	const Buffer_s& buffer = page->page_buffer();
-	//如果在文件已经读取到结尾时，fstream的对象会将内部的eof state置位，
-	//这时使用seekg（）函数不能将该状态去除，需要使用clear（）
-	/*最大只能支持4G，用fsetpos替换
-	offset = offset << 14;
-	if (fseek(file_handle, offset, SEEK_SET) != 0){
-		Log(LOG_ERR, "IoService", "set offset %u error when read page!", offset);
-		return UNKNOWN_PAGE_OFFSET;
-	}*/
-	fpos_t real_offset = get_real_page_offset(offset);
+	
+	u64 value = get_real_page_offset(offset);
+	fpos_t real_offset;
+	SET_FILE_POS(real_offset, value);
 	if (fsetpos(file_handle, &real_offset) != 0) {
 		Log(LOG_ERR, "IoService", "set offset error when read page!");
 		return UNKNOWN_PAGE_OFFSET;
@@ -95,13 +96,9 @@ u32 IoService::write_page(const Page * page)
 	u32 offset = page->page_offset();
 	u32 size = page->page_size();
 	const Buffer_s& buffer = page->page_buffer();
-	/*最大只能支持4G，用fsetpos替换
-	offset <<= 14;
-	if (fseek(file_handle, offset, SEEK_SET) != 0){
-		Log(LOG_ERR, "IoService", "set offset %u error when write page!", offset);
-		return UNKNOWN_PAGE_OFFSET;
-	}*/
-	fpos_t real_offset = get_real_page_offset(offset);
+	u64 value = get_real_page_offset(offset);
+	fpos_t real_offset;
+	SET_FILE_POS(real_offset, value);
 	if (fsetpos(file_handle, &real_offset) != 0) {
 		Log(LOG_ERR, "IoService", "set offset error when write page!");
 		return UNKNOWN_PAGE_OFFSET;
@@ -121,8 +118,10 @@ u32 IoService::end_offset(u32& offset)
 		return TABLE_FILE_NOT_EXISTS;
 	}
 	fseek(file_handle, 0, SEEK_END);
-	fpos_t size;
-	fgetpos(file_handle, &size);
+	fpos_t pos;
+	fgetpos(file_handle, &pos);
+	u64 size = 0;
+	GET_FILE_POS(size, pos);
 	if (size >= PAGE_SIZE){
 		offset = get_virtual_page_offset(size - PAGE_SIZE);
 		return SUCCESS;
@@ -140,7 +139,7 @@ void IoService::close()
 bool IoService::eof() const
 {
 	if (!file_handle) {
-		return TABLE_FILE_NOT_EXISTS;
+		return true;
 	}
 	return feof(file_handle) != 0;
 }
@@ -175,9 +174,11 @@ u64 IoService::get_file_size(const String & table_file)
 	}
 	else {
 		fseek(fp, 0, SEEK_END);
-		fpos_t size;
-		fgetpos(fp, &size);
+		fpos_t pos;
+		fgetpos(fp, &pos);
 		fclose(fp);
+		u64 size = 0;
+		GET_FILE_POS(size, pos);
 		return size;
 	}
 }

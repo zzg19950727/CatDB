@@ -223,6 +223,7 @@
 %token FROM
 %token GROUP
 %token HAVING
+%token INDEX
 %token INSERT
 %token INT
 %token INTO
@@ -232,6 +233,7 @@
 %token SELECT
 %token SET
 %token SHOW
+%token STATUS
 %token TABLE
 %token TABLES
 %token UPDATE
@@ -265,7 +267,7 @@
 %type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt show_stmt
 %type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt analyze_stmt
 %type<Stmt_s>		create_stmt table_element_list table_element column_definition
-%type<std::string>	simple_function_expr column_label database_name relation_name column_name function_name ident string datetime
+%type<std::string>	op_from_database simple_function_expr column_label database_name relation_name column_name function_name ident string datetime
 %type<double>		number
 %start sql_stmt
 %%
@@ -1130,9 +1132,9 @@ opt_char_length:
     {
 		$$ = ShowDatabasesStmt::make_show_databases_stmt(false);
     }
-	| SHOW TABLES
+	| SHOW TABLES op_from_database
 	{
-		$$ = ShowTablesStmt::make_show_tables_stmt(driver.get_global_database());
+		$$ = ShowTablesStmt::make_show_tables_stmt($3);
 	}
 	| SHOW COLUMNS FROM relation_factor
 	{
@@ -1142,7 +1144,25 @@ opt_char_length:
 		desc_table_stmt->table = $4;
 		$$ = stmt;
 	}
+	| SHOW INDEX FROM relation_factor
+	{
+		$$ = NULL;
+	}
+	| SHOW STATUS
+	{
+		$$ = NULL;
+	}
   ;
+ 
+op_from_database:
+	FROM database_name
+	{
+		$$ = $2;
+	}
+	|/*EMPTY*/
+	{
+		$$ = driver.get_global_database();
+	}
  use_stmt:
 	USING database_name
 	{

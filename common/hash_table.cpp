@@ -1,6 +1,6 @@
 ﻿#include "hash_table.h"
 #include "expression.h"
-#include "Object.h"
+#include "object.h"
 #include "error.h"
 #include "row.h"
 #include "log.h"

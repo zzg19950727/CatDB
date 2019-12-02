@@ -54,6 +54,7 @@ namespace CatDB {
 			void reset_for_correlated_subquery(const Row_s& row);
 			bool is_simple_scalar_group()const;
 			bool is_correlated_query()const;
+			u32 get_select_rows();
 
 		private:
 			/*第一个pair指定join的两张表，第二个pair指定join condition和join equal condition
@@ -180,6 +181,8 @@ namespace CatDB {
 			u32 resolve_select_list_or_having;
 			//查询生成的临时表ID
 			u32 alias_table_id;
+			//预测返回的行数
+			u32 select_rows;
 			//当前是否是在解析where子句，用于判断是否能引用外部查询列
 			bool is_resolve_where;
 			//查询列是否去重
