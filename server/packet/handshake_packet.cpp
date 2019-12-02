@@ -1,5 +1,5 @@
 #include "handshake_packet.h"
-#include "../util.h"
+#include "util.h"
 #include "error.h"
 #include "log.h"
 

@@ -1,7 +1,7 @@
 %skeleton "lalr1.cc"
 //声明命名空间
 %define api.namespace {CatDB} 
-%define api.parser.class { SqlParser }
+//%define api.parser.class { SqlParser }
 %define api.token.constructor
 //使得类型与token定义可以使用各种复杂的结构与类型
 %define api.value.type variant 
@@ -10,7 +10,8 @@
 %defines
 %code requires
 {
-	# define YYDEBUG 1
+	#define YYDEBUG 1
+	#define SqlParser parser 
 	#include "stmt.h"
 	#include "type.h"
 	/*避免包含头文件时冲突*/

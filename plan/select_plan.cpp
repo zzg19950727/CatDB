@@ -1862,7 +1862,8 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 			op = plan->get_root_operator();
 		}
 		else {
-			op = PlanFilter::make_plan_filter(plan->get_root_operator(), filter);
+			PhyOperator_s op = plan->get_root_operator();
+			op = PlanFilter::make_plan_filter(op, filter);
 		}
 	}
 	else {
@@ -1994,29 +1995,32 @@ u32 SelectPlan::make_set_plan(PhyOperator_s & op)
 	if (first_row_desc.get_column_num() != second_row_desc.get_column_num()) {
 		return SET_ROW_DESC_ERROR;
 	}
+
+	PhyOperator_s first_op = first_plan->get_root_operator();
+	PhyOperator_s second_op = second_plan->get_root_operator();
 	switch (binary_stmt->op_type)
 	{
 	case ExprStmt::OP_UNION:
 	{
-		root_operator = HashUnion::make_hash_union(first_plan->get_root_operator(), second_plan->get_root_operator());
+		root_operator = HashUnion::make_hash_union(first_op, second_op);
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_UNION_ALL:
 	{
-		root_operator = UnionAll::make_union_all(first_plan->get_root_operator(), second_plan->get_root_operator());
+		root_operator = UnionAll::make_union_all(first_op, second_op);
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_EXCEPT:
 	{
-		root_operator = HashExcept::make_hash_except(first_plan->get_root_operator(), second_plan->get_root_operator());
+		root_operator = HashExcept::make_hash_except(first_op, second_op);
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_INTERSECT:
 	{
-		root_operator = HashIntersect::make_hash_intersect(first_plan->get_root_operator(), second_plan->get_root_operator());
+		root_operator = HashIntersect::make_hash_intersect(first_op, second_op);
 		ret = SUCCESS;
 		break;
 	}

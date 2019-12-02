@@ -32,7 +32,7 @@
 
 
 /**
- ** \file sql_parser.hpp
+ ** \file D:/CatDB/parser/lex_yacc/sql_parser.hpp
  ** Define the CatDB::parser class.
  */
 
@@ -41,12 +41,13 @@
 // Undocumented macros, especially those whose name start with YY_,
 // are private implementation details.  Do not rely on them.
 
-#ifndef YY_YY_SQL_PARSER_HPP_INCLUDED
-# define YY_YY_SQL_PARSER_HPP_INCLUDED
+#ifndef YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
+# define YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
-#line 12 "sql_parser.y"
+#line 12 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 
-	# define YYDEBUG 1
+	#define YYDEBUG 1
+	#define SqlParser parser 
 	#include "stmt.h"
 	#include "type.h"
 	/*避免包含头文件时冲突*/
@@ -56,7 +57,7 @@
 	}
 	using namespace CatDB::Parser;
 
-#line 60 "sql_parser.hpp"
+#line 61 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -170,15 +171,15 @@
 # define YYDEBUG 0
 #endif
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 namespace CatDB {
-#line 176 "sql_parser.hpp"
+#line 177 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
 
 
 
 
   /// A Bison parser.
-  class  SqlParser 
+  class parser
   {
   public:
 #ifndef YYSTYPE
@@ -408,11 +409,15 @@ namespace CatDB {
       // delete_stmt
       // explain_stmt
       // explainable_stmt
-      // create_table_stmt
+      // create_stmt
       // table_element_list
       // table_element
       // column_definition
-      // drop_table_stmt
+      // drop_stmt
+      // show_stmt
+      // use_stmt
+      // desc_stmt
+      // analyze_stmt
       // relation_factor
       char dummy1[sizeof (Stmt_s)];
 
@@ -429,16 +434,19 @@ namespace CatDB {
       char dummy4[sizeof (int)];
 
       // STRING
+      // IDENT
       // NUMERIC
       // TIMESTAMP
+      // simple_function_expr
+      // op_from_database
       // database_name
       // relation_name
       // column_name
       // function_name
       // column_label
       // ident
-      // string
       // datetime
+      // string
       char dummy5[sizeof (std::string)];
     };
 
@@ -516,47 +524,66 @@ namespace CatDB {
         TOKEN_COMMA = 283,
         TOKEN_PERIOD = 284,
         TOKEN_SEMICOLON = 285,
-        TOKEN_AP = 286,
-        TOKEN_DQ = 287,
-        TOKEN_STRING = 288,
-        TOKEN_NUMERIC = 289,
-        TOKEN_TIMESTAMP = 290,
-        TOKEN_FALSE = 291,
-        TOKEN_TRUE = 292,
+        TOKEN_STRING = 286,
+        TOKEN_IDENT = 287,
+        TOKEN_NUMERIC = 288,
+        TOKEN_TIMESTAMP = 289,
+        TOKEN_FALSE = 290,
+        TOKEN_TRUE = 291,
+        TOKEN_ANALYZE = 292,
         TOKEN_ANY = 293,
         TOKEN_ALL = 294,
         TOKEN_AS = 295,
         TOKEN_ASC = 296,
         TOKEN_BY = 297,
-        TOKEN_CREATE = 298,
-        TOKEN_DATETIME = 299,
-        TOKEN_DELETE = 300,
-        TOKEN_DESC = 301,
-        TOKEN_DESCRIBE = 302,
-        TOKEN_DISTINCT = 303,
-        TOKEN_DOUBLE = 304,
-        TOKEN_DROP = 305,
-        TOKEN_EXISTS = 306,
-        TOKEN_EXPLAIN = 307,
-        TOKEN_FLOAT = 308,
-        TOKEN_FROM = 309,
-        TOKEN_GROUP = 310,
-        TOKEN_HAVING = 311,
-        TOKEN_INSERT = 312,
-        TOKEN_INTO = 313,
-        TOKEN_LIMIT = 314,
-        TOKEN_NUMBER = 315,
-        TOKEN_ORDER = 316,
-        TOKEN_SELECT = 317,
-        TOKEN_SET = 318,
-        TOKEN_SHOW = 319,
-        TOKEN_TABLE = 320,
-        TOKEN_TABLES = 321,
-        TOKEN_UPDATE = 322,
-        TOKEN_USING = 323,
-        TOKEN_VALUES = 324,
-        TOKEN_VARCHAR = 325,
-        TOKEN_WHERE = 326
+        TOKEN_COLUMNS = 298,
+        TOKEN_CREATE = 299,
+        TOKEN_DATETIME = 300,
+        TOKEN_DATABASE = 301,
+        TOKEN_DATABASES = 302,
+        TOKEN_DELETE = 303,
+        TOKEN_DESC = 304,
+        TOKEN_DESCRIBE = 305,
+        TOKEN_DISTINCT = 306,
+        TOKEN_DOUBLE = 307,
+        TOKEN_DROP = 308,
+        TOKEN_EXISTS = 309,
+        TOKEN_EXPLAIN = 310,
+        TOKEN_FLOAT = 311,
+        TOKEN_FROM = 312,
+        TOKEN_GROUP = 313,
+        TOKEN_HAVING = 314,
+        TOKEN_INDEX = 315,
+        TOKEN_INSERT = 316,
+        TOKEN_INT = 317,
+        TOKEN_INTO = 318,
+        TOKEN_LIMIT = 319,
+        TOKEN_NUMBER = 320,
+        TOKEN_ORDER = 321,
+        TOKEN_SELECT = 322,
+        TOKEN_SET = 323,
+        TOKEN_SHOW = 324,
+        TOKEN_STATUS = 325,
+        TOKEN_TABLE = 326,
+        TOKEN_TABLES = 327,
+        TOKEN_UPDATE = 328,
+        TOKEN_USING = 329,
+        TOKEN_VALUES = 330,
+        TOKEN_VARCHAR = 331,
+        TOKEN_WHERE = 332,
+        TOKEN_TINYINT = 333,
+        TOKEN_SMALLINT = 334,
+        TOKEN_MEDIUMINT = 335,
+        TOKEN_BIGINT = 336,
+        TOKEN_DECIMAL = 337,
+        TOKEN_NUMERIC_SYM = 338,
+        TOKEN_REAL = 339,
+        TOKEN_CHAR = 340,
+        TOKEN_BINARY = 341,
+        TOKEN_VARBINARY = 342,
+        TOKEN_TIMESTAMP_SYM = 343,
+        TOKEN_DATE = 344,
+        TOKEN_TIME = 345
       };
     };
 
@@ -698,73 +725,80 @@ namespace CatDB {
         // Type destructor.
 switch (yytype)
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.template destroy< Stmt_s > ();
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.template destroy< bool > ();
         break;
 
-      case 125: // number
+      case 154: // number
         value.template destroy< double > ();
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.template destroy< int > ();
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.template destroy< std::string > ();
         break;
 
@@ -847,33 +881,33 @@ switch (yytype)
       symbol_type (int tok, location_type l)
         : super_type(token_type (tok), std::move (l))
       {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_AP || tok == token::TOKEN_DQ || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INSERT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == 44);
+        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
       }
 #else
       symbol_type (int tok, const location_type& l)
         : super_type(token_type (tok), l)
       {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_AP || tok == token::TOKEN_DQ || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INSERT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == 44);
+        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
       symbol_type (int tok, std::string v, location_type l)
         : super_type(token_type (tok), std::move (v), std::move (l))
       {
-        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
+        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_IDENT || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
       }
 #else
       symbol_type (int tok, const std::string& v, const location_type& l)
         : super_type(token_type (tok), v, l)
       {
-        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
+        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_IDENT || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
       }
 #endif
     };
 
     /// Build a parser object.
-     SqlParser  (CatDB::SqlScanner& scanner_yyarg, CatDB::SqlDriver& driver_yyarg);
-    virtual ~ SqlParser  ();
+    parser (CatDB::SqlScanner& scanner_yyarg, CatDB::SqlDriver& driver_yyarg);
+    virtual ~parser ();
 
     /// Parse.  An alias for parse ().
     /// \returns  0 iff parsing succeeded.
@@ -1344,36 +1378,6 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_AP (location_type l)
-      {
-        return symbol_type (token::TOKEN_AP, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_AP (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_AP, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DQ (location_type l)
-      {
-        return symbol_type (token::TOKEN_DQ, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DQ (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DQ, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
       make_STRING (std::string v, location_type l)
       {
         return symbol_type (token::TOKEN_STRING, std::move (v), std::move (l));
@@ -1384,6 +1388,21 @@ switch (yytype)
       make_STRING (const std::string& v, const location_type& l)
       {
         return symbol_type (token::TOKEN_STRING, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_IDENT (std::string v, location_type l)
+      {
+        return symbol_type (token::TOKEN_IDENT, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_IDENT (const std::string& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_IDENT, v, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1444,6 +1463,21 @@ switch (yytype)
       make_TRUE (const location_type& l)
       {
         return symbol_type (token::TOKEN_TRUE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ANALYZE (location_type l)
+      {
+        return symbol_type (token::TOKEN_ANALYZE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ANALYZE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_ANALYZE, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1524,6 +1558,21 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_COLUMNS (location_type l)
+      {
+        return symbol_type (token::TOKEN_COLUMNS, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_COLUMNS (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_COLUMNS, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_CREATE (location_type l)
       {
         return symbol_type (token::TOKEN_CREATE, std::move (l));
@@ -1549,6 +1598,36 @@ switch (yytype)
       make_DATETIME (const location_type& l)
       {
         return symbol_type (token::TOKEN_DATETIME, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DATABASE (location_type l)
+      {
+        return symbol_type (token::TOKEN_DATABASE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DATABASE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DATABASE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DATABASES (location_type l)
+      {
+        return symbol_type (token::TOKEN_DATABASES, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DATABASES (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DATABASES, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1734,6 +1813,21 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_INDEX (location_type l)
+      {
+        return symbol_type (token::TOKEN_INDEX, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_INDEX (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_INDEX, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_INSERT (location_type l)
       {
         return symbol_type (token::TOKEN_INSERT, std::move (l));
@@ -1744,6 +1838,21 @@ switch (yytype)
       make_INSERT (const location_type& l)
       {
         return symbol_type (token::TOKEN_INSERT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_INT (location_type l)
+      {
+        return symbol_type (token::TOKEN_INT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_INT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_INT, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1854,6 +1963,21 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_STATUS (location_type l)
+      {
+        return symbol_type (token::TOKEN_STATUS, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_STATUS (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_STATUS, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_TABLE (location_type l)
       {
         return symbol_type (token::TOKEN_TABLE, std::move (l));
@@ -1956,12 +2080,207 @@ switch (yytype)
         return symbol_type (token::TOKEN_WHERE, l);
       }
 #endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_TINYINT (location_type l)
+      {
+        return symbol_type (token::TOKEN_TINYINT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_TINYINT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_TINYINT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_SMALLINT (location_type l)
+      {
+        return symbol_type (token::TOKEN_SMALLINT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_SMALLINT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_SMALLINT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_MEDIUMINT (location_type l)
+      {
+        return symbol_type (token::TOKEN_MEDIUMINT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_MEDIUMINT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_MEDIUMINT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_BIGINT (location_type l)
+      {
+        return symbol_type (token::TOKEN_BIGINT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_BIGINT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_BIGINT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DECIMAL (location_type l)
+      {
+        return symbol_type (token::TOKEN_DECIMAL, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DECIMAL (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DECIMAL, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_NUMERIC_SYM (location_type l)
+      {
+        return symbol_type (token::TOKEN_NUMERIC_SYM, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_NUMERIC_SYM (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_NUMERIC_SYM, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_REAL (location_type l)
+      {
+        return symbol_type (token::TOKEN_REAL, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_REAL (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_REAL, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_CHAR (location_type l)
+      {
+        return symbol_type (token::TOKEN_CHAR, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_CHAR (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_CHAR, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_BINARY (location_type l)
+      {
+        return symbol_type (token::TOKEN_BINARY, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_BINARY (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_BINARY, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_VARBINARY (location_type l)
+      {
+        return symbol_type (token::TOKEN_VARBINARY, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_VARBINARY (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_VARBINARY, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_TIMESTAMP_SYM (location_type l)
+      {
+        return symbol_type (token::TOKEN_TIMESTAMP_SYM, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_TIMESTAMP_SYM (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_TIMESTAMP_SYM, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DATE (location_type l)
+      {
+        return symbol_type (token::TOKEN_DATE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DATE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DATE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_TIME (location_type l)
+      {
+        return symbol_type (token::TOKEN_TIME, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_TIME (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_TIME, l);
+      }
+#endif
 
 
   private:
     /// This class is not copyable.
-     SqlParser  (const  SqlParser &);
-     SqlParser & operator= (const  SqlParser &);
+    parser (const parser&);
+    parser& operator= (const parser&);
 
     /// State numbers.
     typedef int state_type;
@@ -2262,12 +2581,12 @@ switch (yytype)
     enum
     {
       yyeof_ = 0,
-      yylast_ = 520,     ///< Last index in yytable_.
-      yynnts_ = 53,  ///< Number of nonterminal symbols.
-      yyfinal_ = 37, ///< Termination state number.
+      yylast_ = 615,     ///< Last index in yytable_.
+      yynnts_ = 63,  ///< Number of nonterminal symbols.
+      yyfinal_ = 60, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 73  ///< Number of tokens.
+      yyntokens_ = 92  ///< Number of tokens.
     };
 
 
@@ -2277,8 +2596,8 @@ switch (yytype)
   };
 
   inline
-   SqlParser ::token_number_type
-   SqlParser ::yytranslate_ (token_type t)
+  parser::token_number_type
+  parser::yytranslate_ (token_type t)
   {
     // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
     // TOKEN-NUM as returned by yylex.
@@ -2290,7 +2609,7 @@ switch (yytype)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    72,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    91,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -2318,9 +2637,11 @@ switch (yytype)
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
       55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    68,    69,    70,    71
+      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90
     };
-    const unsigned user_token_number_max_ = 326;
+    const unsigned user_token_number_max_ = 345;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int> (t) <= yyeof_)
@@ -2334,80 +2655,87 @@ switch (yytype)
   // basic_symbol.
 #if 201103L <= YY_CPLUSPLUS
   template <typename Base>
-   SqlParser ::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
+  parser::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
     : Base (std::move (that))
     , value ()
     , location (std::move (that.location))
   {
     switch (this->type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.move< Stmt_s > (std::move (that.value));
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.move< bool > (std::move (that.value));
         break;
 
-      case 125: // number
+      case 154: // number
         value.move< double > (std::move (that.value));
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.move< int > (std::move (that.value));
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -2419,80 +2747,87 @@ switch (yytype)
 #endif
 
   template <typename Base>
-   SqlParser ::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
+  parser::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
     : Base (that)
     , value ()
     , location (that.location)
   {
     switch (this->type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.copy< Stmt_s > (YY_MOVE (that.value));
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.copy< bool > (YY_MOVE (that.value));
         break;
 
-      case 125: // number
+      case 154: // number
         value.copy< double > (YY_MOVE (that.value));
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.copy< int > (YY_MOVE (that.value));
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -2506,85 +2841,92 @@ switch (yytype)
 
   template <typename Base>
   bool
-   SqlParser ::basic_symbol<Base>::empty () const YY_NOEXCEPT
+  parser::basic_symbol<Base>::empty () const YY_NOEXCEPT
   {
     return Base::type_get () == empty_symbol;
   }
 
   template <typename Base>
   void
-   SqlParser ::basic_symbol<Base>::move (basic_symbol& s)
+  parser::basic_symbol<Base>::move (basic_symbol& s)
   {
     super_type::move (s);
     switch (this->type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.move< Stmt_s > (YY_MOVE (s.value));
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.move< bool > (YY_MOVE (s.value));
         break;
 
-      case 125: // number
+      case 154: // number
         value.move< double > (YY_MOVE (s.value));
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.move< int > (YY_MOVE (s.value));
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -2597,13 +2939,13 @@ switch (yytype)
 
   // by_type.
   inline
-   SqlParser ::by_type::by_type ()
+  parser::by_type::by_type ()
     : type (empty_symbol)
   {}
 
 #if 201103L <= YY_CPLUSPLUS
   inline
-   SqlParser ::by_type::by_type (by_type&& that)
+  parser::by_type::by_type (by_type&& that)
     : type (that.type)
   {
     that.clear ();
@@ -2611,25 +2953,25 @@ switch (yytype)
 #endif
 
   inline
-   SqlParser ::by_type::by_type (const by_type& that)
+  parser::by_type::by_type (const by_type& that)
     : type (that.type)
   {}
 
   inline
-   SqlParser ::by_type::by_type (token_type t)
+  parser::by_type::by_type (token_type t)
     : type (yytranslate_ (t))
   {}
 
   inline
   void
-   SqlParser ::by_type::clear ()
+  parser::by_type::clear ()
   {
     type = empty_symbol;
   }
 
   inline
   void
-   SqlParser ::by_type::move (by_type& that)
+  parser::by_type::move (by_type& that)
   {
     type = that.type;
     that.clear ();
@@ -2637,14 +2979,14 @@ switch (yytype)
 
   inline
   int
-   SqlParser ::by_type::type_get () const YY_NOEXCEPT
+  parser::by_type::type_get () const YY_NOEXCEPT
   {
     return type;
   }
 
   inline
-   SqlParser ::token_type
-   SqlParser ::by_type::token () const YY_NOEXCEPT
+  parser::token_type
+  parser::by_type::token () const YY_NOEXCEPT
   {
     // YYTOKNUM[NUM] -- (External) token number corresponding to the
     // (internal) symbol number NUM (which must be that of a token).  */
@@ -2659,17 +3001,19 @@ switch (yytype)
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
      305,   306,   307,   308,   309,   310,   311,   312,   313,   314,
      315,   316,   317,   318,   319,   320,   321,   322,   323,   324,
-     325,   326,    44
+     325,   326,   327,   328,   329,   330,   331,   332,   333,   334,
+     335,   336,   337,   338,   339,   340,   341,   342,   343,   344,
+     345,    44
     };
     return token_type (yytoken_number_[type]);
   }
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 2670 "sql_parser.hpp"
+#line 3014 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
 
 
 
 
 
-#endif // !YY_YY_SQL_PARSER_HPP_INCLUDED
+#endif // !YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED

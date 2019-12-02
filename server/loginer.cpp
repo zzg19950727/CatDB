@@ -208,7 +208,7 @@ int Loginer::write_data(int fd, char* buffer, size_t length)
 				}
 				else
 				{
-					ret = ERROR;
+					ret = ERR_UNEXPECTED;
 					Log(LOG_WARN, "Loginer", "write data faild, errno is %d, errstr is %s", errno, strerror(errno));
 				}
 

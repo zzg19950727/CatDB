@@ -134,6 +134,7 @@ u32 IoService::end_offset(u32& offset)
 void IoService::close()
 {
 	fclose(file_handle);
+	file_handle = 0;
 }
 
 bool IoService::eof() const

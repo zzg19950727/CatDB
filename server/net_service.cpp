@@ -92,7 +92,7 @@ void NetService::poll()
 	{
 		fd_set revent = read_events;
 		fd_set wevent = write_events;
-		int state = select(0, &revent, &wevent, 0, 0);
+		int state = select(1024, &revent, &wevent, 0, 0);
 		if(state == -1)
 		{
 			Log(LOG_ERR, "NetService", "NetService poll error:%d", errno);
@@ -102,14 +102,14 @@ void NetService::poll()
 		{
 			continue;
 		}
-		for (unsigned int i = 0; i < read_events.fd_count; i++) {
-			if (FD_ISSET(read_events.fd_array[i], &revent)) {
-				response_event(read_events.fd_array[i], E_READ);
+		for (auto iter = read_fds.cbegin(); iter != read_fds.cend(); ++iter) {
+			if (FD_ISSET(*iter, &revent)) {
+				response_event(*iter, E_READ);
 			}
 		}
-		for (unsigned int i = 0; i < write_events.fd_count; i++) {
-			if (FD_ISSET(write_events.fd_array[i], &wevent)) {
-				response_event(write_events.fd_array[i], E_WRITE);
+		for (auto iter = write_fds.cbegin(); iter != write_fds.cend(); ++iter) {
+			if (FD_ISSET(*iter, &wevent)) {
+				response_event(*iter, E_WRITE);
 			}
 		}
 	}
@@ -167,13 +167,17 @@ int NetService::add_event(int fd, Event e)
 {
 	if (e == E_READ) {
 		FD_SET(fd, &read_events);
+		read_fds.insert(fd);
 	}
 	else if (e == E_WRITE) {
 		FD_SET(fd, &write_events);
+		write_fds.insert(fd);
 	}
 	else {
 		FD_SET(fd, &read_events);
+		read_fds.insert(fd);
 		FD_SET(fd, &write_events);
+		write_fds.insert(fd);
 	}
 	return SUCCESS;
 }
@@ -182,33 +186,25 @@ int NetService::remove_event(int fd, Event e)
 {
 	if (e == E_READ) {
 		FD_CLR(fd, &read_events);
+		read_fds.erase(fd);
 	}
 	else if (e == E_WRITE) {
 		FD_CLR(fd, &write_events);
+		write_fds.erase(fd);
 	}
 	else {
 		FD_CLR(fd, &read_events);
+		read_fds.erase(fd);
 		FD_CLR(fd, &write_events);
+		write_fds.erase(fd);
 	}
 	return SUCCESS;
 }
 
 int NetService::modify_event(int fd, Event e)
 {
-	if (e == E_READ) {
-		FD_CLR(fd, &read_events);
-		FD_SET(fd, &read_events);
-	}
-	else if (e == E_WRITE) {
-		FD_CLR(fd, &write_events);
-		FD_SET(fd, &write_events);
-	}
-	else {
-		FD_CLR(fd, &read_events);
-		FD_SET(fd, &read_events);
-		FD_CLR(fd, &write_events);
-		FD_SET(fd, &write_events);
-	}
+	remove_event(fd, E_RW);
+	add_event(fd, e);
 	return SUCCESS;
 }
 

@@ -34,7 +34,7 @@
 // are private implementation details.  Do not rely on them.
 
 // //                    "%code top" blocks.
-#line 25 "sql_parser.y"
+#line 26 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 
 	#include "sql_parser.hpp"
 	#include "sql_scanner.h"
@@ -44,8 +44,9 @@
 	#include "insert_stmt.h"
 	#include "update_stmt.h"
 	#include "delete_stmt.h"
-	#include "create_table_stmt.h"
-	#include "drop_table_stmt.h"
+	#include "create_stmt.h"
+	#include "drop_stmt.h"
+	#include "show_stmt.h"
 	#include "expr_stmt.h"
 	#include "object.h"
 	
@@ -58,17 +59,17 @@
 	using namespace CatDB::Parser;
 	using namespace CatDB::Common;
 
-#line 62 "sql_parser.cpp"
+#line 63 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
 
 // First part of user prologue.
-#line 49 "sql_parser.y"
+#line 51 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 
 	
 #define yyerror(fmt, ...) \
 { \
 	char tmp[255]; \
-	sprintf(tmp, fmt, __VA_ARGS__); \
+	sprintf(tmp, fmt, ##__VA_ARGS__); \
 	driver.set_sys_error(tmp); \
 }
  
@@ -140,8 +141,18 @@
 	ternary->second_expr_stmt = stmt2; \
 	ternary->third_expr_stmt = stmt3; \
 	ternary->op_type = op;
+	
+#define str_to_lower(str) \
+	{\
+		for(u32 i = 0; i<str.size(); ++i){\
+			if(str[i] >= 'A' && str[i] <= 'Z'){\
+				str[i] -= 'A';\
+				str[i] += 'a';\
+			}\
+		}\
+	}
 
-#line 145 "sql_parser.cpp"
+#line 156 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
 
 #include "sql_parser.hpp"
@@ -239,9 +250,9 @@
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 namespace CatDB {
-#line 245 "sql_parser.cpp"
+#line 256 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -250,7 +261,7 @@ namespace CatDB {
      apostrophe, a comma, or backslash (other than backslash-backslash).
      YYSTR is taken from yytname.  */
   std::string
-   SqlParser ::yytnamerr_ (const char *yystr)
+  parser::yytnamerr_ (const char *yystr)
   {
     if (*yystr == '"')
       {
@@ -286,7 +297,7 @@ namespace CatDB {
 
 
   /// Build a parser object.
-   SqlParser :: SqlParser  (CatDB::SqlScanner& scanner_yyarg, CatDB::SqlDriver& driver_yyarg)
+  parser::parser (CatDB::SqlScanner& scanner_yyarg, CatDB::SqlDriver& driver_yyarg)
     :
 #if YYDEBUG
       yydebug_ (false),
@@ -296,10 +307,10 @@ namespace CatDB {
       driver (driver_yyarg)
   {}
 
-   SqlParser ::~ SqlParser  ()
+  parser::~parser ()
   {}
 
-   SqlParser ::syntax_error::~syntax_error () YY_NOEXCEPT YY_NOTHROW
+  parser::syntax_error::~syntax_error () YY_NOEXCEPT YY_NOTHROW
   {}
 
   /*---------------.
@@ -309,33 +320,33 @@ namespace CatDB {
 
 
   // by_state.
-   SqlParser ::by_state::by_state () YY_NOEXCEPT
+  parser::by_state::by_state () YY_NOEXCEPT
     : state (empty_state)
   {}
 
-   SqlParser ::by_state::by_state (const by_state& that) YY_NOEXCEPT
+  parser::by_state::by_state (const by_state& that) YY_NOEXCEPT
     : state (that.state)
   {}
 
   void
-   SqlParser ::by_state::clear () YY_NOEXCEPT
+  parser::by_state::clear () YY_NOEXCEPT
   {
     state = empty_state;
   }
 
   void
-   SqlParser ::by_state::move (by_state& that)
+  parser::by_state::move (by_state& that)
   {
     state = that.state;
     that.clear ();
   }
 
-   SqlParser ::by_state::by_state (state_type s) YY_NOEXCEPT
+  parser::by_state::by_state (state_type s) YY_NOEXCEPT
     : state (s)
   {}
 
-   SqlParser ::symbol_number_type
-   SqlParser ::by_state::type_get () const YY_NOEXCEPT
+  parser::symbol_number_type
+  parser::by_state::type_get () const YY_NOEXCEPT
   {
     if (state == empty_state)
       return empty_symbol;
@@ -343,81 +354,88 @@ namespace CatDB {
       return yystos_[state];
   }
 
-   SqlParser ::stack_symbol_type::stack_symbol_type ()
+  parser::stack_symbol_type::stack_symbol_type ()
   {}
 
-   SqlParser ::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
+  parser::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
     : super_type (YY_MOVE (that.state), YY_MOVE (that.location))
   {
     switch (that.type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.YY_MOVE_OR_COPY< Stmt_s > (YY_MOVE (that.value));
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.YY_MOVE_OR_COPY< bool > (YY_MOVE (that.value));
         break;
 
-      case 125: // number
+      case 154: // number
         value.YY_MOVE_OR_COPY< double > (YY_MOVE (that.value));
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.YY_MOVE_OR_COPY< int > (YY_MOVE (that.value));
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.YY_MOVE_OR_COPY< std::string > (YY_MOVE (that.value));
         break;
 
@@ -431,78 +449,85 @@ namespace CatDB {
 #endif
   }
 
-   SqlParser ::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
+  parser::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
     : super_type (s, YY_MOVE (that.location))
   {
     switch (that.type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.move< Stmt_s > (YY_MOVE (that.value));
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.move< bool > (YY_MOVE (that.value));
         break;
 
-      case 125: // number
+      case 154: // number
         value.move< double > (YY_MOVE (that.value));
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.move< int > (YY_MOVE (that.value));
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.move< std::string > (YY_MOVE (that.value));
         break;
 
@@ -515,79 +540,86 @@ namespace CatDB {
   }
 
 #if YY_CPLUSPLUS < 201103L
-   SqlParser ::stack_symbol_type&
-   SqlParser ::stack_symbol_type::operator= (stack_symbol_type& that)
+  parser::stack_symbol_type&
+  parser::stack_symbol_type::operator= (stack_symbol_type& that)
   {
     state = that.state;
     switch (that.type_get ())
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         value.move< Stmt_s > (that.value);
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         value.move< bool > (that.value);
         break;
 
-      case 125: // number
+      case 154: // number
         value.move< double > (that.value);
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         value.move< int > (that.value);
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         value.move< std::string > (that.value);
         break;
 
@@ -604,7 +636,7 @@ namespace CatDB {
 
   template <typename Base>
   void
-   SqlParser ::yy_destroy_ (const char* yymsg, basic_symbol<Base>& yysym) const
+  parser::yy_destroy_ (const char* yymsg, basic_symbol<Base>& yysym) const
   {
     if (yymsg)
       YY_SYMBOL_PRINT (yymsg, yysym);
@@ -613,7 +645,7 @@ namespace CatDB {
 #if YYDEBUG
   template <typename Base>
   void
-   SqlParser ::yy_print_ (std::ostream& yyo,
+  parser::yy_print_ (std::ostream& yyo,
                                      const basic_symbol<Base>& yysym) const
   {
     std::ostream& yyoutput = yyo;
@@ -634,7 +666,7 @@ namespace CatDB {
 #endif
 
   void
-   SqlParser ::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
+  parser::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
   {
     if (m)
       YY_SYMBOL_PRINT (m, sym);
@@ -642,7 +674,7 @@ namespace CatDB {
   }
 
   void
-   SqlParser ::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
+  parser::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
   {
 #if 201103L <= YY_CPLUSPLUS
     yypush_ (m, stack_symbol_type (s, std::move (sym)));
@@ -653,40 +685,40 @@ namespace CatDB {
   }
 
   void
-   SqlParser ::yypop_ (int n)
+  parser::yypop_ (int n)
   {
     yystack_.pop (n);
   }
 
 #if YYDEBUG
   std::ostream&
-   SqlParser ::debug_stream () const
+  parser::debug_stream () const
   {
     return *yycdebug_;
   }
 
   void
-   SqlParser ::set_debug_stream (std::ostream& o)
+  parser::set_debug_stream (std::ostream& o)
   {
     yycdebug_ = &o;
   }
 
 
-   SqlParser ::debug_level_type
-   SqlParser ::debug_level () const
+  parser::debug_level_type
+  parser::debug_level () const
   {
     return yydebug_;
   }
 
   void
-   SqlParser ::set_debug_level (debug_level_type l)
+  parser::set_debug_level (debug_level_type l)
   {
     yydebug_ = l;
   }
 #endif // YYDEBUG
 
-   SqlParser ::state_type
-   SqlParser ::yy_lr_goto_state_ (state_type yystate, int yysym)
+  parser::state_type
+  parser::yy_lr_goto_state_ (state_type yystate, int yysym)
   {
     int yyr = yypgoto_[yysym - yyntokens_] + yystate;
     if (0 <= yyr && yyr <= yylast_ && yycheck_[yyr] == yystate)
@@ -696,25 +728,25 @@ namespace CatDB {
   }
 
   bool
-   SqlParser ::yy_pact_value_is_default_ (int yyvalue)
+  parser::yy_pact_value_is_default_ (int yyvalue)
   {
     return yyvalue == yypact_ninf_;
   }
 
   bool
-   SqlParser ::yy_table_value_is_error_ (int yyvalue)
+  parser::yy_table_value_is_error_ (int yyvalue)
   {
     return yyvalue == yytable_ninf_;
   }
 
   int
-   SqlParser ::operator() ()
+  parser::operator() ()
   {
     return parse ();
   }
 
   int
-   SqlParser ::parse ()
+  parser::parse ()
   {
     // State.
     int yyn;
@@ -840,73 +872,80 @@ namespace CatDB {
          when using variants.  */
       switch (yyr1_[yyn])
     {
-      case 74: // sql_stmt
-      case 75: // stmt
-      case 76: // select_stmt
-      case 77: // select_with_parens
-      case 78: // select_no_parens
-      case 80: // select_expr_list
-      case 81: // from_list
-      case 82: // opt_where
-      case 83: // opt_groupby
-      case 84: // opt_having
-      case 85: // opt_order_by
-      case 87: // opt_select_limit
-      case 89: // order_by
-      case 90: // projection
-      case 91: // table_factor
-      case 92: // expr_list
-      case 93: // expr
-      case 94: // in_expr
-      case 95: // arith_expr
-      case 96: // simple_expr
-      case 97: // column_ref
-      case 98: // expr_const
-      case 99: // func_expr
-      case 101: // insert_stmt
-      case 102: // insert_vals_list
-      case 103: // insert_vals
-      case 104: // update_stmt
-      case 105: // update_asgn_list
-      case 106: // update_asgn_factor
-      case 107: // delete_stmt
-      case 108: // explain_stmt
-      case 109: // explainable_stmt
-      case 110: // create_table_stmt
-      case 111: // table_element_list
-      case 112: // table_element
-      case 113: // column_definition
-      case 115: // drop_table_stmt
-      case 116: // relation_factor
+      case 93: // sql_stmt
+      case 94: // stmt
+      case 95: // select_stmt
+      case 96: // select_with_parens
+      case 97: // select_no_parens
+      case 99: // select_expr_list
+      case 100: // from_list
+      case 101: // opt_where
+      case 102: // opt_groupby
+      case 103: // opt_having
+      case 104: // opt_order_by
+      case 106: // opt_select_limit
+      case 108: // order_by
+      case 109: // projection
+      case 110: // table_factor
+      case 111: // expr_list
+      case 112: // expr
+      case 113: // in_expr
+      case 114: // arith_expr
+      case 115: // simple_expr
+      case 116: // column_ref
+      case 117: // expr_const
+      case 118: // func_expr
+      case 121: // insert_stmt
+      case 122: // insert_vals_list
+      case 123: // insert_vals
+      case 124: // update_stmt
+      case 125: // update_asgn_list
+      case 126: // update_asgn_factor
+      case 127: // delete_stmt
+      case 128: // explain_stmt
+      case 129: // explainable_stmt
+      case 130: // create_stmt
+      case 131: // table_element_list
+      case 132: // table_element
+      case 133: // column_definition
+      case 139: // drop_stmt
+      case 140: // show_stmt
+      case 142: // use_stmt
+      case 143: // desc_stmt
+      case 144: // analyze_stmt
+      case 145: // relation_factor
         yylhs.value.emplace< Stmt_s > ();
         break;
 
-      case 79: // opt_distinct
-      case 86: // opt_asc_desc
-      case 100: // distinct_or_all
+      case 98: // opt_distinct
+      case 105: // opt_asc_desc
+      case 120: // distinct_or_all
         yylhs.value.emplace< bool > ();
         break;
 
-      case 125: // number
+      case 154: // number
         yylhs.value.emplace< double > ();
         break;
 
-      case 88: // limit_expr
-      case 114: // data_type
+      case 107: // limit_expr
+      case 134: // data_type
         yylhs.value.emplace< int > ();
         break;
 
-      case 33: // STRING
-      case 34: // NUMERIC
-      case 35: // TIMESTAMP
-      case 117: // database_name
-      case 118: // relation_name
-      case 119: // column_name
-      case 120: // function_name
-      case 121: // column_label
-      case 122: // ident
-      case 123: // string
-      case 124: // datetime
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 119: // simple_function_expr
+      case 141: // op_from_database
+      case 146: // database_name
+      case 147: // relation_name
+      case 148: // column_name
+      case 149: // function_name
+      case 150: // column_label
+      case 151: // ident
+      case 152: // datetime
+      case 153: // string
         yylhs.value.emplace< std::string > ();
         break;
 
@@ -931,83 +970,107 @@ namespace CatDB {
           switch (yyn)
             {
   case 2:
-#line 247 "sql_parser.y"
+#line 278 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		driver.result = yystack_[0].value.as < Stmt_s > ();
+		driver.result = yystack_[1].value.as < Stmt_s > ();
 		YYACCEPT;
     }
-#line 940 "sql_parser.cpp"
+#line 979 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 3:
-#line 254 "sql_parser.y"
+#line 285 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 946 "sql_parser.cpp"
+#line 985 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 4:
-#line 255 "sql_parser.y"
+#line 286 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 952 "sql_parser.cpp"
+#line 991 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 5:
-#line 256 "sql_parser.y"
+#line 287 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 958 "sql_parser.cpp"
+#line 997 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 6:
-#line 257 "sql_parser.y"
+#line 288 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 964 "sql_parser.cpp"
+#line 1003 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 7:
-#line 258 "sql_parser.y"
+#line 289 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 970 "sql_parser.cpp"
+#line 1009 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 8:
-#line 259 "sql_parser.y"
+#line 290 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 976 "sql_parser.cpp"
+#line 1015 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 9:
-#line 260 "sql_parser.y"
+#line 291 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 982 "sql_parser.cpp"
+#line 1021 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 10:
-#line 262 "sql_parser.y"
-    { yyerror("unknow stmt"); }
-#line 988 "sql_parser.cpp"
+#line 292 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1027 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 11:
-#line 272 "sql_parser.y"
-    { 
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-	}
-#line 996 "sql_parser.cpp"
+#line 293 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1033 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 12:
-#line 279 "sql_parser.y"
+#line 294 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1039 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 13:
+#line 295 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1045 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 14:
+#line 296 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yyerror("unknow stmt"); }
+#line 1051 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 15:
+#line 306 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { 
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+	}
+#line 1059 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 16:
+#line 313 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = QueryStmt::make_query_stmt();
 		QueryStmt* query = dynamic_cast<QueryStmt*>(stmt.get());
 		query->query_stmt = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1007 "sql_parser.cpp"
+#line 1070 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 13:
-#line 292 "sql_parser.y"
+  case 17:
+#line 326 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建select stmt
 		Stmt_s stmt = SelectStmt::make_select_stmt();
@@ -1023,268 +1086,269 @@ namespace CatDB {
 		select_stmt->limit_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1027 "sql_parser.cpp"
+#line 1090 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 14:
-#line 308 "sql_parser.y"
+  case 18:
+#line 342 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建union二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_UNION);
     }
-#line 1036 "sql_parser.cpp"
+#line 1099 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 15:
-#line 313 "sql_parser.y"
+  case 19:
+#line 347 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建union all二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_UNION_ALL);
     }
-#line 1045 "sql_parser.cpp"
+#line 1108 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 16:
-#line 318 "sql_parser.y"
+  case 20:
+#line 352 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建intersect二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_INTERSECT);
     }
-#line 1054 "sql_parser.cpp"
+#line 1117 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 17:
-#line 323 "sql_parser.y"
+  case 21:
+#line 357 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建except二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EXCEPT);
     }
-#line 1063 "sql_parser.cpp"
+#line 1126 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 18:
-#line 330 "sql_parser.y"
+  case 22:
+#line 362 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = ShowDatabasesStmt::make_show_databases_stmt(true);
+	}
+#line 1134 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 23:
+#line 368 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < bool > () = false; }
-#line 1069 "sql_parser.cpp"
+#line 1140 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 19:
-#line 331 "sql_parser.y"
+  case 24:
+#line 369 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < bool > () = true; }
-#line 1075 "sql_parser.cpp"
+#line 1146 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 20:
-#line 336 "sql_parser.y"
+  case 25:
+#line 374 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建select list
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1084 "sql_parser.cpp"
+#line 1155 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 21:
-#line 341 "sql_parser.y"
+  case 26:
+#line 379 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//把输出表达式加入到select list
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1093 "sql_parser.cpp"
+#line 1164 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 22:
-#line 349 "sql_parser.y"
+  case 27:
+#line 387 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建from list 
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1102 "sql_parser.cpp"
+#line 1173 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 23:
-#line 354 "sql_parser.y"
+  case 28:
+#line 392 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//把表加入到from list
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1111 "sql_parser.cpp"
-    break;
-
-  case 24:
-#line 361 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 1117 "sql_parser.cpp"
-    break;
-
-  case 25:
-#line 362 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = NULL; }
-#line 1123 "sql_parser.cpp"
-    break;
-
-  case 26:
-#line 366 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 1129 "sql_parser.cpp"
-    break;
-
-  case 27:
-#line 367 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = NULL; }
-#line 1135 "sql_parser.cpp"
-    break;
-
-  case 28:
-#line 371 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 1141 "sql_parser.cpp"
+#line 1182 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 29:
-#line 372 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = NULL; }
-#line 1147 "sql_parser.cpp"
+#line 399 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1188 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 30:
-#line 376 "sql_parser.y"
+#line 400 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = NULL; }
-#line 1153 "sql_parser.cpp"
+#line 1194 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 31:
-#line 377 "sql_parser.y"
+#line 404 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 1159 "sql_parser.cpp"
+#line 1200 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 32:
-#line 381 "sql_parser.y"
-    { yylhs.value.as < bool > () = true; }
-#line 1165 "sql_parser.cpp"
+#line 405 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = NULL; }
+#line 1206 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 33:
-#line 382 "sql_parser.y"
-    { yylhs.value.as < bool > () = true; }
-#line 1171 "sql_parser.cpp"
+#line 409 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1212 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 34:
-#line 383 "sql_parser.y"
-    { yylhs.value.as < bool > () = false; }
-#line 1177 "sql_parser.cpp"
+#line 410 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = NULL; }
+#line 1218 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 35:
-#line 387 "sql_parser.y"
-    {yylhs.value.as < Stmt_s > () = NULL;}
-#line 1183 "sql_parser.cpp"
+#line 414 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = NULL; }
+#line 1224 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 36:
-#line 389 "sql_parser.y"
-    {
-		//构建limit表达式
-		Stmt_s stmt = LimitStmt::make_limit_stmt(yystack_[2].value.as < int > (), yystack_[0].value.as < int > ());
-		check(stmt);
-		yylhs.value.as < Stmt_s > () = stmt;
-    }
-#line 1194 "sql_parser.cpp"
+#line 415 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1230 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 37:
-#line 396 "sql_parser.y"
+#line 419 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = true; }
+#line 1236 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 38:
+#line 420 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = true; }
+#line 1242 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 39:
+#line 421 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = false; }
+#line 1248 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 40:
+#line 425 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {yylhs.value.as < Stmt_s > () = NULL;}
+#line 1254 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 41:
+#line 427 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//构建limit表达式
+		Stmt_s stmt = LimitStmt::make_limit_stmt(yystack_[0].value.as < int > (), yystack_[2].value.as < int > ());
+		check(stmt);
+		yylhs.value.as < Stmt_s > () = stmt;
+    }
+#line 1265 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 42:
+#line 434 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建limit表达式
 		Stmt_s stmt = LimitStmt::make_limit_stmt(yystack_[0].value.as < int > ());
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1205 "sql_parser.cpp"
-    break;
-
-  case 38:
-#line 406 "sql_parser.y"
-    {
-		yylhs.value.as < int > () = yystack_[0].value.as < double > ();
-	}
-#line 1213 "sql_parser.cpp"
-    break;
-
-  case 39:
-#line 413 "sql_parser.y"
-    {
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-    }
-#line 1221 "sql_parser.cpp"
-    break;
-
-  case 40:
-#line 420 "sql_parser.y"
-    {
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-    }
-#line 1229 "sql_parser.cpp"
-    break;
-
-  case 41:
-#line 424 "sql_parser.y"
-    {
-		//设置表达式别名
-		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
-		check(stmt);
-		stmt->alias_name = yystack_[0].value.as < std::string > ();
-		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
-    }
-#line 1241 "sql_parser.cpp"
-    break;
-
-  case 42:
-#line 432 "sql_parser.y"
-    {
-		//设置表达式别名
-		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
-		check(stmt);
-		stmt->alias_name = yystack_[0].value.as < std::string > ();
-		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
-    }
-#line 1253 "sql_parser.cpp"
+#line 1276 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 43:
-#line 440 "sql_parser.y"
+#line 444 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		//构建column表达式
-		Stmt_s col = ColumnStmt::make_all_column_stmt();
-		check(col);
-		yylhs.value.as < Stmt_s > () = col;
-    }
-#line 1264 "sql_parser.cpp"
+		yylhs.value.as < int > () = yystack_[0].value.as < double > ();
+	}
+#line 1284 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 44:
-#line 450 "sql_parser.y"
+#line 451 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1272 "sql_parser.cpp"
+#line 1292 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 45:
-#line 454 "sql_parser.y"
+#line 458 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		//设置表的别名
-		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
+	//设置表达式别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[0].value.as < Stmt_s > ().get());
 		check(stmt);
-		stmt->alias_name = yystack_[0].value.as < std::string > ();
-		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
+		stmt->alias_name = stmt->to_string();
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1284 "sql_parser.cpp"
+#line 1304 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 46:
-#line 462 "sql_parser.y"
+#line 466 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//设置表达式别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
+		check(stmt);
+		stmt->alias_name = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
+    }
+#line 1316 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 47:
+#line 474 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//设置表达式别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
+		check(stmt);
+		stmt->alias_name = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
+    }
+#line 1328 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 48:
+#line 485 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+    }
+#line 1336 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 49:
+#line 489 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//设置表的别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
+		check(stmt);
+		stmt->alias_name = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
+    }
+#line 1348 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 50:
+#line 497 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
@@ -1292,11 +1356,11 @@ namespace CatDB {
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
     }
-#line 1296 "sql_parser.cpp"
+#line 1360 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 47:
-#line 470 "sql_parser.y"
+  case 51:
+#line 505 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
@@ -1304,11 +1368,11 @@ namespace CatDB {
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
     }
-#line 1308 "sql_parser.cpp"
+#line 1372 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 48:
-#line 478 "sql_parser.y"
+  case 52:
+#line 513 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
@@ -1316,421 +1380,395 @@ namespace CatDB {
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
     }
-#line 1320 "sql_parser.cpp"
+#line 1384 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 49:
-#line 493 "sql_parser.y"
+  case 53:
+#line 528 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表达式列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1329 "sql_parser.cpp"
+#line 1393 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 50:
-#line 498 "sql_parser.y"
+  case 54:
+#line 533 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1338 "sql_parser.cpp"
+#line 1402 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 51:
-#line 506 "sql_parser.y"
+  case 55:
+#line 542 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1346 "sql_parser.cpp"
+#line 1410 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 52:
-#line 510 "sql_parser.y"
-    {
-		//正数表达式
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-    }
-#line 1355 "sql_parser.cpp"
-    break;
-
-  case 53:
-#line 515 "sql_parser.y"
-    {
-		//负数表达式
-		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MINUS);
-    }
-#line 1364 "sql_parser.cpp"
-    break;
-
-  case 54:
-#line 520 "sql_parser.y"
+  case 56:
+#line 546 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建加法二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_ADD);
 	}
-#line 1373 "sql_parser.cpp"
+#line 1419 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 55:
-#line 525 "sql_parser.y"
+  case 57:
+#line 551 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建减法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_SUB);
 	}
-#line 1382 "sql_parser.cpp"
+#line 1428 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 56:
-#line 530 "sql_parser.y"
+  case 58:
+#line 556 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建乘法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MUL);
 	}
-#line 1391 "sql_parser.cpp"
+#line 1437 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 57:
-#line 535 "sql_parser.y"
+  case 59:
+#line 561 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建除法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_DIV);
 	}
-#line 1400 "sql_parser.cpp"
+#line 1446 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 58:
-#line 540 "sql_parser.y"
+  case 60:
+#line 566 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LE);
 	}
-#line 1409 "sql_parser.cpp"
+#line 1455 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 59:
-#line 545 "sql_parser.y"
+  case 61:
+#line 571 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LT);
 	}
-#line 1418 "sql_parser.cpp"
+#line 1464 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 60:
-#line 550 "sql_parser.y"
+  case 62:
+#line 576 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EQ);
 	}
-#line 1427 "sql_parser.cpp"
+#line 1473 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 61:
-#line 555 "sql_parser.y"
+  case 63:
+#line 581 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_GE);
 	}
-#line 1436 "sql_parser.cpp"
+#line 1482 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 62:
-#line 560 "sql_parser.y"
+  case 64:
+#line 586 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_GT);
 	}
-#line 1445 "sql_parser.cpp"
+#line 1491 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 63:
-#line 565 "sql_parser.y"
+  case 65:
+#line 591 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NE);
 	}
-#line 1454 "sql_parser.cpp"
+#line 1500 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 64:
-#line 570 "sql_parser.y"
+  case 66:
+#line 596 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LIKE);
 	}
-#line 1463 "sql_parser.cpp"
+#line 1509 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 65:
-#line 575 "sql_parser.y"
+  case 67:
+#line 601 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_LIKE);
 	}
-#line 1472 "sql_parser.cpp"
+#line 1518 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 66:
-#line 580 "sql_parser.y"
+  case 68:
+#line 606 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建and二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_AND);
     }
-#line 1481 "sql_parser.cpp"
+#line 1527 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 67:
-#line 585 "sql_parser.y"
+  case 69:
+#line 611 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建or二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_OR);
     }
-#line 1490 "sql_parser.cpp"
+#line 1536 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 68:
-#line 590 "sql_parser.y"
-    {
-		//构建not一元表达式
-		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT);
-    }
-#line 1499 "sql_parser.cpp"
-    break;
-
-  case 69:
-#line 595 "sql_parser.y"
+  case 70:
+#line 616 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建is null表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), ExprStmt::OP_IS_NULL);
     }
-#line 1508 "sql_parser.cpp"
+#line 1545 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 70:
-#line 600 "sql_parser.y"
+  case 71:
+#line 621 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建is not null表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), ExprStmt::OP_IS_NOT_NULL);
     }
-#line 1517 "sql_parser.cpp"
+#line 1554 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 71:
-#line 605 "sql_parser.y"
+  case 72:
+#line 626 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建between and三元表达式
 		make_ternary_stmt(yylhs.value.as < Stmt_s > (), yystack_[4].value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_BETWEEN);
     }
-#line 1526 "sql_parser.cpp"
+#line 1563 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 72:
-#line 610 "sql_parser.y"
+  case 73:
+#line 631 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建not between and三元表达式
 		make_ternary_stmt(yylhs.value.as < Stmt_s > (), yystack_[5].value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_BETWEEN);
     }
-#line 1535 "sql_parser.cpp"
+#line 1572 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 73:
-#line 615 "sql_parser.y"
+  case 74:
+#line 636 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建in表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_IN);
     }
-#line 1544 "sql_parser.cpp"
+#line 1581 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 74:
-#line 620 "sql_parser.y"
+  case 75:
+#line 641 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建not in表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_IN);
     }
-#line 1553 "sql_parser.cpp"
-    break;
-
-  case 75:
-#line 628 "sql_parser.y"
-    {
-    	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-    }
-#line 1561 "sql_parser.cpp"
+#line 1590 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 76:
-#line 632 "sql_parser.y"
-    { 
-		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
-	}
-#line 1569 "sql_parser.cpp"
+#line 651 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+    	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+    }
+#line 1598 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 77:
-#line 639 "sql_parser.y"
+#line 655 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
 	}
-#line 1577 "sql_parser.cpp"
+#line 1606 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 78:
-#line 643 "sql_parser.y"
+#line 662 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { 
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+	}
+#line 1614 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 79:
+#line 666 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//正数表达式
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1586 "sql_parser.cpp"
+#line 1623 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 79:
-#line 648 "sql_parser.y"
+  case 80:
+#line 671 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//负数表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MINUS);
     }
-#line 1595 "sql_parser.cpp"
+#line 1632 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 80:
-#line 653 "sql_parser.y"
+  case 81:
+#line 676 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_ADD);
 	}
-#line 1604 "sql_parser.cpp"
+#line 1641 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 81:
-#line 658 "sql_parser.y"
+  case 82:
+#line 681 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_SUB);
 	}
-#line 1613 "sql_parser.cpp"
+#line 1650 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 82:
-#line 663 "sql_parser.y"
+  case 83:
+#line 686 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MUL);
 	}
-#line 1622 "sql_parser.cpp"
+#line 1659 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 83:
-#line 668 "sql_parser.y"
+  case 84:
+#line 691 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_DIV);
 	}
-#line 1631 "sql_parser.cpp"
-    break;
-
-  case 84:
-#line 676 "sql_parser.y"
-    { 
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-	}
-#line 1639 "sql_parser.cpp"
+#line 1668 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 85:
-#line 680 "sql_parser.y"
+#line 699 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
-		 yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1647 "sql_parser.cpp"
+#line 1676 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 86:
-#line 684 "sql_parser.y"
+#line 703 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
-		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
+		 yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1655 "sql_parser.cpp"
+#line 1684 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 87:
-#line 688 "sql_parser.y"
-    {
-      	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
-    }
-#line 1663 "sql_parser.cpp"
+#line 707 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { 
+		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
+	}
+#line 1692 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 88:
-#line 692 "sql_parser.y"
+#line 711 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-    	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+      	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1671 "sql_parser.cpp"
+#line 1700 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 89:
-#line 696 "sql_parser.y"
+#line 715 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-    	make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EXISTS);
+    	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1679 "sql_parser.cpp"
+#line 1708 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 90:
-#line 700 "sql_parser.y"
+#line 719 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_EXISTS);
+    	make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EXISTS);
     }
-#line 1687 "sql_parser.cpp"
+#line 1716 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 91:
-#line 707 "sql_parser.y"
+#line 723 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//构建not一元表达式
+		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_EXISTS);
+    }
+#line 1725 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 92:
+#line 731 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt("", yystack_[0].value.as < std::string > ());
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
 	}
-#line 1698 "sql_parser.cpp"
+#line 1736 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 92:
-#line 714 "sql_parser.y"
+  case 93:
+#line 738 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s col = ColumnStmt::make_all_column_stmt();
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
 	}
-#line 1708 "sql_parser.cpp"
+#line 1746 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 93:
-#line 720 "sql_parser.y"
+  case 94:
+#line 744 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as < std::string > (), yystack_[0].value.as < std::string > ());
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
     }
-#line 1719 "sql_parser.cpp"
+#line 1757 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 94:
-#line 728 "sql_parser.y"
+  case 95:
+#line 752 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as < std::string > (), "*");
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
     }
-#line 1730 "sql_parser.cpp"
+#line 1768 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 95:
-#line 738 "sql_parser.y"
+  case 96:
+#line 762 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Varchar::make_object(yystack_[0].value.as < std::string > ());
@@ -1739,11 +1777,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1743 "sql_parser.cpp"
+#line 1781 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 96:
-#line 747 "sql_parser.y"
+  case 97:
+#line 771 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = DateTime::make_object(yystack_[0].value.as < std::string > ());
@@ -1752,11 +1790,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1756 "sql_parser.cpp"
+#line 1794 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 97:
-#line 756 "sql_parser.y"
+  case 98:
+#line 780 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Number::make_object(yystack_[0].value.as < double > ());
@@ -1765,11 +1803,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1769 "sql_parser.cpp"
+#line 1807 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 98:
-#line 765 "sql_parser.y"
+  case 99:
+#line 789 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Bool::make_object(false);
@@ -1778,11 +1816,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1782 "sql_parser.cpp"
+#line 1820 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 99:
-#line 774 "sql_parser.y"
+  case 100:
+#line 798 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Bool::make_object(true);
@@ -1791,11 +1829,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1795 "sql_parser.cpp"
+#line 1833 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 100:
-#line 783 "sql_parser.y"
+  case 101:
+#line 807 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Object::make_null_object();
@@ -1804,11 +1842,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1808 "sql_parser.cpp"
+#line 1846 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 101:
-#line 795 "sql_parser.y"
+  case 102:
+#line 819 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[3].value.as < std::string > ());
@@ -1818,11 +1856,11 @@ namespace CatDB {
 		aggr->aggr_expr = col;
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1822 "sql_parser.cpp"
+#line 1860 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 102:
-#line 805 "sql_parser.y"
+  case 103:
+#line 829 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[4].value.as < std::string > ());
@@ -1831,11 +1869,11 @@ namespace CatDB {
 		aggr->aggr_expr = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1835 "sql_parser.cpp"
+#line 1873 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 103:
-#line 814 "sql_parser.y"
+  case 104:
+#line 838 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[3].value.as < std::string > ());
@@ -1843,37 +1881,35 @@ namespace CatDB {
 		aggr->aggr_expr = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1847 "sql_parser.cpp"
-    break;
-
-  case 104:
-#line 822 "sql_parser.y"
-    {
-		//sys function
-		yyerror("system function %s not support yet", yystack_[2].value.as < std::string > ().c_str());
-		YYABORT;
-    }
-#line 1857 "sql_parser.cpp"
+#line 1885 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 105:
-#line 831 "sql_parser.y"
+#line 849 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		yylhs.value.as < bool > () = false;
+		yylhs.value.as < std::string > () = "database";
     }
-#line 1865 "sql_parser.cpp"
+#line 1893 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 106:
-#line 835 "sql_parser.y"
+#line 856 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		yylhs.value.as < bool > () = true;
+		yylhs.value.as < bool > () = false;
     }
-#line 1873 "sql_parser.cpp"
+#line 1901 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 107:
-#line 846 "sql_parser.y"
+#line 860 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < bool > () = true;
+    }
+#line 1909 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 108:
+#line 871 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建insert stmt
 		Stmt_s stmt = InsertStmt::make_insert_stmt();
@@ -1883,54 +1919,54 @@ namespace CatDB {
 		insert_stmt->values = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1887 "sql_parser.cpp"
+#line 1923 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 108:
-#line 856 "sql_parser.y"
+  case 109:
+#line 881 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yyerror("insert into table from query not support yet!");
 		YYABORT;
     }
-#line 1896 "sql_parser.cpp"
-    break;
-
-  case 109:
-#line 863 "sql_parser.y"
-    {
-		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
-    }
-#line 1904 "sql_parser.cpp"
+#line 1932 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 110:
-#line 867 "sql_parser.y"
+#line 888 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[4].value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
-	}
-#line 1912 "sql_parser.cpp"
+		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
+    }
+#line 1940 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 111:
-#line 873 "sql_parser.y"
+#line 892 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[4].value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
+	}
+#line 1948 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 112:
+#line 898 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		//构建值列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1921 "sql_parser.cpp"
+#line 1957 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 112:
-#line 878 "sql_parser.y"
+  case 113:
+#line 903 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1930 "sql_parser.cpp"
+#line 1966 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 113:
-#line 891 "sql_parser.y"
+  case 114:
+#line 916 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = UpdateStmt::make_update_stmt();
 		check(stmt);
@@ -1940,40 +1976,40 @@ namespace CatDB {
 		update_stmt->where_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1944 "sql_parser.cpp"
+#line 1980 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 114:
-#line 904 "sql_parser.y"
+  case 115:
+#line 929 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建值列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1953 "sql_parser.cpp"
+#line 1989 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 115:
-#line 909 "sql_parser.y"
+  case 116:
+#line 934 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1962 "sql_parser.cpp"
+#line 1998 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 116:
-#line 917 "sql_parser.y"
+  case 117:
+#line 942 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt("", yystack_[2].value.as < std::string > ());
 		check(col);
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), col, yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EQ);
     }
-#line 1973 "sql_parser.cpp"
+#line 2009 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 117:
-#line 932 "sql_parser.y"
+  case 118:
+#line 957 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DeleteStmt::make_delete_stmt();
 		check(stmt);
@@ -1982,45 +2018,45 @@ namespace CatDB {
 		delete_stmt->where_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1986 "sql_parser.cpp"
+#line 2022 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 118:
-#line 949 "sql_parser.y"
+  case 119:
+#line 974 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 		yyerror("explain not support yet!");
 		YYABORT;
     }
-#line 1996 "sql_parser.cpp"
-    break;
-
-  case 119:
-#line 957 "sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2002 "sql_parser.cpp"
+#line 2032 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 120:
-#line 958 "sql_parser.y"
+#line 982 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2008 "sql_parser.cpp"
+#line 2038 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 121:
-#line 959 "sql_parser.y"
+#line 983 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2014 "sql_parser.cpp"
+#line 2044 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 122:
-#line 960 "sql_parser.y"
+#line 984 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2020 "sql_parser.cpp"
+#line 2050 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 123:
-#line 970 "sql_parser.y"
+#line 985 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 2056 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 124:
+#line 995 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = CreateTableStmt::make_create_table_stmt();
 		check(stmt);
@@ -2029,69 +2065,225 @@ namespace CatDB {
 		create_table_stmt->column_define_list = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2033 "sql_parser.cpp"
-    break;
-
-  case 124:
-#line 982 "sql_parser.y"
-    {
-		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
-    }
-#line 2041 "sql_parser.cpp"
+#line 2069 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 125:
-#line 986 "sql_parser.y"
+#line 1004 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
-    }
-#line 2049 "sql_parser.cpp"
+		Stmt_s stmt = CreateDatabaseStmt::make_create_database_stmt();
+		check(stmt);
+		CreateDatabaseStmt* create_database_stmt = dynamic_cast<CreateDatabaseStmt*>(stmt.get());
+		create_database_stmt->database = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+	}
+#line 2081 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 126:
-#line 993 "sql_parser.y"
+#line 1015 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 2057 "sql_parser.cpp"
+#line 2089 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 127:
-#line 1000 "sql_parser.y"
+#line 1019 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
+    }
+#line 2097 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 128:
+#line 1026 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+    }
+#line 2105 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 129:
+#line 1033 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = ColumnDefineStmt::make_column_define_stmt(yystack_[1].value.as < std::string > (), yystack_[0].value.as < int > ());
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2067 "sql_parser.cpp"
-    break;
-
-  case 128:
-#line 1009 "sql_parser.y"
-    {
-		yylhs.value.as < int > () = ColumnDefineStmt::NUMBER;
-    }
-#line 2075 "sql_parser.cpp"
-    break;
-
-  case 129:
-#line 1013 "sql_parser.y"
-    { 
-		yylhs.value.as < int > () = ColumnDefineStmt::DATETIME;
-	}
-#line 2083 "sql_parser.cpp"
+#line 2115 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 130:
-#line 1017 "sql_parser.y"
-    {
-		yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR;
-    }
-#line 2091 "sql_parser.cpp"
+#line 1042 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2121 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 131:
-#line 1029 "sql_parser.y"
+#line 1044 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2127 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 132:
+#line 1046 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2133 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 133:
+#line 1048 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2139 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 134:
+#line 1050 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2145 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 135:
+#line 1052 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2151 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 136:
+#line 1054 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2157 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 137:
+#line 1056 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2163 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 138:
+#line 1058 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2169 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 139:
+#line 1060 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2175 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 140:
+#line 1062 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2181 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 141:
+#line 1064 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+#line 2187 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 142:
+#line 1066 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+#line 2193 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 143:
+#line 1068 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+#line 2199 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 144:
+#line 1070 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+#line 2205 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 145:
+#line 1072 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+#line 2211 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 146:
+#line 1074 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+#line 2217 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 147:
+#line 1076 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+#line 2223 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 148:
+#line 1078 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+#line 2229 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 149:
+#line 1082 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2235 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 150:
+#line 1083 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2241 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 151:
+#line 1084 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2247 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 152:
+#line 1088 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2253 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 153:
+#line 1089 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2259 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 154:
+#line 1093 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2265 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 155:
+#line 1094 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2271 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 156:
+#line 1098 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2277 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 157:
+#line 1099 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
+#line 2283 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 158:
+#line 1109 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DropTableStmt::make_drop_table_stmt();
 		check(stmt);
@@ -2099,99 +2291,234 @@ namespace CatDB {
 		drop_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2103 "sql_parser.cpp"
+#line 2295 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 132:
-#line 1045 "sql_parser.y"
+  case 159:
+#line 1117 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = DropDatabaseStmt::make_drop_database_stmt();
+		check(stmt);
+		DropDatabaseStmt* drop_database_stmt = dynamic_cast<DropDatabaseStmt*>(stmt.get());
+		drop_database_stmt->database = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+	}
+#line 2307 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 160:
+#line 1133 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = ShowDatabasesStmt::make_show_databases_stmt(false);
+    }
+#line 2315 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 161:
+#line 1137 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = ShowTablesStmt::make_show_tables_stmt(yystack_[0].value.as < std::string > ());
+	}
+#line 2323 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 162:
+#line 1141 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+	}
+#line 2335 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 163:
+#line 1149 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = NULL;
+	}
+#line 2343 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 164:
+#line 1153 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < Stmt_s > () = NULL;
+	}
+#line 2351 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 165:
+#line 1160 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > ();
+	}
+#line 2359 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 166:
+#line 1164 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		yylhs.value.as < std::string > () = driver.get_global_database();
+	}
+#line 2367 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 167:
+#line 1169 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = UseDatabaseStmt::make_use_database_stmt();
+		check(stmt);
+		UseDatabaseStmt* use_database_stmt = dynamic_cast<UseDatabaseStmt*>(stmt.get());
+		use_database_stmt->database = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+	}
+#line 2379 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 168:
+#line 1185 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+    }
+#line 2391 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 169:
+#line 1193 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		check(stmt);
+		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
+		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+	}
+#line 2403 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 170:
+#line 1208 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = yystack_[2].value.as < std::string > ();
+		analyze_stmt->table = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = stmt;
+    }
+#line 2416 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 171:
+#line 1217 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = yystack_[2].value.as < std::string > ();
+		analyze_stmt->table = "*";
+		yylhs.value.as < Stmt_s > () = stmt;
+    }
+#line 2429 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 172:
+#line 1226 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		check(stmt);
+		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
+		analyze_stmt->database = "*";
+		analyze_stmt->table = "*";
+		yylhs.value.as < Stmt_s > () = stmt;
+    }
+#line 2442 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 173:
+#line 1243 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表表达式
-		Stmt_s table = TableStmt::make_table_stmt(yystack_[0].value.as < std::string > ());
+		Stmt_s table = TableStmt::make_table_stmt(driver.get_global_database(), yystack_[0].value.as < std::string > ());
 		check(table);
 		yylhs.value.as < Stmt_s > () = table;
 	}
-#line 2114 "sql_parser.cpp"
+#line 2453 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 133:
-#line 1052 "sql_parser.y"
+  case 174:
+#line 1250 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表表达式
 		Stmt_s table = TableStmt::make_table_stmt(yystack_[2].value.as < std::string > (), yystack_[0].value.as < std::string > ());
 		check(table);
 		yylhs.value.as < Stmt_s > () = table;
 	}
-#line 2125 "sql_parser.cpp"
+#line 2464 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 134:
-#line 1061 "sql_parser.y"
+  case 175:
+#line 1259 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2131 "sql_parser.cpp"
+#line 2470 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 135:
-#line 1065 "sql_parser.y"
+  case 176:
+#line 1263 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2137 "sql_parser.cpp"
+#line 2476 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 136:
-#line 1069 "sql_parser.y"
+  case 177:
+#line 1267 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2143 "sql_parser.cpp"
+#line 2482 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 137:
-#line 1073 "sql_parser.y"
+  case 178:
+#line 1271 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2149 "sql_parser.cpp"
+#line 2488 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 138:
-#line 1077 "sql_parser.y"
+  case 179:
+#line 1275 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > ()=yystack_[0].value.as < std::string > (); }
+#line 2494 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 180:
+#line 1279 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { str_to_lower(yystack_[0].value.as < std::string > ());yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+#line 2500 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 181:
+#line 1283 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2155 "sql_parser.cpp"
+#line 2506 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 139:
-#line 1081 "sql_parser.y"
+  case 182:
+#line 1287 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2161 "sql_parser.cpp"
+#line 2512 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 140:
-#line 1085 "sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[1].value.as < std::string > (); }
-#line 2167 "sql_parser.cpp"
-    break;
-
-  case 141:
-#line 1086 "sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[1].value.as < std::string > (); }
-#line 2173 "sql_parser.cpp"
-    break;
-
-  case 142:
-#line 1090 "sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[1].value.as < std::string > (); }
-#line 2179 "sql_parser.cpp"
-    break;
-
-  case 143:
-#line 1091 "sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[1].value.as < std::string > (); }
-#line 2185 "sql_parser.cpp"
-    break;
-
-  case 144:
-#line 1095 "sql_parser.y"
+  case 183:
+#line 1291 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < double > () = std::stod(yystack_[0].value.as < std::string > ()); }
-#line 2191 "sql_parser.cpp"
+#line 2518 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
 
-#line 2195 "sql_parser.cpp"
+#line 2522 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
             default:
               break;
@@ -2359,14 +2686,14 @@ namespace CatDB {
   }
 
   void
-   SqlParser ::error (const syntax_error& yyexc)
+  parser::error (const syntax_error& yyexc)
   {
     error (yyexc.location, yyexc.what ());
   }
 
   // Generate an error message.
   std::string
-   SqlParser ::yysyntax_error_ (state_type yystate, const symbol_type& yyla) const
+  parser::yysyntax_error_ (state_type yystate, const symbol_type& yyla) const
   {
     // Number of reported tokens (one for the "unexpected", one per
     // "expected").
@@ -2462,279 +2789,328 @@ namespace CatDB {
   }
 
 
-  const short  SqlParser ::yypact_ninf_ = -174;
+  const short parser::yypact_ninf_ = -240;
 
-  const short  SqlParser ::yytable_ninf_ = -138;
+  const short parser::yytable_ninf_ = -179;
 
   const short
-   SqlParser ::yypact_[] =
+  parser::yypact_[] =
   {
-      86,   -22,   -54,   -33,    20,    82,   -15,    49,    70,   115,
-    -174,  -174,    30,  -174,  -174,  -174,  -174,  -174,  -174,  -174,
-      94,    70,    70,    60,  -174,  -174,  -174,  -174,  -174,    70,
-    -174,   253,  -174,    87,   108,  -174,   126,  -174,   -21,   135,
-     135,  -174,   140,   105,    58,  -174,    61,   -12,   283,  -174,
-     304,   304,    -5,     5,   123,   134,  -174,  -174,  -174,   135,
-    -174,    -2,  -174,   357,  -174,  -174,  -174,  -174,   150,  -174,
-     158,    35,  -174,  -174,  -174,    70,    70,   135,  -174,  -174,
-    -174,    70,   304,  -174,    70,  -174,  -174,    70,  -174,   163,
-    -174,  -174,   135,   495,  -174,  -174,    30,   392,   161,   173,
-     175,   194,  -174,   253,    60,   304,   304,   205,   304,   304,
-     304,   304,   304,   304,   304,   325,   201,    54,   304,   304,
-     304,   304,    70,  -174,  -174,    -8,   206,    74,  -174,   223,
-    -174,  -174,  -174,   154,  -174,  -174,    56,   458,  -174,  -174,
-     304,   208,  -174,  -174,  -174,  -174,  -174,  -174,  -174,   -27,
-    -174,   477,   495,   304,   325,   201,   369,   369,   369,   369,
-     369,   369,   242,   190,   325,   325,    46,  -174,     5,  -174,
-    -174,   225,  -174,   162,   162,  -174,  -174,  -174,  -174,  -174,
-     226,  -174,  -174,  -174,   414,   304,    70,  -174,   304,  -174,
-      70,  -174,  -174,  -174,  -174,   458,   171,   229,    60,   195,
-     242,   224,  -174,   135,  -174,  -174,   325,   325,   325,   325,
-     325,   174,   458,  -174,  -174,  -174,   436,  -174,   458,  -174,
-    -174,   304,   304,  -174,   209,   200,   325,  -174,   110,   187,
-     187,  -174,  -174,  -174,   304,  -174,   458,   196,   304,   304,
-     191,   110,   458,  -174,   234,   458,   221,    17,  -174,   304,
-    -174,  -174,   210,   234,   237,  -174,   240,  -174,   237,  -174
+     298,   -15,   -51,   -23,   -28,    32,    32,   -20,    -1,    17,
+      31,   -30,    32,    32,   105,    82,  -240,   214,  -240,  -240,
+    -240,  -240,  -240,  -240,  -240,  -240,  -240,  -240,  -240,   106,
+     -10,    32,    32,    32,  -240,  -240,   107,  -240,   110,  -240,
+      32,    36,  -240,  -240,  -240,  -240,  -240,    32,   115,  -240,
+     403,  -240,    86,  -240,    95,  -240,   101,    77,  -240,  -240,
+    -240,  -240,    28,   135,   135,  -240,   142,   159,  -240,   168,
+     138,    32,  -240,    23,  -240,    29,   -22,   172,   169,  -240,
+    -240,   287,  -240,  -240,  -240,  -240,   190,   135,  -240,   -16,
+    -240,   452,  -240,  -240,  -240,  -240,   209,  -240,   210,    -2,
+    -240,  -240,  -240,    32,    32,    32,  -240,    32,   135,  -240,
+    -240,  -240,   216,    71,    32,   403,  -240,  -240,  -240,    32,
+    -240,    32,  -240,   227,  -240,  -240,   135,   214,   487,  -240,
+    -240,   403,    36,   403,   403,   230,   403,   403,   403,   403,
+     403,   403,   403,   354,   229,    13,   403,   403,   403,   403,
+      32,  -240,  -240,    94,   374,  -240,  -240,  -240,   -18,  -240,
+     222,  -240,  -240,  -240,  -240,  -240,   103,  -240,  -240,   204,
+     553,  -240,  -240,   403,   231,  -240,  -240,  -240,   -21,  -240,
+     572,   590,   403,   354,   229,   246,   246,   246,   246,   246,
+     246,   167,   354,   354,   150,  -240,   287,  -240,  -240,   223,
+    -240,   125,   125,  -240,  -240,  -240,  -240,  -240,   238,  -240,
+    -240,   509,   403,    32,  -240,   403,  -240,    32,  -240,  -240,
+     241,   252,  -240,   255,  -240,  -240,  -240,  -240,   241,   241,
+    -240,   255,   255,   255,   272,  -240,   272,  -240,   553,   140,
+     273,    36,   242,   167,   189,  -240,  -240,  -240,   354,   354,
+     354,   354,   354,   181,   553,  -240,  -240,  -240,   531,  -240,
+     553,  -240,   268,  -240,   268,  -240,   268,  -240,  -240,  -240,
+    -240,  -240,  -240,   268,  -240,  -240,  -240,   403,   403,  -240,
+     260,   244,   354,   207,   248,   248,  -240,  -240,  -240,   403,
+    -240,   247,   277,   278,   280,   553,   249,   403,   403,   243,
+     207,   553,  -240,   268,  -240,  -240,  -240,  -240,   282,   553,
+     266,    88,  -240,   285,   403,  -240,  -240,   250,  -240,   282,
+     268,  -240,   288,  -240,   268,  -240
   };
 
   const unsigned char
-   SqlParser ::yydefact_[] =
+  parser::yydefact_[] =
   {
-      10,     0,     0,     0,     0,     0,     0,    18,     0,     0,
-       2,     3,     0,    11,     4,     5,     6,     9,     7,     8,
-       0,     0,     0,     0,   119,   121,   122,   120,   118,     0,
-      19,     0,   139,     0,     0,   132,   135,     1,     0,     0,
-       0,    12,     0,    25,     0,   131,    44,     0,     0,   100,
-       0,     0,    92,     0,     0,     0,   144,    98,    99,     0,
-      88,     0,    20,    40,    51,    84,    85,    87,     0,    91,
-       0,   136,    95,    96,    97,     0,     0,     0,    14,    17,
-      16,     0,     0,   117,     0,    48,   135,     0,    46,     0,
-     108,    92,     0,    68,    52,    53,    88,     0,     0,     0,
-       0,     0,    89,     0,     0,     0,     0,     0,     0,     0,
+      14,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      23,     0,     0,     0,     0,     0,     3,     0,    15,     4,
+       5,     6,     7,     9,    10,     8,    12,    11,    13,     0,
+       0,     0,     0,     0,   180,   169,     0,   173,   176,   168,
+       0,     0,   120,   122,   123,   121,   119,     0,     0,    24,
+       0,    22,     0,   160,     0,   164,   166,     0,   167,   175,
+       1,     2,     0,     0,     0,    16,     0,     0,   125,     0,
+      30,     0,   159,     0,   158,    48,     0,     0,     0,   101,
+      93,     0,   182,   183,    99,   100,     0,     0,    89,     0,
+      25,    45,    55,    85,    86,    88,     0,    92,     0,   177,
+      97,    96,    98,     0,     0,     0,   161,     0,     0,    18,
+      21,    20,     0,     0,     0,     0,   118,   174,   176,     0,
+      52,     0,    50,     0,   109,   105,     0,    89,     0,   181,
+      90,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    41,   138,     0,     0,    25,   114,     0,
-     136,   133,    15,     0,   124,   126,     0,    24,    47,    45,
-       0,   107,    89,    86,   141,   143,   140,   142,    21,    25,
-      22,    67,    66,     0,     0,     0,    58,    59,    60,    62,
-      61,    63,    64,     0,     0,     0,     0,    77,     0,    75,
-      73,     0,    69,    54,    55,    56,    57,    42,    94,    93,
-      92,   104,   105,   106,     0,     0,     0,   113,     0,   123,
-       0,   129,   128,   130,   127,   111,     0,     0,     0,    27,
-      65,     0,    74,     0,    78,    79,     0,     0,     0,     0,
-       0,     0,    49,    70,   101,   103,     0,   115,   116,   125,
-     109,     0,     0,    23,     0,    29,     0,    90,    71,    80,
-      81,    82,    83,    76,     0,   102,   112,     0,     0,     0,
-      30,    72,    50,   110,    26,    28,     0,    32,    31,     0,
-      33,    34,    35,    39,     0,    13,    37,    38,     0,    36
+       0,    46,   179,     0,     0,   162,   163,   165,    30,   115,
+       0,   177,    19,   172,   171,   170,     0,   126,   128,     0,
+      29,    51,    49,     0,   108,    91,    87,    26,    30,    27,
+      69,    68,     0,     0,     0,    60,    61,    62,    64,    63,
+      65,    66,     0,     0,     0,    78,     0,    76,    74,     0,
+      70,    56,    57,    58,    59,    47,    95,    94,    93,   106,
+     107,     0,     0,     0,   114,     0,   124,     0,   137,   146,
+     151,   153,   133,   157,   130,   131,   132,   134,   151,   151,
+     139,   157,   157,   157,   155,   147,   155,   129,   112,     0,
+       0,     0,    32,    67,     0,    75,    79,    80,     0,     0,
+       0,     0,     0,     0,    53,    71,   102,   104,     0,   116,
+     117,   127,     0,   140,     0,   138,     0,   143,   135,   136,
+     141,   142,   144,     0,   145,   148,   110,     0,     0,    28,
+       0,    34,     0,    72,    81,    82,    83,    84,    77,     0,
+     103,     0,     0,     0,     0,   113,     0,     0,     0,    35,
+      73,    54,   150,     0,   152,   156,   154,   111,    31,    33,
+       0,    37,    36,     0,     0,    38,    39,    40,   149,    44,
+       0,    17,    42,    43,     0,    41
   };
 
   const short
-   SqlParser ::yypgoto_[] =
+  parser::yypgoto_[] =
   {
-    -174,  -174,  -174,     1,     7,     2,  -174,  -174,  -174,  -117,
-    -174,  -174,  -174,  -174,  -174,    15,  -174,   177,  -102,  -173,
-     -31,   128,     9,   -13,  -174,  -174,  -174,  -174,   273,  -174,
-      59,   287,  -174,   102,   288,  -174,  -174,  -174,  -174,   106,
-    -174,  -174,  -174,   156,  -174,    96,   -66,  -174,   176,    84,
-    -174,  -174,  -144
+    -240,  -240,  -240,    -6,    38,     4,  -240,  -240,  -240,  -121,
+    -240,  -240,  -240,  -240,  -240,    -9,  -240,   186,  -126,  -239,
+     -50,   137,   -45,   -72,  -240,  -240,  -240,  -240,  -240,   317,
+    -240,    48,   319,  -240,   116,   320,  -240,  -240,  -240,  -240,
+     113,  -240,  -240,    68,  -240,    97,    19,  -240,  -240,  -240,
+    -240,  -240,  -240,   154,   -12,   122,  -104,  -240,   184,     3,
+    -240,   245,  -122
   };
 
   const short
-   SqlParser ::yydefgoto_[] =
+  parser::yydefgoto_[] =
   {
-      -1,     9,    10,    11,    60,    13,    31,    61,   149,    83,
-     225,   240,   247,   252,   255,   256,   248,    62,    45,   211,
-     212,   170,   166,    64,    65,    66,    67,   185,    14,   141,
-     196,    15,   127,   128,    16,    17,    28,    18,   133,   134,
-     135,   194,    19,    46,    34,    68,    69,    70,   123,    71,
-      72,    73,    74
+      -1,    14,    15,    16,    88,    18,    50,    89,   178,   116,
+     281,   299,   311,   317,   321,   322,   312,    90,    74,   253,
+     254,   198,   194,    92,    93,    94,    95,    51,   212,    19,
+     174,   239,    20,   158,   159,    21,    22,    46,    23,   166,
+     167,   168,   237,   263,   265,   274,   267,    24,    25,   106,
+      26,    27,    28,    75,    36,    96,    97,    98,   151,    99,
+     100,   101,   102
   };
 
   const short
-   SqlParser ::yytable_[] =
+  parser::yytable_[] =
   {
-      63,   198,   150,    20,     1,     1,    24,    12,    12,   129,
-     187,    21,    12,    48,     1,   136,   178,    93,    77,    94,
-      95,    22,    97,   -43,    49,    32,   103,    50,    51,    91,
-      44,    53,   199,    38,    39,    40,    54,    55,    32,    56,
-       7,    57,    58,    29,    82,    78,    79,    80,    90,   -43,
-       7,   137,   104,   206,    12,    20,    59,    89,   250,   179,
-      96,  -137,   171,   251,  -135,   244,   102,     7,   207,   208,
-     209,   210,    63,   172,   151,   152,   253,   156,   157,   158,
-     159,   160,   161,   162,   132,    23,     1,   173,   174,   175,
-     176,    32,    36,    32,    32,   184,   223,    30,    84,   142,
-     191,    87,   167,    32,    35,    36,    36,    36,     1,   195,
-     257,    44,     1,    36,   257,    37,   192,    35,    35,    35,
-     129,    41,   200,   169,   136,    35,   193,     3,    86,     2,
-      86,     3,   207,   208,   209,   210,     4,    76,     5,     6,
-      85,   167,    88,     6,     7,    82,   186,   124,     7,     8,
-      75,   167,   167,     8,   216,  -134,    98,   218,    99,   130,
-      86,     1,   169,   201,    33,   130,    81,   100,    86,   101,
-      20,    86,   131,   204,   205,    96,    82,    42,    43,   125,
-     138,   189,   190,   139,   126,    47,   120,   121,    36,   140,
-     236,   195,   144,   167,   167,   167,   167,   167,   220,   221,
-      35,   233,   234,   242,   145,    44,   124,   146,   245,   130,
-     227,   209,   210,   167,    48,   228,   229,   230,   231,   232,
-     153,   154,   155,   243,   221,    49,   147,   168,    50,    51,
-     180,   226,    53,   181,   188,   241,   197,    54,    55,    32,
-      56,   203,    57,    58,   213,   182,   207,   208,   209,   210,
-     224,   238,   246,   214,   183,   222,   239,    59,   115,   116,
-     117,    48,   234,   249,   118,   119,   120,   121,   258,   254,
-     130,    56,    49,   259,   130,    50,    51,    52,    25,    53,
-     148,   237,    36,   202,    54,    55,    32,    56,   217,    57,
-      58,    48,    26,    27,    35,     0,   219,     0,   177,     0,
-       0,     0,    49,     0,    59,    50,    51,    91,     0,    53,
-       0,     0,    48,     0,    54,    55,    32,    56,     0,    57,
-      58,     0,     0,    49,     0,     0,    50,    51,    91,     0,
-      53,     0,     0,   163,    92,    54,    55,    32,    56,     0,
-      57,    58,     0,     0,    49,     0,     0,   164,   165,    91,
-       0,    53,     0,     0,     0,    59,    54,    55,    32,    56,
-       0,    57,    58,   105,   106,   107,   108,   109,   110,   111,
-     112,   113,   114,   115,   116,   117,    59,     0,     0,   118,
-     119,   120,   121,     0,   114,   115,   116,   117,     0,     0,
-      32,   118,   119,   120,   121,     0,     0,   122,   105,   106,
-     107,   108,   109,   110,   111,   112,   113,   114,   115,   116,
-     117,     0,     0,     0,   118,   119,   120,   121,     0,   143,
-     105,   106,   107,   108,   109,   110,   111,   112,   113,   114,
-     115,   116,   117,     0,     0,     0,   118,   119,   120,   121,
-       0,   215,   105,   106,   107,   108,   109,   110,   111,   112,
-     113,   114,   115,   116,   117,     0,     0,     0,   118,   119,
-     120,   121,     0,   235,   105,   106,   107,   108,   109,   110,
-     111,   112,   113,   114,   115,   116,   117,     0,     0,     0,
-     118,   119,   120,   121,   106,   107,   108,   109,   110,   111,
-     112,   113,   114,   115,   116,   117,     0,     0,     0,   118,
-     119,   120,   121,   107,   108,   109,   110,   111,   112,   113,
-     114,   115,   116,   117,     0,     0,     0,   118,   119,   120,
-     121
+      91,    58,    42,   160,     1,    29,   179,   241,    38,    38,
+     169,     1,   131,    52,    66,    38,    59,    53,    67,    68,
+      30,   199,    34,    31,  -178,     1,    40,  -176,    72,    33,
+      54,   128,   200,    59,    59,    38,    38,   214,    17,    17,
+      55,   132,    56,    59,    38,    10,    17,     4,    32,   207,
+      38,    41,    10,   123,     1,    34,   115,   242,   308,   115,
+       9,    34,     1,   119,    34,   170,    10,   108,    34,   121,
+     124,   195,    12,   213,   118,   319,   118,    48,   118,    73,
+      47,    91,    49,   180,   181,    29,   185,   186,   187,   188,
+     189,   190,   191,   157,   152,   164,   201,   202,   203,   204,
+     109,   110,   111,    34,   211,    60,    38,    38,    59,   160,
+     161,   195,    61,   169,    17,   279,   118,   161,   206,   127,
+     195,   195,   118,   238,   118,   130,    34,    37,    37,   315,
+     216,   217,   243,    65,    37,    38,    71,   316,   244,  -175,
+     291,    77,   292,   103,   293,   107,   162,   246,   247,   148,
+     149,   294,   104,   152,    37,    37,   161,   248,   105,    35,
+      39,     1,   258,    37,   175,   260,    57,   276,   277,    37,
+      73,   112,   249,   250,   251,   252,   195,   195,   195,   195,
+     195,   313,   197,   143,   144,   145,    69,    70,   113,   146,
+     147,   148,   149,   117,   114,   120,   282,   122,   323,   125,
+      29,    76,   323,   283,   284,   285,   286,   287,   288,   289,
+     195,   249,   250,   251,   252,   115,   161,    62,    63,    64,
+     161,    82,   197,   126,   218,    37,    37,   295,   238,   249,
+     250,   251,   252,   215,   127,   165,   154,   300,   153,   301,
+     163,   171,   255,   172,    38,   182,   183,   184,   309,   219,
+     270,   271,   272,   173,    37,   196,   220,   155,   156,   240,
+     221,   142,   143,   144,   145,   256,   222,   262,   146,   147,
+     148,   149,   251,   252,   302,   303,   307,   277,   264,    73,
+     223,   266,   224,   225,   226,   227,   228,   229,   230,   231,
+     232,   233,   234,   235,   236,    78,   268,   269,   273,   278,
+     280,    83,   297,   298,   304,   305,    79,   306,   314,   310,
+     289,    80,   318,    81,   320,   325,   324,   177,    82,    34,
+      83,   245,    84,    85,     1,    43,   296,    44,    45,   259,
+     261,   129,    86,   275,   205,     2,     0,     0,     0,     0,
+       0,    87,     3,     0,     0,     0,     4,     5,     6,     0,
+       0,     7,     0,     8,    10,     0,     0,     0,     0,     9,
+       0,     0,    78,    37,     0,    10,     0,    11,     0,     0,
+       0,    12,    13,    79,     0,     0,   192,   193,    80,     0,
+      81,     0,    78,     0,     0,    82,    34,    83,     0,    84,
+      85,     0,     0,    79,     0,     0,     0,     0,   208,    86,
+      81,     0,     0,     0,     0,    82,    34,    83,    87,    84,
+      85,    78,     0,   209,     0,     0,     0,     0,     0,    86,
+       0,     0,    79,     0,     0,   210,     0,    80,    87,    81,
+       0,     0,     0,     0,    82,    34,    83,     0,    84,    85,
+       0,     0,     0,     0,     0,     0,     0,     0,    86,     0,
+       0,     0,     0,     0,     0,     0,     0,    87,   133,   134,
+     135,   136,   137,   138,   139,   140,   141,   142,   143,   144,
+     145,     0,     0,     0,   146,   147,   148,   149,     0,     0,
+       0,     0,     0,     0,    34,     0,     0,     0,     0,     0,
+       0,     0,   150,   133,   134,   135,   136,   137,   138,   139,
+     140,   141,   142,   143,   144,   145,     0,     0,     0,   146,
+     147,   148,   149,     0,   176,   133,   134,   135,   136,   137,
+     138,   139,   140,   141,   142,   143,   144,   145,     0,     0,
+       0,   146,   147,   148,   149,     0,   257,   133,   134,   135,
+     136,   137,   138,   139,   140,   141,   142,   143,   144,   145,
+       0,     0,     0,   146,   147,   148,   149,     0,   290,   133,
+     134,   135,   136,   137,   138,   139,   140,   141,   142,   143,
+     144,   145,     0,     0,     0,   146,   147,   148,   149,   134,
+     135,   136,   137,   138,   139,   140,   141,   142,   143,   144,
+     145,     0,     0,     0,   146,   147,   148,   149,   135,   136,
+     137,   138,   139,   140,   141,   142,   143,   144,   145,     0,
+       0,     0,   146,   147,   148,   149
   };
 
   const short
-   SqlParser ::yycheck_[] =
+  parser::yycheck_[] =
   {
-      31,    28,   104,     1,    26,    26,     5,     0,     1,    75,
-     127,    65,     5,     8,    26,    81,    24,    48,    39,    50,
-      51,    54,    53,    28,    19,    33,    28,    22,    23,    24,
-      23,    26,   149,     3,     4,     5,    31,    32,    33,    34,
-      62,    36,    37,    58,    71,    38,    39,    40,    47,    54,
-      62,    82,    54,     7,    47,    53,    51,    69,    41,   125,
-      53,    26,     8,    46,    29,   238,    59,    62,    22,    23,
-      24,    25,   103,    19,   105,   106,   249,   108,   109,   110,
-     111,   112,   113,   114,    77,    65,    26,   118,   119,   120,
-     121,    33,     8,    33,    33,   126,   198,    48,    40,    92,
-      44,    40,   115,    33,     8,    21,    22,    23,    26,   140,
-     254,   104,    26,    29,   258,     0,    60,    21,    22,    23,
-     186,    27,   153,   116,   190,    29,    70,    45,    44,    43,
-      46,    45,    22,    23,    24,    25,    50,    29,    52,    57,
-      44,   154,    46,    57,    62,    71,    72,    63,    62,    67,
-      63,   164,   165,    67,   185,    29,    33,   188,    35,    75,
-      76,    26,   155,   154,     8,    81,    26,    33,    84,    35,
-     168,    87,    76,   164,   165,   168,    71,    21,    22,    29,
-      84,    27,    28,    87,    26,    29,    24,    25,   104,    26,
-     221,   222,    31,   206,   207,   208,   209,   210,    27,    28,
-     104,    27,    28,   234,    31,   198,   122,    32,   239,   125,
-     203,    24,    25,   226,     8,   206,   207,   208,   209,   210,
-      15,    16,    17,    27,    28,    19,    32,    26,    22,    23,
-      24,     7,    26,    27,    11,   226,    28,    31,    32,    33,
-      34,    51,    36,    37,    19,    39,    22,    23,    24,    25,
-      55,    42,    61,    27,    48,    26,    56,    51,    16,    17,
-      18,     8,    28,    42,    22,    23,    24,    25,    28,    59,
-     186,    34,    19,   258,   190,    22,    23,    24,     5,    26,
-     103,   222,   198,   155,    31,    32,    33,    34,   186,    36,
-      37,     8,     5,     5,   198,    -1,   190,    -1,   122,    -1,
-      -1,    -1,    19,    -1,    51,    22,    23,    24,    -1,    26,
-      -1,    -1,     8,    -1,    31,    32,    33,    34,    -1,    36,
-      37,    -1,    -1,    19,    -1,    -1,    22,    23,    24,    -1,
-      26,    -1,    -1,     8,    51,    31,    32,    33,    34,    -1,
-      36,    37,    -1,    -1,    19,    -1,    -1,    22,    23,    24,
-      -1,    26,    -1,    -1,    -1,    51,    31,    32,    33,    34,
-      -1,    36,    37,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,    18,    51,    -1,    -1,    22,
-      23,    24,    25,    -1,    15,    16,    17,    18,    -1,    -1,
-      33,    22,    23,    24,    25,    -1,    -1,    40,     6,     7,
+      50,    13,     8,   107,    26,     1,   132,    28,     5,     6,
+     114,    26,    28,    43,    24,    12,    13,    47,    30,    31,
+      71,     8,    32,    46,    26,    26,    46,    29,    40,    57,
+      60,    81,    19,    30,    31,    32,    33,   158,     0,     1,
+      70,    57,    72,    40,    41,    67,     8,    48,    71,   153,
+      47,    71,    67,    75,    26,    32,    77,   178,   297,    77,
+      61,    32,    26,    40,    32,   115,    67,    39,    32,    40,
+      76,   143,    73,    91,    71,   314,    73,    46,    75,    41,
+      63,   131,    51,   133,   134,    81,   136,   137,   138,   139,
+     140,   141,   142,   105,    91,    24,   146,   147,   148,   149,
+      62,    63,    64,    32,   154,     0,   103,   104,   105,   213,
+     107,   183,    30,   217,    76,   241,   113,   114,    24,    81,
+     192,   193,   119,   173,   121,    87,    32,     5,     6,    41,
+      27,    28,   182,    27,    12,   132,    29,    49,   183,    29,
+     262,    26,   264,    57,   266,    68,   108,   192,   193,    24,
+      25,   273,    57,   150,    32,    33,   153,     7,    57,     5,
+       6,    26,   212,    41,   126,   215,    12,    27,    28,    47,
+     132,    29,    22,    23,    24,    25,   248,   249,   250,   251,
+     252,   303,   144,    16,    17,    18,    32,    33,    29,    22,
+      23,    24,    25,    71,    26,    73,     7,    75,   320,    27,
+     196,    47,   324,   248,   249,   250,   251,   252,    27,    28,
+     282,    22,    23,    24,    25,    77,   213,     3,     4,     5,
+     217,    31,   184,    54,    20,   103,   104,   277,   278,    22,
+      23,    24,    25,    11,   196,   113,    26,   282,    29,   289,
+      24,   119,    19,   121,   241,    15,    16,    17,   298,    45,
+     231,   232,   233,    26,   132,    26,    52,   103,   104,    28,
+      56,    15,    16,    17,    18,    27,    62,    26,    22,    23,
+      24,    25,    24,    25,    27,    28,    27,    28,    26,   241,
+      76,    26,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    87,    88,    89,    90,     8,   228,   229,    26,    26,
+      58,    33,    42,    59,    27,    27,    19,    27,    42,    66,
+      28,    24,    27,    26,    64,   324,    28,   131,    31,    32,
+      33,   184,    35,    36,    26,     8,   278,     8,     8,   213,
+     217,    86,    45,   236,   150,    37,    -1,    -1,    -1,    -1,
+      -1,    54,    44,    -1,    -1,    -1,    48,    49,    50,    -1,
+      -1,    53,    -1,    55,    67,    -1,    -1,    -1,    -1,    61,
+      -1,    -1,     8,   241,    -1,    67,    -1,    69,    -1,    -1,
+      -1,    73,    74,    19,    -1,    -1,    22,    23,    24,    -1,
+      26,    -1,     8,    -1,    -1,    31,    32,    33,    -1,    35,
+      36,    -1,    -1,    19,    -1,    -1,    -1,    -1,    24,    45,
+      26,    -1,    -1,    -1,    -1,    31,    32,    33,    54,    35,
+      36,     8,    -1,    39,    -1,    -1,    -1,    -1,    -1,    45,
+      -1,    -1,    19,    -1,    -1,    51,    -1,    24,    54,    26,
+      -1,    -1,    -1,    -1,    31,    32,    33,    -1,    35,    36,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    45,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    54,     6,     7,
        8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
-      18,    -1,    -1,    -1,    22,    23,    24,    25,    -1,    27,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      16,    17,    18,    -1,    -1,    -1,    22,    23,    24,    25,
-      -1,    27,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15,    16,    17,    18,    -1,    -1,    -1,    22,    23,
-      24,    25,    -1,    27,     6,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,    16,    17,    18,    -1,    -1,    -1,
-      22,    23,    24,    25,     7,     8,     9,    10,    11,    12,
+      18,    -1,    -1,    -1,    22,    23,    24,    25,    -1,    -1,
+      -1,    -1,    -1,    -1,    32,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    40,     6,     7,     8,     9,    10,    11,    12,
       13,    14,    15,    16,    17,    18,    -1,    -1,    -1,    22,
-      23,    24,    25,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    -1,    -1,    -1,    22,    23,    24,
-      25
+      23,    24,    25,    -1,    27,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,    18,    -1,    -1,
+      -1,    22,    23,    24,    25,    -1,    27,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
+      -1,    -1,    -1,    22,    23,    24,    25,    -1,    27,     6,
+       7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
+      17,    18,    -1,    -1,    -1,    22,    23,    24,    25,     7,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
+      18,    -1,    -1,    -1,    22,    23,    24,    25,     8,     9,
+      10,    11,    12,    13,    14,    15,    16,    17,    18,    -1,
+      -1,    -1,    22,    23,    24,    25
   };
 
   const unsigned char
-   SqlParser ::yystos_[] =
+  parser::yystos_[] =
   {
-       0,    26,    43,    45,    50,    52,    57,    62,    67,    74,
-      75,    76,    77,    78,   101,   104,   107,   108,   110,   115,
-      78,    65,    54,    65,    76,   101,   104,   107,   109,    58,
-      48,    79,    33,   116,   117,   118,   122,     0,     3,     4,
-       5,    27,   116,   116,    77,    91,   116,   116,     8,    19,
-      22,    23,    24,    26,    31,    32,    34,    36,    37,    51,
-      77,    80,    90,    93,    96,    97,    98,    99,   118,   119,
-     120,   122,   123,   124,   125,    63,    29,    39,    77,    77,
-      77,    26,    71,    82,    40,   118,   122,    40,   118,    69,
-      76,    24,    51,    93,    93,    93,    77,    93,    33,    35,
-      33,    35,    77,    28,    54,     6,     7,     8,     9,    10,
-      11,    12,    13,    14,    15,    16,    17,    18,    22,    23,
-      24,    25,    40,   121,   122,    29,    26,   105,   106,   119,
-     122,   118,    77,   111,   112,   113,   119,    93,   118,   118,
-      26,   102,    77,    27,    31,    31,    32,    32,    90,    81,
-      91,    93,    93,    15,    16,    17,    93,    93,    93,    93,
-      93,    93,    93,     8,    22,    23,    95,    96,    26,    77,
-      94,     8,    19,    93,    93,    93,    93,   121,    24,   119,
-      24,    27,    39,    48,    93,   100,    72,    82,    11,    27,
-      28,    44,    60,    70,   114,    93,   103,    28,    28,    82,
-      93,    95,    94,    51,    95,    95,     7,    22,    23,    24,
-      25,    92,    93,    19,    27,    27,    93,   106,    93,   112,
-      27,    28,    26,    91,    55,    83,     7,    77,    95,    95,
-      95,    95,    95,    27,    28,    27,    93,   103,    42,    56,
-      84,    95,    93,    27,    92,    93,    61,    85,    89,    42,
-      41,    46,    86,    92,    59,    87,    88,   125,    28,    88
+       0,    26,    37,    44,    48,    49,    50,    53,    55,    61,
+      67,    69,    73,    74,    93,    94,    95,    96,    97,   121,
+     124,   127,   128,   130,   139,   140,   142,   143,   144,    97,
+      71,    46,    71,    57,    32,   145,   146,   147,   151,   145,
+      46,    71,    95,   121,   124,   127,   129,    63,    46,    51,
+      98,   119,    43,    47,    60,    70,    72,   145,   146,   151,
+       0,    30,     3,     4,     5,    27,    24,   146,   146,   145,
+     145,    29,   146,    96,   110,   145,   145,    26,     8,    19,
+      24,    26,    31,    33,    35,    36,    45,    54,    96,    99,
+     109,   112,   115,   116,   117,   118,   147,   148,   149,   151,
+     152,   153,   154,    57,    57,    57,   141,    68,    39,    96,
+      96,    96,    29,    29,    26,    77,   101,   147,   151,    40,
+     147,    40,   147,    75,    95,    27,    54,    96,   112,   153,
+      96,    28,    57,     6,     7,     8,     9,    10,    11,    12,
+      13,    14,    15,    16,    17,    18,    22,    23,    24,    25,
+      40,   150,   151,    29,    26,   145,   145,   146,   125,   126,
+     148,   151,    96,    24,    24,   147,   131,   132,   133,   148,
+     112,   147,   147,    26,   122,    96,    27,   109,   100,   110,
+     112,   112,    15,    16,    17,   112,   112,   112,   112,   112,
+     112,   112,    22,    23,   114,   115,    26,    96,   113,     8,
+      19,   112,   112,   112,   112,   150,    24,   148,    24,    39,
+      51,   112,   120,    91,   101,    11,    27,    28,    20,    45,
+      52,    56,    62,    76,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,   134,   112,   123,
+      28,    28,   101,   112,   114,   113,   114,   114,     7,    22,
+      23,    24,    25,   111,   112,    19,    27,    27,   112,   126,
+     112,   132,    26,   135,    26,   136,    26,   138,   135,   135,
+     138,   138,   138,    26,   137,   137,    27,    28,    26,   110,
+      58,   102,     7,   114,   114,   114,   114,   114,    27,    28,
+      27,   154,   154,   154,   154,   112,   123,    42,    59,   103,
+     114,   112,    27,    28,    27,    27,    27,    27,   111,   112,
+      66,   104,   108,   154,    42,    41,    49,   105,    27,   111,
+      64,   106,   107,   154,    28,   107
   };
 
   const unsigned char
-   SqlParser ::yyr1_[] =
+  parser::yyr1_[] =
   {
-       0,    73,    74,    75,    75,    75,    75,    75,    75,    75,
-      75,    76,    77,    78,    78,    78,    78,    78,    79,    79,
-      80,    80,    81,    81,    82,    82,    83,    83,    84,    84,
-      85,    85,    86,    86,    86,    87,    87,    87,    88,    89,
-      90,    90,    90,    90,    91,    91,    91,    91,    91,    92,
-      92,    93,    93,    93,    93,    93,    93,    93,    93,    93,
-      93,    93,    93,    93,    93,    93,    93,    93,    93,    93,
-      93,    93,    93,    93,    93,    94,    94,    95,    95,    95,
-      95,    95,    95,    95,    96,    96,    96,    96,    96,    96,
-      96,    97,    97,    97,    97,    98,    98,    98,    98,    98,
-      98,    99,    99,    99,    99,   100,   100,   101,   101,   102,
-     102,   103,   103,   104,   105,   105,   106,   107,   108,   109,
-     109,   109,   109,   110,   111,   111,   112,   113,   114,   114,
-     114,   115,   116,   116,   117,   118,   119,   120,   121,   122,
-     123,   123,   124,   124,   125
+       0,    92,    93,    94,    94,    94,    94,    94,    94,    94,
+      94,    94,    94,    94,    94,    95,    96,    97,    97,    97,
+      97,    97,    97,    98,    98,    99,    99,   100,   100,   101,
+     101,   102,   102,   103,   103,   104,   104,   105,   105,   105,
+     106,   106,   106,   107,   108,   109,   109,   109,   110,   110,
+     110,   110,   110,   111,   111,   112,   112,   112,   112,   112,
+     112,   112,   112,   112,   112,   112,   112,   112,   112,   112,
+     112,   112,   112,   112,   112,   112,   113,   113,   114,   114,
+     114,   114,   114,   114,   114,   115,   115,   115,   115,   115,
+     115,   115,   116,   116,   116,   116,   117,   117,   117,   117,
+     117,   117,   118,   118,   118,   119,   120,   120,   121,   121,
+     122,   122,   123,   123,   124,   125,   125,   126,   127,   128,
+     129,   129,   129,   129,   130,   130,   131,   131,   132,   133,
+     134,   134,   134,   134,   134,   134,   134,   134,   134,   134,
+     134,   134,   134,   134,   134,   134,   134,   134,   134,   135,
+     135,   135,   136,   136,   137,   137,   138,   138,   139,   139,
+     140,   140,   140,   140,   140,   141,   141,   142,   143,   143,
+     144,   144,   144,   145,   145,   146,   147,   148,   149,   150,
+     151,   152,   153,   154
   };
 
   const unsigned char
-   SqlParser ::yyr2_[] =
+  parser::yyr2_[] =
   {
-       0,     2,     1,     1,     1,     1,     1,     1,     1,     1,
-       0,     1,     3,    11,     3,     4,     3,     3,     0,     1,
-       1,     3,     1,     3,     2,     0,     3,     0,     2,     0,
-       0,     1,     0,     1,     1,     0,     4,     2,     1,     3,
-       1,     2,     3,     1,     1,     3,     2,     3,     2,     1,
-       3,     1,     2,     2,     3,     3,     3,     3,     3,     3,
-       3,     3,     3,     3,     3,     4,     3,     3,     2,     3,
-       4,     5,     6,     3,     4,     1,     3,     1,     2,     2,
-       3,     3,     3,     3,     1,     1,     3,     1,     1,     2,
-       3,     1,     1,     3,     3,     1,     1,     1,     1,     1,
-       1,     4,     5,     4,     3,     1,     1,     5,     4,     3,
-       5,     1,     3,     5,     1,     3,     3,     4,     2,     1,
-       1,     1,     1,     6,     1,     3,     1,     2,     1,     1,
-       1,     3,     1,     3,     1,     1,     1,     1,     1,     1,
-       3,     3,     3,     3,     1
+       0,     2,     2,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     0,     1,     3,    11,     3,     4,
+       3,     3,     2,     0,     1,     1,     3,     1,     3,     2,
+       0,     3,     0,     2,     0,     0,     1,     0,     1,     1,
+       0,     4,     2,     1,     3,     1,     2,     3,     1,     3,
+       2,     3,     2,     1,     3,     1,     3,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     4,     3,     3,
+       3,     4,     5,     6,     3,     4,     1,     3,     1,     2,
+       2,     3,     3,     3,     3,     1,     1,     3,     1,     1,
+       2,     3,     1,     1,     3,     3,     1,     1,     1,     1,
+       1,     1,     4,     5,     4,     3,     1,     1,     5,     4,
+       3,     5,     1,     3,     5,     1,     3,     3,     4,     2,
+       1,     1,     1,     1,     6,     3,     1,     3,     1,     2,
+       1,     1,     1,     1,     1,     2,     2,     1,     2,     1,
+       2,     2,     2,     2,     2,     2,     1,     1,     2,     5,
+       3,     0,     3,     0,     3,     0,     3,     0,     3,     3,
+       2,     3,     4,     4,     2,     2,     0,     2,     2,     2,
+       5,     5,     5,     1,     3,     1,     1,     1,     1,     1,
+       1,     2,     1,     1
   };
 
 
@@ -2742,56 +3118,66 @@ namespace CatDB {
   // YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
   // First, the terminals, then, starting at \a yyntokens_, nonterminals.
   const char*
-  const  SqlParser ::yytname_[] =
+  const parser::yytname_[] =
   {
   "END", "error", "$undefined", "UNION", "EXCEPT", "INTERSECT", "OR",
   "AND", "NOT", "CMP_LE", "CMP_LT", "CMP_EQ", "CMP_GT", "CMP_GE", "CMP_NE",
   "LIKE", "BETWEEN", "IN", "IS", "NULLX", "BOOL", "UMINUS", "\"+\"",
   "\"-\"", "\"*\"", "\"/\"", "\"(\"", "\")\"", "\",\"", "\".\"", "\";\"",
-  "\"'\"", "\"\\\"\"", "STRING", "NUMERIC", "TIMESTAMP", "FALSE", "TRUE",
-  "ANY", "ALL", "AS", "ASC", "BY", "CREATE", "DATETIME", "DELETE", "DESC",
-  "DESCRIBE", "DISTINCT", "DOUBLE", "DROP", "EXISTS", "EXPLAIN", "FLOAT",
-  "FROM", "GROUP", "HAVING", "INSERT", "INTO", "LIMIT", "NUMBER", "ORDER",
-  "SELECT", "SET", "SHOW", "TABLE", "TABLES", "UPDATE", "USING", "VALUES",
-  "VARCHAR", "WHERE", "','", "$accept", "sql_stmt", "stmt", "select_stmt",
-  "select_with_parens", "select_no_parens", "opt_distinct",
-  "select_expr_list", "from_list", "opt_where", "opt_groupby",
-  "opt_having", "opt_order_by", "opt_asc_desc", "opt_select_limit",
-  "limit_expr", "order_by", "projection", "table_factor", "expr_list",
-  "expr", "in_expr", "arith_expr", "simple_expr", "column_ref",
-  "expr_const", "func_expr", "distinct_or_all", "insert_stmt",
+  "STRING", "IDENT", "NUMERIC", "TIMESTAMP", "FALSE", "TRUE", "ANALYZE",
+  "ANY", "ALL", "AS", "ASC", "BY", "COLUMNS", "CREATE", "DATETIME",
+  "DATABASE", "DATABASES", "DELETE", "DESC", "DESCRIBE", "DISTINCT",
+  "DOUBLE", "DROP", "EXISTS", "EXPLAIN", "FLOAT", "FROM", "GROUP",
+  "HAVING", "INDEX", "INSERT", "INT", "INTO", "LIMIT", "NUMBER", "ORDER",
+  "SELECT", "SET", "SHOW", "STATUS", "TABLE", "TABLES", "UPDATE", "USING",
+  "VALUES", "VARCHAR", "WHERE", "TINYINT", "SMALLINT", "MEDIUMINT",
+  "BIGINT", "DECIMAL", "NUMERIC_SYM", "REAL", "CHAR", "BINARY",
+  "VARBINARY", "TIMESTAMP_SYM", "DATE", "TIME", "','", "$accept",
+  "sql_stmt", "stmt", "select_stmt", "select_with_parens",
+  "select_no_parens", "opt_distinct", "select_expr_list", "from_list",
+  "opt_where", "opt_groupby", "opt_having", "opt_order_by", "opt_asc_desc",
+  "opt_select_limit", "limit_expr", "order_by", "projection",
+  "table_factor", "expr_list", "expr", "in_expr", "arith_expr",
+  "simple_expr", "column_ref", "expr_const", "func_expr",
+  "simple_function_expr", "distinct_or_all", "insert_stmt",
   "insert_vals_list", "insert_vals", "update_stmt", "update_asgn_list",
   "update_asgn_factor", "delete_stmt", "explain_stmt", "explainable_stmt",
-  "create_table_stmt", "table_element_list", "table_element",
-  "column_definition", "data_type", "drop_table_stmt", "relation_factor",
-  "database_name", "relation_name", "column_name", "function_name",
-  "column_label", "ident", "string", "datetime", "number", YY_NULLPTR
+  "create_stmt", "table_element_list", "table_element",
+  "column_definition", "data_type", "opt_decimal", "opt_float",
+  "opt_time_precision", "opt_char_length", "drop_stmt", "show_stmt",
+  "op_from_database", "use_stmt", "desc_stmt", "analyze_stmt",
+  "relation_factor", "database_name", "relation_name", "column_name",
+  "function_name", "column_label", "ident", "datetime", "string", "number", YY_NULLPTR
   };
 
 #if YYDEBUG
   const unsigned short
-   SqlParser ::yyrline_[] =
+  parser::yyrline_[] =
   {
-       0,   246,   246,   254,   255,   256,   257,   258,   259,   260,
-     262,   271,   278,   288,   307,   312,   317,   322,   330,   331,
-     335,   340,   348,   353,   361,   362,   366,   367,   371,   372,
-     376,   377,   381,   382,   383,   387,   388,   395,   405,   412,
-     419,   423,   431,   439,   449,   453,   461,   469,   477,   492,
-     497,   505,   509,   514,   519,   524,   529,   534,   539,   544,
-     549,   554,   559,   564,   569,   574,   579,   584,   589,   594,
-     599,   604,   609,   614,   619,   627,   631,   638,   642,   647,
-     652,   657,   662,   667,   675,   679,   683,   687,   691,   695,
-     699,   706,   713,   719,   727,   737,   746,   755,   764,   773,
-     782,   794,   804,   813,   821,   830,   834,   845,   855,   862,
-     866,   872,   877,   890,   903,   908,   916,   931,   948,   957,
-     958,   959,   960,   969,   981,   985,   992,   999,  1008,  1012,
-    1016,  1028,  1044,  1051,  1061,  1065,  1069,  1073,  1077,  1081,
-    1085,  1086,  1090,  1091,  1095
+       0,   277,   277,   285,   286,   287,   288,   289,   290,   291,
+     292,   293,   294,   295,   296,   305,   312,   322,   341,   346,
+     351,   356,   361,   368,   369,   373,   378,   386,   391,   399,
+     400,   404,   405,   409,   410,   414,   415,   419,   420,   421,
+     425,   426,   433,   443,   450,   457,   465,   473,   484,   488,
+     496,   504,   512,   527,   532,   541,   545,   550,   555,   560,
+     565,   570,   575,   580,   585,   590,   595,   600,   605,   610,
+     615,   620,   625,   630,   635,   640,   650,   654,   661,   665,
+     670,   675,   680,   685,   690,   698,   702,   706,   710,   714,
+     718,   722,   730,   737,   743,   751,   761,   770,   779,   788,
+     797,   806,   818,   828,   837,   848,   855,   859,   870,   880,
+     887,   891,   897,   902,   915,   928,   933,   941,   956,   973,
+     982,   983,   984,   985,   994,  1003,  1014,  1018,  1025,  1032,
+    1041,  1043,  1045,  1047,  1049,  1051,  1053,  1055,  1057,  1059,
+    1061,  1063,  1065,  1067,  1069,  1071,  1073,  1075,  1077,  1082,
+    1083,  1084,  1088,  1089,  1093,  1094,  1098,  1099,  1108,  1116,
+    1132,  1136,  1140,  1148,  1152,  1159,  1164,  1168,  1184,  1192,
+    1207,  1216,  1225,  1242,  1249,  1259,  1263,  1267,  1271,  1275,
+    1279,  1283,  1287,  1291
   };
 
   // Print the state stack on the debug stream.
   void
-   SqlParser ::yystack_print_ ()
+  parser::yystack_print_ ()
   {
     *yycdebug_ << "Stack now";
     for (stack_type::const_iterator
@@ -2804,7 +3190,7 @@ namespace CatDB {
 
   // Report on the debug stream that the rule \a yyrule is going to be reduced.
   void
-   SqlParser ::yy_reduce_print_ (int yyrule)
+  parser::yy_reduce_print_ (int yyrule)
   {
     unsigned yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -2819,11 +3205,11 @@ namespace CatDB {
 #endif // YYDEBUG
 
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 2825 "sql_parser.cpp"
+#line 3211 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
-#line 1097 "sql_parser.y"
+#line 1293 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 
 
 void CatDB::SqlParser::error(const CatDB::location& location, const std::string& message)

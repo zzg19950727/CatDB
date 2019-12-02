@@ -31,12 +31,12 @@
 // version 2.2 of Bison.
 
 /**
- ** \file location.hh
+ ** \file D:/CatDB/parser/lex_yacc/location.hh
  ** Define the CatDB::location class.
  */
 
-#ifndef YY_YY_LOCATION_HH_INCLUDED
-# define YY_YY_LOCATION_HH_INCLUDED
+#ifndef YY_YY_D_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
+# define YY_YY_D_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
 
 # include <algorithm> // std::max
 # include <iostream>
@@ -54,9 +54,9 @@
 #  endif
 # endif
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 namespace CatDB {
-#line 60 "location.hh"
+#line 60 "D:/CatDB/parser/lex_yacc/location.hh"
 
   /// A point in a source file.
   class position
@@ -112,7 +112,7 @@ namespace CatDB {
     /// Compute max (min, lhs+rhs).
     static unsigned add_ (unsigned lhs, int rhs, int min)
     {
-      return static_cast<unsigned> ((std::max) (min,
+      return static_cast<unsigned> (std::max (min,
                                               static_cast<int> (lhs) + rhs));
     }
   };
@@ -317,8 +317,8 @@ namespace CatDB {
     return ostr;
   }
 
-#line 3 "sql_parser.y"
+#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 323 "location.hh"
+#line 323 "D:/CatDB/parser/lex_yacc/location.hh"
 
-#endif // !YY_YY_LOCATION_HH_INCLUDED
+#endif // !YY_YY_D_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED

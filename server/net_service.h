@@ -38,6 +38,7 @@ namespace CatDB {
 		private:
 			HashMap<FdEvent, CallbackFunc> m_callback_map;
 			fd_set read_events, write_events;
+			HashSet<int> read_fds, write_fds;
 		};
 	}
 }
