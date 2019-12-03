@@ -3,7 +3,6 @@
 
 #include <condition_variable>
 #include <functional>
-#include <iostream>
 #include <string>
 #include <atomic>
 #include <thread>
@@ -195,7 +194,6 @@ private:
 			task();
 			--m_running;
 		}
-		std::cout << std::this_thread::get_id() << "exiting" << std::endl;
 	}
 	std::vector<std::thread> m_workers;
 	Condition m_condition;

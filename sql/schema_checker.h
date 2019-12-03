@@ -51,6 +51,7 @@ namespace CatDB {
 			u32 statis_column_max_value(const String& database, const String& table_name, const String& column_name);
 			u32 statis_column_min_value(const String& database, const String& table_name, const String& column_name);
 
+			u32 init_db();
 		private:
 			//获取最后一个数据库的ID
 			u32 get_last_database_id(u32& id);

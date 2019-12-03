@@ -43,6 +43,8 @@ namespace CatDB {
 			u32 get_last_page(Page_s& page);
 			u32 get_table_id()const;
 			void reset_all_page();
+			static String table_path(const String & database, const String & table);
+			static String database_path(const String & database);
 
 		public:
 			static String data_dir;

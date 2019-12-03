@@ -32,8 +32,8 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 u32 TableSpace::open()
 {
 	Log(LOG_TRACE, "TableSpace", "open table space");
-	String table_path = data_dir + "/" + database + "/" + table_name;
-	io->open(table_path);
+	String path = table_path(database, table_name);
+	io->open(path);
 	cur_page_offset = 0;
 	reset_all_page();
 	return SUCCESS;
@@ -155,8 +155,8 @@ u32 TableSpace::delete_row(u32 row_id)
 
 u32 TableSpace::delete_all_row()
 {
-	String table_path = data_dir + "/" + database + "/" + table_name;
-	u32 ret = io->clear_file(table_path);
+	String path = table_path(database, table_name);
+	u32 ret = io->clear_file(path);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
 		return ret;
@@ -168,15 +168,15 @@ u32 TableSpace::delete_all_row()
 
 u64 TableSpace::table_space_size(const String & database, const String & table_name)
 {
-	String table_path = data_dir + "/" + database + "/" + table_name;
-	return IoService::get_file_size(table_path);
+	String path = table_path(database, table_name);
+	return IoService::get_file_size(path);
 }
 
 u32 TableSpace::delete_table(const String& database, const String& table_name)
 {
 	IoService_s io = IoService::make_io_service();
-	String table_path = data_dir + "/" + database + "/" + table_name;
-	u32 ret = io->delete_file(table_path);
+	String path = table_path(database, table_name);
+	u32 ret = io->delete_file(path);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "TableSpace", "delete table %s error:%s", table_name.c_str(), err_string(ret));
 		return ret;
@@ -188,8 +188,8 @@ u32 TableSpace::delete_table(const String& database, const String& table_name)
 u32 TableSpace::create_table(const String& database, const String& table_name)
 {
 	IoService_s io = IoService::make_io_service();
-	String table_path = data_dir + "/" + database + "/" + table_name;
-	u32 ret = io->open(table_path);
+	String path = table_path(database, table_name);
+	u32 ret = io->open(path);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "TableSpace", "create table %s error:%s", table_name.c_str(), err_string(ret));
 		return ret;
@@ -201,14 +201,14 @@ u32 TableSpace::create_table(const String& database, const String& table_name)
 
 u32 TableSpace::delete_database(const String & database)
 {
-	String path = data_dir + "/" + database;
+	String path = database_path(database);
 	IoService::remove_dir(path);
 	return SUCCESS;
 }
 
 u32 TableSpace::create_database(const String & database)
 {
-	String path = data_dir + "/" + database;
+	String path = database_path(database);
 	IoService::make_dir(path);
 	return SUCCESS;
 }
@@ -323,4 +323,30 @@ void TableSpace::reset_all_page()
 	for (auto iter = pages.begin(); iter != pages.end(); ++iter) {
 		iter->second->reset();
 	}
+}
+
+String TableSpace::table_path(const String & database, const String & table)
+{
+	String path = data_dir + "/" + database + "/" + table;
+#ifdef _WIN32
+	for (u32 i = 0; i < path.size(); ++i) {
+		if (path[i] == '/') {
+			path[i] = '\\';
+		}
+	}
+#endif
+	return path;
+}
+
+String TableSpace::database_path(const String & database)
+{
+	String path = data_dir + "/" + database;
+#ifdef _WIN32
+	for (u32 i = 0; i < path.size(); ++i) {
+		if (path[i] == '/') {
+			path[i] = '\\';
+		}
+	}
+#endif
+	return path;
 }

@@ -194,7 +194,7 @@ u32 IoService::make_dir(const String & dir)
 u32 IoService::remove_dir(const String & dir)
 {
 #ifdef _WIN32
-	String cmd = "rmdir /s " + dir;
+	String cmd = "rmdir /s /q " + dir;
 #else
 	String cmd = "rm -rf" + dir;
 #endif

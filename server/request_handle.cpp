@@ -354,11 +354,9 @@ u32 RequestHandle::do_cmd_query(const String& query)
 	int ret = parser.parse_sql(query);
 
 	if (parser.is_sys_error()) {
-		return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
 	}
 	else if (parser.is_syntax_error()) {
-		return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.syntax_error());
 	}
 	else if (!parser.parse_result()) {

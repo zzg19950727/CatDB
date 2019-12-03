@@ -420,6 +420,22 @@ u32 SchemaChecker::statis_column_min_value(const String & database, const String
 	return static_cast<u32>(value);
 }
 
+u32 SchemaChecker::init_db()
+{
+	String query = "create database system;";
+	Object_s result;
+	u32 ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		return SYSTEM_SCHEMA_ERROR;
+	}
+	query = "create database system;";
+	ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		return SYSTEM_SCHEMA_ERROR;
+	}
+	return SUCCESS;
+}
+
 u32 SchemaChecker::get_last_database_id(u32 & id)
 {
 	String query = R"(select id from system.sys_databases as db order by id desc limit 1;)";
