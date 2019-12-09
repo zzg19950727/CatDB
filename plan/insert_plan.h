@@ -10,6 +10,8 @@ namespace CatDB {
 	}
 	namespace Sql {
 		DECLARE(Plan);
+		DECLARE(Expression);
+		using Sql::Expression_s;
 		using Parser::Stmt_s;
 		using Common::Row_s;
 		using Common::RowDesc;
@@ -27,6 +29,7 @@ namespace CatDB {
 			PlanType type() const;
 		private:
 			u32 check_column_value(const Stmt_s& list, const RowDesc& row_desc)const;
+			u32 resolve_expr(const Stmt_s& stmt, Expression_s& expr);
 			u32 resolve_row(const Stmt_s& list, const RowDesc& row_desc, Row_s& row);
 
 			Vector<Row_s> values;

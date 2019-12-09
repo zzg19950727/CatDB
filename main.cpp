@@ -1,4 +1,3 @@
-#include "tpch.h"
 #include "server.h"
 
 int main()

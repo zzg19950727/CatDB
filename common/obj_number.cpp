@@ -171,7 +171,12 @@ Object_s Number::operator==(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Bool::make_object(data == rhs->data);
+		if (data > rhs->data) {
+			return Bool::make_object(data - rhs->data < 0.000001);
+		}
+		else {
+			return Bool::make_object(rhs->data - data < 0.000001);
+		}
 	}
 }
 
@@ -227,7 +232,15 @@ Object_s Number::between(const Object_s & left, const Object_s & right)
 	else {
 		Number* lhs = dynamic_cast<Number*>((left.get()));
 		Number* rhs = dynamic_cast<Number*>((right.get()));
-		return Bool::make_object((data <= rhs->data) && (data >= lhs->data));
+		bool lhs_cmp = true;
+		if (data < lhs->data) {
+			lhs_cmp = lhs->data - data < 0.000001;
+		}
+		bool rhs_cmp = true;
+		if (data > rhs->data) {
+			rhs_cmp = data - rhs->data < 0.000001;
+		}
+		return Bool::make_object(lhs_cmp && rhs_cmp);
 	}
 }
 

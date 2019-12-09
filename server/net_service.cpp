@@ -102,14 +102,23 @@ void NetService::poll()
 		{
 			continue;
 		}
+		Vector<int> r_fds;
 		for (auto iter = read_fds.cbegin(); iter != read_fds.cend(); ++iter) {
-			if (FD_ISSET(*iter, &revent)) {
-				response_event(*iter, E_READ);
+			r_fds.push_back(*iter);
+		}
+		for (u32 i = 0; i < r_fds.size(); ++i) {
+			if (FD_ISSET(r_fds[i], &revent)) {
+				response_event(r_fds[i], E_READ);
 			}
 		}
+
+		Vector<int> w_fds;
 		for (auto iter = write_fds.cbegin(); iter != write_fds.cend(); ++iter) {
-			if (FD_ISSET(*iter, &wevent)) {
-				response_event(*iter, E_WRITE);
+			w_fds.push_back(*iter);
+		}
+		for (u32 i = 0; i < w_fds.size(); ++i) {
+			if (FD_ISSET(w_fds[i], &wevent)) {
+				response_event(w_fds[i], E_WRITE);
 			}
 		}
 	}
@@ -150,7 +159,9 @@ int NetService::unregister_io(int fd, Event e)
 		m_callback_map.erase(FdEvent(fd,E_WRITE));
 	}
 	else
-		m_callback_map.erase(FdEvent(fd,e));
+	{
+		m_callback_map.erase(FdEvent(fd, e));
+	}
 	return 0;
 }
 

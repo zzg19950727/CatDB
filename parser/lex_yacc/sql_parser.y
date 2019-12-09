@@ -1281,6 +1281,7 @@ ident:
 
 datetime:
 	DATETIME string	{ $$ = $2; }
+  | DATE string	{ $$ = $2; }
   ;
  
 string:

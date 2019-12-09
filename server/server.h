@@ -18,6 +18,7 @@ namespace CatDB {
 
 		private:
 			void new_connection(int fd, NetService::Event e);
+			void do_login(int fd);
 			void close_connection(int fd);
 			void close_connection();
 

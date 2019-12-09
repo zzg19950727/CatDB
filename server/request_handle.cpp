@@ -122,11 +122,11 @@ void RequestHandle::write_socket(int fd)
 void RequestHandle::close_connection()
 {
 	Log(LOG_TRACE, "RequestHandle", "RequestHandle close connection:%d",m_fd);
+	net_close(m_fd);
 	m_server_service.m_net_service.unregister_io(m_fd, NetService::E_RW);
 	m_server_service.close_connection(m_fd);
 	std::shared_ptr<RequestHandle> copy;
 	copy.swap(m_self);
-	net_close(m_fd);
 	m_fd = -1;
 }
 
@@ -354,9 +354,11 @@ u32 RequestHandle::do_cmd_query(const String& query)
 	int ret = parser.parse_sql(query);
 
 	if (parser.is_sys_error()) {
+		//return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
 	}
 	else if (parser.is_syntax_error()) {
+		//return send_ok_packet();
 		return send_error_packet(ERR_UNEXPECTED, parser.syntax_error());
 	}
 	else if (!parser.parse_result()) {
@@ -446,7 +448,9 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_QUERY:
 		{
 			String query(buf + 1, len - 1);
-			do_cmd_query(query);
+			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
+			m_server_service.workers().append_task(task);
+			//do_cmd_query(query);
 			break;
 		}
 		default:

@@ -2,6 +2,7 @@
 #include "insert_plan.h"
 #include "insert_stmt.h"
 #include "expr_stmt.h"
+#include "expression.h"
 #include "object.h"
 #include "insert.h"
 #include "stmt.h"
@@ -154,6 +155,84 @@ u32 InsertPlan::check_column_value(const Stmt_s& list, const RowDesc& row_desc)c
 	}
 }
 
+u32 InsertPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
+{
+	if (stmt->stmt_type() != Stmt::Expr) {
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(stmt.get());
+	u32 ret;
+
+	switch (expr_stmt->expr_stmt_type())
+	{
+	case ExprStmt::Const:
+	{
+		ConstStmt* const_stmt = dynamic_cast<ConstStmt*>(expr_stmt);
+		expr = ConstExpression::make_const_expression(const_stmt->value);
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::Unary:
+	{
+		UnaryExprStmt* unary_stmt = dynamic_cast<UnaryExprStmt*>(expr_stmt);
+		Expression_s first_expr;
+		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create unary expression`s first expression failed");
+			break;
+		}
+		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::Binary:
+	{
+		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
+		Expression_s first_expr, second_expr;
+		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create binary expression`s first expression failed");
+			break;
+		}
+		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create binary expression`s second expression failed");
+			break;
+		}
+		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
+		ret = SUCCESS;
+		break;
+	}
+	case ExprStmt::Ternary:
+	{
+		Expression_s first_expr, second_expr, third_expr;
+		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
+		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create ternary expression`s first expression failed");
+			break;
+		}
+		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create ternary expression`s second expression failed");
+			break;
+		}
+		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "InsertPlan", "create ternary expression`s third expression failed");
+			break;
+		}
+		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
+		ret = SUCCESS;
+		break;
+	}
+	default:
+		Log(LOG_ERR, "InsertPlan", "unknown expr stmt in insert`s where stmt");
+		ret = ERROR_LEX_STMT;
+	}
+	return ret;
+}
+
 u32 InsertPlan::resolve_row(const Stmt_s& list, const RowDesc& row_desc, Row_s& row)
 {
 	ColumnDesc col_desc;
@@ -161,10 +240,13 @@ u32 InsertPlan::resolve_row(const Stmt_s& list, const RowDesc& row_desc, Row_s& 
 	ExprStmt* expr = dynamic_cast<ExprStmt*>(list.get());
 	ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr);
 	for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
-		ExprStmt* expr_value = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());
-		ConstStmt* value = dynamic_cast<ConstStmt*>(expr_value);
-		Object_s cell = value->value;
-		u32 ret = row_desc.get_column_desc(i, col_desc);
+		Expression_s expr;
+		u32 ret = resolve_expr(list_stmt->stmt_list[i], expr);
+		if (ret != SUCCESS) {
+			return ret;
+		}
+		Object_s cell = expr->get_result(row);
+		ret = row_desc.get_column_desc(i, col_desc);
 		if (ret != SUCCESS) {
 			return ret;
 		}

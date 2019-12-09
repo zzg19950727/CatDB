@@ -337,30 +337,45 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 	}
 	ColumnStmt* column_stmt = nullptr;
 	ConstStmt* const_stmt = nullptr;
+	Expression_s const_expr = nullptr;
 	ExprStmt* first_expr = dynamic_cast<ExprStmt*>(binary_stmt->first_expr_stmt.get());
 	ExprStmt* second_expr = dynamic_cast<ExprStmt*>(binary_stmt->second_expr_stmt.get());
 	if (first_expr->expr_stmt_type() == ExprStmt::Column) {
 		column_stmt = dynamic_cast<ColumnStmt*>(first_expr);
 	}
+	else {
+		u32 ret = resolve_expr(binary_stmt->first_expr_stmt, const_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+			return ERROR_LEX_STMT;
+		}
+	}/*
 	else if (first_expr->expr_stmt_type() == ExprStmt::Const) {
 		const_stmt = dynamic_cast<ConstStmt*>(first_expr);
 	}
 	else {
 		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
-	}
+	}*/
 
 	if (second_expr->expr_stmt_type() == ExprStmt::Column) {
 		column_stmt = dynamic_cast<ColumnStmt*>(second_expr);
 	}
+	else {
+		u32 ret = resolve_expr(binary_stmt->second_expr_stmt, const_expr);
+		if (ret != SUCCESS) {
+			Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+			return ERROR_LEX_STMT;
+		}
+	}/*
 	else if (second_expr->expr_stmt_type() == ExprStmt::Const) {
 		const_stmt = dynamic_cast<ConstStmt*>(second_expr);
 	}
 	else {
 		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
-	}
-	if (!column_stmt || !const_stmt) {
+	}*/
+	if (!column_stmt || !const_expr) {
 		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
 	}
@@ -375,7 +390,9 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	cell = const_stmt->value;
+	//cell = const_stmt->value;
+	Row_s tmp_row;
+	cell = const_expr->get_result(tmp_row);
 	ret = cast_to(col_desc.get_data_type(), cell);
 	if (ret != SUCCESS) {
 		return ret;

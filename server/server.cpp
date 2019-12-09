@@ -57,17 +57,22 @@ void ServerService::new_connection(int fd, NetService::Event e)
 			net_close(client_fd);
 			return;
 		}
-		Loginer loginer(m_thread_id, client_fd);
-		if (loginer.login() == SUCCESS) {
-			auto ptr = std::make_shared<RequestHandle>(client_fd, *this);
-			ptr->set_login_info(loginer.get_login_info());
-			ptr->set_delete_handle(ptr);
-			++m_clients;
-			++m_thread_id;
-		}
-		else {
-			Log(LOG_WARN, "ServerService", "login failed");
-		}
+		do_login(client_fd);
+	}
+}
+
+void ServerService::do_login(int fd)
+{
+	Loginer loginer(m_thread_id, fd);
+	if (loginer.login() == SUCCESS) {
+		auto ptr = std::make_shared<RequestHandle>(fd, *this);
+		ptr->set_login_info(loginer.get_login_info());
+		ptr->set_delete_handle(ptr);
+		++m_clients;
+		++m_thread_id;
+	}
+	else {
+		Log(LOG_WARN, "ServerService", "login failed");
 	}
 }
 
