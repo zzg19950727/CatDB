@@ -1,8 +1,9 @@
 ﻿#ifndef OBJECT_H
 #define OBJECT_H
+#include "my_decimal.h"
 #include "type.h"
 
-#define T_NULL		0x80000000
+#define T_NULL		0x80
 #define T_NULL_TYPE	0x00
 #define T_BOOL		0x01
 #define T_NUMBER	0x02
@@ -22,15 +23,15 @@ namespace CatDB {
 		class RawData
 		{
 		public:
-			u32 type;		//数据类型
-			u32 length;		//数据长度
+			u16 length;		//数据长度
+			u8 type;		//数据类型
 			u8	data[1];		//真实数据
-			u32 size()const;
+			u16 size()const;
 			static RawData* make_row_data(void* ptr);
 		};
 
-		u32 string_to_type(const String& str);
-		u32 cast_to(u32 type, Object_s& obj);
+		u8 string_to_type(const String& str);
+		u32 cast_to(u8 type, Object_s& obj);
 
 		class Object
 		{
@@ -74,10 +75,8 @@ namespace CatDB {
 			virtual void accumulate(const Object_s& other);
 
 		protected:
-			u32 obj_width;
-			u32 table_id;
-			u32 column_id;
-			u32 obj_type;
+			u16 obj_width;
+			u8 obj_type;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Object)
 		};
@@ -133,8 +132,10 @@ namespace CatDB {
 		{
 		public:
 			Number(double value);
+			Number(const String& str);
 			Number(const RawData& data);
 			static Object_s make_object(double value);
+			static Object_s make_object(const String& value);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
 			bool bool_value() override;
@@ -142,6 +143,7 @@ namespace CatDB {
 			double value() const;
 			String to_string()const override;
 			Object_s copy()override;
+			void set_scale(int value);
 
 			Object_s operator+(const Object_s& other) override;
 			Object_s operator-(const Object_s& other) override;
@@ -156,7 +158,9 @@ namespace CatDB {
 			void accumulate(const Object_s& other)override;
 
 		private:
-			double data;
+			//double data;
+			my_decimal data;
+			int scale;
 		};
 
 		class DateTime : public Object

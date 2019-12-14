@@ -47,14 +47,14 @@ namespace CatDB {
 		struct RowInfo
 		{
 			u32 row_id;
-			u32 offset;
+			u16 offset;
 		};
 
 		class RawRecord
 		{
 		public:
-			u32 column_count;	//列数量
-			u32 column_offset[1];	//每列数据所在的偏移
+			u16 column_count;	//列数量
+			u16 column_offset[1];	//每列数据所在的偏移
 			u32 size()const;
 			static RawRecord* make_raw_record(void* ptr);
 		};
@@ -93,15 +93,15 @@ namespace CatDB {
 
 		private:
 			Page(const Buffer_s& buffer, IoService_s& io_service);
-			u32 project_all_column(RawRecord* record, Row_s& row)const;
-			u32 project_row(RowInfo* row_info, Row_s& row)const;
+			u32 fix_row_desc(RawRecord* record, Row_s& row)const;
+			u32 deserialize_row(RowInfo* row_info, Row_s& row)const;
 			u32 update_none_fix_row(u32 row_id, Row_s& row);
-			u32 write_row(RawRecord* record, const Row_s& row);
+			u32 serialize_row(const Row_s& row, u32& store_len);
 			u32 search_row(u32 row_id, RowInfo*& info)const;
 			u32 set_row_id_deleted(u32& row_id);
 			bool row_id_deleted(u32 row_id)const;
 			u32 row_width(const Row_s& row)const;
-
+			
 			Buffer_s		buffer_;		//数据所在内存
 			FileHeader* file_header_;	//文件信息
 			PageHeader* page_header_;	//页信息

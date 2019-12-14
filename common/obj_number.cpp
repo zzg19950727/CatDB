@@ -5,21 +5,42 @@
 using namespace CatDB::Common;
 
 Number::Number(double value)
-	:data(value)
+	:data(std::to_string(value)),
+	scale(0)
 {
-	obj_width = sizeof(value);
+	obj_width = data.size() + sizeof(data.intg) + sizeof(data.frac);
+	obj_type = T_NUMBER;
+}
+
+Number::Number(const String & str)
+	:data(str),
+	scale(0)
+{
+	obj_width = data.size() + sizeof(data.intg) + sizeof(data.frac);
 	obj_type = T_NUMBER;
 }
 
 Number::Number(const RawData & data)
+	:scale(0)
 {
 	obj_width = data.length;
 	obj_type = T_NUMBER;
-	memcpy(&this->data, data.data, obj_width);
-	Log(LOG_TRACE, "Object", "make number object, value %f", this->data);
+	const u8* ptr = data.data;
+	int intg, frac;
+	memcpy(&intg, ptr, sizeof(intg));
+	ptr += sizeof(intg);
+	memcpy(&frac, ptr, sizeof(frac));
+	ptr += sizeof(frac);
+	this->data = my_decimal(ptr, intg+frac, frac);
+	Log(LOG_TRACE, "Object", "make number object, value %s", this->data.to_string().c_str());
 }
 
 Object_s Number::make_object(double value)
+{
+	return Object_s(new Number(value));
+}
+
+Object_s Number::make_object(const String & value)
 {
 	return Object_s(new Number(value));
 }
@@ -29,19 +50,26 @@ u32 Number::serialization(u8* & buffer)
 	RawData* rdata = RawData::make_row_data(buffer);
 	rdata->type = obj_type;
 	rdata->length = obj_width;
-	memcpy(rdata->data, &data, obj_width);
+	u8* ptr = rdata->data;
+	memcpy(ptr, &data.intg, sizeof(data.intg));
+	ptr += sizeof(data.intg);
+	memcpy(ptr, &data.frac, sizeof(data.frac));
+	ptr += sizeof(data.frac);
+	uchar tmp[29];
+	data.to_binary(tmp);
+	memcpy(ptr, tmp, data.size());
 	buffer += rdata->size();
 	return SUCCESS;
 }
 
 bool Number::is_fixed_length()
 {
-	return true;
+	return false;
 }
 
 bool Number::bool_value()
 {
-	return (!is_null()) && (data != 0);
+	return (!is_null()) && (data.to_bool());
 }
 
 u32 Number::hash()
@@ -50,48 +78,43 @@ u32 Number::hash()
 		return 0;
 	}
 	else {
-		Hash<double> hash;
-		return hash(data);
+		Hash<String> hash;
+		return hash(data.to_string(0));
 	}
 }
 
 double Number::value() const
 {
-	return data;
+	return data.to_double();
 }
 
 String Number::to_string() const
 {
 	if (is_null())
 		return String("NULL");
-	String str = std::to_string(data);
-	u32 pos = str.size();
-	for (u32 i = 0; i < str.size(); ++i) {
-		if (str[i] == '.') {
-			pos = i;
-			break;
+	String str;
+	if (scale < 0) {
+		str = data.to_string(1);
+		auto pos = str.find('.');
+		if (pos != String::npos) {
+			for (u32 i = pos; i < str.size(); ++i)
+				str[i] = 0;
 		}
 	}
-	if (pos == str.size()) {
-		return str;
-	}
-	for (u32 i = str.size() - 1; i >= pos; --i) {
-		if (str[i] == '0' || str[i] == '.') {
-			str[i] = 0;
-		}
-		else {
-			break;
-		}
-	}
-	while (*str.rbegin() == 0) {
-		str.erase(str.end()-1);
+	else {
+		str = data.to_string(scale);
 	}
 	return str;
 }
 
 Object_s Number::copy()
 {
-	return Number::make_object(data);
+	return Number::make_object(data.to_string(0));
+}
+
+void Number::set_scale(int value)
+{
+	scale = value;
 }
 
 Object_s Number::operator+(const Object_s & other)
@@ -105,7 +128,9 @@ Object_s Number::operator+(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Number::make_object(data + rhs->data);
+		my_decimal res;
+		my_decimal::my_decimal_add(res, data, rhs->data);
+		return Number::make_object(res.to_string(0));
 	}
 }
 
@@ -120,7 +145,9 @@ Object_s Number::operator-(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Number::make_object(data - rhs->data);
+		my_decimal res;
+		my_decimal::my_decimal_sub(res, data, rhs->data);
+		return Number::make_object(res.to_string(0));
 	}
 }
 
@@ -135,7 +162,9 @@ Object_s Number::operator*(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Number::make_object(data * rhs->data);
+		my_decimal res;
+		my_decimal::my_decimal_mul(res, data, rhs->data);
+		return Number::make_object(res.to_string(0));
 	}
 }
 
@@ -150,12 +179,14 @@ Object_s Number::operator/(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		if (rhs->data == 0) {
+		if (rhs->data.is_zero()) {
 			Log(LOG_ERR, "Object", "divisor can not be zero");
 			return Error::make_object(DEVISOR_IS_ZERO);
 		}
 		else {
-			return Number::make_object(data / rhs->data);
+			my_decimal res;
+			my_decimal::my_decimal_div(res, data, rhs->data, data.frac > rhs->data.frac ? data.frac : rhs->data.frac);
+			return Number::make_object(res.to_string(0));
 		}
 	}
 }
@@ -171,12 +202,7 @@ Object_s Number::operator==(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		if (data > rhs->data) {
-			return Bool::make_object(data - rhs->data < 0.000001);
-		}
-		else {
-			return Bool::make_object(rhs->data - data < 0.000001);
-		}
+		return Bool::make_object(data.cmp(rhs->data) == 0);
 	}
 }
 
@@ -191,7 +217,7 @@ Object_s Number::operator>(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Bool::make_object(data > rhs->data);
+		return Bool::make_object(data.cmp(rhs->data) > 0);
 	}
 }
 
@@ -206,7 +232,7 @@ Object_s Number::operator<(const Object_s & other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		return Bool::make_object(data < rhs->data);
+		return Bool::make_object(data.cmp(rhs->data) < 0);
 	}
 }
 
@@ -232,21 +258,15 @@ Object_s Number::between(const Object_s & left, const Object_s & right)
 	else {
 		Number* lhs = dynamic_cast<Number*>((left.get()));
 		Number* rhs = dynamic_cast<Number*>((right.get()));
-		bool lhs_cmp = true;
-		if (data < lhs->data) {
-			lhs_cmp = lhs->data - data < 0.000001;
-		}
-		bool rhs_cmp = true;
-		if (data > rhs->data) {
-			rhs_cmp = data - rhs->data < 0.000001;
-		}
-		return Bool::make_object(lhs_cmp && rhs_cmp);
+		return Bool::make_object( data.cmp(lhs->data) >= 0 && data.cmp(rhs->data) <= 0);
 	}
 }
 
 void Number::increase()
 {
-	++data;
+	String one("1");
+	my_decimal decimal_one(one);
+	my_decimal::my_decimal_add(data, data, decimal_one);
 }
 
 void Number::accumulate(const Object_s& other)
@@ -259,6 +279,6 @@ void Number::accumulate(const Object_s& other)
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
-		data += rhs->data;
+		my_decimal::my_decimal_add(data, data, rhs->data);
 	}
 }

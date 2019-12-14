@@ -8,7 +8,7 @@ using namespace CatDB::Common;
 当前计算框架会吞掉最原始的错误码，但是发生错误，最终的计算结果依然是ErrorObject
 */
 
-u32 RawData::size() const
+u16 RawData::size() const
 {
 	return sizeof(RawData) + length;
 }
@@ -23,8 +23,6 @@ RawData * RawData::make_row_data(void * ptr)
 
 Object::Object()
 	:obj_width(0),
-	table_id(0),
-	column_id(0),
 	obj_type(T_NULL)
 {
 
@@ -196,9 +194,9 @@ void Object::accumulate(const Object_s& other)
 	Log(LOG_ERR, "Object", "object %u do not support accumulate operation", obj_type);
 }
 
-u32 CatDB::Common::string_to_type(const String & str)
+u8 CatDB::Common::string_to_type(const String & str)
 {
-	u32 type = T_NULL;
+	u8 type = T_NULL;
 	if (str == "number") {
 		type = T_NUMBER;
 	}
@@ -212,7 +210,7 @@ u32 CatDB::Common::string_to_type(const String & str)
 }
 
 /*目前支持NULL值转换为对应类型的NULL，varchar转datetime*/
-u32 CatDB::Common::cast_to(u32 type, Object_s & obj)
+u32 CatDB::Common::cast_to(u8 type, Object_s & obj)
 {
 	if (!obj) {
 		return CAST_DATA_ERROR;

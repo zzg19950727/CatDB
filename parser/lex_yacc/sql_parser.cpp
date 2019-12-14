@@ -413,10 +413,6 @@ namespace CatDB {
         value.YY_MOVE_OR_COPY< bool > (YY_MOVE (that.value));
         break;
 
-      case 154: // number
-        value.YY_MOVE_OR_COPY< double > (YY_MOVE (that.value));
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.YY_MOVE_OR_COPY< int > (YY_MOVE (that.value));
@@ -436,6 +432,7 @@ namespace CatDB {
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.YY_MOVE_OR_COPY< std::string > (YY_MOVE (that.value));
         break;
 
@@ -505,10 +502,6 @@ namespace CatDB {
         value.move< bool > (YY_MOVE (that.value));
         break;
 
-      case 154: // number
-        value.move< double > (YY_MOVE (that.value));
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.move< int > (YY_MOVE (that.value));
@@ -528,6 +521,7 @@ namespace CatDB {
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.move< std::string > (YY_MOVE (that.value));
         break;
 
@@ -597,10 +591,6 @@ namespace CatDB {
         value.move< bool > (that.value);
         break;
 
-      case 154: // number
-        value.move< double > (that.value);
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.move< int > (that.value);
@@ -620,6 +610,7 @@ namespace CatDB {
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.move< std::string > (that.value);
         break;
 
@@ -923,10 +914,6 @@ namespace CatDB {
         yylhs.value.emplace< bool > ();
         break;
 
-      case 154: // number
-        yylhs.value.emplace< double > ();
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         yylhs.value.emplace< int > ();
@@ -946,6 +933,7 @@ namespace CatDB {
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         yylhs.value.emplace< std::string > ();
         break;
 
@@ -970,107 +958,107 @@ namespace CatDB {
           switch (yyn)
             {
   case 2:
-#line 278 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 277 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		driver.result = yystack_[1].value.as < Stmt_s > ();
 		YYACCEPT;
     }
-#line 979 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 967 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 3:
+#line 284 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 973 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 4:
 #line 285 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 979 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 5:
+#line 286 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 985 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 4:
-#line 286 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 6:
+#line 287 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 991 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 5:
-#line 287 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 7:
+#line 288 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 997 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 6:
-#line 288 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 8:
+#line 289 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1003 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 7:
-#line 289 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 9:
+#line 290 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1009 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 8:
-#line 290 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 10:
+#line 291 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1015 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 9:
-#line 291 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 11:
+#line 292 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1021 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 10:
-#line 292 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 12:
+#line 293 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1027 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 11:
-#line 293 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 13:
+#line 294 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1033 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 12:
-#line 294 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+  case 14:
+#line 295 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yyerror("unknow stmt"); }
 #line 1039 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 13:
-#line 295 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 1045 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-  case 14:
-#line 296 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yyerror("unknow stmt"); }
-#line 1051 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
   case 15:
-#line 306 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 305 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1059 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1047 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 16:
-#line 313 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 312 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = QueryStmt::make_query_stmt();
 		QueryStmt* query = dynamic_cast<QueryStmt*>(stmt.get());
 		query->query_stmt = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1070 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1058 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 17:
-#line 326 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 325 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建select stmt
 		Stmt_s stmt = SelectStmt::make_select_stmt();
@@ -1086,213 +1074,213 @@ namespace CatDB {
 		select_stmt->limit_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1090 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1078 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 18:
-#line 342 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 341 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建union二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_UNION);
     }
-#line 1099 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1087 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 19:
-#line 347 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 346 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建union all二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_UNION_ALL);
     }
-#line 1108 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1096 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 20:
-#line 352 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 351 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建intersect二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_INTERSECT);
     }
-#line 1117 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1105 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 21:
-#line 357 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 356 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建except二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EXCEPT);
     }
-#line 1126 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1114 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 22:
-#line 362 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 361 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = ShowDatabasesStmt::make_show_databases_stmt(true);
 	}
-#line 1134 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1122 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 23:
-#line 368 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 367 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < bool > () = false; }
-#line 1140 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1128 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 24:
-#line 369 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 368 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < bool > () = true; }
-#line 1146 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1134 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 25:
-#line 374 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 373 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建select list
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1155 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1143 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 26:
-#line 379 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 378 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//把输出表达式加入到select list
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1164 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1152 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 27:
-#line 387 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 386 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建from list 
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1173 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1161 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 28:
-#line 392 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 391 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//把表加入到from list
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1182 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1170 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 29:
+#line 398 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 1176 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 30:
 #line 399 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = NULL; }
+#line 1182 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 31:
+#line 403 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1188 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 30:
-#line 400 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 32:
+#line 404 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = NULL; }
 #line 1194 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 31:
-#line 404 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 33:
+#line 408 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1200 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 32:
-#line 405 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 34:
+#line 409 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = NULL; }
 #line 1206 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 33:
-#line 409 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+  case 35:
+#line 413 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = NULL; }
 #line 1212 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 34:
-#line 410 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = NULL; }
+  case 36:
+#line 414 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 1218 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 35:
-#line 414 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = NULL; }
+  case 37:
+#line 418 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = true; }
 #line 1224 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 36:
-#line 415 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+  case 38:
+#line 419 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = true; }
 #line 1230 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 37:
-#line 419 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < bool > () = true; }
+  case 39:
+#line 420 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < bool > () = false; }
 #line 1236 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 38:
-#line 420 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < bool > () = true; }
+  case 40:
+#line 424 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {yylhs.value.as < Stmt_s > () = NULL;}
 #line 1242 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 39:
-#line 421 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < bool > () = false; }
-#line 1248 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-  case 40:
-#line 425 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    {yylhs.value.as < Stmt_s > () = NULL;}
-#line 1254 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
   case 41:
-#line 427 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 426 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建limit表达式
 		Stmt_s stmt = LimitStmt::make_limit_stmt(yystack_[0].value.as < int > (), yystack_[2].value.as < int > ());
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1265 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1253 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 42:
-#line 434 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 433 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建limit表达式
 		Stmt_s stmt = LimitStmt::make_limit_stmt(yystack_[0].value.as < int > ());
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1276 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1264 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 43:
-#line 444 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 443 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		yylhs.value.as < int > () = yystack_[0].value.as < double > ();
+		yylhs.value.as < int > () = std::stoi(yystack_[0].value.as < std::string > ());
 	}
-#line 1284 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1272 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 44:
-#line 451 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 450 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1292 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1280 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 45:
-#line 458 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 457 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 	//设置表达式别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[0].value.as < Stmt_s > ().get());
@@ -1300,67 +1288,67 @@ namespace CatDB {
 		stmt->alias_name = stmt->to_string();
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1304 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1292 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 46:
-#line 466 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 465 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//设置表达式别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
 		check(stmt);
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
+    }
+#line 1304 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 47:
+#line 473 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//设置表达式别名
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
+		check(stmt);
+		stmt->alias_name = yystack_[0].value.as < std::string > ();
+		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
     }
 #line 1316 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 47:
-#line 474 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 48:
+#line 484 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
-		//设置表达式别名
+		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
+    }
+#line 1324 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 49:
+#line 488 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    {
+		//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
 		check(stmt);
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
-    }
-#line 1328 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-  case 48:
-#line 485 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    {
-		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
 #line 1336 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 49:
-#line 489 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 50:
+#line 496 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//设置表的别名
-		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
+		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
 		check(stmt);
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
-		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
+		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
     }
 #line 1348 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 50:
-#line 497 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    {
-		//设置表的别名
-		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
-		check(stmt);
-		stmt->alias_name = yystack_[0].value.as < std::string > ();
-		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
-    }
-#line 1360 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
   case 51:
-#line 505 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 504 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[2].value.as < Stmt_s > ().get());
@@ -1368,11 +1356,11 @@ namespace CatDB {
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[2].value.as < Stmt_s > ();
     }
-#line 1372 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1360 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 52:
-#line 513 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 512 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	//设置表的别名
 		ExprStmt* stmt = dynamic_cast<ExprStmt*>(yystack_[1].value.as < Stmt_s > ().get());
@@ -1380,395 +1368,395 @@ namespace CatDB {
 		stmt->alias_name = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
     }
-#line 1384 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1372 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 53:
-#line 528 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 527 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表达式列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1393 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1381 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 54:
-#line 533 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 532 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1402 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1390 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 55:
-#line 542 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 541 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1410 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1398 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 56:
-#line 546 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 545 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建加法二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_ADD);
 	}
-#line 1419 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1407 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 57:
-#line 551 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 550 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建减法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_SUB);
 	}
-#line 1428 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1416 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 58:
-#line 556 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 555 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建乘法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MUL);
 	}
-#line 1437 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1425 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 59:
-#line 561 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 560 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建除法二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_DIV);
 	}
-#line 1446 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1434 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 60:
-#line 566 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 565 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LE);
 	}
-#line 1455 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1443 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 61:
-#line 571 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 570 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LT);
 	}
-#line 1464 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1452 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 62:
-#line 576 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 575 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EQ);
 	}
-#line 1473 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1461 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 63:
-#line 581 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 580 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_GE);
 	}
-#line 1482 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1470 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 64:
-#line 586 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 585 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_GT);
 	}
-#line 1491 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1479 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 65:
-#line 591 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 590 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NE);
 	}
-#line 1500 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1488 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 66:
-#line 596 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 595 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_LIKE);
 	}
-#line 1509 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1497 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 67:
-#line 601 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 600 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建比较二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_LIKE);
 	}
-#line 1518 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1506 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 68:
-#line 606 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 605 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建and二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_AND);
     }
-#line 1527 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1515 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 69:
-#line 611 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 610 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建or二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_OR);
     }
-#line 1536 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1524 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 70:
-#line 616 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 615 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建is null表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), ExprStmt::OP_IS_NULL);
     }
-#line 1545 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1533 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 71:
-#line 621 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 620 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建is not null表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), ExprStmt::OP_IS_NOT_NULL);
     }
-#line 1554 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1542 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 72:
-#line 626 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 625 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建between and三元表达式
 		make_ternary_stmt(yylhs.value.as < Stmt_s > (), yystack_[4].value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_BETWEEN);
     }
-#line 1563 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1551 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 73:
-#line 631 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 630 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建not between and三元表达式
 		make_ternary_stmt(yylhs.value.as < Stmt_s > (), yystack_[5].value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_BETWEEN);
     }
-#line 1572 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1560 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 74:
-#line 636 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 635 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建in表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_IN);
     }
-#line 1581 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1569 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 75:
-#line 641 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 640 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建not in表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[3].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_IN);
     }
-#line 1590 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1578 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 76:
-#line 651 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 650 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1598 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1586 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 77:
-#line 655 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 654 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
 	}
-#line 1606 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1594 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 78:
-#line 662 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 661 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1614 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1602 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 79:
-#line 666 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 665 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//正数表达式
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1623 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1611 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 80:
-#line 671 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 670 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//负数表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MINUS);
     }
-#line 1632 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1620 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 81:
-#line 676 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 675 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_ADD);
 	}
-#line 1641 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1629 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 82:
-#line 681 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 680 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_SUB);
 	}
-#line 1650 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1638 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 83:
-#line 686 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 685 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_MUL);
 	}
-#line 1659 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1647 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 84:
-#line 691 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 690 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_DIV);
 	}
-#line 1668 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1656 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 85:
-#line 699 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 698 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1676 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1664 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 86:
-#line 703 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 702 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		 yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 	}
-#line 1684 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1672 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 87:
-#line 707 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 706 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		yylhs.value.as < Stmt_s > () = yystack_[1].value.as < Stmt_s > ();
 	}
-#line 1692 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1680 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 88:
-#line 711 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 710 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
       	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1700 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1688 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 89:
-#line 715 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 714 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 1708 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1696 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 90:
-#line 719 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 718 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
     	make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EXISTS);
     }
-#line 1716 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1704 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 91:
-#line 723 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 722 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建not一元表达式
 		make_unary_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_NOT_EXISTS);
     }
-#line 1725 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1713 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 92:
-#line 731 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 730 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt("", yystack_[0].value.as < std::string > ());
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
 	}
-#line 1736 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1724 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 93:
-#line 738 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 737 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s col = ColumnStmt::make_all_column_stmt();
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
 	}
-#line 1746 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1734 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 94:
-#line 744 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 743 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as < std::string > (), yystack_[0].value.as < std::string > ());
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
     }
-#line 1757 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1745 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 95:
-#line 752 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 751 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as < std::string > (), "*");
 		check(col);
 		yylhs.value.as < Stmt_s > () = col;
     }
-#line 1768 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1756 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 96:
-#line 762 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 761 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Varchar::make_object(yystack_[0].value.as < std::string > ());
@@ -1777,11 +1765,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1781 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1769 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 97:
-#line 771 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 770 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = DateTime::make_object(yystack_[0].value.as < std::string > ());
@@ -1790,24 +1778,24 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1794 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1782 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 98:
-#line 780 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 779 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
-		Object_s value = Number::make_object(yystack_[0].value.as < double > ());
+		Object_s value = Number::make_object(yystack_[0].value.as < std::string > ());
 		check(value);
 		Stmt_s stmt = ConstStmt::make_const_stmt(value);
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1807 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1795 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 99:
-#line 789 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 788 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Bool::make_object(false);
@@ -1816,11 +1804,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1820 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1808 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 100:
-#line 798 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 797 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Bool::make_object(true);
@@ -1829,11 +1817,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1833 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1821 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 101:
-#line 807 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 806 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建常量表达式
 		Object_s value = Object::make_null_object();
@@ -1842,11 +1830,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 1846 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1834 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 102:
-#line 819 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 818 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[3].value.as < std::string > ());
@@ -1856,11 +1844,11 @@ namespace CatDB {
 		aggr->aggr_expr = col;
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1860 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1848 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 103:
-#line 829 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 828 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[4].value.as < std::string > ());
@@ -1869,11 +1857,11 @@ namespace CatDB {
 		aggr->aggr_expr = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1873 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1861 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 104:
-#line 838 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 837 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt;
 		make_aggr_stmt(stmt, yystack_[3].value.as < std::string > ());
@@ -1881,35 +1869,35 @@ namespace CatDB {
 		aggr->aggr_expr = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1885 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1873 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 105:
-#line 849 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 848 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < std::string > () = "database";
     }
-#line 1893 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1881 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 106:
-#line 856 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 855 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < bool > () = false;
     }
-#line 1901 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1889 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 107:
-#line 860 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 859 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < bool > () = true;
     }
-#line 1909 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1897 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 108:
-#line 871 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 870 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建insert stmt
 		Stmt_s stmt = InsertStmt::make_insert_stmt();
@@ -1919,54 +1907,54 @@ namespace CatDB {
 		insert_stmt->values = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1923 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1911 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 109:
-#line 881 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 880 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yyerror("insert into table from query not support yet!");
 		YYABORT;
     }
-#line 1932 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1920 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 110:
-#line 888 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 887 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
     }
-#line 1940 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1928 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 111:
-#line 892 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 891 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[4].value.as < Stmt_s > (), yystack_[1].value.as < Stmt_s > ());
 	}
-#line 1948 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1936 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 112:
-#line 898 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 897 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { 
 		//构建值列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
 	}
-#line 1957 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1945 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 113:
-#line 903 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 902 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1966 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1954 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 114:
-#line 916 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 915 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = UpdateStmt::make_update_stmt();
 		check(stmt);
@@ -1976,40 +1964,40 @@ namespace CatDB {
 		update_stmt->where_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 1980 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1968 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 115:
-#line 929 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 928 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建值列表
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1989 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1977 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 116:
-#line 934 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 933 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//将新的表达式加入到表达式列表
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 1998 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1986 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 117:
-#line 942 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 941 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建列引用表达式
 		Stmt_s col = ColumnStmt::make_column_stmt("", yystack_[2].value.as < std::string > ());
 		check(col);
 		make_binary_stmt(yylhs.value.as < Stmt_s > (), col, yystack_[0].value.as < Stmt_s > (), ExprStmt::OP_EQ);
     }
-#line 2009 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 1997 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 118:
-#line 957 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 956 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DeleteStmt::make_delete_stmt();
 		check(stmt);
@@ -2018,45 +2006,45 @@ namespace CatDB {
 		delete_stmt->where_stmt = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2022 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2010 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 119:
-#line 974 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 973 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
 		yyerror("explain not support yet!");
 		YYABORT;
     }
-#line 2032 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2020 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 120:
+#line 981 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 2026 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 121:
 #line 982 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
+#line 2032 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 122:
+#line 983 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 2038 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 121:
-#line 983 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 123:
+#line 984 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
 #line 2044 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 122:
-#line 984 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2050 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-  case 123:
-#line 985 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > (); }
-#line 2056 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
   case 124:
-#line 995 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 994 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = CreateTableStmt::make_create_table_stmt();
 		check(stmt);
@@ -2065,11 +2053,11 @@ namespace CatDB {
 		create_table_stmt->column_define_list = yystack_[1].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2069 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2057 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 125:
-#line 1004 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1003 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = CreateDatabaseStmt::make_create_database_stmt();
 		check(stmt);
@@ -2077,213 +2065,213 @@ namespace CatDB {
 		create_database_stmt->database = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 2081 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2069 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 126:
-#line 1015 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1014 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		make_list_stmt(yylhs.value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 2089 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2077 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 127:
-#line 1019 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1018 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		list_stmt_push(yylhs.value.as < Stmt_s > (), yystack_[2].value.as < Stmt_s > (), yystack_[0].value.as < Stmt_s > ());
     }
-#line 2097 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2085 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 128:
-#line 1026 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1025 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = yystack_[0].value.as < Stmt_s > ();
     }
-#line 2105 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2093 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 129:
-#line 1033 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1032 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = ColumnDefineStmt::make_column_define_stmt(yystack_[1].value.as < std::string > (), yystack_[0].value.as < int > ());
 		check(stmt);
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2115 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2103 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 130:
-#line 1042 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1041 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2109 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 131:
+#line 1043 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+#line 2115 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 132:
+#line 1045 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2121 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 131:
-#line 1044 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 133:
+#line 1047 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2127 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 132:
-#line 1046 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 134:
+#line 1049 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2133 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 133:
-#line 1048 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 135:
+#line 1051 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2139 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 134:
-#line 1050 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 136:
+#line 1053 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2145 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 135:
-#line 1052 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 137:
+#line 1055 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2151 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 136:
-#line 1054 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 138:
+#line 1057 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2157 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 137:
-#line 1056 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 139:
+#line 1059 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2163 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 138:
-#line 1058 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 140:
+#line 1061 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
 #line 2169 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 139:
-#line 1060 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+  case 141:
+#line 1063 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
 #line 2175 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 140:
-#line 1062 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::NUMBER; }
+  case 142:
+#line 1065 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
 #line 2181 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 141:
-#line 1064 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 143:
+#line 1067 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
 #line 2187 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 142:
-#line 1066 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 144:
+#line 1069 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
 #line 2193 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 143:
-#line 1068 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+  case 145:
+#line 1071 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
 #line 2199 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 144:
-#line 1070 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::VARCHAR; }
+  case 146:
+#line 1073 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
 #line 2205 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 145:
-#line 1072 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 147:
+#line 1075 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
 #line 2211 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 146:
-#line 1074 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 148:
+#line 1077 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
 #line 2217 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 147:
-#line 1076 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+  case 149:
+#line 1081 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
 #line 2223 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 148:
-#line 1078 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < int > () = ColumnDefineStmt::DATETIME; }
+  case 150:
+#line 1082 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { }
 #line 2229 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 149:
-#line 1082 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 151:
+#line 1083 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2235 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 150:
-#line 1083 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 152:
+#line 1087 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2241 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 151:
-#line 1084 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 153:
+#line 1088 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2247 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 152:
-#line 1088 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 154:
+#line 1092 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2253 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 153:
-#line 1089 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 155:
+#line 1093 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2259 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 154:
-#line 1093 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 156:
+#line 1097 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2265 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 155:
-#line 1094 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 157:
+#line 1098 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { }
 #line 2271 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 156:
-#line 1098 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { }
-#line 2277 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-  case 157:
-#line 1099 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { }
-#line 2283 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
   case 158:
-#line 1109 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1108 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DropTableStmt::make_drop_table_stmt();
 		check(stmt);
@@ -2291,11 +2279,11 @@ namespace CatDB {
 		drop_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2295 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2283 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 159:
-#line 1117 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1116 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DropDatabaseStmt::make_drop_database_stmt();
 		check(stmt);
@@ -2303,27 +2291,27 @@ namespace CatDB {
 		drop_database_stmt->database = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 2307 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2295 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 160:
-#line 1133 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1132 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = ShowDatabasesStmt::make_show_databases_stmt(false);
     }
-#line 2315 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2303 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 161:
-#line 1137 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1136 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = ShowTablesStmt::make_show_tables_stmt(yystack_[0].value.as < std::string > ());
 	}
-#line 2323 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2311 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 162:
-#line 1141 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1140 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
 		check(stmt);
@@ -2331,43 +2319,43 @@ namespace CatDB {
 		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 2335 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2323 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 163:
-#line 1149 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1148 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = NULL;
 	}
-#line 2343 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2331 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 164:
-#line 1153 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1152 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < Stmt_s > () = NULL;
 	}
-#line 2351 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2339 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 165:
-#line 1160 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1159 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > ();
 	}
-#line 2359 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2347 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 166:
-#line 1164 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1163 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		yylhs.value.as < std::string > () = driver.get_global_database();
 	}
-#line 2367 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2355 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 167:
-#line 1169 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1168 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = UseDatabaseStmt::make_use_database_stmt();
 		check(stmt);
@@ -2375,11 +2363,11 @@ namespace CatDB {
 		use_database_stmt->database = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 2379 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2367 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 168:
-#line 1185 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1184 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
 		check(stmt);
@@ -2387,11 +2375,11 @@ namespace CatDB {
 		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2391 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2379 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 169:
-#line 1193 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1192 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
 		check(stmt);
@@ -2399,11 +2387,11 @@ namespace CatDB {
 		desc_table_stmt->table = yystack_[0].value.as < Stmt_s > ();
 		yylhs.value.as < Stmt_s > () = stmt;
 	}
-#line 2403 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2391 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 170:
-#line 1208 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1207 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
 		check(stmt);
@@ -2412,11 +2400,11 @@ namespace CatDB {
 		analyze_stmt->table = yystack_[0].value.as < std::string > ();
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2416 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2404 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 171:
-#line 1217 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1216 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
 		check(stmt);
@@ -2425,11 +2413,11 @@ namespace CatDB {
 		analyze_stmt->table = "*";
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2429 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2417 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 172:
-#line 1226 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1225 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
 		check(stmt);
@@ -2438,93 +2426,93 @@ namespace CatDB {
 		analyze_stmt->table = "*";
 		yylhs.value.as < Stmt_s > () = stmt;
     }
-#line 2442 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2430 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 173:
-#line 1243 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1242 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表表达式
 		Stmt_s table = TableStmt::make_table_stmt(driver.get_global_database(), yystack_[0].value.as < std::string > ());
 		check(table);
 		yylhs.value.as < Stmt_s > () = table;
 	}
-#line 2453 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2441 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 174:
-#line 1250 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1249 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     {
 		//构建表表达式
 		Stmt_s table = TableStmt::make_table_stmt(yystack_[2].value.as < std::string > (), yystack_[0].value.as < std::string > ());
 		check(table);
 		yylhs.value.as < Stmt_s > () = table;
 	}
-#line 2464 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2452 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
   case 175:
-#line 1259 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1258 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+#line 2458 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 176:
+#line 1262 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+#line 2464 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+    break;
+
+  case 177:
+#line 1266 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2470 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 176:
-#line 1263 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 178:
+#line 1270 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2476 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 177:
-#line 1267 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+  case 179:
+#line 1274 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > ()=yystack_[0].value.as < std::string > (); }
 #line 2482 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 178:
-#line 1271 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+  case 180:
+#line 1278 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { str_to_lower(yystack_[0].value.as < std::string > ());yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2488 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 179:
-#line 1275 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < std::string > ()=yystack_[0].value.as < std::string > (); }
+  case 181:
+#line 1282 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2494 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 180:
-#line 1279 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { str_to_lower(yystack_[0].value.as < std::string > ());yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+  case 182:
+#line 1283 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2500 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 181:
-#line 1283 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 183:
+#line 1287 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2506 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 182:
-#line 1284 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  case 184:
+#line 1291 "D:/CatDB/parser/lex_yacc/sql_parser.y"
     { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
 #line 2512 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
     break;
 
-  case 183:
-#line 1288 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
-#line 2518 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
 
-  case 184:
-#line 1292 "D:/CatDB/parser/lex_yacc/sql_parser.y"
-    { yylhs.value.as < double > () = std::stod(yystack_[0].value.as < std::string > ()); }
-#line 2524 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
-    break;
-
-
-#line 2528 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 2516 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
             default:
               break;
@@ -3152,25 +3140,25 @@ namespace CatDB {
   const unsigned short
   parser::yyrline_[] =
   {
-       0,   277,   277,   285,   286,   287,   288,   289,   290,   291,
-     292,   293,   294,   295,   296,   305,   312,   322,   341,   346,
-     351,   356,   361,   368,   369,   373,   378,   386,   391,   399,
-     400,   404,   405,   409,   410,   414,   415,   419,   420,   421,
-     425,   426,   433,   443,   450,   457,   465,   473,   484,   488,
-     496,   504,   512,   527,   532,   541,   545,   550,   555,   560,
-     565,   570,   575,   580,   585,   590,   595,   600,   605,   610,
-     615,   620,   625,   630,   635,   640,   650,   654,   661,   665,
-     670,   675,   680,   685,   690,   698,   702,   706,   710,   714,
-     718,   722,   730,   737,   743,   751,   761,   770,   779,   788,
-     797,   806,   818,   828,   837,   848,   855,   859,   870,   880,
-     887,   891,   897,   902,   915,   928,   933,   941,   956,   973,
-     982,   983,   984,   985,   994,  1003,  1014,  1018,  1025,  1032,
-    1041,  1043,  1045,  1047,  1049,  1051,  1053,  1055,  1057,  1059,
-    1061,  1063,  1065,  1067,  1069,  1071,  1073,  1075,  1077,  1082,
-    1083,  1084,  1088,  1089,  1093,  1094,  1098,  1099,  1108,  1116,
-    1132,  1136,  1140,  1148,  1152,  1159,  1164,  1168,  1184,  1192,
-    1207,  1216,  1225,  1242,  1249,  1259,  1263,  1267,  1271,  1275,
-    1279,  1283,  1284,  1288,  1292
+       0,   276,   276,   284,   285,   286,   287,   288,   289,   290,
+     291,   292,   293,   294,   295,   304,   311,   321,   340,   345,
+     350,   355,   360,   367,   368,   372,   377,   385,   390,   398,
+     399,   403,   404,   408,   409,   413,   414,   418,   419,   420,
+     424,   425,   432,   442,   449,   456,   464,   472,   483,   487,
+     495,   503,   511,   526,   531,   540,   544,   549,   554,   559,
+     564,   569,   574,   579,   584,   589,   594,   599,   604,   609,
+     614,   619,   624,   629,   634,   639,   649,   653,   660,   664,
+     669,   674,   679,   684,   689,   697,   701,   705,   709,   713,
+     717,   721,   729,   736,   742,   750,   760,   769,   778,   787,
+     796,   805,   817,   827,   836,   847,   854,   858,   869,   879,
+     886,   890,   896,   901,   914,   927,   932,   940,   955,   972,
+     981,   982,   983,   984,   993,  1002,  1013,  1017,  1024,  1031,
+    1040,  1042,  1044,  1046,  1048,  1050,  1052,  1054,  1056,  1058,
+    1060,  1062,  1064,  1066,  1068,  1070,  1072,  1074,  1076,  1081,
+    1082,  1083,  1087,  1088,  1092,  1093,  1097,  1098,  1107,  1115,
+    1131,  1135,  1139,  1147,  1151,  1158,  1163,  1167,  1183,  1191,
+    1206,  1215,  1224,  1241,  1248,  1258,  1262,  1266,  1270,  1274,
+    1278,  1282,  1283,  1287,  1291
   };
 
   // Print the state stack on the debug stream.
@@ -3205,9 +3193,9 @@ namespace CatDB {
 
 #line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 3209 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
+#line 3197 "D:/CatDB/parser/lex_yacc/sql_parser.cpp"
 
-#line 1294 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 1293 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 
 
 void CatDB::SqlParser::error(const CatDB::location& location, const std::string& message)

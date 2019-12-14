@@ -1181,7 +1181,7 @@ int decimal2double(const decimal_t *from, double *to)
 {
   char strbuf[FLOATING_POINT_BUFFER], *end;
   int len= sizeof(strbuf);
-  int rc, error;
+  int rc, error = 0;
 
   rc = decimal2string(from, strbuf, &len, 0, 0, 0);
   end= strbuf + len;

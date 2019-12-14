@@ -68,66 +68,66 @@ bool execute_sql(const String& query)
 void create_table()
 {
 	Vector<String> sqls = {
-		R"(CREATE TABLE NATION(N_NATIONKEY  NUMBER,
+		R"(CREATE TABLE TPCH.NATION(N_NATIONKEY  NUMERIC,
 			N_NAME       VARCHAR,
-			N_REGIONKEY  NUMBER,
+			N_REGIONKEY  NUMERIC,
 			N_COMMENT    VARCHAR);)",
 
-		R"(CREATE TABLE REGION(R_REGIONKEY  NUMBER,
+		R"(CREATE TABLE TPCH.REGION(R_REGIONKEY  NUMERIC,
 		R_NAME       VARCHAR,
 		R_COMMENT    VARCHAR);)",
 
-		R"(CREATE TABLE PART(P_PARTKEY     NUMBER,
+		R"(CREATE TABLE TPCH.PART(P_PARTKEY     NUMERIC,
 		P_NAME        VARCHAR,
 		P_MFGR        VARCHAR,
 		P_BRAND       VARCHAR,
 		P_TYPE        VARCHAR,
-		P_SIZE        NUMBER,
+		P_SIZE        NUMERIC,
 		P_CONTAINER   VARCHAR,
-		P_RETAILPRICE NUMBER,
+		P_RETAILPRICE NUMERIC,
 		P_COMMENT     VARCHAR);)",
 
-		R"(CREATE TABLE SUPPLIER(S_SUPPKEY     NUMBER,
+		R"(CREATE TABLE TPCH.SUPPLIER(S_SUPPKEY     NUMERIC,
 		S_NAME        VARCHAR,
 		S_ADDRESS     VARCHAR,
-		S_NATIONKEY   NUMBER,
+		S_NATIONKEY   NUMERIC,
 		S_PHONE       VARCHAR,
-		S_ACCTBAL     NUMBER,
+		S_ACCTBAL     NUMERIC,
 		S_COMMENT     VARCHAR);)",
 
-		R"(CREATE TABLE PARTSUPP(PS_PARTKEY     NUMBER,
-		PS_SUPPKEY     NUMBER,
-		PS_AVAILQTY    NUMBER,
-		PS_SUPPLYCOST  NUMBER ,
+		R"(CREATE TABLE TPCH.PARTSUPP(PS_PARTKEY     NUMERIC,
+		PS_SUPPKEY     NUMERIC,
+		PS_AVAILQTY    NUMERIC,
+		PS_SUPPLYCOST  NUMERIC ,
 		PS_COMMENT     VARCHAR);)",
 
-		R"(CREATE TABLE CUSTOMER(C_CUSTKEY     NUMBER,
+		R"(CREATE TABLE TPCH.CUSTOMER(C_CUSTKEY     NUMERIC,
 		C_NAME        VARCHAR,
 		C_ADDRESS     VARCHAR,
-		C_NATIONKEY   NUMBER,
+		C_NATIONKEY   NUMERIC,
 		C_PHONE       VARCHAR,
-		C_ACCTBAL     NUMBER  ,
+		C_ACCTBAL     NUMERIC  ,
 		C_MKTSEGMENT  VARCHAR,
 		C_COMMENT     VARCHAR);)",
 
-		R"(CREATE TABLE ORDERS(O_ORDERKEY       NUMBER,
-		O_CUSTKEY        NUMBER,
+		R"(CREATE TABLE TPCH.ORDERS(O_ORDERKEY       NUMERIC,
+		O_CUSTKEY        NUMERIC,
 		O_ORDERSTATUS    VARCHAR,
-		O_TOTALPRICE     NUMBER,
+		O_TOTALPRICE     NUMERIC,
 		O_ORDERDATE      DATETIME,
 		O_ORDERPRIORITY  VARCHAR,
 		O_CLERK          VARCHAR,
-		O_SHIPPRIORITY   NUMBER,
+		O_SHIPPRIORITY   NUMERIC,
 		O_COMMENT        VARCHAR);)",
 
-		R"(CREATE TABLE LINEITEM(L_ORDERKEY    NUMBER,
-		L_PARTKEY     NUMBER,
-		L_SUPPKEY     NUMBER,
-		L_LINENUMBER  NUMBER,
-		L_QUANTITY    NUMBER,
-		L_EXTENDEDPRICE  NUMBER,
-		L_DISCOUNT    NUMBER,
-		L_TAX         NUMBER,
+		R"(CREATE TABLE TPCH.LINEITEM(L_ORDERKEY    NUMERIC,
+		L_PARTKEY     NUMERIC,
+		L_SUPPKEY     NUMERIC,
+		L_LINENUMBER  NUMERIC,
+		L_QUANTITY    NUMERIC,
+		L_EXTENDEDPRICE  NUMERIC,
+		L_DISCOUNT    NUMERIC,
+		L_TAX         NUMERIC,
 		L_RETURNFLAG  VARCHAR,
 		L_LINESTATUS  VARCHAR,
 		L_SHIPDATE    DATETIME,
@@ -138,7 +138,6 @@ void create_table()
 		L_COMMENT      VARCHAR);)"
 	};
 	execute_sql("create database tpch");
-	execute_sql("use tpch");
 	for (u32 i = 0; i < sqls.size(); ++i) {
 		execute_sql(sqls[i]);
 	}
@@ -262,7 +261,7 @@ void load_part_data()
 
 	String sql = "insert into tpch.part values";
 	String cache;
-	u32 n = 0;
+	u32 n = 0, m = 0;
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
@@ -286,12 +285,14 @@ void load_part_data()
 		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql+cache)) {
+				m += n;
 				n = 0;
 				cache.clear();
+				printf("\rinsert into part %d / 200000 rows", m);
 				continue;
 			}
 			else {
-				std::cout << "load part failed" << std::endl;
+				std::cout << "\nload part failed" << std::endl;
 				return;
 			}
 		}
@@ -299,15 +300,17 @@ void load_part_data()
 	if (n > 0) {
 		cache[cache.size() - 1] = ';';
 		if (execute_sql(sql + cache)) {
+			m += n;
 			n = 0;
 			cache.clear();
+			printf("\rinsert into part %d / 200000 rows", m);
 		}
 		else {
-			std::cout << "load part failed" << std::endl;
+			std::cout << "\nload part failed" << std::endl;
 			return;
 		}
 	}
-	std::cout << "load part success" << std::endl;
+	std::cout << "\nload part success" << std::endl;
 }
 
 void load_customer_data()
@@ -321,7 +324,7 @@ void load_customer_data()
 
 	String sql = "insert into tpch.customer values";
 	String cache;
-	u32 n = 0;
+	u32 n = 0, m = 0;
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
@@ -344,12 +347,14 @@ void load_customer_data()
 		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
+				m += n;
 				n = 0;
 				cache.clear();
+				printf("\rinsert into customer %d / 150000 rows", m);
 				continue;
 			}
 			else {
-				std::cout << "load customer failed" << std::endl;
+				std::cout << "\nload customer failed" << std::endl;
 				return;
 			}
 		}
@@ -357,15 +362,17 @@ void load_customer_data()
 	if (n > 0) {
 		cache[cache.size() - 1] = ';';
 		if (execute_sql(sql + cache)) {
+			m += n;
 			n = 0;
 			cache.clear();
+			printf("\rinsert into customer %d / 150000 rows", m);
 		}
 		else {
-			std::cout << "load customer failed" << std::endl;
+			std::cout << "\nload customer failed" << std::endl;
 			return;
 		}
 	}
-	std::cout << "load customer success" << std::endl;
+	std::cout << "\nload customer success" << std::endl;
 }
 
 void load_partsupp_data()
@@ -379,7 +386,7 @@ void load_partsupp_data()
 
 	String sql = "insert into tpch.partsupp values";
 	String cache;
-	u32 n = 0;
+	u32 n = 0, m = 0;
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
@@ -398,12 +405,14 @@ void load_partsupp_data()
 		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
+				m += n;
 				n = 0;
 				cache.clear();
+				printf("\rinsert into partsupp %d / 800000 rows", m);
 				continue;
 			}
 			else {
-				std::cout << "load partsupp failed" << std::endl;
+				std::cout << "\nload partsupp failed" << std::endl;
 				return;
 			}
 		}
@@ -411,15 +420,17 @@ void load_partsupp_data()
 	if (n > 0) {
 		cache[cache.size() - 1] = ';';
 		if (execute_sql(sql + cache)) {
+			m += n;
 			n = 0;
 			cache.clear();
+			printf("\rinsert into partsupp %d / 800000 rows", m);
 		}
 		else {
-			std::cout << "load partsupp failed" << std::endl;
+			std::cout << "\nload partsupp failed" << std::endl;
 			return;
 		}
 	}
-	std::cout << "load partsupp success" << std::endl;
+	std::cout << "\nload partsupp success" << std::endl;
 }
 
 void load_orders_data()
@@ -433,7 +444,7 @@ void load_orders_data()
 
 	String sql = "insert into tpch.orders values";
 	String cache;
-	u32 n = 0;
+	u32 n = 0, m = 0;
 	
 	while (!in.eof()) {
 		std::getline(in, line);
@@ -457,12 +468,14 @@ void load_orders_data()
 		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
+				m += n;
 				n = 0;
 				cache.clear();
+				printf("\rinsert into orders %d / 1500000 rows", m);
 				continue;
 			}
 			else {
-				std::cout << "load orders failed" << std::endl;
+				std::cout << "\nload orders failed" << std::endl;
 				return;
 			}
 		}
@@ -470,15 +483,17 @@ void load_orders_data()
 	if (n > 0) {
 		cache[cache.size() - 1] = ';';
 		if (execute_sql(sql + cache)) {
+			m += n;
 			n = 0;
 			cache.clear();
+			printf("\rinsert into orders %d / 1500000 rows", m);
 		}
 		else {
-			std::cout << "load orders failed" << std::endl;
+			std::cout << "\nload orders failed" << std::endl;
 			return;
 		}
 	}
-	std::cout << "load orders success" << std::endl;
+	std::cout << "\nload orders success" << std::endl;
 }
 
 void load_lineitem_data()
@@ -492,15 +507,13 @@ void load_lineitem_data()
 
 	String sql = "insert into tpch.lineitem values";
 	String cache;
-	u32 n = 0;
+	u32 n = 0, m = 0;
 	u32 count = 0;
-	u32 err = 0;
 	while (!in.eof()) {
 		std::getline(in, line);
 		Vector<String> values;
 		splite(line, '|', values);
 		if (values.size() != 16) {
-			++err;
 			continue;
 		}
 		values[8] = "\"" + values[8] + "\"";
@@ -522,12 +535,14 @@ void load_lineitem_data()
 		if (n >= 6000) {
 			cache[cache.size() - 1] = ';';
 			if (execute_sql(sql + cache)) {
+				m += n;
 				n = 0;
 				cache.clear();
+				printf("\rinsert into lineitem %d / 6001215 rows", m);
 				continue;
 			}
 			else {
-				std::cout << "load lineitem failed" << std::endl;
+				std::cout << "\nload lineitem failed" << std::endl;
 				return;
 			}
 		}
@@ -535,19 +550,21 @@ void load_lineitem_data()
 	if (n > 0) {
 		cache[cache.size() - 1] = ';';
 		if (execute_sql(sql + cache)) {
+			m += n;
 			n = 0;
 			cache.clear();
+			printf("\rinsert into lineitem %d / 6001215 rows", m);
 		}
 		else {
-			std::cout << "load lineitem failed" << std::endl;
+			std::cout << "\nload lineitem failed" << std::endl;
 			return;
 		}
 	}
-	std::cout << "load lineitem success " << count << " ,err:" << err << std::endl;
+	std::cout << "\nload lineitem success " << std::endl;
 }
 
 void load_tpch_data()
-{/*
+{
 	create_table();
 	load_nation_data();
 	load_region_data();
@@ -556,5 +573,5 @@ void load_tpch_data()
 	load_customer_data();
 	load_partsupp_data();
 	load_orders_data();
-	load_lineitem_data();*/
+	load_lineitem_data();
 }

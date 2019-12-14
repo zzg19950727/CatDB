@@ -506,7 +506,10 @@ Object_s AggregateExpression::get_result(const Row_s &)
 	if (!result){
 		//count函数返回零
 		if (op == AggrStmt::COUNT){
-			return Number::make_object(0);
+			result = Number::make_object(0);
+			Number* num = dynamic_cast<Number*>(result.get());
+			num->set_scale(-1);
+			return result;
 		}else{//其他函数返回null
 			return Object::make_null_object();
 		}
@@ -514,6 +517,10 @@ Object_s AggregateExpression::get_result(const Row_s &)
 		result = result->operator/(Number::make_object(row_count));
 		return result;
 	}else{
+		if (op == AggrStmt::COUNT) {
+			Number* num = dynamic_cast<Number*>(result.get());
+			num->set_scale(-1);
+		}
 		return result;
 	}
 }

@@ -426,12 +426,9 @@ namespace CatDB {
       // distinct_or_all
       char dummy2[sizeof (bool)];
 
-      // number
-      char dummy3[sizeof (double)];
-
       // limit_expr
       // data_type
-      char dummy4[sizeof (int)];
+      char dummy3[sizeof (int)];
 
       // STRING
       // IDENT
@@ -447,7 +444,8 @@ namespace CatDB {
       // ident
       // datetime
       // string
-      char dummy5[sizeof (std::string)];
+      // number
+      char dummy4[sizeof (std::string)];
     };
 
     /// The size of the largest semantic type.
@@ -664,19 +662,6 @@ namespace CatDB {
       {}
 #endif
 #if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, double&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const double& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
-#if 201103L <= YY_CPLUSPLUS
       basic_symbol (typename Base::kind_type t, int&& v, location_type&& l)
         : Base (t)
         , value (std::move (v))
@@ -776,10 +761,6 @@ switch (yytype)
         value.template destroy< bool > ();
         break;
 
-      case 154: // number
-        value.template destroy< double > ();
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.template destroy< int > ();
@@ -799,6 +780,7 @@ switch (yytype)
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.template destroy< std::string > ();
         break;
 
@@ -2713,10 +2695,6 @@ switch (yytype)
         value.move< bool > (std::move (that.value));
         break;
 
-      case 154: // number
-        value.move< double > (std::move (that.value));
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.move< int > (std::move (that.value));
@@ -2736,6 +2714,7 @@ switch (yytype)
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -2805,10 +2784,6 @@ switch (yytype)
         value.copy< bool > (YY_MOVE (that.value));
         break;
 
-      case 154: // number
-        value.copy< double > (YY_MOVE (that.value));
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.copy< int > (YY_MOVE (that.value));
@@ -2828,6 +2803,7 @@ switch (yytype)
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -2904,10 +2880,6 @@ switch (yytype)
         value.move< bool > (YY_MOVE (s.value));
         break;
 
-      case 154: // number
-        value.move< double > (YY_MOVE (s.value));
-        break;
-
       case 107: // limit_expr
       case 134: // data_type
         value.move< int > (YY_MOVE (s.value));
@@ -2927,6 +2899,7 @@ switch (yytype)
       case 151: // ident
       case 152: // datetime
       case 153: // string
+      case 154: // number
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -3010,7 +2983,7 @@ switch (yytype)
 
 #line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 3014 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
+#line 2987 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
 
 
 

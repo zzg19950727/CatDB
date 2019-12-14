@@ -16,8 +16,9 @@ SQL引擎支持基本的insert、delete、update、select，支持多层嵌套�
 需要在server工程下配置NOMINMAX，解决bison生成std::max无法通过编译的BUG
 
 # 安装使用
-拷贝server/catdb.conf到可执行文件目录下，填写相应的配置
+拷贝script/catdb.conf到可执行文件目录下，填写相应的配置
 然后直接运行数据库服务，使用第三方MySQL客户端可直接登录。
+第一次需要执行script/install_db.sql来初始化系统库。
 
 # 内存优化
 编译时使用google的tcmalloc管理内存，可至少提高20%的查询性能。

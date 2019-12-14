@@ -3,7 +3,8 @@ using namespace CatDB;
 
 SqlDriver::SqlDriver():
 	m_scanner(*this),
-	m_parser(m_scanner,*this)
+	m_parser(m_scanner,*this),
+	global_database("test")
 {
  
 }

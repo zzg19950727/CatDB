@@ -18,7 +18,8 @@ using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
 Plan::Plan()
-	:affect_rows_(0)
+	:affect_rows_(0),
+	thd(nullptr)
 {
 }
 

@@ -1862,7 +1862,7 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 			op = plan->get_root_operator();
 		}
 		else {
-			PhyOperator_s op = plan->get_root_operator();
+			op = plan->get_root_operator();
 			op = PlanFilter::make_plan_filter(op, filter);
 		}
 	}

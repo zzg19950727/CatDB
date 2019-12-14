@@ -306,7 +306,9 @@ u32 UseDatabasePlan::execute()
 		set_error_code(ret);
 		return ret;
 	}
-	thd->cur_database = database;
+	if (thd) {
+		thd->cur_database = database;
+	}
 	set_error_code(SUCCESS);
 	return SUCCESS;
 }

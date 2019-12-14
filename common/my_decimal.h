@@ -29,6 +29,7 @@ Most function are just inline wrappers around library calls
 #ifndef my_decimal_h
 #define my_decimal_h
 #include "decimal.h"
+#include "type.h"
 
 #define DECIMAL_LONGLONG_DIGITS 22
 #define DECIMAL_LONG_DIGITS 10
@@ -126,7 +127,7 @@ public:
 	bool sign() const { return decimal_t::sign; }
 	void sign(bool s) { decimal_t::sign = s; }
 	uint precision() const { return intg + frac; }
-
+	uint size()const{return decimal_bin_size(intg + frac, frac);}
 	void set_zero()
 	{
 		/*
@@ -139,7 +140,7 @@ public:
 
 	bool is_zero()const
 	{
-		decimal_is_zero(this);
+		return decimal_is_zero(this);
 	}
 
 	int cmp(const my_decimal& other) const
@@ -166,18 +167,17 @@ public:
 		return value;
 	}
 
-	String to_string() const
+	String to_string(int scale) const
 	{
 		char tmp[DECIMAL_MAX_STR_LENGTH] = { 0 };
 		int len = DECIMAL_MAX_STR_LENGTH;
-		decimal2string(this, tmp, &len, 0, 0, '0');
+		decimal2string(this, tmp, &len, 0, scale, '0');
 		return String(tmp, len);
 	}
 
-	int to_binary(uchar *bin, int prec, int scale,
-		uint mask = E_DEC_FATAL_ERROR) const
+	int to_binary(uchar *bin) const
 	{
-		return decimal2bin(this, bin, prec, scale);
+		return decimal2bin(this, bin, intg+frac, frac);
 	}
 
 	/** Swap two my_decimal values */

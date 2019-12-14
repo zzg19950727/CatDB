@@ -268,8 +268,7 @@
 %type<Stmt_s>		update_stmt update_asgn_list update_asgn_factor delete_stmt show_stmt
 %type<Stmt_s>		explain_stmt explainable_stmt drop_stmt desc_stmt use_stmt analyze_stmt
 %type<Stmt_s>		create_stmt table_element_list table_element column_definition
-%type<std::string>	op_from_database simple_function_expr column_label database_name relation_name column_name function_name ident string datetime
-%type<double>		number
+%type<std::string>	op_from_database simple_function_expr column_label database_name relation_name column_name function_name ident string datetime number
 %start sql_stmt
 %%
 
@@ -442,7 +441,7 @@ opt_select_limit:
 limit_expr:
     number
     {
-		$$ = $1;
+		$$ = std::stoi($1);
 	}
 	;
 
@@ -1289,7 +1288,7 @@ string:
   ;	
 
 number:
-	NUMERIC		{ $$ = std::stod($1); }
+	NUMERIC		{ $$ = $1; }
 
 %%
 
