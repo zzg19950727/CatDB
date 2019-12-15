@@ -236,6 +236,18 @@ Object_s Number::operator<(const Object_s & other)
 	}
 }
 
+Object_s Number::op_minus()
+{
+	if (is_null()) {
+		return Object::make_null_object();
+	}
+	else {
+		my_decimal res;
+		my_decimal::my_decimal_mul(res, data, my_decimal("-1"));
+		return Number::make_object(res.to_string(0));
+	}
+}
+
 Object_s Number::exists()
 {
 	if (is_null()) {

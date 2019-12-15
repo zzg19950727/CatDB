@@ -68,6 +68,7 @@ namespace CatDB {
 			virtual Object_s op_or (const Object_s& other);
 			virtual Object_s exists();
 			virtual Object_s op_not();
+			virtual Object_s op_minus();
 			virtual Object_s like(const Object_s& other);
 			//自增
 			virtual void increase();
@@ -152,6 +153,7 @@ namespace CatDB {
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
+			Object_s op_minus()override;
 			Object_s exists()override;
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void increase()override;

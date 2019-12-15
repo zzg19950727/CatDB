@@ -178,6 +178,12 @@ Object_s Object::op_not()
 	}
 }
 
+Object_s Object::op_minus()
+{
+	Log(LOG_ERR, "Object", "object %u do not support minus operation", obj_type);
+	return Error::make_object(OPERATION_NOT_SUPPORT);
+}
+
 Object_s Object::like(const Object_s & other)
 {
 	Log(LOG_ERR, "Object", "object %u do not support like operation", obj_type);

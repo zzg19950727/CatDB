@@ -545,43 +545,44 @@ namespace CatDB {
         TOKEN_DISTINCT = 306,
         TOKEN_DOUBLE = 307,
         TOKEN_DROP = 308,
-        TOKEN_EXISTS = 309,
-        TOKEN_EXPLAIN = 310,
-        TOKEN_FLOAT = 311,
-        TOKEN_FROM = 312,
-        TOKEN_GROUP = 313,
-        TOKEN_HAVING = 314,
-        TOKEN_INDEX = 315,
-        TOKEN_INSERT = 316,
-        TOKEN_INT = 317,
-        TOKEN_INTO = 318,
-        TOKEN_LIMIT = 319,
-        TOKEN_NUMBER = 320,
-        TOKEN_ORDER = 321,
-        TOKEN_SELECT = 322,
-        TOKEN_SET = 323,
-        TOKEN_SHOW = 324,
-        TOKEN_STATUS = 325,
-        TOKEN_TABLE = 326,
-        TOKEN_TABLES = 327,
-        TOKEN_UPDATE = 328,
-        TOKEN_USING = 329,
-        TOKEN_VALUES = 330,
-        TOKEN_VARCHAR = 331,
-        TOKEN_WHERE = 332,
-        TOKEN_TINYINT = 333,
-        TOKEN_SMALLINT = 334,
-        TOKEN_MEDIUMINT = 335,
-        TOKEN_BIGINT = 336,
-        TOKEN_DECIMAL = 337,
-        TOKEN_NUMERIC_SYM = 338,
-        TOKEN_REAL = 339,
-        TOKEN_CHAR = 340,
-        TOKEN_BINARY = 341,
-        TOKEN_VARBINARY = 342,
-        TOKEN_TIMESTAMP_SYM = 343,
-        TOKEN_DATE = 344,
-        TOKEN_TIME = 345
+        TOKEN_DUAL = 309,
+        TOKEN_EXISTS = 310,
+        TOKEN_EXPLAIN = 311,
+        TOKEN_FLOAT = 312,
+        TOKEN_FROM = 313,
+        TOKEN_GROUP = 314,
+        TOKEN_HAVING = 315,
+        TOKEN_INDEX = 316,
+        TOKEN_INSERT = 317,
+        TOKEN_INT = 318,
+        TOKEN_INTO = 319,
+        TOKEN_LIMIT = 320,
+        TOKEN_NUMBER = 321,
+        TOKEN_ORDER = 322,
+        TOKEN_SELECT = 323,
+        TOKEN_SET = 324,
+        TOKEN_SHOW = 325,
+        TOKEN_STATUS = 326,
+        TOKEN_TABLE = 327,
+        TOKEN_TABLES = 328,
+        TOKEN_UPDATE = 329,
+        TOKEN_USING = 330,
+        TOKEN_VALUES = 331,
+        TOKEN_VARCHAR = 332,
+        TOKEN_WHERE = 333,
+        TOKEN_TINYINT = 334,
+        TOKEN_SMALLINT = 335,
+        TOKEN_MEDIUMINT = 336,
+        TOKEN_BIGINT = 337,
+        TOKEN_DECIMAL = 338,
+        TOKEN_NUMERIC_SYM = 339,
+        TOKEN_REAL = 340,
+        TOKEN_CHAR = 341,
+        TOKEN_BINARY = 342,
+        TOKEN_VARBINARY = 343,
+        TOKEN_TIMESTAMP_SYM = 344,
+        TOKEN_DATE = 345,
+        TOKEN_TIME = 346
       };
     };
 
@@ -710,59 +711,59 @@ namespace CatDB {
         // Type destructor.
 switch (yytype)
     {
-      case 93: // sql_stmt
-      case 94: // stmt
-      case 95: // select_stmt
-      case 96: // select_with_parens
-      case 97: // select_no_parens
-      case 99: // select_expr_list
-      case 100: // from_list
-      case 101: // opt_where
-      case 102: // opt_groupby
-      case 103: // opt_having
-      case 104: // opt_order_by
-      case 106: // opt_select_limit
-      case 108: // order_by
-      case 109: // projection
-      case 110: // table_factor
-      case 111: // expr_list
-      case 112: // expr
-      case 113: // in_expr
-      case 114: // arith_expr
-      case 115: // simple_expr
-      case 116: // column_ref
-      case 117: // expr_const
-      case 118: // func_expr
-      case 121: // insert_stmt
-      case 122: // insert_vals_list
-      case 123: // insert_vals
-      case 124: // update_stmt
-      case 125: // update_asgn_list
-      case 126: // update_asgn_factor
-      case 127: // delete_stmt
-      case 128: // explain_stmt
-      case 129: // explainable_stmt
-      case 130: // create_stmt
-      case 131: // table_element_list
-      case 132: // table_element
-      case 133: // column_definition
-      case 139: // drop_stmt
-      case 140: // show_stmt
-      case 142: // use_stmt
-      case 143: // desc_stmt
-      case 144: // analyze_stmt
-      case 145: // relation_factor
+      case 94: // sql_stmt
+      case 95: // stmt
+      case 96: // select_stmt
+      case 97: // select_with_parens
+      case 98: // select_no_parens
+      case 100: // select_expr_list
+      case 101: // from_list
+      case 102: // opt_where
+      case 103: // opt_groupby
+      case 104: // opt_having
+      case 105: // opt_order_by
+      case 107: // opt_select_limit
+      case 109: // order_by
+      case 110: // projection
+      case 111: // table_factor
+      case 112: // expr_list
+      case 113: // expr
+      case 114: // in_expr
+      case 115: // arith_expr
+      case 116: // simple_expr
+      case 117: // column_ref
+      case 118: // expr_const
+      case 119: // func_expr
+      case 122: // insert_stmt
+      case 123: // insert_vals_list
+      case 124: // insert_vals
+      case 125: // update_stmt
+      case 126: // update_asgn_list
+      case 127: // update_asgn_factor
+      case 128: // delete_stmt
+      case 129: // explain_stmt
+      case 130: // explainable_stmt
+      case 131: // create_stmt
+      case 132: // table_element_list
+      case 133: // table_element
+      case 134: // column_definition
+      case 140: // drop_stmt
+      case 141: // show_stmt
+      case 143: // use_stmt
+      case 144: // desc_stmt
+      case 145: // analyze_stmt
+      case 146: // relation_factor
         value.template destroy< Stmt_s > ();
         break;
 
-      case 98: // opt_distinct
-      case 105: // opt_asc_desc
-      case 120: // distinct_or_all
+      case 99: // opt_distinct
+      case 106: // opt_asc_desc
+      case 121: // distinct_or_all
         value.template destroy< bool > ();
         break;
 
-      case 107: // limit_expr
-      case 134: // data_type
+      case 108: // limit_expr
+      case 135: // data_type
         value.template destroy< int > ();
         break;
 
@@ -770,17 +771,17 @@ switch (yytype)
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 119: // simple_function_expr
-      case 141: // op_from_database
-      case 146: // database_name
-      case 147: // relation_name
-      case 148: // column_name
-      case 149: // function_name
-      case 150: // column_label
-      case 151: // ident
-      case 152: // datetime
-      case 153: // string
-      case 154: // number
+      case 120: // simple_function_expr
+      case 142: // op_from_database
+      case 147: // database_name
+      case 148: // relation_name
+      case 149: // column_name
+      case 150: // function_name
+      case 151: // column_label
+      case 152: // ident
+      case 153: // datetime
+      case 154: // string
+      case 155: // number
         value.template destroy< std::string > ();
         break;
 
@@ -863,13 +864,13 @@ switch (yytype)
       symbol_type (int tok, location_type l)
         : super_type(token_type (tok), std::move (l))
       {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
+        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_DUAL || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
       }
 #else
       symbol_type (int tok, const location_type& l)
         : super_type(token_type (tok), l)
       {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
+        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_DUAL || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1700,6 +1701,21 @@ switch (yytype)
       make_DROP (const location_type& l)
       {
         return symbol_type (token::TOKEN_DROP, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DUAL (location_type l)
+      {
+        return symbol_type (token::TOKEN_DUAL, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DUAL (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DUAL, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -2563,12 +2579,12 @@ switch (yytype)
     enum
     {
       yyeof_ = 0,
-      yylast_ = 572,     ///< Last index in yytable_.
+      yylast_ = 597,     ///< Last index in yytable_.
       yynnts_ = 63,  ///< Number of nonterminal symbols.
       yyfinal_ = 60, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 92  ///< Number of tokens.
+      yyntokens_ = 93  ///< Number of tokens.
     };
 
 
@@ -2591,7 +2607,7 @@ switch (yytype)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    91,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    92,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -2621,9 +2637,9 @@ switch (yytype)
       55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
       65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
       75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
-      85,    86,    87,    88,    89,    90
+      85,    86,    87,    88,    89,    90,    91
     };
-    const unsigned user_token_number_max_ = 345;
+    const unsigned user_token_number_max_ = 346;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int> (t) <= yyeof_)
@@ -2644,59 +2660,59 @@ switch (yytype)
   {
     switch (this->type_get ())
     {
-      case 93: // sql_stmt
-      case 94: // stmt
-      case 95: // select_stmt
-      case 96: // select_with_parens
-      case 97: // select_no_parens
-      case 99: // select_expr_list
-      case 100: // from_list
-      case 101: // opt_where
-      case 102: // opt_groupby
-      case 103: // opt_having
-      case 104: // opt_order_by
-      case 106: // opt_select_limit
-      case 108: // order_by
-      case 109: // projection
-      case 110: // table_factor
-      case 111: // expr_list
-      case 112: // expr
-      case 113: // in_expr
-      case 114: // arith_expr
-      case 115: // simple_expr
-      case 116: // column_ref
-      case 117: // expr_const
-      case 118: // func_expr
-      case 121: // insert_stmt
-      case 122: // insert_vals_list
-      case 123: // insert_vals
-      case 124: // update_stmt
-      case 125: // update_asgn_list
-      case 126: // update_asgn_factor
-      case 127: // delete_stmt
-      case 128: // explain_stmt
-      case 129: // explainable_stmt
-      case 130: // create_stmt
-      case 131: // table_element_list
-      case 132: // table_element
-      case 133: // column_definition
-      case 139: // drop_stmt
-      case 140: // show_stmt
-      case 142: // use_stmt
-      case 143: // desc_stmt
-      case 144: // analyze_stmt
-      case 145: // relation_factor
+      case 94: // sql_stmt
+      case 95: // stmt
+      case 96: // select_stmt
+      case 97: // select_with_parens
+      case 98: // select_no_parens
+      case 100: // select_expr_list
+      case 101: // from_list
+      case 102: // opt_where
+      case 103: // opt_groupby
+      case 104: // opt_having
+      case 105: // opt_order_by
+      case 107: // opt_select_limit
+      case 109: // order_by
+      case 110: // projection
+      case 111: // table_factor
+      case 112: // expr_list
+      case 113: // expr
+      case 114: // in_expr
+      case 115: // arith_expr
+      case 116: // simple_expr
+      case 117: // column_ref
+      case 118: // expr_const
+      case 119: // func_expr
+      case 122: // insert_stmt
+      case 123: // insert_vals_list
+      case 124: // insert_vals
+      case 125: // update_stmt
+      case 126: // update_asgn_list
+      case 127: // update_asgn_factor
+      case 128: // delete_stmt
+      case 129: // explain_stmt
+      case 130: // explainable_stmt
+      case 131: // create_stmt
+      case 132: // table_element_list
+      case 133: // table_element
+      case 134: // column_definition
+      case 140: // drop_stmt
+      case 141: // show_stmt
+      case 143: // use_stmt
+      case 144: // desc_stmt
+      case 145: // analyze_stmt
+      case 146: // relation_factor
         value.move< Stmt_s > (std::move (that.value));
         break;
 
-      case 98: // opt_distinct
-      case 105: // opt_asc_desc
-      case 120: // distinct_or_all
+      case 99: // opt_distinct
+      case 106: // opt_asc_desc
+      case 121: // distinct_or_all
         value.move< bool > (std::move (that.value));
         break;
 
-      case 107: // limit_expr
-      case 134: // data_type
+      case 108: // limit_expr
+      case 135: // data_type
         value.move< int > (std::move (that.value));
         break;
 
@@ -2704,17 +2720,17 @@ switch (yytype)
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 119: // simple_function_expr
-      case 141: // op_from_database
-      case 146: // database_name
-      case 147: // relation_name
-      case 148: // column_name
-      case 149: // function_name
-      case 150: // column_label
-      case 151: // ident
-      case 152: // datetime
-      case 153: // string
-      case 154: // number
+      case 120: // simple_function_expr
+      case 142: // op_from_database
+      case 147: // database_name
+      case 148: // relation_name
+      case 149: // column_name
+      case 150: // function_name
+      case 151: // column_label
+      case 152: // ident
+      case 153: // datetime
+      case 154: // string
+      case 155: // number
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -2733,59 +2749,59 @@ switch (yytype)
   {
     switch (this->type_get ())
     {
-      case 93: // sql_stmt
-      case 94: // stmt
-      case 95: // select_stmt
-      case 96: // select_with_parens
-      case 97: // select_no_parens
-      case 99: // select_expr_list
-      case 100: // from_list
-      case 101: // opt_where
-      case 102: // opt_groupby
-      case 103: // opt_having
-      case 104: // opt_order_by
-      case 106: // opt_select_limit
-      case 108: // order_by
-      case 109: // projection
-      case 110: // table_factor
-      case 111: // expr_list
-      case 112: // expr
-      case 113: // in_expr
-      case 114: // arith_expr
-      case 115: // simple_expr
-      case 116: // column_ref
-      case 117: // expr_const
-      case 118: // func_expr
-      case 121: // insert_stmt
-      case 122: // insert_vals_list
-      case 123: // insert_vals
-      case 124: // update_stmt
-      case 125: // update_asgn_list
-      case 126: // update_asgn_factor
-      case 127: // delete_stmt
-      case 128: // explain_stmt
-      case 129: // explainable_stmt
-      case 130: // create_stmt
-      case 131: // table_element_list
-      case 132: // table_element
-      case 133: // column_definition
-      case 139: // drop_stmt
-      case 140: // show_stmt
-      case 142: // use_stmt
-      case 143: // desc_stmt
-      case 144: // analyze_stmt
-      case 145: // relation_factor
+      case 94: // sql_stmt
+      case 95: // stmt
+      case 96: // select_stmt
+      case 97: // select_with_parens
+      case 98: // select_no_parens
+      case 100: // select_expr_list
+      case 101: // from_list
+      case 102: // opt_where
+      case 103: // opt_groupby
+      case 104: // opt_having
+      case 105: // opt_order_by
+      case 107: // opt_select_limit
+      case 109: // order_by
+      case 110: // projection
+      case 111: // table_factor
+      case 112: // expr_list
+      case 113: // expr
+      case 114: // in_expr
+      case 115: // arith_expr
+      case 116: // simple_expr
+      case 117: // column_ref
+      case 118: // expr_const
+      case 119: // func_expr
+      case 122: // insert_stmt
+      case 123: // insert_vals_list
+      case 124: // insert_vals
+      case 125: // update_stmt
+      case 126: // update_asgn_list
+      case 127: // update_asgn_factor
+      case 128: // delete_stmt
+      case 129: // explain_stmt
+      case 130: // explainable_stmt
+      case 131: // create_stmt
+      case 132: // table_element_list
+      case 133: // table_element
+      case 134: // column_definition
+      case 140: // drop_stmt
+      case 141: // show_stmt
+      case 143: // use_stmt
+      case 144: // desc_stmt
+      case 145: // analyze_stmt
+      case 146: // relation_factor
         value.copy< Stmt_s > (YY_MOVE (that.value));
         break;
 
-      case 98: // opt_distinct
-      case 105: // opt_asc_desc
-      case 120: // distinct_or_all
+      case 99: // opt_distinct
+      case 106: // opt_asc_desc
+      case 121: // distinct_or_all
         value.copy< bool > (YY_MOVE (that.value));
         break;
 
-      case 107: // limit_expr
-      case 134: // data_type
+      case 108: // limit_expr
+      case 135: // data_type
         value.copy< int > (YY_MOVE (that.value));
         break;
 
@@ -2793,17 +2809,17 @@ switch (yytype)
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 119: // simple_function_expr
-      case 141: // op_from_database
-      case 146: // database_name
-      case 147: // relation_name
-      case 148: // column_name
-      case 149: // function_name
-      case 150: // column_label
-      case 151: // ident
-      case 152: // datetime
-      case 153: // string
-      case 154: // number
+      case 120: // simple_function_expr
+      case 142: // op_from_database
+      case 147: // database_name
+      case 148: // relation_name
+      case 149: // column_name
+      case 150: // function_name
+      case 151: // column_label
+      case 152: // ident
+      case 153: // datetime
+      case 154: // string
+      case 155: // number
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -2829,59 +2845,59 @@ switch (yytype)
     super_type::move (s);
     switch (this->type_get ())
     {
-      case 93: // sql_stmt
-      case 94: // stmt
-      case 95: // select_stmt
-      case 96: // select_with_parens
-      case 97: // select_no_parens
-      case 99: // select_expr_list
-      case 100: // from_list
-      case 101: // opt_where
-      case 102: // opt_groupby
-      case 103: // opt_having
-      case 104: // opt_order_by
-      case 106: // opt_select_limit
-      case 108: // order_by
-      case 109: // projection
-      case 110: // table_factor
-      case 111: // expr_list
-      case 112: // expr
-      case 113: // in_expr
-      case 114: // arith_expr
-      case 115: // simple_expr
-      case 116: // column_ref
-      case 117: // expr_const
-      case 118: // func_expr
-      case 121: // insert_stmt
-      case 122: // insert_vals_list
-      case 123: // insert_vals
-      case 124: // update_stmt
-      case 125: // update_asgn_list
-      case 126: // update_asgn_factor
-      case 127: // delete_stmt
-      case 128: // explain_stmt
-      case 129: // explainable_stmt
-      case 130: // create_stmt
-      case 131: // table_element_list
-      case 132: // table_element
-      case 133: // column_definition
-      case 139: // drop_stmt
-      case 140: // show_stmt
-      case 142: // use_stmt
-      case 143: // desc_stmt
-      case 144: // analyze_stmt
-      case 145: // relation_factor
+      case 94: // sql_stmt
+      case 95: // stmt
+      case 96: // select_stmt
+      case 97: // select_with_parens
+      case 98: // select_no_parens
+      case 100: // select_expr_list
+      case 101: // from_list
+      case 102: // opt_where
+      case 103: // opt_groupby
+      case 104: // opt_having
+      case 105: // opt_order_by
+      case 107: // opt_select_limit
+      case 109: // order_by
+      case 110: // projection
+      case 111: // table_factor
+      case 112: // expr_list
+      case 113: // expr
+      case 114: // in_expr
+      case 115: // arith_expr
+      case 116: // simple_expr
+      case 117: // column_ref
+      case 118: // expr_const
+      case 119: // func_expr
+      case 122: // insert_stmt
+      case 123: // insert_vals_list
+      case 124: // insert_vals
+      case 125: // update_stmt
+      case 126: // update_asgn_list
+      case 127: // update_asgn_factor
+      case 128: // delete_stmt
+      case 129: // explain_stmt
+      case 130: // explainable_stmt
+      case 131: // create_stmt
+      case 132: // table_element_list
+      case 133: // table_element
+      case 134: // column_definition
+      case 140: // drop_stmt
+      case 141: // show_stmt
+      case 143: // use_stmt
+      case 144: // desc_stmt
+      case 145: // analyze_stmt
+      case 146: // relation_factor
         value.move< Stmt_s > (YY_MOVE (s.value));
         break;
 
-      case 98: // opt_distinct
-      case 105: // opt_asc_desc
-      case 120: // distinct_or_all
+      case 99: // opt_distinct
+      case 106: // opt_asc_desc
+      case 121: // distinct_or_all
         value.move< bool > (YY_MOVE (s.value));
         break;
 
-      case 107: // limit_expr
-      case 134: // data_type
+      case 108: // limit_expr
+      case 135: // data_type
         value.move< int > (YY_MOVE (s.value));
         break;
 
@@ -2889,17 +2905,17 @@ switch (yytype)
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 119: // simple_function_expr
-      case 141: // op_from_database
-      case 146: // database_name
-      case 147: // relation_name
-      case 148: // column_name
-      case 149: // function_name
-      case 150: // column_label
-      case 151: // ident
-      case 152: // datetime
-      case 153: // string
-      case 154: // number
+      case 120: // simple_function_expr
+      case 142: // op_from_database
+      case 147: // database_name
+      case 148: // relation_name
+      case 149: // column_name
+      case 150: // function_name
+      case 151: // column_label
+      case 152: // ident
+      case 153: // datetime
+      case 154: // string
+      case 155: // number
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -2976,14 +2992,14 @@ switch (yytype)
      315,   316,   317,   318,   319,   320,   321,   322,   323,   324,
      325,   326,   327,   328,   329,   330,   331,   332,   333,   334,
      335,   336,   337,   338,   339,   340,   341,   342,   343,   344,
-     345,    44
+     345,   346,    44
     };
     return token_type (yytoken_number_[type]);
   }
 
 #line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
 } // CatDB
-#line 2987 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
+#line 3003 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
 
 
 

@@ -67,18 +67,22 @@
 }
 
 #define make_list_stmt(ret, from) \
+{ \
 	Stmt_s stmt = ListStmt::make_list_stmt(); \
 	check(stmt); \
 	ListStmt* list = dynamic_cast<ListStmt*>(stmt.get()); \
 	check(list); \
 	list->stmt_list.push_back(from); \
-	ret = stmt;
+	ret = stmt; \
+}
 
 #define list_stmt_push(ret, list, from) \
+{ \
 	ListStmt* stmt = dynamic_cast<ListStmt*>(list.get()); \
 	check(stmt); \
 	stmt->stmt_list.push_back(from); \
-	ret = list;
+	ret = list; \
+}
 
 #define make_aggr_stmt(stmt, function_name) \
 { \
@@ -103,38 +107,44 @@
 }
 
 #define make_unary_stmt(stmt, stmt1, op) \
+{ \
 	stmt = UnaryExprStmt::make_unary_stmt(); \
 	check(stmt); \
 	UnaryExprStmt* unary = dynamic_cast<UnaryExprStmt*>(stmt.get()); \
 	unary->expr_stmt = stmt1; \
-	unary->op_type = op;
+	unary->op_type = op; \
+}
 
 #define make_binary_stmt(stmt, stmt1, stmt2, op) \
+{ \
 	stmt = BinaryExprStmt::make_binary_stmt(); \
 	check(stmt); \
 	BinaryExprStmt* binary = dynamic_cast<BinaryExprStmt*>(stmt.get()); \
 	binary->first_expr_stmt = stmt1; \
 	binary->second_expr_stmt = stmt2; \
-	binary->op_type = op;
+	binary->op_type = op; \
+}
 
 #define make_ternary_stmt(stmt, stmt1, stmt2, stmt3, op) \
+{ \
 	stmt = TernaryExprStmt::make_ternary_stmt(); \
 	check(stmt); \
 	TernaryExprStmt* ternary = dynamic_cast<TernaryExprStmt*>(stmt.get()); \
 	ternary->first_expr_stmt = stmt1; \
 	ternary->second_expr_stmt = stmt2; \
 	ternary->third_expr_stmt = stmt3; \
-	ternary->op_type = op;
+	ternary->op_type = op; \
+}
 	
 #define str_to_lower(str) \
-	{\
-		for(u32 i = 0; i<str.size(); ++i){\
-			if(str[i] >= 'A' && str[i] <= 'Z'){\
-				str[i] -= 'A';\
-				str[i] += 'a';\
-			}\
+{\
+	for(u32 i = 0; i<str.size(); ++i){\
+		if(str[i] >= 'A' && str[i] <= 'Z'){\
+			str[i] -= 'A';\
+			str[i] += 'a';\
 		}\
-	}
+	}\
+}
 %}
 
 /*定义parser传给scanner的参数*/
@@ -163,10 +173,9 @@
 %nonassoc IS NULLX BOOL
 %left "+" "-"
 %left "*" "/"
-%right UMINUS
+%left UMINUS
 %left "(" ")"
 %left "."
-
 %token PLUS		"+"
 %token MINUS	"-"
 %token MUL		"*"
@@ -218,6 +227,7 @@
 %token DISTINCT
 %token DOUBLE
 %token DROP
+%token DUAL
 %token EXISTS
 %token EXPLAIN
 %token FLOAT
@@ -360,6 +370,19 @@ select_no_parens:
   | SELECT simple_function_expr
 	{
 		$$ = ShowDatabasesStmt::make_show_databases_stmt(true);
+	}
+  | SELECT opt_distinct select_expr_list FROM DUAL
+	{
+		//构建select stmt
+		Stmt_s stmt = SelectStmt::make_select_stmt();
+		SelectStmt* select_stmt = dynamic_cast<SelectStmt*>(stmt.get());
+		select_stmt->is_distinct = false;
+		select_stmt->select_expr_list = $3;
+		{
+		make_list_stmt(select_stmt->from_stmts, TableStmt::make_table_stmt("system","sys_databases"));
+		}
+		select_stmt->limit_stmt = LimitStmt::make_limit_stmt(1);
+		$$ = stmt;
 	}
 	;
 
@@ -537,7 +560,7 @@ table_factor:
   ;
 
 expr:
-    simple_expr   
+    arith_expr   
 	{ 
 		$$ = $1;
 	}
@@ -671,12 +694,12 @@ arith_expr:
 		//负数表达式
 		make_unary_stmt($$, $2, ExprStmt::OP_MINUS);
     }
-  | arith_expr "+" arith_expr 
+  | arith_expr "+" arith_expr
 	{
 		//构建二元表达式 
 		make_binary_stmt($$, $1, $3, ExprStmt::OP_ADD);
 	}
-  | arith_expr "-" arith_expr 
+  | arith_expr "-" arith_expr
 	{
 		//构建二元表达式 
 		make_binary_stmt($$, $1, $3, ExprStmt::OP_SUB);

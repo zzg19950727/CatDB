@@ -41,6 +41,8 @@ Object_s Operation::calc(Object_s & obj)
 	}
 	switch (type)
 	{
+	case ExprStmt::OP_MINUS:
+		return do_minus(obj);
 	case ExprStmt::OP_NOT:
 		return do_not(obj);
 	case ExprStmt::OP_EXISTS:
@@ -272,6 +274,11 @@ Object_s Operation::do_or(Object_s & first_obj, Object_s & second_obj)
 Object_s Operation::do_not(Object_s & first_obj)
 {
 	return first_obj->op_not();
+}
+
+Object_s Operation::do_minus(Object_s & first_obj)
+{
+	return first_obj->op_minus();
 }
 
 Object_s Operation::do_like(Object_s & first_obj, Object_s & second_obj)

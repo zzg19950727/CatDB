@@ -179,6 +179,122 @@ Object_s Varchar::between(const Object_s & left, const Object_s & right)
 	}
 }
 
+bool begin_with(const char* str1, const char* str2, int& beg1, int& beg2, int end1, int end2)
+{
+	while (beg1 <= end1 && beg2 <= end2) {
+		if (str2[beg2] == '%') {
+			return true;
+		}
+		else if (str1[beg1] != str2[beg2]) {
+			return false;
+		}
+		++beg1; ++beg2;
+	}
+	return true;
+}
+
+bool end_width(const char* str1, const char* str2, int beg1, int beg2, int& end1, int& end2)
+{
+	while (beg1 <= end1 && beg2 <= end2) {
+		if (str2[end2] == '%') {
+			return true;
+		}
+		else if (str1[end1] != str2[end2]) {
+			return false;
+		}
+		--end1; --end2;
+	}
+	return true;
+}
+
+void kmp_next(const char *s, int beg, int end, int* next)
+{
+	next[0] = -1;
+	int k = -1;
+	int i = beg + 1;
+	for ( ; i <= end; ++i) {
+		while (k > -1 && s[k + 1 + beg] != s[i]) {
+			k = next[k];
+		}
+		if (s[k + 1 + beg] == s[i]) {
+			k++;
+		}
+		next[i] = k;
+	}
+}
+
+bool kmp(const char *s1, const char *s2, int& beg1, int& beg2, int end1, int end2)
+{
+	int next[1024];
+	kmp_next(s2, beg2, end2, next);
+	int k = -1;
+	int i = beg1;
+	for ( ;i <= end1 ; ++i) {
+		while (k > -1 && s2[k + 1 + beg2] != s1[i]) {
+			k = next[k];
+		}
+		if (s2[k + 1 + beg2] == s1[i]) {
+			k++;
+		}
+		if (k + beg2 == end2) {
+			beg1 = i + 1;
+			beg2 = end2;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool contain(const char* str1, const char* str2, int& beg1, int& beg2, int end1, int end2)
+{
+	//分片匹配的起始位置
+	int pos1 = beg2;
+	while (pos1 <= end2 && str2[pos1] == '%') {
+		++pos1;
+	}
+	//分片匹配的结束位置
+	int pos2 = pos1;
+	while (pos2 <= end2 && str2[pos2] != '%') {
+		++pos2;
+	}
+	//没有中间匹配串
+	if (pos1 == pos2) {
+		return true;
+	}
+	else if (beg1 > end1) {
+		return false;
+	}
+	if (kmp(str1, str2, beg1, pos1, end1, pos2-1)) {
+		beg2 = pos2;
+		return contain(str1, str2, beg1, beg2, end1, end2);
+	}
+	else {
+		return false;
+	}
+}
+
+bool string_like(const char* str1, const char* str2)
+{
+	int beg1 = 0;
+	int beg2 = 0;
+	int end1 = strlen(str1);
+	int end2 = strlen(str2);
+	--end1;
+	--end2;
+	if (!begin_with(str1, str2, beg1, beg2, end1, end2)) {
+		return false;
+	}
+	else if (!end_width(str1, str2, beg1, beg2, end1, end2)) {
+		return false;
+	}
+	else if (!contain(str1, str2, beg1, beg2, end1, end2)) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
 Object_s Varchar::like(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {
@@ -190,6 +306,6 @@ Object_s Varchar::like(const Object_s & other)
 	}
 	else {
 		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
-		return Bool::make_object(strstr((char*)data->buf, (char*)rhs->data->buf));
+		return Bool::make_object(string_like((char*)data->buf, (char*)rhs->data->buf));
 	}
 }

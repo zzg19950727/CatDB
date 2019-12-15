@@ -23,7 +23,7 @@ digit	[0-9]
 space	[ \t\n\r\f]+
 num1    {digit}+(\.)?([eE][-]?{digit}+)?
 num2    {digit}*(\.)?{digit}+([eE][-]?{digit}+)?
-number  [+|-]?({num1}|{num2})
+number  ({num1}|{num2})
 ident	{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
@@ -72,6 +72,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "distinct"		{ return CatDB::SqlParser::make_DISTINCT(loc); }
 "double"		{ return CatDB::SqlParser::make_DOUBLE(loc); }
 "drop"			{ return CatDB::SqlParser::make_DROP(loc); }
+"dual"			{ return CatDB::SqlParser::make_DUAL(loc); }
 "exists"		{ return CatDB::SqlParser::make_EXISTS(loc); }
 "explain"		{ return CatDB::SqlParser::make_EXPLAIN(loc); }
 "float"			{ return CatDB::SqlParser::make_FLOAT(loc); }
@@ -108,6 +109,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "varbinary"		{ return CatDB::SqlParser::make_VARBINARY(loc); }
 "timestamp"		{ return CatDB::SqlParser::make_TIMESTAMP_SYM(loc); }
 "time"			{ return CatDB::SqlParser::make_TIME(loc); }
+
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
 ","				{ return CatDB::SqlParser::make_COMMA(loc); }
@@ -117,8 +119,8 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "-"				{ return CatDB::SqlParser::make_MINUS(loc); }
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
-\"				{parse_str.clear();BEGIN(beg_str);}
 
+\"				{parse_str.clear();BEGIN(beg_str);}
 <beg_str>\"         {
 						BEGIN(INITIAL);
 						return CatDB::SqlParser::make_STRING(parse_str,loc);

@@ -58,6 +58,7 @@ namespace CatDB {
 			Object_s do_and(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_or(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not(Object_s& first_obj);
+			Object_s do_minus(Object_s& first_obj);
 			Object_s do_like(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not_like(Object_s& first_obj, Object_s& second_obj);
 
