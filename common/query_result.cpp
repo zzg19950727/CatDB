@@ -152,3 +152,45 @@ Object_s QueryResult::exists()
 		return Bool::make_object(!list.empty());
 	}
 }
+
+u32  QueryResult::init_title_for_explain(Row_s & result_title)
+{
+	RowDesc row_desc(5);
+	result_title = Row::make_row(row_desc);
+	Object_s label = Varchar::make_object("Id");
+	result_title->set_cell(0, label);
+	label = Varchar::make_object("Operation");
+	result_title->set_cell(1, label);
+	label = Varchar::make_object("TableName");
+	result_title->set_cell(2, label);
+	label = Varchar::make_object("Rows");
+	result_title->set_cell(3, label);
+	label = Varchar::make_object("Time");
+	result_title->set_cell(4, label);
+	return SUCCESS;
+}
+
+u32  QueryResult::add_operation_info(u32 depth, const String& operator_name,
+	const String& table_name, double rows, u32 times)
+{
+	Row_s row;
+	RowDesc row_desc(5);
+	row = Row::make_row(row_desc);
+	Object_s id = Number::make_object(list.size(), -1);
+	row->set_cell(0, id);
+
+	Object_s name = Varchar::make_object(String(depth, ' ')+operator_name);
+	row->set_cell(1, name);
+
+	Object_s table = Varchar::make_object(table_name);
+	row->set_cell(2, table);
+
+	Object_s ret_rows = Number::make_object(rows, -1);
+	row->set_cell(3, ret_rows);
+
+	Object_s time_point = Number::make_object(times, -1);
+	row->set_cell(4, time_point);
+
+	list.push_back(row);
+	return SUCCESS;
+}

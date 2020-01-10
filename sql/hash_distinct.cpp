@@ -71,3 +71,9 @@ u32 CatDB::Sql::HashDistinct::type() const
 {
 	return PhyOperator::HASH_DISTINCT;
 }
+
+u32 HashDistinct::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash distinct", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}

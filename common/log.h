@@ -5,7 +5,7 @@
 #define LOG_WARN	0x2
 #define LOG_INFO	0x4
 #define LOG_TRACE	0x8
-
+#define DEBUG
 #ifdef DEBUG
 #define Log(log_level, module, fmt, ...) \
 		do{\

@@ -27,6 +27,7 @@ namespace CatDB {
                                             const Row_s& new_row);
             static PhyOperator_s make_update(const String&database,
 											const String& table,
+											const String& alias_table_name,
 											const Row_s& new_row,
 											const Filter_s& filter);
 			u32 set_filter(const Filter_s& filter);
@@ -38,6 +39,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			TableSpace_s table_space;
 			Filter_s filter;

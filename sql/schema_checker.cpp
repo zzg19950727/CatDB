@@ -347,11 +347,52 @@ u32 SchemaChecker::analyze_table(const String & database, const String & table)
 
 u32 SchemaChecker::statis_table_row_count(const String & database, const String & table)
 {
-	String query = R"(select statis.row_count
-				from system.sys_databases as db,system.sys_tables as tb,system.table_statis as statis 
-				where db.id = tb.db_id and tb.id = statis.tid 
-				and db.name=")" + database + R"(" and tb.name=")" + table + 
-				R"(" order by statis.analyze_time desc limit 1;)";
+	u32 tid = get_table_id(database, table);
+	return statis_table_row_count(tid);
+}
+
+u32 SchemaChecker::statis_column_ndv(const String & database, const String & table_name, const String & column_name)
+{
+	u32 tid, cid;
+	ColumnDesc col_desc;
+	u32 ret = get_column_desc(database, table_name, column_name, col_desc);
+	if (ret != SUCCESS) {
+		return 3;
+	}
+	col_desc.get_tid_cid(tid, cid);
+	return statis_column_ndv(tid, cid);
+}
+
+u32 SchemaChecker::statis_column_max_value(const String & database, const String & table_name, const String & column_name)
+{
+	u32 tid, cid;
+	ColumnDesc col_desc;
+	u32 ret = get_column_desc(database, table_name, column_name, col_desc);
+	if (ret != SUCCESS) {
+		return 0;
+	}
+	col_desc.get_tid_cid(tid, cid);
+	return statis_column_max_value(tid, cid);
+}
+
+u32 SchemaChecker::statis_column_min_value(const String & database, const String & table_name, const String & column_name)
+{
+	u32 tid, cid;
+	ColumnDesc col_desc;
+	u32 ret = get_column_desc(database, table_name, column_name, col_desc);
+	if (ret != SUCCESS) {
+		return 0;
+	}
+	col_desc.get_tid_cid(tid, cid);
+	return statis_column_min_value(tid, cid);
+}
+
+u32 SchemaChecker::statis_table_row_count(u32 tid)
+{
+	String query = R"(select row_count 
+				from system.table_statis 
+				where tid = )" + std::to_string(tid)+
+		R"( order by analyze_time desc limit 1;)";
 	Object_s result;
 	u32 ret = execute_sys_sql(query, result);
 	if (ret != SUCCESS) {
@@ -363,59 +404,74 @@ u32 SchemaChecker::statis_table_row_count(const String & database, const String 
 	return static_cast<u32>(value);
 }
 
-u32 SchemaChecker::statis_column_ndv(const String & database, const String & table_name, const String & column_name)
+u32 SchemaChecker::statis_column_ndv(u32 tid, u32 cid)
 {
-	String query = R"(select statis.ndv
-				from system.sys_databases as db,system.sys_tables as tb,
-				system.sys_columns as col,system.column_statis as statis
-				where db.id = tb.db_id and tb.id = col.table_id and tb.id = statis.tid and col.id = statis.cid
-				and db.name=")" + database + R"(" and tb.name=")" + table_name + 
-				R"(" and col.name=")" + column_name + R"(" order by statis.analyze_time desc limit 1;)";
+	String query = R"(select ndv
+				from system.column_statis
+				where tid = )" + std::to_string(tid) +
+		R"( and cid=)" + std::to_string(cid) +
+		R"( order by analyze_time desc limit 1;)";
 	Object_s result;
 	u32 ret = execute_sys_sql(query, result);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SchemaChecker", "query column ndv failed");
 		return 0;
 	}
-	double value = 10000;
+	double value = 3;
 	get_value_from_result(value, result);
 	return static_cast<u32>(value);
 }
 
-u32 SchemaChecker::statis_column_max_value(const String & database, const String & table_name, const String & column_name)
+u32 SchemaChecker::statis_column_max_value(u32 tid, u32 cid)
 {
-	String query = R"(select statis.max_value
-				from system.sys_databases as db,system.sys_tables as tb,
-				system.sys_columns as col,system.column_statis as statis
-				where db.id = tb.db_id and tb.id = col.table_id and tb.id = statis.tid and col.id = statis.cid
-				and db.name=")" + database + R"(" and tb.name=")" + table_name +
-		R"(" and col.name=")" + column_name + R"(" order by statis.analyze_time desc limit 1;)";
+	String query = R"(select max_value
+				from system.column_statis 
+				where tid = )" + std::to_string(tid) +
+		R"( and cid=)" + std::to_string(cid) +
+		R"( order by analyze_time desc limit 1;)";
 	Object_s result;
 	u32 ret = execute_sys_sql(query, result);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SchemaChecker", "query column ndv failed");
+		Log(LOG_ERR, "SchemaChecker", "query column max value failed");
 		return 0;
 	}
-	double value = 10000;
+	double value = 0;
 	get_value_from_result(value, result);
 	return static_cast<u32>(value);
 }
 
-u32 SchemaChecker::statis_column_min_value(const String & database, const String & table_name, const String & column_name)
+u32 SchemaChecker::statis_column_min_value(u32 tid, u32 cid)
 {
-	String query = R"(select statis.min_value
-				from system.sys_databases as db,system.sys_tables as tb,
-				system.sys_columns as col,system.column_statis as statis
-				where db.id = tb.db_id and tb.id = col.table_id and tb.id = statis.tid and col.id = statis.cid
-				and db.name=")" + database + R"(" and tb.name=")" + table_name +
-		R"(" and col.name=")" + column_name + R"(" order by statis.analyze_time desc limit 1;)";
+	String query = R"(select min_value
+				from system.column_statis
+				where tid = )" + std::to_string(tid) + 
+				R"( and cid=)" + std::to_string(cid) + 
+				R"( order by analyze_time desc limit 1;)";
 	Object_s result;
 	u32 ret = execute_sys_sql(query, result);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SchemaChecker", "query column ndv failed");
+		Log(LOG_ERR, "SchemaChecker", "query column min value failed");
 		return 0;
 	}
-	double value = 10000;
+	double value = 0;
+	get_value_from_result(value, result);
+	return static_cast<u32>(value);
+}
+
+u32 SchemaChecker::statis_column_null_count(u32 tid, u32 cid)
+{
+	String query = R"(select null_count
+				from system.column_statis 
+				where tid = )" + std::to_string(tid) +
+		R"( and cid=)" + std::to_string(cid) +
+		R"( order by analyze_time desc limit 1;)";
+	Object_s result;
+	u32 ret = execute_sys_sql(query, result);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SchemaChecker", "query column null count failed");
+		return 0;
+	}
+	double value = 0;
 	get_value_from_result(value, result);
 	return static_cast<u32>(value);
 }
@@ -528,14 +584,19 @@ u32 SchemaChecker::get_value_from_result(double & value, const Object_s & result
 			else {
 				Object_s cell;
 				row->get_cell(0, cell);
-				if (cell->get_type() != T_NUMBER) {
-					Log(LOG_ERR, "SchemaChecker", "query value failed, query result type error");
-					return SYSTEM_SCHEMA_ERROR;
+				if (cell->get_type() == T_DATETIME) {
+					DateTime* col_value = dynamic_cast<DateTime*>(cell.get());
+					value = col_value->value();
+					return SUCCESS;
 				}
-				else {
+				else if (cell->get_type() == T_NUMBER) {
 					Number* col_value = dynamic_cast<Number*>(cell.get());
 					value = col_value->value();
 					return SUCCESS;
+				}
+				else{
+					Log(LOG_ERR, "SchemaChecker", "query value failed, query result type error");
+					return SYSTEM_SCHEMA_ERROR;
 				}
 			}
 		}
@@ -929,7 +990,7 @@ u32 SchemaChecker::analyze_table_system(const String & database, const String & 
 		}
 		ret = analyze_column_statis(database, table, columns[i].first);
 		if (ret != SUCCESS) {
-			Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s failed", database.c_str(), table.c_str(), column.c_str());
+			Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s failed", database.c_str(), table.c_str(), columns[i].first.c_str());
 		}
 	}
 	return SUCCESS;
@@ -943,6 +1004,7 @@ u32 SchemaChecker::analyze_table_statis(const String & database, const String & 
 		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
 		return ret;
 	}
+	table_id = get_table_id(database, table);
 	u32 row_count = 0;
 	u64 file_size = TableSpace::table_space_size(database, table);
 	if (file_size > 0) {
@@ -985,11 +1047,12 @@ u32 SchemaChecker::analyze_column_statis(const String & database, const String &
 		return ret;
 	}
 	col_desc.get_tid_cid(tid, cid);
+	/*
 	ret = get_table_id(database, table, tid);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
 		return ret;
-	}
+	}*/
 	u32 ndv, null_count;
 	String max_value, min_value;
 	//NDVÍ³¼Æ

@@ -147,6 +147,31 @@ u32 HashJoin::type() const
 	return PhyOperator::HASH_JOIN;
 }
 
+u32 HashJoin::explain_operator(u32 depth, QueryResult * result)
+{
+	String join_name;
+	switch (JoinPhyOperator::type) {
+	case JoinPhyOperator::Join:
+		join_name = "hash join";
+		break;
+	case JoinPhyOperator::SemiJoin:
+		join_name = "hash semi join";
+		break;
+	case JoinPhyOperator::LeftOuterJoin:
+		join_name = "hash left outer join";
+		break;
+	case JoinPhyOperator::RightOuterJoin:
+		join_name = "hash right outer join";
+		break;
+	case JoinPhyOperator::FullOuterJoin:
+		join_name = "hash full outer join";
+		break;
+	}
+	result->add_operation_info(depth, join_name, "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
+}
+
 u32 HashJoin::init_hash_table()
 {
 	hash_table.clear_hash_columns();
@@ -407,6 +432,13 @@ u32 HashNullAwareAntiJoin::get_next_row(Row_s & row)
 u32 HashNullAwareAntiJoin::type() const
 {
 	return PhyOperator::HASH_NULL_AWARE_ANTI_JOIN;
+}
+
+u32 HashNullAwareAntiJoin::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash null aware join", "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
 }
 
 u32 HashNullAwareAntiJoin::init_hash_table()

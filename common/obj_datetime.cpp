@@ -41,7 +41,7 @@ time_t DateTime::StringToDatetime(const String& str)
 		return -1;
 	tm_.tm_year = year - 1900;
 	tm_.tm_mon = month - 1;
-	tm_.tm_mday = day - 1;
+	tm_.tm_mday = day;
 	tm_.tm_hour = hour;
 	tm_.tm_min = minute;
 	tm_.tm_sec = second;
@@ -61,7 +61,7 @@ String DateTime::DatetimeToString(time_t t)
 	sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
 		time->tm_year + 1900,
 		time->tm_mon + 1,
-		time->tm_mday + 1,
+		time->tm_mday,
 		time->tm_hour,
 		time->tm_min,
 		time->tm_sec
@@ -126,6 +126,11 @@ String DateTime::to_string() const
 Object_s DateTime::copy()
 {
 	return DateTime::make_object(data);
+}
+
+double DateTime::value() const
+{
+	return data;
 }
 
 Object_s DateTime::operator+(const Object_s & other)

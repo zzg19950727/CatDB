@@ -27,6 +27,7 @@ namespace CatDB {
 				const String& table,
 				const Common::RowDesc& desc,
 				const Filter_s& filter);
+			void set_alias_table_name(const String& alias_name);
 			u32 set_filter(const Filter_s& filter);
 			Filter_s get_filter()const;
 			//物理算子必须提供的接口
@@ -36,6 +37,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			TableSpace_s table_space;
 			Filter_s filter;

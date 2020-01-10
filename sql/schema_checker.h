@@ -50,6 +50,11 @@ namespace CatDB {
 			u32 statis_column_ndv(const String& database, const String& table_name, const String& column_name);
 			u32 statis_column_max_value(const String& database, const String& table_name, const String& column_name);
 			u32 statis_column_min_value(const String& database, const String& table_name, const String& column_name);
+			u32 statis_table_row_count(u32 tid);
+			u32 statis_column_ndv(u32 tid, u32 cid);
+			u32 statis_column_max_value(u32 tid, u32 cid);
+			u32 statis_column_min_value(u32 tid, u32 cid);
+			u32 statis_column_null_count(u32 tid, u32 cid);
 
 			u32 init_db();
 		private:

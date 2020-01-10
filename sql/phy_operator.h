@@ -1,5 +1,6 @@
 ﻿#ifndef PHY_OPERATOR_H
 #define PHY_OPERATOR_H
+#include "query_result.h"
 #include "type.h"
 #include "row.h"
 
@@ -7,7 +8,9 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		using Common::RowDesc;
+		using Common::QueryResult;
 		DECLARE(PhyOperator);
+
 
 		//物理运算符接口
 		class PhyOperator
@@ -60,9 +63,13 @@ namespace CatDB {
 			virtual u32 type() const = 0;
 			void set_access_desc(const RowDesc& desc);
 			void set_output_desc(const RowDesc& desc);
+			virtual u32 explain_operator(u32 depth, QueryResult* result)=0;
 		public:
 			RowDesc access_desc;
 			RowDesc output_desc;
+		public:
+			double output_rows;
+			u32 finished_time;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)
 		};

@@ -24,11 +24,15 @@ namespace CatDB {
 			u32 get_next_row(Row_s& row);
 			u32 reset();
 			u32 close();
+
 			//
 			u32 insert_row(const Row_s& row);
 			u32 update_row(const Row_s& row);
 			u32 delete_row(u32 row_id);
 			u32 delete_all_row();
+			void set_alias_table_name(const String& alias_name);
+			String get_alias_table_name();
+
 			static u64 table_space_size(const String& database, const String& table_name);
 			static u32 delete_table(const String& database, const String& table_name);
 			static u32 create_table(const String& database, const String& table_name);
@@ -56,6 +60,7 @@ namespace CatDB {
 			HashMap<u32, Page_s>  pages;
 			String database;
 			String table_name;
+			String alias_table_name;
 			IoService_s io;
 			u32 cur_page_offset;
 			u32 alias_table_id;

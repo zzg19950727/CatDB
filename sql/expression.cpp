@@ -334,7 +334,8 @@ void ConstExpression::reset(const Row_s & row)
 }
 
 ColumnExpression::ColumnExpression(const ColumnDesc& desc)
-	:col_desc(desc)
+	:col_desc(desc),
+	table(nullptr)
 {
 }
 
@@ -358,6 +359,9 @@ Object_s ColumnExpression::get_result(const Row_s & row)
 {
 	if (result) {
 		return result;
+	}
+	else if (!row) {
+		return Error::make_object(COLUMN_NOT_EXISTS);
 	}
 	Object_s cell;
 	u32 ret = row->get_cell(col_desc, cell);

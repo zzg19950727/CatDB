@@ -41,6 +41,8 @@ Stmt_s ShowDatabasesStmt::make_show_databases_stmt(bool is_select_current_databa
 }
 
 DescTableStmt::DescTableStmt()
+	:is_show_table_statis(false),
+	is_show_column_statis(false)
 {
 }
 

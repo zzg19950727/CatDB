@@ -30,7 +30,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
-			
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			//缓存右表的执行结果
 			u32 cache_right_table();

@@ -81,6 +81,12 @@ u32 CatDB::Sql::Sort::type() const
 	return PhyOperator::SORT;
 }
 
+u32 CatDB::Sql::Sort::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "sort", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}
+
 bool CatDB::Sql::Sort::greater(const Row_s & lhs, const Row_s & rhs) const
 {
 	for (u32 i = 0; i < sort_cols.size(); ++i){
@@ -229,6 +235,12 @@ u32 CatDB::Sql::TopNSort::get_next_row(Row_s & row)
 u32 CatDB::Sql::TopNSort::type() const
 {
 	return PhyOperator::TOP_N_SORT;
+}
+
+u32 CatDB::Sql::TopNSort::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "sort and limit", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
 }
 
 bool CatDB::Sql::TopNSort::greater(const Row_s & lhs, const Row_s & rhs) const

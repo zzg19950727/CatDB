@@ -101,6 +101,12 @@ u32 CatDB::Sql::ScalarGroup::type() const
 	return PhyOperator::SCALAR_GROUP;
 }
 
+u32 CatDB::Sql::ScalarGroup::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "scalar group", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}
+
 void CatDB::Sql::ScalarGroup::set_filter(const Filter_s & filter)
 {
 	this->filter = filter;

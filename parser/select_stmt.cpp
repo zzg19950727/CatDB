@@ -43,3 +43,24 @@ Stmt_s LimitStmt::make_limit_stmt(u32 size, u32 offset)
 	stmt->limit_size = size;
 	return Stmt_s(stmt);
 }
+
+HintStmt::HintStmt()
+{
+}
+
+HintStmt::~HintStmt()
+{
+}
+
+Stmt::StmtType HintStmt::stmt_type() const
+{
+	return Stmt::Hint;
+}
+
+Stmt_s CatDB::Parser::HintStmt::make_hint_stmt(HintType type, const HintBody & hint)
+{
+	HintStmt* stmt = new HintStmt();
+	stmt->type = type;
+	stmt->hint = hint;
+	return Stmt_s(stmt);
+}

@@ -5,7 +5,9 @@ using namespace CatDB::Common;
 
 PhyOperator::PhyOperator()
 	:access_desc(0),
-	output_desc(0)
+	output_desc(0),
+	output_rows(0),
+	finished_time(0)
 {
 }
 

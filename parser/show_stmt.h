@@ -43,6 +43,8 @@ namespace CatDB {
 		public:
 			String database;
 			Stmt_s table;
+			bool is_show_table_statis;
+			bool is_show_column_statis;
 		};
 
 		class UseDatabaseStmt : public Stmt

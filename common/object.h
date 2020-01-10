@@ -135,7 +135,7 @@ namespace CatDB {
 			Number(double value);
 			Number(const String& str);
 			Number(const RawData& data);
-			static Object_s make_object(double value);
+			static Object_s make_object(double value, int scale = 0);
 			static Object_s make_object(const String& value);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
@@ -178,6 +178,7 @@ namespace CatDB {
 			u32 hash() override;
 			String to_string()const override;
 			Object_s copy()override;
+			double value() const;
 			static time_t StringToDatetime(const String& str);
 			static String DatetimeToString(time_t t);
 			static String CurrentDatetime();

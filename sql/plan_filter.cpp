@@ -63,3 +63,9 @@ u32 PlanFilter::type() const
 {
 	return PhyOperator::PLAN_FILTER;
 }
+
+u32 PlanFilter::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "subplan filter", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}

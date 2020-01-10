@@ -39,6 +39,10 @@ u32 DeletePlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
+	//发送计划
+	if (is_explain) {
+		return explain_plan();
+	}
 	Log(LOG_TRACE, "DeletePlan", "start execute delete plan");
 	u32 ret;
 	ret = root_operator->open();
@@ -75,7 +79,7 @@ u32 DeletePlan::execute()
 
 u32 DeletePlan::build_plan()
 {
-	root_operator = Delete::make_delete(database, table_name, filter);
+	root_operator = Delete::make_delete(database, table_name, alias_table_name, filter);
 	if (access_columns.size() > 0) {
 		RowDesc row_desc(access_columns.size());
 		for (u32 i = 0; i < access_columns.size(); ++i) {
@@ -101,10 +105,12 @@ u32 DeletePlan::optimizer()
 	assert(checker);
 	DeleteStmt* lex = dynamic_cast<DeleteStmt*>(lex_stmt.get());
 	assert(lex->table);
+	is_explain = lex->is_explain;
 	//构建物理算子
 	table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
+	alias_table_name = table->alias_name;
 	//将where子句转换为filter
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {

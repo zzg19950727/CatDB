@@ -118,6 +118,34 @@ u32 NestedLoopJoin::type() const
 	return PhyOperator::NESTED_LOOP_JOIN;
 }
 
+u32 NestedLoopJoin::explain_operator(u32 depth, QueryResult * result)
+{
+	String join_name;
+	switch (JoinPhyOperator::type) {
+	case JoinPhyOperator::Join:
+		join_name = "nested loop join";
+		break;
+	case JoinPhyOperator::SemiJoin:
+		join_name = "nested loop semi join";
+		break;
+	case JoinPhyOperator::AntiJoin:
+		join_name = "nested loop anti join";
+		break;
+	case JoinPhyOperator::LeftOuterJoin:
+		join_name = "nested loop left outer join";
+		break;
+	case JoinPhyOperator::RightOuterJoin:
+		join_name = "nested loop right outer join";
+		break;
+	case JoinPhyOperator::FullOuterJoin:
+		join_name = "nested loop full outer join";
+		break;
+	}
+	result->add_operation_info(depth, join_name, "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
+}
+
 u32 NestedLoopJoin::cache_right_table()
 {
 	u32 ret;

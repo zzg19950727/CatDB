@@ -28,6 +28,10 @@ namespace CatDB {
 			Object_s not_in(const Object_s& other)override;
 			Object_s exists()override;
 
+			u32 init_title_for_explain(Row_s & result_title);
+			u32 add_operation_info(u32 depth, const String& operator_name,
+				const String& table_name, double rows, u32 times);
+
 		private:
 			Vector<Row_s> list;
 			u32 err_code;

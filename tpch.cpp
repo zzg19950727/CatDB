@@ -137,6 +137,7 @@ void create_table()
 		L_SHIPMODE     VARCHAR,
 		L_COMMENT      VARCHAR);)"
 	};
+	execute_sql("drop database tpch");
 	execute_sql("create database tpch");
 	for (u32 i = 0; i < sqls.size(); ++i) {
 		execute_sql(sqls[i]);
@@ -561,6 +562,25 @@ void load_lineitem_data()
 		}
 	}
 	std::cout << "\nload lineitem success " << std::endl;
+}
+
+void init_db()
+{
+	String sqls[] = {
+	"drop database test",
+	"drop database system",
+	"create database system",
+	"create table system.sys_databases(id int, name varchar)",
+	"create table system.sys_tables(id int, name varchar, db_id int)",
+	"create table system.sys_columns(id int, name varchar, table_id int, type varchar)",
+	"create table system.user(name varchar, host varchar, auth_string varchar)",
+	"create table system.table_statis(tid int, row_count int, space_size int, analyze_time datetime)",
+	"create table system.column_statis(tid int, cid int, ndv int, null_count int, max_value int, min_value int, analyze_time datetime)",
+	"create database test"
+	};
+	for (u32 i = 0; i < 10; ++i) {
+		execute_sql(sqls[i]);
+	}
 }
 
 void load_tpch_data()

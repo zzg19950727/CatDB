@@ -10,9 +10,10 @@ namespace CatDB {
 		DECLARE(Object);
 	}
 	namespace Sql {
-		using CatDB::Common::ColumnDesc;
-		using CatDB::Common::Row_s;
-		using CatDB::Common::Object_s;
+		using Common::ColumnDesc;
+		using Common::Row_s;
+		using Common::Object_s;
+		using Parser::TableStmt;
 		DECLARE(Plan);
 		DECLARE(Expression);
 		DECLARE(UnaryExpression);
@@ -121,6 +122,7 @@ namespace CatDB {
 			void reset(const Row_s& row);
 		public:
 			Common::ColumnDesc col_desc;
+			TableStmt* table;
 			Object_s result;
 		};
 
@@ -182,10 +184,11 @@ namespace CatDB {
 			u32 max(const Row_s& row);
 			u32 min(const Row_s& row);
 
-			Expression_s expr;
 			AggrType op;
 			Object_s result;
 			u32 row_count;
+		public:
+			Expression_s expr;
 		};
 
 		class BinaryExpression : public Expression

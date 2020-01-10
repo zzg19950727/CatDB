@@ -51,7 +51,7 @@ int CatDB::Server::accept_connection(int fd)
 	struct sockaddr_in client_addr;
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &addrlen);
 
-	Log(LOG_TRACE, "accept connection:%d", client_fd);
+	Log(LOG_TRACE, "Socket", "accept connection:%d", client_fd);
 	return client_fd;
 }
 
@@ -170,7 +170,7 @@ void NetService::create_poll(int size)
 #ifdef _WIN32
 	WSADATA wsadata;
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0)
-		Log(LOG_DEBUG, "NetService", "NetService create epoll:%d",m_epoll_fd);
+		Log(LOG_INFO, "NetService", "NetService create epoll");
 #endif	//_WIN32
 }
 

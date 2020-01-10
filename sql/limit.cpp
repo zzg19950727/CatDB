@@ -62,3 +62,9 @@ u32 CatDB::Sql::Limit::type() const
 {
 	return PhyOperator::LIMIT;
 }
+
+u32 CatDB::Sql::Limit::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "limit", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}

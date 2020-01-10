@@ -29,7 +29,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
-
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			Common::HashTable hash_table;
 		};
@@ -50,7 +50,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
-
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			u32 build_hash_table();
 			Common::HashTable hash_table;
@@ -74,7 +74,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
-
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		private:
 			u32 build_hash_table();
 			Common::HashTable hash_table;
@@ -96,6 +96,7 @@ namespace CatDB {
 			u32 reopen(const Row_s& row);
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
+			u32 explain_operator(u32 depth, QueryResult* result)override;
 		};
 	}
 }

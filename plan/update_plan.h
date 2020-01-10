@@ -46,6 +46,7 @@ namespace CatDB {
 		private:
 			String database;
 			String table_name;
+			String alias_table_name;
 			TableStmt* table;
 			Vector<ColumnDesc> access_columns;
 			Row_s new_row;

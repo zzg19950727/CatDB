@@ -69,6 +69,12 @@ u32 Query::type() const
 	return PhyOperator::QUERY;
 }
 
+u32 CatDB::Sql::Query::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "query", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}
+
 Row_s CatDB::Sql::Query::make_row(const Row_s & row)
 {
 	RowDesc row_desc(query_list.size());

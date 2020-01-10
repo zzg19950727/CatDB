@@ -3,6 +3,7 @@
 #include "update_plan.h"
 #include "select_plan.h"
 #include "query_result.h"
+#include "phy_operator.h"
 #include "show_plan.h"
 #include "create_plan.h"
 #include "drop_plan.h"
@@ -19,7 +20,8 @@ using namespace CatDB::Sql;
 
 Plan::Plan()
 	:affect_rows_(0),
-	thd(nullptr)
+	thd(nullptr),
+	is_explain(false)
 {
 }
 
@@ -108,4 +110,17 @@ PhyOperator_s Plan::get_root_operator()
 void Plan::set_thd(RequestHandle_s & thd)
 {
 	this->thd = thd;
+}
+
+u32 Plan::explain_plan()
+{
+	//创建查询结果对象
+	if (!result) {
+		result = QueryResult::make_query_result();
+	}
+	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
+	//设置输出title
+	query_result->init_title_for_explain(result_title);
+	root_operator->explain_operator(0, query_result);
+	return SUCCESS;
 }

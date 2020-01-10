@@ -44,6 +44,11 @@ PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const String&database,
 	return PhyOperator_s(scan);
 }
 
+void CatDB::Sql::TableScan::set_alias_table_name(const String & alias_name)
+{
+	table_space->set_alias_table_name(alias_name);
+}
+
 u32 CatDB::Sql::TableScan::set_filter(const Filter_s & filter)
 {
 	this->filter = filter;
@@ -107,4 +112,9 @@ u32 CatDB::Sql::TableScan::get_next_row(Row_s & row)
 u32 CatDB::Sql::TableScan::type() const
 {
 	return PhyOperator::TABLE_SCAN;
+}
+
+u32 CatDB::Sql::TableScan::explain_operator(u32 depth, QueryResult * result)
+{
+	return result->add_operation_info(depth, "table scan", table_space->get_alias_table_name(), output_rows, finished_time);
 }

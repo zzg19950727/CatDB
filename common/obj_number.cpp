@@ -32,12 +32,14 @@ Number::Number(const RawData & data)
 	memcpy(&frac, ptr, sizeof(frac));
 	ptr += sizeof(frac);
 	this->data = my_decimal(ptr, intg+frac, frac);
-	Log(LOG_TRACE, "Object", "make number object, value %s", this->data.to_string().c_str());
+	Log(LOG_TRACE, "Object", "make number object, value %s", this->data.to_string(0).c_str());
 }
 
-Object_s Number::make_object(double value)
+Object_s Number::make_object(double value, int scale)
 {
-	return Object_s(new Number(value));
+	Number* num = new Number(value);
+	num->set_scale(scale);
+	return Object_s(num);
 }
 
 Object_s Number::make_object(const String & value)

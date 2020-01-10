@@ -93,6 +93,13 @@ u32 CatDB::Sql::HashUnion::type() const
 	return PhyOperator::HASH_SET;
 }
 
+u32 CatDB::Sql::HashUnion::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash union", "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
+}
+
 CatDB::Sql::HashIntersect::HashIntersect(PhyOperator_s & first_child, PhyOperator_s & second_child)
 	:DoubleChildPhyOperator(first_child, second_child)
 {
@@ -177,6 +184,13 @@ u32 CatDB::Sql::HashIntersect::get_next_row(Row_s & row)
 u32 CatDB::Sql::HashIntersect::type() const
 {
 	return PhyOperator::HASH_SET;
+}
+
+u32 CatDB::Sql::HashIntersect::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash intersect", "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
 }
 
 u32 CatDB::Sql::HashIntersect::build_hash_table()
@@ -277,6 +291,13 @@ u32 CatDB::Sql::HashExcept::type() const
 	return PhyOperator::HASH_SET;
 }
 
+u32 CatDB::Sql::HashExcept::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash except", "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
+}
+
 u32 CatDB::Sql::HashExcept::build_hash_table()
 {
 	hash_table.clear();
@@ -368,4 +389,11 @@ u32 CatDB::Sql::UnionAll::get_next_row(Row_s & row)
 u32 CatDB::Sql::UnionAll::type() const
 {
 	return PhyOperator::HASH_SET;
+}
+
+u32 UnionAll::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "union all", "", output_rows, finished_time);
+	left_child->explain_operator(depth + 1, result);
+	return right_child->explain_operator(depth + 1, result);
 }

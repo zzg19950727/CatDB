@@ -17,13 +17,14 @@ namespace CatDB {
 			static Stmt_s make_select_stmt();
 		public:
 			Stmt_s select_expr_list;	//select语句块
-			bool is_distinct;				//输出集是否去重？
-			Stmt_s from_stmts;		//from语句块
-			Stmt_s where_stmt;				//where语句块
-			Stmt_s group_columns;	//groupby 列
-			Stmt_s having_stmt;				//having语句块
-			Stmt_s order_columns;	//order by列
-			bool asc_desc;					//升序还是降序,true为asc，false为desc，默认asc
+			Stmt_s hint_list;			//
+			bool is_distinct;			//输出集是否去重？
+			Stmt_s from_stmts;			//from语句块
+			Stmt_s where_stmt;			//where语句块
+			Stmt_s group_columns;		//groupby 列
+			Stmt_s having_stmt;			//having语句块
+			Stmt_s order_columns;		//order by列
+			bool asc_desc;				//升序还是降序,true为asc，false为desc，默认asc
 			Stmt_s limit_stmt;
 		};
 
@@ -38,6 +39,24 @@ namespace CatDB {
 		public:
 			u32 limit_offset;			//limit行偏移
 			u32 limit_size;				//limit行数
+		};
+
+		class HintStmt : public Stmt
+		{
+		public:
+			HintStmt();
+		public:
+			enum HintType{Parallel=0};
+			union HintBody
+			{
+				u32 dop;
+			};
+			~HintStmt();
+			StmtType stmt_type()const override;
+			static Stmt_s make_hint_stmt(HintType type, const HintBody& hint);
+		private:
+			HintType type;
+			HintBody hint;
 		};
 	}
 }

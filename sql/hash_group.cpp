@@ -176,6 +176,12 @@ u32 HashGroup::type() const
 	return PhyOperator::HASH_GROUP;
 }
 
+u32 HashGroup::explain_operator(u32 depth, QueryResult * result)
+{
+	result->add_operation_info(depth, "hash group", "", output_rows, finished_time);
+	return child->explain_operator(depth + 1, result);
+}
+
 u32 HashGroup::init_hash_table()
 {
 	hash_table.clear_hash_columns();

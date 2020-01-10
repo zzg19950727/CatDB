@@ -19,6 +19,7 @@
 #include "limit.h"
 #include "sort.h"
 #include "query_result.h"
+#include "statis.h"
 #include "query.h"
 #include "stmt.h"
 #include "row.h"
@@ -35,13 +36,13 @@ using namespace CatDB::Parser;
 
 SelectPlan::SelectPlan()
 	:resolve_select_list_or_having(0),
-	select_rows(0),
 	alias_table_id(0),
 	is_distinct(false),
 	is_sort_query_result(false),
 	is_resolve_where(false),
 	asc(true),
-	have_limit(false)
+	have_limit(false),
+	root_plan(this)
 {
 
 }
@@ -78,6 +79,10 @@ u32 SelectPlan::execute()
 {
 	if (!root_operator) {
 		return_result(PLAN_NOT_BUILD);
+	}
+	//发送计划
+	if (is_explain) {
+		return explain_plan();
 	}
 	//打开顶层算子
 	u32 ret;
@@ -150,6 +155,25 @@ u32 SelectPlan::build_plan()
 		Log(LOG_ERR, "SelectPlan", "make group plan failed");
 		return_result(ret);
 	}
+	//生成distinct计划
+	ret = make_distinct_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
+		return_result(ret);
+	}
+	//投影选择列
+	ret = make_query_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
+		return_result(ret);
+	}
+	//是否需要排序
+	ret = make_sort_plan(root_operator);
+	if (ret != SUCCESS) {
+		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
+		return_result(ret);
+	}
+	/*
 	//需要排序的是基表列，则可以先执行排序，再执行select投影算子
 	if (!is_sort_query_result) {
 		ret = make_sort_plan(root_operator);
@@ -170,6 +194,7 @@ u32 SelectPlan::build_plan()
 			Log(LOG_ERR, "SelectPlan", "make expression plan failed");
 			return_result(ret);
 		}
+		//是否需要排序
 		ret = make_sort_plan(root_operator);
 		if (ret != SUCCESS) {
 			Log(LOG_ERR, "SelectPlan", "make sort plan failed");
@@ -182,6 +207,7 @@ u32 SelectPlan::build_plan()
 		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
 		return_result(ret);
 	}
+	*/
 	//生成limit计划
 	ret = make_limit_plan(root_operator);
 	if (ret != SUCCESS) {
@@ -198,7 +224,8 @@ u32 SelectPlan::optimizer()
 		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
 		return_result(ERROR_LEX_STMT);
 	}
-	else if (lex_stmt->stmt_type() == Stmt::Expr)
+	is_explain = lex_stmt->is_explain;
+	if (lex_stmt->stmt_type() == Stmt::Expr)
 	{
 		ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
 
@@ -334,13 +361,9 @@ bool SelectPlan::is_correlated_query() const
 	return !ref_parent_table_list.empty();
 }
 
-u32 SelectPlan::get_select_rows()
+double SelectPlan::get_select_rows()
 {
-	if (select_rows > 0) {
-		return select_rows;
-	}
-	//cal selectivity
-	return select_rows;
+	return root_operator->output_rows;
 }
 
 /*
@@ -562,6 +585,10 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 				break;
 			}
 			expr = ColumnExpression::make_column_expression(col_desc);
+			ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+			TableStmt* table = nullptr;
+			who_have_column(col_desc, table);
+			col_expr->table = table;
 			ret = SUCCESS;
 		}
 		break;
@@ -576,6 +603,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		}
 		subquerys.push_back(plan);
 		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
+		subplan->root_plan = root_plan;
 		bool is_correlated = subplan->is_correlated_query();
 		//如果子查询引用了当前查询的父查询的表，则同样需要添加到当前查询的引用列表中
 		for (u32 i = 0; i < subplan->ref_parent_table_list.size(); ++i) {
@@ -814,6 +842,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 					row_desc.get_column_desc(i, col_desc);
 					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 					select_list.push_back(expr);
+					ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+					TableStmt* table = nullptr;
+					who_have_column(col_desc, table);
+					col_expr->table = table;
 				}
 				const Vector<String>& columns = plan->get_all_output_column();
 				for (u32 j = 0; j < columns.size(); ++j) {
@@ -836,6 +868,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 					Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 					select_list.push_back(expr);
 					add_access_column(table, col_desc);
+					ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+					TableStmt* table = nullptr;
+					who_have_column(col_desc, table);
+					col_expr->table = table;
 				}
 				Vector<Pair<String, String>> columns;
 				ret = checker->desc_table(table->database, table->table_name, columns);
@@ -865,6 +901,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 				row_desc.get_column_desc(i, col_desc);
 				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 				select_list.push_back(expr);
+				ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+				TableStmt* table = nullptr;
+				who_have_column(col_desc, table);
+				col_expr->table = table;
 			}
 			const Vector<String>& columns = plan->get_all_output_column();
 			for (u32 j = 0; j < columns.size(); ++j) {
@@ -889,6 +929,10 @@ u32 SelectPlan::resolve_all_column_in_select_list(const Stmt_s & stmt)
 				Expression_s expr = ColumnExpression::make_column_expression(col_desc);
 				select_list.push_back(expr);
 				add_access_column(table, col_desc);
+				ColumnExpression* col_expr = dynamic_cast<ColumnExpression*>(expr.get());
+				TableStmt* table = nullptr;
+				who_have_column(col_desc, table);
+				col_expr->table = table;
 			}
 			Vector<Pair<String, String>> columns;
 			ret = checker->desc_table(table->database, table->table_name, columns);
@@ -1377,6 +1421,7 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	SelectPlan* tmp_table = dynamic_cast<SelectPlan*>(plan.get());
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
+	tmp_table->root_plan = root_plan;
 	tmp_table->set_alias_table_id(table_id);
 	//解析子查询
 	u32 ret = plan->optimizer();
@@ -1503,7 +1548,42 @@ u32 SelectPlan::make_and_expression(Expression_s & expr, const Expression_s & ot
 
 u32 SelectPlan::choos_best_join_order()
 {
-	//TODO
+	u32 end = 0;
+	while (end < table_list.size()) {
+		if (table_list[end]->join_type != JoinPhyOperator::Join) {
+			break;
+		}
+		++end;
+	}
+
+	for (u32 k = 1; k < end; ++k) {
+		bool found = false;
+		for (u32 i = k; i < end; ++i) {
+			TableStmt* right_table = table_list[i];
+			Expression_s join_cond, join_equal_cond;
+			//搜索当前表与已生成计划的表是否有连接条件
+			for (u32 j = 0; j < i; ++j) {
+				TableStmt* left_table = table_list[j];
+				JoinableTables joinable_table(left_table, right_table);
+				JoinConditions condition;
+				u32 ret = search_jon_info(joinable_table, condition);
+				//两张表没有join条件
+				if (ret != SUCCESS) {
+					continue;
+				}
+				//合并连接条件
+				make_and_expression(join_cond, condition.first);
+				make_and_expression(join_equal_cond, condition.second);
+			}
+			if (join_equal_cond) {
+				TableStmt* tmp = table_list[k];
+				table_list[k] = table_list[i];
+				table_list[i] = tmp;
+				found = true;
+				break;
+			}
+		}
+	}
 	return SUCCESS;
 }
 
@@ -1790,6 +1870,10 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 				Log(LOG_ERR, "SelectPlan","make table scan for table failed");
 				return ret;
 			}
+			double out_rows = 0;
+			if (root_plan->is_explain) {
+				out_rows = cal_join_select_rows(left_root_operator->output_rows, right_op->output_rows, join_cond);
+			}
 			//没有等值连接条件的连接只能选择nested loop算法
 			//目前只有nested loop算法支持anti join
 			if (right_table->join_type == JoinPhyOperator::AntiJoin) {
@@ -1815,6 +1899,7 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 				left_root_operator = HashJoin::make_hash_join(left_root_operator, 
 					right_op, join_equal_cond, join_cond, id);
 			}
+			left_root_operator->output_rows = out_rows;
 			JoinPhyOperator* join_op = dynamic_cast<JoinPhyOperator*>(left_root_operator.get());
 			switch (right_table->join_type) {
 			case JoinPhyOperator::Join:
@@ -1849,9 +1934,14 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 
 u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 {
+	Expression_s filter_expr;
 	Filter_s filter;
 	if (table_filters.find(table) != table_filters.cend()) {
-		filter = Filter::make_filter(table_filters[table]);
+		filter_expr = table_filters[table];
+		filter = Filter::make_filter(filter_expr);
+	}
+	if (root_plan->is_explain) {
+		cal_table_select_rows(table, filter_expr);
 	}
 	if (table->is_tmp_table) {
 		SelectPlan* plan = dynamic_cast<SelectPlan*>(table->subplan.get());
@@ -1864,10 +1954,14 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 		else {
 			op = plan->get_root_operator();
 			op = PlanFilter::make_plan_filter(op, filter);
+			op->output_rows = plan->get_select_rows();
 		}
 	}
 	else {
 		op = TableScan::make_table_scan(table->database, table->table_name, table_access_row_desc[table], filter);
+		TableScan* table_scan = dynamic_cast<TableScan*>(op.get());
+		table_scan->set_alias_table_name(table->alias_name);
+		table_scan->output_rows = table->select_rows;
 	}
 	return SUCCESS;
 }
@@ -1887,7 +1981,7 @@ u32 SelectPlan::make_group_pan(PhyOperator_s & op)
 				return SUCCESS;
 			}
 		}
-		else {
+		else  {
 			Filter_s filter = Filter::make_filter(having_filter);
 			op = ScalarGroup::make_scalar_group(op, filter);
 			ScalarGroup* scalar_group = dynamic_cast<ScalarGroup*>(op.get());
@@ -1895,17 +1989,26 @@ u32 SelectPlan::make_group_pan(PhyOperator_s & op)
 				scalar_group->add_agg_expr(aggr_exprs[i]);
 			}
 			scalar_group->set_alias_table_id(alias_table_id);
+			op->output_rows = 1;
 			return SUCCESS;
 		}
 	}
 	else {
 		Filter_s filter = Filter::make_filter(having_filter);
+		double out_rows = op->output_rows;
+		for (u32 i = 0; i < group_cols.size(); ++i) {
+			out_rows = scale_ndv(group_cols[i], out_rows);
+		}
+		if (filter) {
+			out_rows *= 1.0 / 3.0;
+		}
 		op = HashGroup::make_hash_group(op, group_cols, filter);
 		HashGroup* hash_group = dynamic_cast<HashGroup*>(op.get());
 		for (u32 i = 0; i < aggr_exprs.size(); ++i) {
 			hash_group->add_agg_expr(aggr_exprs[i]);
 		}
 		hash_group->set_agg_table_id(alias_table_id);
+		op->output_rows = out_rows;
 		return SUCCESS;
 	}
 }
@@ -1919,13 +2022,16 @@ u32 SelectPlan::make_sort_plan(PhyOperator_s & op)
 		//limit 30000以内行可以用top-N排序,如果有distinct则不能改写
 		if (!is_distinct && have_limit && limit_size + limit_offset < 30000) {
 			op = TopNSort::make_topn_sort(op, sort_cols, limit_size + limit_offset, asc);
+			op->output_rows = limit_size;
 			//limit没有偏移则不需要再执行一次limit操作
 			if (limit_offset == 0) {
 				have_limit = false;
 			}
 		}
 		else {
+			double out_rows = op->output_rows;
 			op = Sort::make_sort(op, sort_cols, asc);
+			op->output_rows = out_rows;
 		}
 		return SUCCESS;
 	}
@@ -1933,7 +2039,9 @@ u32 SelectPlan::make_sort_plan(PhyOperator_s & op)
 
 u32 SelectPlan::make_query_plan(PhyOperator_s & op)
 {
+	double out_rows = op->output_rows;
 	op = Query::make_query(op, select_list);
+	op->output_rows = out_rows;
 	Query* query = dynamic_cast<Query*>(op.get());
 	query->set_alias_table_id(alias_table_id);
 	return SUCCESS;
@@ -1942,7 +2050,12 @@ u32 SelectPlan::make_query_plan(PhyOperator_s & op)
 u32 SelectPlan::make_distinct_plan(PhyOperator_s & op)
 {
 	if (is_distinct) {
+		double out_rows = op->output_rows;
+		for (u32 i = 0; i < select_list.size(); ++i) {
+			out_rows = scale_ndv(select_list[i], out_rows);
+		}
 		op = HashDistinct::make_hash_distinct(op);
+		op->output_rows = out_rows;
 	}
 	return SUCCESS;
 }
@@ -1951,6 +2064,7 @@ u32 SelectPlan::make_limit_plan(PhyOperator_s & op)
 {
 	if (have_limit) {
 		op = Limit::make_limit(op, limit_size, limit_offset);
+		op->output_rows = limit_size;
 	}
 	return SUCCESS;
 }
@@ -2003,24 +2117,33 @@ u32 SelectPlan::make_set_plan(PhyOperator_s & op)
 	case ExprStmt::OP_UNION:
 	{
 		root_operator = HashUnion::make_hash_union(first_op, second_op);
+		root_operator->output_rows = first_op->output_rows + second_op->output_rows;
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_UNION_ALL:
 	{
 		root_operator = UnionAll::make_union_all(first_op, second_op);
+		root_operator->output_rows = first_op->output_rows + second_op->output_rows;
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_EXCEPT:
 	{
 		root_operator = HashExcept::make_hash_except(first_op, second_op);
+		root_operator->output_rows =
+			first_op->output_rows > second_op->output_rows ?
+			first_op->output_rows - second_op->output_rows :
+			second_op->output_rows - first_op->output_rows;
 		ret = SUCCESS;
 		break;
 	}
 	case ExprStmt::OP_INTERSECT:
 	{
 		root_operator = HashIntersect::make_hash_intersect(first_op, second_op);
+		root_operator->output_rows = 
+			first_op->output_rows > second_op->output_rows ? 
+			second_op->output_rows : first_op->output_rows;
 		ret = SUCCESS;
 		break;
 	}

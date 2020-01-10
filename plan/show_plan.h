@@ -53,8 +53,13 @@ namespace CatDB {
 			u32 optimizer();
 			PlanType type() const;
 		private:
+			u32 desc_table();
+			u32 show_table_statis();
+			u32 show_column_statis();
 			String database;
 			String table;
+			bool is_show_table_statis;
+			bool is_show_column_statis;
 		};
 
 		class UseDatabasePlan :public Plan

@@ -17,9 +17,10 @@ Insert::~Insert()
 
 }
 
-PhyOperator_s Insert::make_insert(const String&database, const String& table)
+PhyOperator_s Insert::make_insert(const String&database, const String& table, const String& alias_table_name)
 {
 	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	table_space->set_alias_table_name(alias_table_name);
     return PhyOperator_s(new Insert(table_space));
 }
 
@@ -52,4 +53,9 @@ u32 Insert::get_next_row(Row_s &row)
 u32 Insert::type() const
 {
     return PhyOperator::INSERT;
+}
+
+u32 Insert::explain_operator(u32 depth, QueryResult * result)
+{
+	return result->add_operation_info(depth, "insert", table_space->get_alias_table_name(), output_rows, finished_time);
 }

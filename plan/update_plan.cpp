@@ -37,6 +37,10 @@ u32 UpdatePlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
+	//发送计划
+	if (is_explain) {
+		return explain_plan();
+	}
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
@@ -67,7 +71,7 @@ u32 UpdatePlan::execute()
 
 u32 UpdatePlan::build_plan()
 {
-	root_operator = Update::make_update(database, table_name, new_row, filter);
+	root_operator = Update::make_update(database, table_name, alias_table_name, new_row, filter);
 	if (access_columns.size() > 0) {
 		RowDesc row_desc(access_columns.size());
 		for (u32 i = 0; i < access_columns.size(); ++i) {
@@ -92,10 +96,12 @@ u32 UpdatePlan::optimizer()
 	assert(checker);
 	UpdateStmt* lex = dynamic_cast<UpdateStmt*>(lex_stmt.get());
 	assert(lex->table);
+	is_explain = lex->is_explain;
 	//构建物理算子
 	table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
+	alias_table_name = table->alias_name;
 	//将where子句转换为filter
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {

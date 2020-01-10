@@ -85,12 +85,12 @@ int Loginer::handshake()
 		if (SUCCESS != ret)
 		{
 			Log(LOG_ERR, "Loginer", "write packet data to client failed fd is %d, buffer is %p, length is %ld",
-				c->fd, out_buffer.get_data(), out_buffer.get_position());
+				client_fd, (char*)buffer->buf, pos);
 			ret = ERR_UNEXPECTED;
 		}
 		else
 		{
-			Log(LOG_INFO, "Loginer", "new client login", );
+			Log(LOG_INFO, "Loginer", "new client %d login", client_id );
 		}
 	}
 	return ret;
@@ -115,7 +115,7 @@ int Loginer::parse_packet()
 		uint32_t packet_len = 0;
 		len_pos = (char*)buffer->buf;
 		Util::get_uint3(len_pos, packet_len);
-		Log(LOG_TRACE, "start read %u bytes", packet_len);
+		Log(LOG_TRACE, "Loginer", "start read %u bytes", packet_len);
 		ret = read_data(client_fd, (char*)buffer->buf + PACKET_HEADER_SIZE, packet_len);
 		if (SUCCESS != ret)
 		{
@@ -124,7 +124,7 @@ int Loginer::parse_packet()
 		}
 		else
 		{
-			Log(LOG_TRACE, "readed %u bytes", packet_len);
+			Log(LOG_TRACE, "Loginer", "readed %u bytes", packet_len);
 			len_pos = (char*)buffer->buf + PACKET_HEADER_SIZE;
 			uint32_t capability_flags = 0;
 			uint32_t max_packet_size = 0;
@@ -227,7 +227,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 	static const int64_t timeout = 1000000;//1s
 	if (fd < 0 || NULL == buffer || length <= 0)
 	{
-		Log(LOG_ERR, "invalid argument fd=%d, buffer=%p, length=%zd", fd, buffer, length);
+		Log(LOG_ERR, "Loginer", "invalid argument fd=%d, buffer=%p, length=%zd", fd, buffer, length);
 		ret = ERR_UNEXPECTED;
 	}
 	else

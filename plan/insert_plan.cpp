@@ -36,6 +36,10 @@ u32 InsertPlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
+	//发送计划
+	if (is_explain) {
+		return explain_plan();
+	}
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
@@ -79,11 +83,12 @@ u32 InsertPlan::build_plan()
 	InsertStmt* lex = dynamic_cast<InsertStmt*>(lex_stmt.get());
 	assert(lex->table);
 	assert(lex->values);
+	is_explain = lex->is_explain;
 	//构建物理算子
 	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
 	const String& database = table->database;
 	const String& table_name = table->table_name;
-	root_operator = Insert::make_insert(database, table_name);
+	root_operator = Insert::make_insert(database, table_name, table->alias_name);
 	//将解析的value转换为Row
 	assert(lex->values->stmt_type() == Stmt::Expr);
 	ExprStmt* expr = dynamic_cast<ExprStmt*>(lex->values.get());
@@ -138,6 +143,7 @@ u32 InsertPlan::check_column_value(const Stmt_s& list, const RowDesc& row_desc)c
 		}
 		else {
 			ListStmt* list_stmt = dynamic_cast<ListStmt*>(expr);
+			return list_stmt->stmt_list.size() != row_desc.get_column_num();
 			for (u32 i = 0; i < list_stmt->stmt_list.size(); ++i) {
 				if (list_stmt->stmt_list[i]->stmt_type() == Stmt::Expr){
 					ExprStmt* expr = dynamic_cast<ExprStmt*>(list_stmt->stmt_list[i].get());

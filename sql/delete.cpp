@@ -23,11 +23,13 @@ Delete::~Delete()
 
 PhyOperator_s Delete::make_delete(const String&database,
 								const String& table,
+								const String& alias_table_name,
                                 const Filter_s& filter)
 {
 	TableSpace_s table_space = TableSpace::make_table_space(table, database);
     Delete* op = new Delete(table_space);
     op->set_filter(filter);
+	table_space->set_alias_table_name(alias_table_name);
     return PhyOperator_s(op);
 }
 
@@ -106,4 +108,9 @@ u32 Delete::get_next_row(Row_s &row)
 u32 Delete::type()const
 {
     return PhyOperator::DELETE;
+}
+
+u32 Delete::explain_operator(u32 depth, QueryResult * result)
+{
+	return result->add_operation_info(depth, "delete", table_space->get_alias_table_name(), output_rows, finished_time);
 }

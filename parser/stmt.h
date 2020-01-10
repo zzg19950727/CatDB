@@ -13,6 +13,7 @@ namespace CatDB {
 				Expr = 0,
 				Select,
 				Limit,
+				Hint,
 				Update,
 				Insert,
 				Delete,
@@ -30,6 +31,7 @@ namespace CatDB {
 			Stmt();
 			virtual ~Stmt();
 			virtual StmtType stmt_type()const = 0;
+			bool is_explain;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Stmt);
 		};

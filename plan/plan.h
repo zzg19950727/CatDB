@@ -60,13 +60,19 @@ namespace CatDB {
 			void set_error_code(u32 code);
 			PhyOperator_s get_root_operator();
 			void set_thd(RequestHandle_s& thd);
+
 		protected:
+			//将计划输出到result中
+			u32 explain_plan();
+
 			Stmt_s lex_stmt;
 			Object_s result;
 			Row_s result_title;
 			PhyOperator_s root_operator;
 			RequestHandle_s thd;
 			u32 affect_rows_;
+		public:
+			bool is_explain;
 		};
 	}
 }

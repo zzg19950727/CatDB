@@ -126,7 +126,9 @@ namespace CatDB {
 			//如果是anti join，则保存anti join expr
 			Expression_s anti_cond;
 			//预测返回的行数
-			u32 select_rows;
+			double select_rows;
+			//表的行数
+			double row_count;
 			u32 table_id;
 			bool is_tmp_table;
 		};

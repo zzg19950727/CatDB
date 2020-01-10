@@ -33,6 +33,7 @@ PhyOperator_s Update::make_update(const String&database,
 
 PhyOperator_s Update::make_update(const String&database,
 								const String& table,
+								const String& alias_table_name,
                                 const Row_s& new_row,
                                 const Filter_s& filter)
 {
@@ -40,6 +41,7 @@ PhyOperator_s Update::make_update(const String&database,
     Update* op = new Update(table_space);
     op->new_row = new_row;
     op->set_filter(filter);
+	table_space->set_alias_table_name(alias_table_name);
     return PhyOperator_s(op);
 }
 
@@ -108,4 +110,9 @@ u32 Update::get_next_row(Row_s &row)
 u32 Update::type()const
 {
     return PhyOperator::UPDATE;
+}
+
+u32 CatDB::Sql::Update::explain_operator(u32 depth, QueryResult * result)
+{
+	return result->add_operation_info(depth, "update", table_space->get_alias_table_name(), output_rows, finished_time);
 }

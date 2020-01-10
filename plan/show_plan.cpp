@@ -1,6 +1,7 @@
 #include "schema_checker.h"
 #include "request_handle.h"
 #include "query_result.h"
+#include "sql_driver.h"
 #include "show_plan.h"
 #include "show_stmt.h"
 #include "expr_stmt.h"
@@ -13,6 +14,7 @@ using namespace CatDB::Sql;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Server;
+using CatDB::SqlDriver;
 
 ShowTablesPlan::ShowTablesPlan()
 {
@@ -164,6 +166,8 @@ Plan::PlanType ShowDatabasesPlan::type() const
 }
 
 DescTablePlan::DescTablePlan()
+	:is_show_table_statis(false),
+	is_show_column_statis(false)
 {
 
 }
@@ -196,9 +200,56 @@ u32 DescTablePlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
+	if (is_show_table_statis) {
+		return show_table_statis();
+	}
+	else if (is_show_column_statis) {
+		return show_column_statis();
+	}
+	else {
+		return desc_table();
+	}
+}
+
+u32 DescTablePlan::build_plan()
+{
+	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::DescTable)
+	{
+		Log(LOG_ERR, "DescTablePlan", "error lex stmt when build desc table plan");
+		set_error_code(ERROR_LEX_STMT);
+		return ERROR_LEX_STMT;
+	}
+	DescTableStmt* lex = dynamic_cast<DescTableStmt*>(lex_stmt.get());
+	if (lex->table->stmt_type() != Stmt::Expr) {
+		return ERROR_LEX_STMT;
+	}
+	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(lex->table.get());
+	if (expr_stmt->expr_stmt_type() != ExprStmt::Table) {
+		return ERROR_LEX_STMT;
+	}
+	TableStmt* table_stmt = dynamic_cast<TableStmt*>(expr_stmt);
+	database = table_stmt->database;
+	table = table_stmt->table_name;
+	is_show_column_statis = lex->is_show_column_statis;
+	is_show_table_statis = lex->is_show_table_statis;
+	return SUCCESS;
+}
+
+u32 DescTablePlan::optimizer()
+{
+	return SUCCESS;
+}
+
+Plan::PlanType DescTablePlan::type() const
+{
+	return Plan::DescTable;
+}
+
+u32 DescTablePlan::desc_table()
+{
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	Vector<Pair<String,String>> columns;
+	Vector<Pair<String, String>> columns;
 	u32 ret = checker->desc_table(database, table, columns);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
@@ -222,12 +273,12 @@ u32 DescTablePlan::execute()
 	result_title->set_cell(4, Default);
 	Object_s extra = Varchar::make_object("Extra");
 	result_title->set_cell(5, extra);
-	
+
 	for (u32 i = 0; i < columns.size(); ++i) {
 		Row_s row = Row::make_row(row_desc);
-		Object_s name = Varchar::make_object( change_to_mysql_type(columns[i].first) );
+		Object_s name = Varchar::make_object(change_to_mysql_type(columns[i].first));
 		row->set_cell(0, name);
-		Object_s type = Varchar::make_object( change_to_mysql_type(columns[i].second) );
+		Object_s type = Varchar::make_object(change_to_mysql_type(columns[i].second));
 		row->set_cell(1, type);
 		Object_s Null = Varchar::make_object("YES");
 		row->set_cell(2, Null);
@@ -243,36 +294,131 @@ u32 DescTablePlan::execute()
 	return SUCCESS;
 }
 
-u32 DescTablePlan::build_plan()
+u32 DescTablePlan::show_table_statis()
 {
-	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::DescTable)
-	{
-		Log(LOG_ERR, "DescTablePlan", "error lex stmt when build desc table plan");
-		set_error_code(ERROR_LEX_STMT);
-		return ERROR_LEX_STMT;
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	u32 tid = checker->get_table_id(database, table);
+	SqlDriver parser;
+	Plan_s plan;
+	String query = R"(select row_count,space_size,analyze_time
+				from `system`.`table_statis`  
+				where `tid` = )" + std::to_string(tid) +
+		R"( order by `analyze_time` desc;)";
+	int ret = parser.parse_sql(query);
+	//为保证客户端兼容，不支持的SQL语法返回OK包
+	if (parser.is_sys_error()) {
+		return ERR_UNEXPECTED;
 	}
-	DescTableStmt* lex = dynamic_cast<DescTableStmt*>(lex_stmt.get());
-	if (lex->table->stmt_type() != Stmt::Expr) {
-		return ERROR_LEX_STMT;
+	else if (parser.is_syntax_error()) {
+		return ERR_UNEXPECTED;
 	}
-	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(lex->table.get());
-	if (expr_stmt->expr_stmt_type() != ExprStmt::Table) {
-		return ERROR_LEX_STMT;
+	else if (!parser.parse_result()) {
+		return ERR_UNEXPECTED;
 	}
-	TableStmt* table_stmt = dynamic_cast<TableStmt*>(expr_stmt);
-	database = table_stmt->database;
-	table = table_stmt->table_name;
-	return SUCCESS;
+	else {
+		plan = Plan::make_plan(parser.parse_result());
+		u32 ret = plan->optimizer();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		ret = plan->build_plan();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		ret = plan->execute();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		else {
+				result = plan->get_result();
+				result_title = plan->get_result_title();
+				return SUCCESS;
+		}
+	}
 }
 
-u32 DescTablePlan::optimizer()
+u32 DescTablePlan::show_column_statis()
 {
-	return SUCCESS;
-}
-
-Plan::PlanType DescTablePlan::type() const
-{
-	return Plan::DescTable;
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	assert(checker);
+	u32 tid = checker->get_table_id(database, table);
+	SqlDriver parser;
+	Plan_s plan;
+	String query = R"(select col.name as COLUMN_NAME, col.type as TYPE, cs.ndv as NDV,cs.null_count as NULL_COUNT,
+				cs.max_value as MAX_VALUE, cs.min_value as MIN_VALUE, cs.analyze_time as ANALYZE_TIME
+				from system.sys_databases as db, system.sys_tables as tb, 
+				system.sys_columns as col, `system`.`column_statis` as cs  
+				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
+				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + 
+				std::to_string(tid) + R"( order by `analyze_time` desc;)";
+	int ret = parser.parse_sql(query);
+	//为保证客户端兼容，不支持的SQL语法返回OK包
+	if (parser.is_sys_error()) {
+		return ERR_UNEXPECTED;
+	}
+	else if (parser.is_syntax_error()) {
+		return ERR_UNEXPECTED;
+	}
+	else if (!parser.parse_result()) {
+		return ERR_UNEXPECTED;
+	}
+	else {
+		plan = Plan::make_plan(parser.parse_result());
+		u32 ret = plan->optimizer();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		ret = plan->build_plan();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		ret = plan->execute();
+		if (ret != SUCCESS) {
+			Object_s result = plan->get_result();
+			if (result) {
+				return ERR_UNEXPECTED;
+			}
+			else {
+				return ERR_UNEXPECTED;
+			}
+		}
+		else {
+			result = plan->get_result();
+			result_title = plan->get_result_title();
+			return SUCCESS;
+		}
+	}
 }
 
 UseDatabasePlan::UseDatabasePlan()

@@ -25,6 +25,7 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 	TableSpace* table_space = new TableSpace;
 	table_space->database = database;
 	table_space->table_name = table_name;
+	table_space->alias_table_name = table_name;
 	table_space->alias_table_id = table_space->get_table_id();
 	return TableSpace_s(table_space);
 }
@@ -164,6 +165,16 @@ u32 TableSpace::delete_all_row()
 	else {
 		return SUCCESS;
 	}
+}
+
+void TableSpace::set_alias_table_name(const String & alias_name)
+{
+	alias_table_name = alias_name;
+}
+
+String TableSpace::get_alias_table_name()
+{
+	return alias_table_name;
 }
 
 u64 TableSpace::table_space_size(const String & database, const String & table_name)

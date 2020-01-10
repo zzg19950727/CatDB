@@ -352,10 +352,10 @@ u32 RequestHandle::do_cmd_query(const String& query)
 
 	parser.set_global_database(cur_database);
 	int ret = parser.parse_sql(query);
-
+	//为保证客户端兼容，不支持的SQL语法返回OK包
 	if (parser.is_sys_error()) {
-		//return send_ok_packet();
-		return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
+		return send_ok_packet();
+		//return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
 	}
 	else if (parser.is_syntax_error()) {
 		//return send_ok_packet();
