@@ -436,7 +436,7 @@ u32 HashNullAwareAntiJoin::type() const
 
 u32 HashNullAwareAntiJoin::explain_operator(u32 depth, QueryResult * result)
 {
-	result->add_operation_info(depth, "hash null aware join", "", output_rows, finished_time);
+	result->add_operation_info(depth, "hash null aware anti join", "", output_rows, finished_time);
 	left_child->explain_operator(depth + 1, result);
 	return right_child->explain_operator(depth + 1, result);
 }

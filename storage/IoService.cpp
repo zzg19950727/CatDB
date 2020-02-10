@@ -161,6 +161,7 @@ u32 IoService::clear_file(const String& table_file)
 	file_handle = fopen(table_file.c_str(), "w");
 	if (file_handle) {
 		fclose(file_handle);
+		file_handle = 0;
 		return SUCCESS;
 	}else {
 		return TABLE_FILE_NOT_EXISTS;

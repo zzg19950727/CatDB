@@ -64,25 +64,23 @@ void RequestHandle::notify_socket(int fd, NetService::Event e)
 
 void RequestHandle::read_socket(int fd)
 {
-	char data[BLOCK_SIZE];
 	int len = BLOCK_SIZE;
-	
-	len = net_read(fd, data, len);
-	Log(LOG_TRACE, "RequestHandle", "RequestHandle::read_socket fd %d recv %zu bytes data",m_fd,len);
+	Buffer buffer;
+	buffer_calloc(buffer, BLOCK_SIZE);
+		
+	len = net_read(fd, buffer.data, len);
+	Log(LOG_TRACE, "RequestHandle", "RequestHandle::read_socket fd %d recv %u bytes data",m_fd,len);
 	if (len < 0) {
 		close_connection();
+		buffer_free(buffer);
 		return;
 	}
-	Buffer buffer;
-	buffer.capacity = BLOCK_SIZE;
 	buffer.length = len;
-	buffer.data = data;
 	m_read_cache.write(buffer);
 
 	bool state = true;
 	while(state)
 	{
-		buffer.length = BLOCK_SIZE;
 		if(state=m_read_cache.read_package(buffer))
 		{
 			handle_request(buffer.data, buffer.length);
@@ -93,6 +91,7 @@ void RequestHandle::read_socket(int fd)
 	{
 		close_connection();
 	}
+	buffer_free(buffer);
 }
 
 void RequestHandle::write_socket(int fd)
@@ -112,7 +111,7 @@ void RequestHandle::write_socket(int fd)
 		if(len > 0)
 		{
 			m_write_cache.read(tmp);
-			Log(LOG_TRACE, "RequestHandle", "RequestHandle::write_socket fd %d send %zu bytes data",m_fd,len);
+			Log(LOG_TRACE, "RequestHandle", "RequestHandle::write_socket fd %d send %u bytes data",m_fd,len);
 		}
 		if(len != BLOCK_SIZE)
 			break;
@@ -146,7 +145,7 @@ u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 	ret = packet.serialize(buff, size, pos);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "serialize packet failed packet is %p ret is %d", packet, ret);
+		Log(LOG_ERR, "RequestHandle", "serialize packet failed packet is %p ret is %d", &packet, ret);
 	}
 	else
 	{
@@ -414,7 +413,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 
 void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len)
 {
-	Log(LOG_TRACE, "RequestHandle", "RequestHandle::worker_caller call func %s( 0x%p, %zu)", func.c_str(),ptr.get(), len);
+	Log(LOG_TRACE, "RequestHandle", "RequestHandle::worker_caller call func %s( 0x%p, %u)", func.c_str(),ptr.get(), len);
 	
 	if(!m_write_cache.write_package(ptr.get(),len))
 	{
@@ -427,6 +426,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	enum enum_server_command command;
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
+	Log(LOG_TRACE, "RequestHandle", "handle client command %u", command);
 	switch (command)
 	{
 		case COM_INIT_DB:
@@ -451,6 +451,11 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
 			//do_cmd_query(query);
+			break;
+		}
+		case COM_PING:
+		{
+			send_ok_packet();
 			break;
 		}
 		default:

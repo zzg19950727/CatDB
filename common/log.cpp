@@ -6,14 +6,15 @@
 #include <cstdarg>
 #include "type.h"
 #include "log.h"
-#define LOG_SET		LOG_ERR
-
+//#define LOG_SET		LOG_TRACE
+static int LOG_SET = LOG_ERR;
 class LogStream
 {
 public:
 	LogStream();
 	~LogStream();
 	std::ostream* switch_ostream(std::ostream* os);
+	void set_log_file(const char* path);
 
 	LogStream &operator<<(char);
 
@@ -48,6 +49,7 @@ public:
 	bool print_info(const char* file, int line, const char* function);
 
 private:
+	std::ofstream out_file;
 	std::ostream* os;
 	std::string module;
 	int log_level;
@@ -62,7 +64,10 @@ LogStream::LogStream()
 
 LogStream::~LogStream()
 {
-	
+	if(out_file.is_open())
+	{
+		out_file.close();
+	}	
 }
 
 std::ostream* LogStream::switch_ostream(std::ostream* os)
@@ -70,6 +75,12 @@ std::ostream* LogStream::switch_ostream(std::ostream* os)
 	std::ostream* ret = this->os;
 	this->os = os;
 	return ret;
+}
+
+void LogStream::set_log_file(const char* path)
+{
+	out_file.open(path);
+	os = &out_file;
 }
 
 LogStream &LogStream::operator << (char value)
@@ -186,20 +197,19 @@ String put_time(time_t t)
 
 bool LogStream::print_info(const char * file, int line, const char * function)
 {
-	if (log_level > LOG_SET)
+	if (log_level > LOG_SET || module=="Object" || module=="Page" || module=="TableSpace" || module == "IoService")
 		return false;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	*os << put_time(t);
-	*os << function;
-	*os << file << "," << line << "," << function;
+	*os << "[" << put_time(t) <<"] ";
 	if (log_level == LOG_ERR)
-		*os << " [ERR][" << module << "] ";
+		*os << "[ERR  ] [" << module << "] ";
 	else if (log_level == LOG_WARN)
-		*os << " [WARN][" << module << "] ";
+		*os << "[WARN ] [" << module << "] ";
 	else if (log_level == LOG_INFO)
-		*os << " [INFO][" << module << "] ";
+		*os << "[INFO ] [" << module << "] ";
 	else if (log_level == LOG_TRACE)
-		*os << " [TRACE][" << module << "] ";
+		*os << "[TRACE] [" << module << "] ";
+	*os << "[" << file << "] [" << line << "] [" << function << "(...)] ";
 	return true;
 }
 
@@ -323,5 +333,10 @@ std::ostream* CatDB::Common::switch_log_ostream(std::ostream* os)
 
 void CatDB::Common::set_log_file(const char* file)
 {
-	;
+	ostream.set_log_file(file);
+}
+
+void CatDB::Common::set_debug_level(int level)
+{
+	LOG_SET = level;
 }

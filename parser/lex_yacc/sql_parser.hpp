@@ -1,8 +1,8 @@
-// A Bison parser, made by GNU Bison 3.4.1.
+// A Bison parser, made by GNU Bison 3.0.4.
 
 // Skeleton interface for Bison LALR(1) parsers in C++
 
-// Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
+// Copyright (C) 2002-2015 Free Software Foundation, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,21 +30,17 @@
 // This special exception was added by the Free Software Foundation in
 // version 2.2 of Bison.
 
-
 /**
- ** \file D:/CatDB/parser/lex_yacc/sql_parser.hpp
+ ** \file /home/test/CatDB/parser/lex_yacc/sql_parser.hpp
  ** Define the CatDB::parser class.
  */
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
 
-// Undocumented macros, especially those whose name start with YY_,
-// are private implementation details.  Do not rely on them.
-
-#ifndef YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
-# define YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
+#ifndef YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
+# define YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
-#line 12 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 12 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // lalr1.cc:377
 
 	#define YYDEBUG 1
 	#define SqlParser parser 
@@ -57,7 +53,7 @@
 	}
 	using namespace CatDB::Parser;
 
-#line 61 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
+#line 57 "/home/test/CatDB/parser/lex_yacc/sql_parser.hpp" // lalr1.cc:377
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -65,43 +61,7 @@
 # include <stdexcept>
 # include <string>
 # include <vector>
-
-#if defined __cplusplus
-# define YY_CPLUSPLUS __cplusplus
-#else
-# define YY_CPLUSPLUS 199711L
-#endif
-
-// Support move semantics when possible.
-#if 201103L <= YY_CPLUSPLUS
-# define YY_MOVE           std::move
-# define YY_MOVE_OR_COPY   move
-# define YY_MOVE_REF(Type) Type&&
-# define YY_RVREF(Type)    Type&&
-# define YY_COPY(Type)     Type
-#else
-# define YY_MOVE
-# define YY_MOVE_OR_COPY   copy
-# define YY_MOVE_REF(Type) Type&
-# define YY_RVREF(Type)    const Type&
-# define YY_COPY(Type)     const Type&
-#endif
-
-// Support noexcept when possible.
-#if 201103L <= YY_CPLUSPLUS
-# define YY_NOEXCEPT noexcept
-# define YY_NOTHROW
-#else
-# define YY_NOEXCEPT
-# define YY_NOTHROW throw ()
-#endif
-
-// Support constexpr when possible.
-#if 201703 <= YY_CPLUSPLUS
-# define YY_CONSTEXPR constexpr
-#else
-# define YY_CONSTEXPR
-#endif
+# include "stack.hh"
 # include "location.hh"
 #include <typeinfo>
 #ifndef YYASSERT
@@ -128,6 +88,15 @@
 # define YY_ATTRIBUTE_UNUSED YY_ATTRIBUTE ((__unused__))
 #endif
 
+#if !defined _Noreturn \
+     && (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112)
+# if defined _MSC_VER && 1200 <= _MSC_VER
+#  define _Noreturn __declspec (noreturn)
+# else
+#  define _Noreturn YY_ATTRIBUTE ((__noreturn__))
+# endif
+#endif
+
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
 # define YYUSE(E) ((void) (E))
@@ -135,7 +104,7 @@
 # define YYUSE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
+#if defined __GNUC__ && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
 # define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
     _Pragma ("GCC diagnostic push") \
@@ -154,192 +123,125 @@
 # define YY_INITIAL_VALUE(Value) /* Nothing. */
 #endif
 
-# ifndef YY_NULLPTR
-#  if defined __cplusplus
-#   if 201103L <= __cplusplus
-#    define YY_NULLPTR nullptr
-#   else
-#    define YY_NULLPTR 0
-#   endif
-#  else
-#   define YY_NULLPTR ((void*)0)
-#  endif
-# endif
-
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
 
-#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // lalr1.cc:377
 namespace CatDB {
-#line 177 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
+#line 134 "/home/test/CatDB/parser/lex_yacc/sql_parser.hpp" // lalr1.cc:377
 
 
 
-
-  /// A Bison parser.
-  class parser
-  {
-  public:
-#ifndef YYSTYPE
-  /// A buffer to store and retrieve objects.
+  /// A char[S] buffer to store and retrieve objects.
   ///
   /// Sort of a variant, but does not keep track of the nature
   /// of the stored data, since that knowledge is available
-  /// via the current parser state.
-  class semantic_type
+  /// via the current state.
+  template <size_t S>
+  struct variant
   {
-  public:
     /// Type of *this.
-    typedef semantic_type self_type;
+    typedef variant<S> self_type;
 
     /// Empty construction.
-    semantic_type () YY_NOEXCEPT
-      : yybuffer_ ()
-      , yytypeid_ (YY_NULLPTR)
+    variant ()
+      : yytypeid_ (YY_NULLPTR)
     {}
 
     /// Construct and fill.
     template <typename T>
-    semantic_type (YY_RVREF (T) t)
+    variant (const T& t)
       : yytypeid_ (&typeid (T))
     {
-      YYASSERT (sizeof (T) <= size);
-      new (yyas_<T> ()) T (YY_MOVE (t));
+      YYASSERT (sizeof (T) <= S);
+      new (yyas_<T> ()) T (t);
     }
 
     /// Destruction, allowed only if empty.
-    ~semantic_type () YY_NOEXCEPT
+    ~variant ()
     {
       YYASSERT (!yytypeid_);
     }
-
-# if 201103L <= YY_CPLUSPLUS
-    /// Instantiate a \a T in here from \a t.
-    template <typename T, typename... U>
-    T&
-    emplace (U&&... u)
-    {
-      YYASSERT (!yytypeid_);
-      YYASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T (std::forward <U>(u)...);
-    }
-# else
-    /// Instantiate an empty \a T in here.
-    template <typename T>
-    T&
-    emplace ()
-    {
-      YYASSERT (!yytypeid_);
-      YYASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T ();
-    }
-
-    /// Instantiate a \a T in here from \a t.
-    template <typename T>
-    T&
-    emplace (const T& t)
-    {
-      YYASSERT (!yytypeid_);
-      YYASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T (t);
-    }
-# endif
 
     /// Instantiate an empty \a T in here.
-    /// Obsolete, use emplace.
     template <typename T>
     T&
     build ()
     {
-      return emplace<T> ();
+      YYASSERT (!yytypeid_);
+      YYASSERT (sizeof (T) <= S);
+      yytypeid_ = & typeid (T);
+      return *new (yyas_<T> ()) T;
     }
 
     /// Instantiate a \a T in here from \a t.
-    /// Obsolete, use emplace.
     template <typename T>
     T&
     build (const T& t)
     {
-      return emplace<T> (t);
+      YYASSERT (!yytypeid_);
+      YYASSERT (sizeof (T) <= S);
+      yytypeid_ = & typeid (T);
+      return *new (yyas_<T> ()) T (t);
     }
 
     /// Accessor to a built \a T.
     template <typename T>
     T&
-    as () YY_NOEXCEPT
+    as ()
     {
-      YYASSERT (yytypeid_);
       YYASSERT (*yytypeid_ == typeid (T));
-      YYASSERT (sizeof (T) <= size);
+      YYASSERT (sizeof (T) <= S);
       return *yyas_<T> ();
     }
 
     /// Const accessor to a built \a T (for %printer).
     template <typename T>
     const T&
-    as () const YY_NOEXCEPT
+    as () const
     {
-      YYASSERT (yytypeid_);
       YYASSERT (*yytypeid_ == typeid (T));
-      YYASSERT (sizeof (T) <= size);
+      YYASSERT (sizeof (T) <= S);
       return *yyas_<T> ();
     }
 
-    /// Swap the content with \a that, of same type.
+    /// Swap the content with \a other, of same type.
     ///
     /// Both variants must be built beforehand, because swapping the actual
     /// data requires reading it (with as()), and this is not possible on
     /// unconstructed variants: it would require some dynamic testing, which
-    /// should not be the variant's responsibility.
+    /// should not be the variant's responsability.
     /// Swapping between built and (possibly) non-built is done with
-    /// self_type::move ().
+    /// variant::move ().
     template <typename T>
     void
-    swap (self_type& that) YY_NOEXCEPT
+    swap (self_type& other)
     {
       YYASSERT (yytypeid_);
-      YYASSERT (*yytypeid_ == *that.yytypeid_);
-      std::swap (as<T> (), that.as<T> ());
+      YYASSERT (*yytypeid_ == *other.yytypeid_);
+      std::swap (as<T> (), other.as<T> ());
     }
 
-    /// Move the content of \a that to this.
+    /// Move the content of \a other to this.
     ///
-    /// Destroys \a that.
+    /// Destroys \a other.
     template <typename T>
     void
-    move (self_type& that)
+    move (self_type& other)
     {
-# if 201103L <= YY_CPLUSPLUS
-      emplace<T> (std::move (that.as<T> ()));
-# else
-      emplace<T> ();
-      swap<T> (that);
-# endif
-      that.destroy<T> ();
+      build<T> ();
+      swap<T> (other);
+      other.destroy<T> ();
     }
 
-# if 201103L <= YY_CPLUSPLUS
-    /// Move the content of \a that to this.
+    /// Copy the content of \a other to this.
     template <typename T>
     void
-    move (self_type&& that)
+    copy (const self_type& other)
     {
-      emplace<T> (std::move (that.as<T> ()));
-      that.destroy<T> ();
-    }
-#endif
-
-    /// Copy the content of \a that to this.
-    template <typename T>
-    void
-    copy (const self_type& that)
-    {
-      emplace<T> (that.as<T> ());
+      build<T> (other.as<T> ());
     }
 
     /// Destroy the stored \a T.
@@ -353,13 +255,13 @@ namespace CatDB {
 
   private:
     /// Prohibit blind copies.
-    self_type& operator= (const self_type&);
-    semantic_type (const self_type&);
+    self_type& operator=(const self_type&);
+    variant (const self_type&);
 
     /// Accessor to raw memory as \a T.
     template <typename T>
     T*
-    yyas_ () YY_NOEXCEPT
+    yyas_ ()
     {
       void *yyp = yybuffer_.yyraw;
       return static_cast<T*> (yyp);
@@ -368,12 +270,30 @@ namespace CatDB {
     /// Const accessor to raw memory as \a T.
     template <typename T>
     const T*
-    yyas_ () const YY_NOEXCEPT
+    yyas_ () const
     {
       const void *yyp = yybuffer_.yyraw;
       return static_cast<const T*> (yyp);
      }
 
+    union
+    {
+      /// Strongest alignment constraints.
+      long double yyalign_me;
+      /// A buffer large enough to store any of the semantic values.
+      char yyraw[S];
+    } yybuffer_;
+
+    /// Whether the content is built: if defined, the name of the stored type.
+    const std::type_info *yytypeid_;
+  };
+
+
+  /// A Bison parser.
+  class parser
+  {
+  public:
+#ifndef YYSTYPE
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
@@ -382,10 +302,6 @@ namespace CatDB {
       // select_stmt
       // select_with_parens
       // select_no_parens
-      // opt_hint
-      // opt_hint_body
-      // opt_hint_list
-      // hint_item
       // select_expr_list
       // from_list
       // opt_where
@@ -423,16 +339,16 @@ namespace CatDB {
       // desc_stmt
       // analyze_stmt
       // relation_factor
-      char dummy1[sizeof (Stmt_s)];
+      char dummy1[sizeof(Stmt_s)];
 
       // opt_distinct
       // opt_asc_desc
       // distinct_or_all
-      char dummy2[sizeof (bool)];
+      char dummy2[sizeof(bool)];
 
       // limit_expr
       // data_type
-      char dummy3[sizeof (int)];
+      char dummy3[sizeof(int)];
 
       // STRING
       // IDENT
@@ -449,25 +365,11 @@ namespace CatDB {
       // datetime
       // string
       // number
-      char dummy4[sizeof (std::string)];
-    };
+      char dummy4[sizeof(std::string)];
+};
 
-    /// The size of the largest semantic type.
-    enum { size = sizeof (union_type) };
-
-    /// A buffer to store semantic values.
-    union
-    {
-      /// Strongest alignment constraints.
-      long double yyalign_me;
-      /// A buffer large enough to store any of the semantic values.
-      char yyraw[size];
-    } yybuffer_;
-
-    /// Whether the content is built: if defined, the name of the stored type.
-    const std::type_info *yytypeid_;
-  };
-
+    /// Symbol semantic values.
+    typedef variant<sizeof(union_type)> semantic_type;
 #else
     typedef YYSTYPE semantic_type;
 #endif
@@ -477,18 +379,7 @@ namespace CatDB {
     /// Syntax errors thrown from user actions.
     struct syntax_error : std::runtime_error
     {
-      syntax_error (const location_type& l, const std::string& m)
-        : std::runtime_error (m)
-        , location (l)
-      {}
-
-      syntax_error (const syntax_error& s)
-        : std::runtime_error (s.what ())
-        , location (s.location)
-      {}
-
-      ~syntax_error () YY_NOEXCEPT YY_NOTHROW;
-
+      syntax_error (const location_type& l, const std::string& m);
       location_type location;
     };
 
@@ -608,7 +499,7 @@ namespace CatDB {
     /// A complete symbol.
     ///
     /// Expects its Base type to provide access to the symbol type
-    /// via type_get ().
+    /// via type_get().
     ///
     /// Provide access to semantic value and location.
     template <typename Base>
@@ -618,193 +509,37 @@ namespace CatDB {
       typedef Base super_type;
 
       /// Default constructor.
-      basic_symbol ()
-        : value ()
-        , location ()
-      {}
-
-#if 201103L <= YY_CPLUSPLUS
-      /// Move constructor.
-      basic_symbol (basic_symbol&& that);
-#endif
+      basic_symbol ();
 
       /// Copy constructor.
-      basic_symbol (const basic_symbol& that);
+      basic_symbol (const basic_symbol& other);
 
       /// Constructor for valueless symbols, and symbols from each type.
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, location_type&& l)
-        : Base (t)
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const location_type& l)
-        : Base (t)
-        , location (l)
-      {}
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, Stmt_s&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const Stmt_s& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, bool&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const bool& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, int&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const int& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, std::string&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const std::string& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
+
+  basic_symbol (typename Base::kind_type t, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const Stmt_s v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const bool v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const int v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
+
+
+      /// Constructor for symbols with semantic value.
+      basic_symbol (typename Base::kind_type t,
+                    const semantic_type& v,
+                    const location_type& l);
 
       /// Destroy the symbol.
-      ~basic_symbol ()
-      {
-        clear ();
-      }
+      ~basic_symbol ();
 
       /// Destroy contents, and record that is empty.
-      void clear ()
-      {
-        // User destructor.
-        symbol_number_type yytype = this->type_get ();
-        basic_symbol<Base>& yysym = *this;
-        (void) yysym;
-        switch (yytype)
-        {
-       default:
-          break;
-        }
-
-        // Type destructor.
-switch (yytype)
-    {
-      case 97: // sql_stmt
-      case 98: // stmt
-      case 99: // select_stmt
-      case 100: // select_with_parens
-      case 101: // select_no_parens
-      case 102: // opt_hint
-      case 103: // opt_hint_body
-      case 104: // opt_hint_list
-      case 105: // hint_item
-      case 107: // select_expr_list
-      case 108: // from_list
-      case 109: // opt_where
-      case 110: // opt_groupby
-      case 111: // opt_having
-      case 112: // opt_order_by
-      case 114: // opt_select_limit
-      case 116: // order_by
-      case 117: // projection
-      case 118: // table_factor
-      case 119: // expr_list
-      case 120: // expr
-      case 121: // in_expr
-      case 122: // arith_expr
-      case 123: // simple_expr
-      case 124: // column_ref
-      case 125: // expr_const
-      case 126: // func_expr
-      case 129: // insert_stmt
-      case 130: // insert_vals_list
-      case 131: // insert_vals
-      case 132: // update_stmt
-      case 133: // update_asgn_list
-      case 134: // update_asgn_factor
-      case 135: // delete_stmt
-      case 136: // explain_stmt
-      case 137: // explainable_stmt
-      case 138: // create_stmt
-      case 139: // table_element_list
-      case 140: // table_element
-      case 141: // column_definition
-      case 147: // drop_stmt
-      case 148: // show_stmt
-      case 150: // use_stmt
-      case 151: // desc_stmt
-      case 152: // analyze_stmt
-      case 153: // relation_factor
-        value.template destroy< Stmt_s > ();
-        break;
-
-      case 106: // opt_distinct
-      case 113: // opt_asc_desc
-      case 128: // distinct_or_all
-        value.template destroy< bool > ();
-        break;
-
-      case 115: // limit_expr
-      case 142: // data_type
-        value.template destroy< int > ();
-        break;
-
-      case 31: // STRING
-      case 32: // IDENT
-      case 33: // NUMERIC
-      case 34: // TIMESTAMP
-      case 127: // simple_function_expr
-      case 149: // op_from_database
-      case 154: // database_name
-      case 155: // relation_name
-      case 156: // column_name
-      case 157: // function_name
-      case 158: // column_label
-      case 159: // ident
-      case 160: // datetime
-      case 161: // string
-      case 162: // number
-        value.template destroy< std::string > ();
-        break;
-
-      default:
-        break;
-    }
-
-        Base::clear ();
-      }
+      void clear ();
 
       /// Whether empty.
-      bool empty () const YY_NOEXCEPT;
+      bool empty () const;
 
       /// Destructive move, \a s is emptied into this.
       void move (basic_symbol& s);
@@ -816,10 +551,8 @@ switch (yytype)
       location_type location;
 
     private:
-#if YY_CPLUSPLUS < 201103L
       /// Assignment operator.
-      basic_symbol& operator= (const basic_symbol& that);
-#endif
+      basic_symbol& operator= (const basic_symbol& other);
     };
 
     /// Type access provider for token (enum) based symbols.
@@ -828,13 +561,8 @@ switch (yytype)
       /// Default constructor.
       by_type ();
 
-#if 201103L <= YY_CPLUSPLUS
-      /// Move constructor.
-      by_type (by_type&& that);
-#endif
-
       /// Copy constructor.
-      by_type (const by_type& that);
+      by_type (const by_type& other);
 
       /// The symbol type as needed by the constructor.
       typedef token_type kind_type;
@@ -850,10 +578,10 @@ switch (yytype)
 
       /// The (internal) type number (corresponding to \a type).
       /// \a empty when empty.
-      symbol_number_type type_get () const YY_NOEXCEPT;
+      symbol_number_type type_get () const;
 
       /// The token.
-      token_type token () const YY_NOEXCEPT;
+      token_type token () const;
 
       /// The symbol type.
       /// \a empty_symbol when empty.
@@ -862,50 +590,385 @@ switch (yytype)
     };
 
     /// "External" symbols: returned by the scanner.
-    struct symbol_type : basic_symbol<by_type>
-    {
-      /// Superclass.
-      typedef basic_symbol<by_type> super_type;
+    typedef basic_symbol<by_type> symbol_type;
 
-      /// Empty symbol.
-      symbol_type () {}
+    // Symbol constructors declarations.
+    static inline
+    symbol_type
+    make_END (const location_type& l);
 
-      /// Constructor for valueless symbols, and symbols from each type.
-#if 201103L <= YY_CPLUSPLUS
-      symbol_type (int tok, location_type l)
-        : super_type(token_type (tok), std::move (l))
-      {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMN || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_DUAL || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_PARALLEL || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATIS || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
-      }
-#else
-      symbol_type (int tok, const location_type& l)
-        : super_type(token_type (tok), l)
-      {
-        YYASSERT (tok == token::TOKEN_END || tok == token::TOKEN_UNION || tok == token::TOKEN_EXCEPT || tok == token::TOKEN_INTERSECT || tok == token::TOKEN_OR || tok == token::TOKEN_AND || tok == token::TOKEN_NOT || tok == token::TOKEN_CMP_LE || tok == token::TOKEN_CMP_LT || tok == token::TOKEN_CMP_EQ || tok == token::TOKEN_CMP_GT || tok == token::TOKEN_CMP_GE || tok == token::TOKEN_CMP_NE || tok == token::TOKEN_LIKE || tok == token::TOKEN_BETWEEN || tok == token::TOKEN_IN || tok == token::TOKEN_IS || tok == token::TOKEN_NULLX || tok == token::TOKEN_BOOL || tok == token::TOKEN_UMINUS || tok == token::TOKEN_PLUS || tok == token::TOKEN_MINUS || tok == token::TOKEN_MUL || tok == token::TOKEN_DIV || tok == token::TOKEN_LP || tok == token::TOKEN_RP || tok == token::TOKEN_COMMA || tok == token::TOKEN_PERIOD || tok == token::TOKEN_SEMICOLON || tok == token::TOKEN_FALSE || tok == token::TOKEN_TRUE || tok == token::TOKEN_ANALYZE || tok == token::TOKEN_ANY || tok == token::TOKEN_ALL || tok == token::TOKEN_AS || tok == token::TOKEN_ASC || tok == token::TOKEN_BY || tok == token::TOKEN_COLUMN || tok == token::TOKEN_COLUMNS || tok == token::TOKEN_CREATE || tok == token::TOKEN_DATETIME || tok == token::TOKEN_DATABASE || tok == token::TOKEN_DATABASES || tok == token::TOKEN_DELETE || tok == token::TOKEN_DESC || tok == token::TOKEN_DESCRIBE || tok == token::TOKEN_DISTINCT || tok == token::TOKEN_DOUBLE || tok == token::TOKEN_DROP || tok == token::TOKEN_DUAL || tok == token::TOKEN_EXISTS || tok == token::TOKEN_EXPLAIN || tok == token::TOKEN_FLOAT || tok == token::TOKEN_FROM || tok == token::TOKEN_GROUP || tok == token::TOKEN_HAVING || tok == token::TOKEN_INDEX || tok == token::TOKEN_INSERT || tok == token::TOKEN_INT || tok == token::TOKEN_INTO || tok == token::TOKEN_LIMIT || tok == token::TOKEN_NUMBER || tok == token::TOKEN_ORDER || tok == token::TOKEN_PARALLEL || tok == token::TOKEN_SELECT || tok == token::TOKEN_SET || tok == token::TOKEN_SHOW || tok == token::TOKEN_STATIS || tok == token::TOKEN_STATUS || tok == token::TOKEN_TABLE || tok == token::TOKEN_TABLES || tok == token::TOKEN_UPDATE || tok == token::TOKEN_USING || tok == token::TOKEN_VALUES || tok == token::TOKEN_VARCHAR || tok == token::TOKEN_WHERE || tok == token::TOKEN_TINYINT || tok == token::TOKEN_SMALLINT || tok == token::TOKEN_MEDIUMINT || tok == token::TOKEN_BIGINT || tok == token::TOKEN_DECIMAL || tok == token::TOKEN_NUMERIC_SYM || tok == token::TOKEN_REAL || tok == token::TOKEN_CHAR || tok == token::TOKEN_BINARY || tok == token::TOKEN_VARBINARY || tok == token::TOKEN_TIMESTAMP_SYM || tok == token::TOKEN_DATE || tok == token::TOKEN_TIME || tok == 44);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      symbol_type (int tok, std::string v, location_type l)
-        : super_type(token_type (tok), std::move (v), std::move (l))
-      {
-        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_IDENT || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
-      }
-#else
-      symbol_type (int tok, const std::string& v, const location_type& l)
-        : super_type(token_type (tok), v, l)
-      {
-        YYASSERT (tok == token::TOKEN_STRING || tok == token::TOKEN_IDENT || tok == token::TOKEN_NUMERIC || tok == token::TOKEN_TIMESTAMP);
-      }
-#endif
-    };
+    static inline
+    symbol_type
+    make_UNION (const location_type& l);
+
+    static inline
+    symbol_type
+    make_EXCEPT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_INTERSECT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_OR (const location_type& l);
+
+    static inline
+    symbol_type
+    make_AND (const location_type& l);
+
+    static inline
+    symbol_type
+    make_NOT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_LE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_LT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_EQ (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_GT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_GE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CMP_NE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_LIKE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_BETWEEN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_IN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_IS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_NULLX (const location_type& l);
+
+    static inline
+    symbol_type
+    make_BOOL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_UMINUS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_PLUS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_MINUS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_MUL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DIV (const location_type& l);
+
+    static inline
+    symbol_type
+    make_LP (const location_type& l);
+
+    static inline
+    symbol_type
+    make_RP (const location_type& l);
+
+    static inline
+    symbol_type
+    make_COMMA (const location_type& l);
+
+    static inline
+    symbol_type
+    make_PERIOD (const location_type& l);
+
+    static inline
+    symbol_type
+    make_SEMICOLON (const location_type& l);
+
+    static inline
+    symbol_type
+    make_STRING (const std::string& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_IDENT (const std::string& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_NUMERIC (const std::string& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_TIMESTAMP (const std::string& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_FALSE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TRUE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ANALYZE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ANY (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ALL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_AS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ASC (const location_type& l);
+
+    static inline
+    symbol_type
+    make_BY (const location_type& l);
+
+    static inline
+    symbol_type
+    make_COLUMN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_COLUMNS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CREATE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DATETIME (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DATABASE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DATABASES (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DELETE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DESC (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DESCRIBE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DISTINCT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DOUBLE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DROP (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DUAL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_EXISTS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_EXPLAIN (const location_type& l);
+
+    static inline
+    symbol_type
+    make_FLOAT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_FROM (const location_type& l);
+
+    static inline
+    symbol_type
+    make_GROUP (const location_type& l);
+
+    static inline
+    symbol_type
+    make_HAVING (const location_type& l);
+
+    static inline
+    symbol_type
+    make_INDEX (const location_type& l);
+
+    static inline
+    symbol_type
+    make_INSERT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_INT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_INTO (const location_type& l);
+
+    static inline
+    symbol_type
+    make_LIMIT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_NUMBER (const location_type& l);
+
+    static inline
+    symbol_type
+    make_ORDER (const location_type& l);
+
+    static inline
+    symbol_type
+    make_PARALLEL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_SELECT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_SET (const location_type& l);
+
+    static inline
+    symbol_type
+    make_SHOW (const location_type& l);
+
+    static inline
+    symbol_type
+    make_STATIS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_STATUS (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TABLE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TABLES (const location_type& l);
+
+    static inline
+    symbol_type
+    make_UPDATE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_USING (const location_type& l);
+
+    static inline
+    symbol_type
+    make_VALUES (const location_type& l);
+
+    static inline
+    symbol_type
+    make_VARCHAR (const location_type& l);
+
+    static inline
+    symbol_type
+    make_WHERE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TINYINT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_SMALLINT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_MEDIUMINT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_BIGINT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DECIMAL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_NUMERIC_SYM (const location_type& l);
+
+    static inline
+    symbol_type
+    make_REAL (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CHAR (const location_type& l);
+
+    static inline
+    symbol_type
+    make_BINARY (const location_type& l);
+
+    static inline
+    symbol_type
+    make_VARBINARY (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TIMESTAMP_SYM (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DATE (const location_type& l);
+
+    static inline
+    symbol_type
+    make_TIME (const location_type& l);
+
 
     /// Build a parser object.
     parser (CatDB::SqlScanner& scanner_yyarg, CatDB::SqlDriver& driver_yyarg);
     virtual ~parser ();
-
-    /// Parse.  An alias for parse ().
-    /// \returns  0 iff parsing succeeded.
-    int operator() ();
 
     /// Parse.
     /// \returns  0 iff parsing succeeded.
@@ -932,1404 +995,6 @@ switch (yytype)
 
     /// Report a syntax error.
     void error (const syntax_error& err);
-
-    // Implementation of make_symbol for each symbol type.
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_END (location_type l)
-      {
-        return symbol_type (token::TOKEN_END, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_END (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_END, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_UNION (location_type l)
-      {
-        return symbol_type (token::TOKEN_UNION, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_UNION (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_UNION, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_EXCEPT (location_type l)
-      {
-        return symbol_type (token::TOKEN_EXCEPT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_EXCEPT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_EXCEPT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_INTERSECT (location_type l)
-      {
-        return symbol_type (token::TOKEN_INTERSECT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_INTERSECT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_INTERSECT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_OR (location_type l)
-      {
-        return symbol_type (token::TOKEN_OR, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_OR (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_OR, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_AND (location_type l)
-      {
-        return symbol_type (token::TOKEN_AND, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_AND (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_AND, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NOT (location_type l)
-      {
-        return symbol_type (token::TOKEN_NOT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NOT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NOT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_LE (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_LE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_LE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_LE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_LT (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_LT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_LT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_LT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_EQ (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_EQ, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_EQ (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_EQ, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_GT (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_GT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_GT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_GT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_GE (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_GE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_GE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_GE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CMP_NE (location_type l)
-      {
-        return symbol_type (token::TOKEN_CMP_NE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CMP_NE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CMP_NE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_LIKE (location_type l)
-      {
-        return symbol_type (token::TOKEN_LIKE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_LIKE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_LIKE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_BETWEEN (location_type l)
-      {
-        return symbol_type (token::TOKEN_BETWEEN, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_BETWEEN (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_BETWEEN, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_IN (location_type l)
-      {
-        return symbol_type (token::TOKEN_IN, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_IN (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_IN, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_IS (location_type l)
-      {
-        return symbol_type (token::TOKEN_IS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_IS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_IS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NULLX (location_type l)
-      {
-        return symbol_type (token::TOKEN_NULLX, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NULLX (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NULLX, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_BOOL (location_type l)
-      {
-        return symbol_type (token::TOKEN_BOOL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_BOOL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_BOOL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_UMINUS (location_type l)
-      {
-        return symbol_type (token::TOKEN_UMINUS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_UMINUS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_UMINUS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_PLUS (location_type l)
-      {
-        return symbol_type (token::TOKEN_PLUS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_PLUS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_PLUS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_MINUS (location_type l)
-      {
-        return symbol_type (token::TOKEN_MINUS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_MINUS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_MINUS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_MUL (location_type l)
-      {
-        return symbol_type (token::TOKEN_MUL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_MUL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_MUL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DIV (location_type l)
-      {
-        return symbol_type (token::TOKEN_DIV, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DIV (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DIV, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_LP (location_type l)
-      {
-        return symbol_type (token::TOKEN_LP, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_LP (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_LP, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_RP (location_type l)
-      {
-        return symbol_type (token::TOKEN_RP, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_RP (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_RP, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_COMMA (location_type l)
-      {
-        return symbol_type (token::TOKEN_COMMA, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_COMMA (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_COMMA, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_PERIOD (location_type l)
-      {
-        return symbol_type (token::TOKEN_PERIOD, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_PERIOD (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_PERIOD, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_SEMICOLON (location_type l)
-      {
-        return symbol_type (token::TOKEN_SEMICOLON, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_SEMICOLON (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_SEMICOLON, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_STRING (std::string v, location_type l)
-      {
-        return symbol_type (token::TOKEN_STRING, std::move (v), std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_STRING (const std::string& v, const location_type& l)
-      {
-        return symbol_type (token::TOKEN_STRING, v, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_IDENT (std::string v, location_type l)
-      {
-        return symbol_type (token::TOKEN_IDENT, std::move (v), std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_IDENT (const std::string& v, const location_type& l)
-      {
-        return symbol_type (token::TOKEN_IDENT, v, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NUMERIC (std::string v, location_type l)
-      {
-        return symbol_type (token::TOKEN_NUMERIC, std::move (v), std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NUMERIC (const std::string& v, const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NUMERIC, v, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TIMESTAMP (std::string v, location_type l)
-      {
-        return symbol_type (token::TOKEN_TIMESTAMP, std::move (v), std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TIMESTAMP (const std::string& v, const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TIMESTAMP, v, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_FALSE (location_type l)
-      {
-        return symbol_type (token::TOKEN_FALSE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_FALSE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_FALSE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TRUE (location_type l)
-      {
-        return symbol_type (token::TOKEN_TRUE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TRUE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TRUE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ANALYZE (location_type l)
-      {
-        return symbol_type (token::TOKEN_ANALYZE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_ANALYZE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_ANALYZE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ANY (location_type l)
-      {
-        return symbol_type (token::TOKEN_ANY, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_ANY (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_ANY, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ALL (location_type l)
-      {
-        return symbol_type (token::TOKEN_ALL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_ALL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_ALL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_AS (location_type l)
-      {
-        return symbol_type (token::TOKEN_AS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_AS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_AS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ASC (location_type l)
-      {
-        return symbol_type (token::TOKEN_ASC, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_ASC (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_ASC, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_BY (location_type l)
-      {
-        return symbol_type (token::TOKEN_BY, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_BY (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_BY, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_COLUMN (location_type l)
-      {
-        return symbol_type (token::TOKEN_COLUMN, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_COLUMN (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_COLUMN, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_COLUMNS (location_type l)
-      {
-        return symbol_type (token::TOKEN_COLUMNS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_COLUMNS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_COLUMNS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CREATE (location_type l)
-      {
-        return symbol_type (token::TOKEN_CREATE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CREATE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CREATE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DATETIME (location_type l)
-      {
-        return symbol_type (token::TOKEN_DATETIME, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DATETIME (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DATETIME, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DATABASE (location_type l)
-      {
-        return symbol_type (token::TOKEN_DATABASE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DATABASE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DATABASE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DATABASES (location_type l)
-      {
-        return symbol_type (token::TOKEN_DATABASES, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DATABASES (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DATABASES, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DELETE (location_type l)
-      {
-        return symbol_type (token::TOKEN_DELETE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DELETE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DELETE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DESC (location_type l)
-      {
-        return symbol_type (token::TOKEN_DESC, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DESC (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DESC, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DESCRIBE (location_type l)
-      {
-        return symbol_type (token::TOKEN_DESCRIBE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DESCRIBE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DESCRIBE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DISTINCT (location_type l)
-      {
-        return symbol_type (token::TOKEN_DISTINCT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DISTINCT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DISTINCT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DOUBLE (location_type l)
-      {
-        return symbol_type (token::TOKEN_DOUBLE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DOUBLE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DOUBLE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DROP (location_type l)
-      {
-        return symbol_type (token::TOKEN_DROP, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DROP (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DROP, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DUAL (location_type l)
-      {
-        return symbol_type (token::TOKEN_DUAL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DUAL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DUAL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_EXISTS (location_type l)
-      {
-        return symbol_type (token::TOKEN_EXISTS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_EXISTS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_EXISTS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_EXPLAIN (location_type l)
-      {
-        return symbol_type (token::TOKEN_EXPLAIN, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_EXPLAIN (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_EXPLAIN, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_FLOAT (location_type l)
-      {
-        return symbol_type (token::TOKEN_FLOAT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_FLOAT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_FLOAT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_FROM (location_type l)
-      {
-        return symbol_type (token::TOKEN_FROM, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_FROM (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_FROM, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_GROUP (location_type l)
-      {
-        return symbol_type (token::TOKEN_GROUP, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_GROUP (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_GROUP, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_HAVING (location_type l)
-      {
-        return symbol_type (token::TOKEN_HAVING, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_HAVING (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_HAVING, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_INDEX (location_type l)
-      {
-        return symbol_type (token::TOKEN_INDEX, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_INDEX (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_INDEX, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_INSERT (location_type l)
-      {
-        return symbol_type (token::TOKEN_INSERT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_INSERT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_INSERT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_INT (location_type l)
-      {
-        return symbol_type (token::TOKEN_INT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_INT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_INT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_INTO (location_type l)
-      {
-        return symbol_type (token::TOKEN_INTO, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_INTO (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_INTO, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_LIMIT (location_type l)
-      {
-        return symbol_type (token::TOKEN_LIMIT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_LIMIT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_LIMIT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NUMBER (location_type l)
-      {
-        return symbol_type (token::TOKEN_NUMBER, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NUMBER (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NUMBER, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ORDER (location_type l)
-      {
-        return symbol_type (token::TOKEN_ORDER, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_ORDER (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_ORDER, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_PARALLEL (location_type l)
-      {
-        return symbol_type (token::TOKEN_PARALLEL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_PARALLEL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_PARALLEL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_SELECT (location_type l)
-      {
-        return symbol_type (token::TOKEN_SELECT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_SELECT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_SELECT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_SET (location_type l)
-      {
-        return symbol_type (token::TOKEN_SET, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_SET (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_SET, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_SHOW (location_type l)
-      {
-        return symbol_type (token::TOKEN_SHOW, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_SHOW (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_SHOW, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_STATIS (location_type l)
-      {
-        return symbol_type (token::TOKEN_STATIS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_STATIS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_STATIS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_STATUS (location_type l)
-      {
-        return symbol_type (token::TOKEN_STATUS, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_STATUS (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_STATUS, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TABLE (location_type l)
-      {
-        return symbol_type (token::TOKEN_TABLE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TABLE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TABLE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TABLES (location_type l)
-      {
-        return symbol_type (token::TOKEN_TABLES, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TABLES (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TABLES, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_UPDATE (location_type l)
-      {
-        return symbol_type (token::TOKEN_UPDATE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_UPDATE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_UPDATE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_USING (location_type l)
-      {
-        return symbol_type (token::TOKEN_USING, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_USING (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_USING, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_VALUES (location_type l)
-      {
-        return symbol_type (token::TOKEN_VALUES, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_VALUES (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_VALUES, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_VARCHAR (location_type l)
-      {
-        return symbol_type (token::TOKEN_VARCHAR, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_VARCHAR (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_VARCHAR, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_WHERE (location_type l)
-      {
-        return symbol_type (token::TOKEN_WHERE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_WHERE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_WHERE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TINYINT (location_type l)
-      {
-        return symbol_type (token::TOKEN_TINYINT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TINYINT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TINYINT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_SMALLINT (location_type l)
-      {
-        return symbol_type (token::TOKEN_SMALLINT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_SMALLINT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_SMALLINT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_MEDIUMINT (location_type l)
-      {
-        return symbol_type (token::TOKEN_MEDIUMINT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_MEDIUMINT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_MEDIUMINT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_BIGINT (location_type l)
-      {
-        return symbol_type (token::TOKEN_BIGINT, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_BIGINT (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_BIGINT, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DECIMAL (location_type l)
-      {
-        return symbol_type (token::TOKEN_DECIMAL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DECIMAL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DECIMAL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NUMERIC_SYM (location_type l)
-      {
-        return symbol_type (token::TOKEN_NUMERIC_SYM, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NUMERIC_SYM (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NUMERIC_SYM, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_REAL (location_type l)
-      {
-        return symbol_type (token::TOKEN_REAL, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_REAL (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_REAL, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_CHAR (location_type l)
-      {
-        return symbol_type (token::TOKEN_CHAR, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_CHAR (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_CHAR, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_BINARY (location_type l)
-      {
-        return symbol_type (token::TOKEN_BINARY, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_BINARY (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_BINARY, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_VARBINARY (location_type l)
-      {
-        return symbol_type (token::TOKEN_VARBINARY, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_VARBINARY (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_VARBINARY, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TIMESTAMP_SYM (location_type l)
-      {
-        return symbol_type (token::TOKEN_TIMESTAMP_SYM, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TIMESTAMP_SYM (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TIMESTAMP_SYM, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_DATE (location_type l)
-      {
-        return symbol_type (token::TOKEN_DATE, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_DATE (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_DATE, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_TIME (location_type l)
-      {
-        return symbol_type (token::TOKEN_TIME, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_TIME (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_TIME, l);
-      }
-#endif
-
 
   private:
     /// This class is not copyable.
@@ -2358,8 +1023,8 @@ switch (yytype)
     /// \param yyvalue   the value to check
     static bool yy_table_value_is_error_ (int yyvalue);
 
-    static const short yypact_ninf_;
-    static const short yytable_ninf_;
+    static const short int yypact_ninf_;
+    static const short int yytable_ninf_;
 
     /// Convert a scanner token number \a t to a symbol number.
     static token_number_type yytranslate_ (token_type t);
@@ -2367,7 +1032,7 @@ switch (yytype)
     // Tables.
   // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
   // STATE-NUM.
-  static const short yypact_[];
+  static const short int yypact_[];
 
   // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
   // Performed when YYTABLE does not specify something else to do.  Zero
@@ -2375,17 +1040,17 @@ switch (yytype)
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const short yypgoto_[];
+  static const short int yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
-  static const short yydefgoto_[];
+  static const short int yydefgoto_[];
 
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const short yytable_[];
+  static const short int yytable_[];
 
-  static const short yycheck_[];
+  static const short int yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -2406,15 +1071,14 @@ switch (yytype)
     static const char* const yytname_[];
 #if YYDEBUG
   // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-  static const unsigned short yyrline_[];
+  static const unsigned short int yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r);
     /// Print the state stack on the debug stream.
     virtual void yystack_print_ ();
 
-    /// Debugging level.
+    // Debugging.
     int yydebug_;
-    /// Debug stream.
     std::ostream* yycdebug_;
 
     /// \brief Display a symbol type, value and location.
@@ -2436,26 +1100,26 @@ switch (yytype)
     struct by_state
     {
       /// Default constructor.
-      by_state () YY_NOEXCEPT;
+      by_state ();
 
       /// The symbol type as needed by the constructor.
       typedef state_type kind_type;
 
       /// Constructor.
-      by_state (kind_type s) YY_NOEXCEPT;
+      by_state (kind_type s);
 
       /// Copy constructor.
-      by_state (const by_state& that) YY_NOEXCEPT;
+      by_state (const by_state& other);
 
       /// Record that this symbol is empty.
-      void clear () YY_NOEXCEPT;
+      void clear ();
 
       /// Steal the symbol type from \a that.
       void move (by_state& that);
 
       /// The (internal) type number (corresponding to \a state).
       /// \a empty_symbol when empty.
-      symbol_number_type type_get () const YY_NOEXCEPT;
+      symbol_number_type type_get () const;
 
       /// The state number used to denote an empty symbol.
       enum { empty_state = -1 };
@@ -2472,140 +1136,11 @@ switch (yytype)
       typedef basic_symbol<by_state> super_type;
       /// Construct an empty symbol.
       stack_symbol_type ();
-      /// Move or copy construction.
-      stack_symbol_type (YY_RVREF (stack_symbol_type) that);
       /// Steal the contents from \a sym to build this.
-      stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) sym);
-#if YY_CPLUSPLUS < 201103L
-      /// Assignment, needed by push_back by some old implementations.
-      /// Moves the contents of that.
-      stack_symbol_type& operator= (stack_symbol_type& that);
-#endif
+      stack_symbol_type (state_type s, symbol_type& sym);
+      /// Assignment, needed by push_back.
+      stack_symbol_type& operator= (const stack_symbol_type& that);
     };
-
-    /// A stack with random access from its top.
-    template <typename T, typename S = std::vector<T> >
-    class stack
-    {
-    public:
-      // Hide our reversed order.
-      typedef typename S::reverse_iterator iterator;
-      typedef typename S::const_reverse_iterator const_iterator;
-      typedef typename S::size_type size_type;
-
-      stack (size_type n = 200)
-        : seq_ (n)
-      {}
-
-      /// Random access.
-      ///
-      /// Index 0 returns the topmost element.
-      T&
-      operator[] (size_type i)
-      {
-        return seq_[size () - 1 - i];
-      }
-
-      /// Random access.
-      ///
-      /// Index 0 returns the topmost element.
-      T&
-      operator[] (int i)
-      {
-        return operator[] (size_type (i));
-      }
-
-      /// Random access.
-      ///
-      /// Index 0 returns the topmost element.
-      const T&
-      operator[] (size_type i) const
-      {
-        return seq_[size () - 1 - i];
-      }
-
-      /// Random access.
-      ///
-      /// Index 0 returns the topmost element.
-      const T&
-      operator[] (int i) const
-      {
-        return operator[] (size_type (i));
-      }
-
-      /// Steal the contents of \a t.
-      ///
-      /// Close to move-semantics.
-      void
-      push (YY_MOVE_REF (T) t)
-      {
-        seq_.push_back (T ());
-        operator[] (0).move (t);
-      }
-
-      /// Pop elements from the stack.
-      void
-      pop (int n = 1) YY_NOEXCEPT
-      {
-        for (; 0 < n; --n)
-          seq_.pop_back ();
-      }
-
-      /// Pop all elements from the stack.
-      void
-      clear () YY_NOEXCEPT
-      {
-        seq_.clear ();
-      }
-
-      /// Number of elements on the stack.
-      size_type
-      size () const YY_NOEXCEPT
-      {
-        return seq_.size ();
-      }
-
-      /// Iterator on top of the stack (going downwards).
-      const_iterator
-      begin () const YY_NOEXCEPT
-      {
-        return seq_.rbegin ();
-      }
-
-      /// Bottom of the stack.
-      const_iterator
-      end () const YY_NOEXCEPT
-      {
-        return seq_.rend ();
-      }
-
-      /// Present a slice of the top of a stack.
-      class slice
-      {
-      public:
-        slice (const stack& stack, int range)
-          : stack_ (stack)
-          , range_ (range)
-        {}
-
-        const T&
-        operator[] (int i) const
-        {
-          return stack_[range_ - i];
-        }
-
-      private:
-        const stack& stack_;
-        int range_;
-      };
-
-    private:
-      stack (const stack&);
-      stack& operator= (const stack&);
-      /// The wrapped container.
-      S seq_;
-    };
-
 
     /// Stack type.
     typedef stack<stack_symbol_type> stack_type;
@@ -2616,28 +1151,28 @@ switch (yytype)
     /// Push a new state on the stack.
     /// \param m    a debug message to display
     ///             if null, no trace is output.
-    /// \param sym  the symbol
+    /// \param s    the symbol
     /// \warning the contents of \a s.value is stolen.
-    void yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym);
+    void yypush_ (const char* m, stack_symbol_type& s);
 
     /// Push a new look ahead token on the state on the stack.
     /// \param m    a debug message to display
     ///             if null, no trace is output.
     /// \param s    the state
     /// \param sym  the symbol (for its value and location).
-    /// \warning the contents of \a sym.value is stolen.
-    void yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym);
+    /// \warning the contents of \a s.value is stolen.
+    void yypush_ (const char* m, state_type s, symbol_type& sym);
 
-    /// Pop \a n symbols from the stack.
-    void yypop_ (int n = 1);
+    /// Pop \a n symbols the three stacks.
+    void yypop_ (unsigned int n = 1);
 
     /// Constants.
     enum
     {
       yyeof_ = 0,
-      yylast_ = 555,     ///< Last index in yytable_.
-      yynnts_ = 67,  ///< Number of nonterminal symbols.
-      yyfinal_ = 64, ///< Termination state number.
+      yylast_ = 632,     ///< Last index in yytable_.
+      yynnts_ = 63,  ///< Number of nonterminal symbols.
+      yyfinal_ = 62, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 96  ///< Number of tokens.
@@ -2649,17 +1184,16 @@ switch (yytype)
     CatDB::SqlDriver& driver;
   };
 
+  // Symbol number corresponding to token number t.
   inline
   parser::token_number_type
   parser::yytranslate_ (token_type t)
   {
-    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
-    // TOKEN-NUM as returned by yylex.
     static
     const token_number_type
     translate_table[] =
     {
-       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+     0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -2695,196 +1229,111 @@ switch (yytype)
       75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
       85,    86,    87,    88,    89,    90,    91,    92,    93,    94
     };
-    const unsigned user_token_number_max_ = 349;
+    const unsigned int user_token_number_max_ = 349;
     const token_number_type undef_token_ = 2;
 
-    if (static_cast<int> (t) <= yyeof_)
+    if (static_cast<int>(t) <= yyeof_)
       return yyeof_;
-    else if (static_cast<unsigned> (t) <= user_token_number_max_)
+    else if (static_cast<unsigned int> (t) <= user_token_number_max_)
       return translate_table[t];
     else
       return undef_token_;
   }
 
+  inline
+  parser::syntax_error::syntax_error (const location_type& l, const std::string& m)
+    : std::runtime_error (m)
+    , location (l)
+  {}
+
   // basic_symbol.
-#if 201103L <= YY_CPLUSPLUS
   template <typename Base>
-  parser::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
-    : Base (std::move (that))
+  inline
+  parser::basic_symbol<Base>::basic_symbol ()
+    : value ()
+  {}
+
+  template <typename Base>
+  inline
+  parser::basic_symbol<Base>::basic_symbol (const basic_symbol& other)
+    : Base (other)
     , value ()
-    , location (std::move (that.location))
+    , location (other.location)
   {
-    switch (this->type_get ())
+      switch (other.type_get ())
     {
       case 97: // sql_stmt
       case 98: // stmt
       case 99: // select_stmt
       case 100: // select_with_parens
       case 101: // select_no_parens
-      case 102: // opt_hint
-      case 103: // opt_hint_body
-      case 104: // opt_hint_list
-      case 105: // hint_item
-      case 107: // select_expr_list
-      case 108: // from_list
-      case 109: // opt_where
-      case 110: // opt_groupby
-      case 111: // opt_having
-      case 112: // opt_order_by
-      case 114: // opt_select_limit
-      case 116: // order_by
-      case 117: // projection
-      case 118: // table_factor
-      case 119: // expr_list
-      case 120: // expr
-      case 121: // in_expr
-      case 122: // arith_expr
-      case 123: // simple_expr
-      case 124: // column_ref
-      case 125: // expr_const
-      case 126: // func_expr
-      case 129: // insert_stmt
-      case 130: // insert_vals_list
-      case 131: // insert_vals
-      case 132: // update_stmt
-      case 133: // update_asgn_list
-      case 134: // update_asgn_factor
-      case 135: // delete_stmt
-      case 136: // explain_stmt
-      case 137: // explainable_stmt
-      case 138: // create_stmt
-      case 139: // table_element_list
-      case 140: // table_element
-      case 141: // column_definition
-      case 147: // drop_stmt
-      case 148: // show_stmt
-      case 150: // use_stmt
-      case 151: // desc_stmt
-      case 152: // analyze_stmt
-      case 153: // relation_factor
-        value.move< Stmt_s > (std::move (that.value));
+      case 103: // select_expr_list
+      case 104: // from_list
+      case 105: // opt_where
+      case 106: // opt_groupby
+      case 107: // opt_having
+      case 108: // opt_order_by
+      case 110: // opt_select_limit
+      case 112: // order_by
+      case 113: // projection
+      case 114: // table_factor
+      case 115: // expr_list
+      case 116: // expr
+      case 117: // in_expr
+      case 118: // arith_expr
+      case 119: // simple_expr
+      case 120: // column_ref
+      case 121: // expr_const
+      case 122: // func_expr
+      case 125: // insert_stmt
+      case 126: // insert_vals_list
+      case 127: // insert_vals
+      case 128: // update_stmt
+      case 129: // update_asgn_list
+      case 130: // update_asgn_factor
+      case 131: // delete_stmt
+      case 132: // explain_stmt
+      case 133: // explainable_stmt
+      case 134: // create_stmt
+      case 135: // table_element_list
+      case 136: // table_element
+      case 137: // column_definition
+      case 143: // drop_stmt
+      case 144: // show_stmt
+      case 146: // use_stmt
+      case 147: // desc_stmt
+      case 148: // analyze_stmt
+      case 149: // relation_factor
+        value.copy< Stmt_s > (other.value);
         break;
 
-      case 106: // opt_distinct
-      case 113: // opt_asc_desc
-      case 128: // distinct_or_all
-        value.move< bool > (std::move (that.value));
+      case 102: // opt_distinct
+      case 109: // opt_asc_desc
+      case 124: // distinct_or_all
+        value.copy< bool > (other.value);
         break;
 
-      case 115: // limit_expr
-      case 142: // data_type
-        value.move< int > (std::move (that.value));
+      case 111: // limit_expr
+      case 138: // data_type
+        value.copy< int > (other.value);
         break;
 
       case 31: // STRING
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 127: // simple_function_expr
-      case 149: // op_from_database
-      case 154: // database_name
-      case 155: // relation_name
-      case 156: // column_name
-      case 157: // function_name
-      case 158: // column_label
-      case 159: // ident
-      case 160: // datetime
-      case 161: // string
-      case 162: // number
-        value.move< std::string > (std::move (that.value));
-        break;
-
-      default:
-        break;
-    }
-
-  }
-#endif
-
-  template <typename Base>
-  parser::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
-    : Base (that)
-    , value ()
-    , location (that.location)
-  {
-    switch (this->type_get ())
-    {
-      case 97: // sql_stmt
-      case 98: // stmt
-      case 99: // select_stmt
-      case 100: // select_with_parens
-      case 101: // select_no_parens
-      case 102: // opt_hint
-      case 103: // opt_hint_body
-      case 104: // opt_hint_list
-      case 105: // hint_item
-      case 107: // select_expr_list
-      case 108: // from_list
-      case 109: // opt_where
-      case 110: // opt_groupby
-      case 111: // opt_having
-      case 112: // opt_order_by
-      case 114: // opt_select_limit
-      case 116: // order_by
-      case 117: // projection
-      case 118: // table_factor
-      case 119: // expr_list
-      case 120: // expr
-      case 121: // in_expr
-      case 122: // arith_expr
-      case 123: // simple_expr
-      case 124: // column_ref
-      case 125: // expr_const
-      case 126: // func_expr
-      case 129: // insert_stmt
-      case 130: // insert_vals_list
-      case 131: // insert_vals
-      case 132: // update_stmt
-      case 133: // update_asgn_list
-      case 134: // update_asgn_factor
-      case 135: // delete_stmt
-      case 136: // explain_stmt
-      case 137: // explainable_stmt
-      case 138: // create_stmt
-      case 139: // table_element_list
-      case 140: // table_element
-      case 141: // column_definition
-      case 147: // drop_stmt
-      case 148: // show_stmt
-      case 150: // use_stmt
-      case 151: // desc_stmt
-      case 152: // analyze_stmt
-      case 153: // relation_factor
-        value.copy< Stmt_s > (YY_MOVE (that.value));
-        break;
-
-      case 106: // opt_distinct
-      case 113: // opt_asc_desc
-      case 128: // distinct_or_all
-        value.copy< bool > (YY_MOVE (that.value));
-        break;
-
-      case 115: // limit_expr
-      case 142: // data_type
-        value.copy< int > (YY_MOVE (that.value));
-        break;
-
-      case 31: // STRING
-      case 32: // IDENT
-      case 33: // NUMERIC
-      case 34: // TIMESTAMP
-      case 127: // simple_function_expr
-      case 149: // op_from_database
-      case 154: // database_name
-      case 155: // relation_name
-      case 156: // column_name
-      case 157: // function_name
-      case 158: // column_label
-      case 159: // ident
-      case 160: // datetime
-      case 161: // string
-      case 162: // number
-        value.copy< std::string > (YY_MOVE (that.value));
+      case 123: // simple_function_expr
+      case 145: // op_from_database
+      case 150: // database_name
+      case 151: // relation_name
+      case 152: // column_name
+      case 153: // function_name
+      case 154: // column_label
+      case 155: // ident
+      case 156: // datetime
+      case 157: // string
+      case 158: // number
+        value.copy< std::string > (other.value);
         break;
 
       default:
@@ -2894,104 +1343,335 @@ switch (yytype)
   }
 
 
+  template <typename Base>
+  inline
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const semantic_type& v, const location_type& l)
+    : Base (t)
+    , value ()
+    , location (l)
+  {
+    (void) v;
+      switch (this->type_get ())
+    {
+      case 97: // sql_stmt
+      case 98: // stmt
+      case 99: // select_stmt
+      case 100: // select_with_parens
+      case 101: // select_no_parens
+      case 103: // select_expr_list
+      case 104: // from_list
+      case 105: // opt_where
+      case 106: // opt_groupby
+      case 107: // opt_having
+      case 108: // opt_order_by
+      case 110: // opt_select_limit
+      case 112: // order_by
+      case 113: // projection
+      case 114: // table_factor
+      case 115: // expr_list
+      case 116: // expr
+      case 117: // in_expr
+      case 118: // arith_expr
+      case 119: // simple_expr
+      case 120: // column_ref
+      case 121: // expr_const
+      case 122: // func_expr
+      case 125: // insert_stmt
+      case 126: // insert_vals_list
+      case 127: // insert_vals
+      case 128: // update_stmt
+      case 129: // update_asgn_list
+      case 130: // update_asgn_factor
+      case 131: // delete_stmt
+      case 132: // explain_stmt
+      case 133: // explainable_stmt
+      case 134: // create_stmt
+      case 135: // table_element_list
+      case 136: // table_element
+      case 137: // column_definition
+      case 143: // drop_stmt
+      case 144: // show_stmt
+      case 146: // use_stmt
+      case 147: // desc_stmt
+      case 148: // analyze_stmt
+      case 149: // relation_factor
+        value.copy< Stmt_s > (v);
+        break;
+
+      case 102: // opt_distinct
+      case 109: // opt_asc_desc
+      case 124: // distinct_or_all
+        value.copy< bool > (v);
+        break;
+
+      case 111: // limit_expr
+      case 138: // data_type
+        value.copy< int > (v);
+        break;
+
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 123: // simple_function_expr
+      case 145: // op_from_database
+      case 150: // database_name
+      case 151: // relation_name
+      case 152: // column_name
+      case 153: // function_name
+      case 154: // column_label
+      case 155: // ident
+      case 156: // datetime
+      case 157: // string
+      case 158: // number
+        value.copy< std::string > (v);
+        break;
+
+      default:
+        break;
+    }
+}
+
+
+  // Implementation of basic_symbol constructor for each type.
 
   template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
+    : Base (t)
+    , value ()
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const Stmt_s v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const bool v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const int v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+
+  template <typename Base>
+  inline
+  parser::basic_symbol<Base>::~basic_symbol ()
+  {
+    clear ();
+  }
+
+  template <typename Base>
+  inline
+  void
+  parser::basic_symbol<Base>::clear ()
+  {
+    // User destructor.
+    symbol_number_type yytype = this->type_get ();
+    basic_symbol<Base>& yysym = *this;
+    (void) yysym;
+    switch (yytype)
+    {
+   default:
+      break;
+    }
+
+    // Type destructor.
+    switch (yytype)
+    {
+      case 97: // sql_stmt
+      case 98: // stmt
+      case 99: // select_stmt
+      case 100: // select_with_parens
+      case 101: // select_no_parens
+      case 103: // select_expr_list
+      case 104: // from_list
+      case 105: // opt_where
+      case 106: // opt_groupby
+      case 107: // opt_having
+      case 108: // opt_order_by
+      case 110: // opt_select_limit
+      case 112: // order_by
+      case 113: // projection
+      case 114: // table_factor
+      case 115: // expr_list
+      case 116: // expr
+      case 117: // in_expr
+      case 118: // arith_expr
+      case 119: // simple_expr
+      case 120: // column_ref
+      case 121: // expr_const
+      case 122: // func_expr
+      case 125: // insert_stmt
+      case 126: // insert_vals_list
+      case 127: // insert_vals
+      case 128: // update_stmt
+      case 129: // update_asgn_list
+      case 130: // update_asgn_factor
+      case 131: // delete_stmt
+      case 132: // explain_stmt
+      case 133: // explainable_stmt
+      case 134: // create_stmt
+      case 135: // table_element_list
+      case 136: // table_element
+      case 137: // column_definition
+      case 143: // drop_stmt
+      case 144: // show_stmt
+      case 146: // use_stmt
+      case 147: // desc_stmt
+      case 148: // analyze_stmt
+      case 149: // relation_factor
+        value.template destroy< Stmt_s > ();
+        break;
+
+      case 102: // opt_distinct
+      case 109: // opt_asc_desc
+      case 124: // distinct_or_all
+        value.template destroy< bool > ();
+        break;
+
+      case 111: // limit_expr
+      case 138: // data_type
+        value.template destroy< int > ();
+        break;
+
+      case 31: // STRING
+      case 32: // IDENT
+      case 33: // NUMERIC
+      case 34: // TIMESTAMP
+      case 123: // simple_function_expr
+      case 145: // op_from_database
+      case 150: // database_name
+      case 151: // relation_name
+      case 152: // column_name
+      case 153: // function_name
+      case 154: // column_label
+      case 155: // ident
+      case 156: // datetime
+      case 157: // string
+      case 158: // number
+        value.template destroy< std::string > ();
+        break;
+
+      default:
+        break;
+    }
+
+    Base::clear ();
+  }
+
+  template <typename Base>
+  inline
   bool
-  parser::basic_symbol<Base>::empty () const YY_NOEXCEPT
+  parser::basic_symbol<Base>::empty () const
   {
     return Base::type_get () == empty_symbol;
   }
 
   template <typename Base>
+  inline
   void
   parser::basic_symbol<Base>::move (basic_symbol& s)
   {
-    super_type::move (s);
-    switch (this->type_get ())
+    super_type::move(s);
+      switch (this->type_get ())
     {
       case 97: // sql_stmt
       case 98: // stmt
       case 99: // select_stmt
       case 100: // select_with_parens
       case 101: // select_no_parens
-      case 102: // opt_hint
-      case 103: // opt_hint_body
-      case 104: // opt_hint_list
-      case 105: // hint_item
-      case 107: // select_expr_list
-      case 108: // from_list
-      case 109: // opt_where
-      case 110: // opt_groupby
-      case 111: // opt_having
-      case 112: // opt_order_by
-      case 114: // opt_select_limit
-      case 116: // order_by
-      case 117: // projection
-      case 118: // table_factor
-      case 119: // expr_list
-      case 120: // expr
-      case 121: // in_expr
-      case 122: // arith_expr
-      case 123: // simple_expr
-      case 124: // column_ref
-      case 125: // expr_const
-      case 126: // func_expr
-      case 129: // insert_stmt
-      case 130: // insert_vals_list
-      case 131: // insert_vals
-      case 132: // update_stmt
-      case 133: // update_asgn_list
-      case 134: // update_asgn_factor
-      case 135: // delete_stmt
-      case 136: // explain_stmt
-      case 137: // explainable_stmt
-      case 138: // create_stmt
-      case 139: // table_element_list
-      case 140: // table_element
-      case 141: // column_definition
-      case 147: // drop_stmt
-      case 148: // show_stmt
-      case 150: // use_stmt
-      case 151: // desc_stmt
-      case 152: // analyze_stmt
-      case 153: // relation_factor
-        value.move< Stmt_s > (YY_MOVE (s.value));
+      case 103: // select_expr_list
+      case 104: // from_list
+      case 105: // opt_where
+      case 106: // opt_groupby
+      case 107: // opt_having
+      case 108: // opt_order_by
+      case 110: // opt_select_limit
+      case 112: // order_by
+      case 113: // projection
+      case 114: // table_factor
+      case 115: // expr_list
+      case 116: // expr
+      case 117: // in_expr
+      case 118: // arith_expr
+      case 119: // simple_expr
+      case 120: // column_ref
+      case 121: // expr_const
+      case 122: // func_expr
+      case 125: // insert_stmt
+      case 126: // insert_vals_list
+      case 127: // insert_vals
+      case 128: // update_stmt
+      case 129: // update_asgn_list
+      case 130: // update_asgn_factor
+      case 131: // delete_stmt
+      case 132: // explain_stmt
+      case 133: // explainable_stmt
+      case 134: // create_stmt
+      case 135: // table_element_list
+      case 136: // table_element
+      case 137: // column_definition
+      case 143: // drop_stmt
+      case 144: // show_stmt
+      case 146: // use_stmt
+      case 147: // desc_stmt
+      case 148: // analyze_stmt
+      case 149: // relation_factor
+        value.move< Stmt_s > (s.value);
         break;
 
-      case 106: // opt_distinct
-      case 113: // opt_asc_desc
-      case 128: // distinct_or_all
-        value.move< bool > (YY_MOVE (s.value));
+      case 102: // opt_distinct
+      case 109: // opt_asc_desc
+      case 124: // distinct_or_all
+        value.move< bool > (s.value);
         break;
 
-      case 115: // limit_expr
-      case 142: // data_type
-        value.move< int > (YY_MOVE (s.value));
+      case 111: // limit_expr
+      case 138: // data_type
+        value.move< int > (s.value);
         break;
 
       case 31: // STRING
       case 32: // IDENT
       case 33: // NUMERIC
       case 34: // TIMESTAMP
-      case 127: // simple_function_expr
-      case 149: // op_from_database
-      case 154: // database_name
-      case 155: // relation_name
-      case 156: // column_name
-      case 157: // function_name
-      case 158: // column_label
-      case 159: // ident
-      case 160: // datetime
-      case 161: // string
-      case 162: // number
-        value.move< std::string > (YY_MOVE (s.value));
+      case 123: // simple_function_expr
+      case 145: // op_from_database
+      case 150: // database_name
+      case 151: // relation_name
+      case 152: // column_name
+      case 153: // function_name
+      case 154: // column_label
+      case 155: // ident
+      case 156: // datetime
+      case 157: // string
+      case 158: // number
+        value.move< std::string > (s.value);
         break;
 
       default:
         break;
     }
 
-    location = YY_MOVE (s.location);
+    location = s.location;
   }
 
   // by_type.
@@ -3000,18 +1680,9 @@ switch (yytype)
     : type (empty_symbol)
   {}
 
-#if 201103L <= YY_CPLUSPLUS
   inline
-  parser::by_type::by_type (by_type&& that)
-    : type (that.type)
-  {
-    that.clear ();
-  }
-#endif
-
-  inline
-  parser::by_type::by_type (const by_type& that)
-    : type (that.type)
+  parser::by_type::by_type (const by_type& other)
+    : type (other.type)
   {}
 
   inline
@@ -3036,19 +1707,19 @@ switch (yytype)
 
   inline
   int
-  parser::by_type::type_get () const YY_NOEXCEPT
+  parser::by_type::type_get () const
   {
     return type;
   }
 
   inline
   parser::token_type
-  parser::by_type::token () const YY_NOEXCEPT
+  parser::by_type::token () const
   {
     // YYTOKNUM[NUM] -- (External) token number corresponding to the
     // (internal) symbol number NUM (which must be that of a token).  */
     static
-    const unsigned short
+    const unsigned short int
     yytoken_number_[] =
     {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
@@ -3062,15 +1733,573 @@ switch (yytype)
      335,   336,   337,   338,   339,   340,   341,   342,   343,   344,
      345,   346,   347,   348,   349,    44
     };
-    return token_type (yytoken_number_[type]);
+    return static_cast<token_type> (yytoken_number_[type]);
+  }
+  // Implementation of make_symbol for each symbol type.
+  parser::symbol_type
+  parser::make_END (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_END, l);
   }
 
-#line 3 "D:/CatDB/parser/lex_yacc/sql_parser.y"
+  parser::symbol_type
+  parser::make_UNION (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_UNION, l);
+  }
+
+  parser::symbol_type
+  parser::make_EXCEPT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_EXCEPT, l);
+  }
+
+  parser::symbol_type
+  parser::make_INTERSECT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INTERSECT, l);
+  }
+
+  parser::symbol_type
+  parser::make_OR (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_OR, l);
+  }
+
+  parser::symbol_type
+  parser::make_AND (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_AND, l);
+  }
+
+  parser::symbol_type
+  parser::make_NOT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NOT, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_LE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_LE, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_LT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_LT, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_EQ (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_EQ, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_GT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_GT, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_GE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_GE, l);
+  }
+
+  parser::symbol_type
+  parser::make_CMP_NE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CMP_NE, l);
+  }
+
+  parser::symbol_type
+  parser::make_LIKE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_LIKE, l);
+  }
+
+  parser::symbol_type
+  parser::make_BETWEEN (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_BETWEEN, l);
+  }
+
+  parser::symbol_type
+  parser::make_IN (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_IN, l);
+  }
+
+  parser::symbol_type
+  parser::make_IS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_IS, l);
+  }
+
+  parser::symbol_type
+  parser::make_NULLX (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NULLX, l);
+  }
+
+  parser::symbol_type
+  parser::make_BOOL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_BOOL, l);
+  }
+
+  parser::symbol_type
+  parser::make_UMINUS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_UMINUS, l);
+  }
+
+  parser::symbol_type
+  parser::make_PLUS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_PLUS, l);
+  }
+
+  parser::symbol_type
+  parser::make_MINUS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_MINUS, l);
+  }
+
+  parser::symbol_type
+  parser::make_MUL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_MUL, l);
+  }
+
+  parser::symbol_type
+  parser::make_DIV (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DIV, l);
+  }
+
+  parser::symbol_type
+  parser::make_LP (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_LP, l);
+  }
+
+  parser::symbol_type
+  parser::make_RP (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_RP, l);
+  }
+
+  parser::symbol_type
+  parser::make_COMMA (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_COMMA, l);
+  }
+
+  parser::symbol_type
+  parser::make_PERIOD (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_PERIOD, l);
+  }
+
+  parser::symbol_type
+  parser::make_SEMICOLON (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_SEMICOLON, l);
+  }
+
+  parser::symbol_type
+  parser::make_STRING (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOKEN_STRING, v, l);
+  }
+
+  parser::symbol_type
+  parser::make_IDENT (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOKEN_IDENT, v, l);
+  }
+
+  parser::symbol_type
+  parser::make_NUMERIC (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NUMERIC, v, l);
+  }
+
+  parser::symbol_type
+  parser::make_TIMESTAMP (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TIMESTAMP, v, l);
+  }
+
+  parser::symbol_type
+  parser::make_FALSE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_FALSE, l);
+  }
+
+  parser::symbol_type
+  parser::make_TRUE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TRUE, l);
+  }
+
+  parser::symbol_type
+  parser::make_ANALYZE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_ANALYZE, l);
+  }
+
+  parser::symbol_type
+  parser::make_ANY (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_ANY, l);
+  }
+
+  parser::symbol_type
+  parser::make_ALL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_ALL, l);
+  }
+
+  parser::symbol_type
+  parser::make_AS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_AS, l);
+  }
+
+  parser::symbol_type
+  parser::make_ASC (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_ASC, l);
+  }
+
+  parser::symbol_type
+  parser::make_BY (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_BY, l);
+  }
+
+  parser::symbol_type
+  parser::make_COLUMN (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_COLUMN, l);
+  }
+
+  parser::symbol_type
+  parser::make_COLUMNS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_COLUMNS, l);
+  }
+
+  parser::symbol_type
+  parser::make_CREATE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CREATE, l);
+  }
+
+  parser::symbol_type
+  parser::make_DATETIME (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DATETIME, l);
+  }
+
+  parser::symbol_type
+  parser::make_DATABASE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DATABASE, l);
+  }
+
+  parser::symbol_type
+  parser::make_DATABASES (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DATABASES, l);
+  }
+
+  parser::symbol_type
+  parser::make_DELETE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DELETE, l);
+  }
+
+  parser::symbol_type
+  parser::make_DESC (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DESC, l);
+  }
+
+  parser::symbol_type
+  parser::make_DESCRIBE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DESCRIBE, l);
+  }
+
+  parser::symbol_type
+  parser::make_DISTINCT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DISTINCT, l);
+  }
+
+  parser::symbol_type
+  parser::make_DOUBLE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DOUBLE, l);
+  }
+
+  parser::symbol_type
+  parser::make_DROP (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DROP, l);
+  }
+
+  parser::symbol_type
+  parser::make_DUAL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DUAL, l);
+  }
+
+  parser::symbol_type
+  parser::make_EXISTS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_EXISTS, l);
+  }
+
+  parser::symbol_type
+  parser::make_EXPLAIN (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_EXPLAIN, l);
+  }
+
+  parser::symbol_type
+  parser::make_FLOAT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_FLOAT, l);
+  }
+
+  parser::symbol_type
+  parser::make_FROM (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_FROM, l);
+  }
+
+  parser::symbol_type
+  parser::make_GROUP (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_GROUP, l);
+  }
+
+  parser::symbol_type
+  parser::make_HAVING (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_HAVING, l);
+  }
+
+  parser::symbol_type
+  parser::make_INDEX (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INDEX, l);
+  }
+
+  parser::symbol_type
+  parser::make_INSERT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INSERT, l);
+  }
+
+  parser::symbol_type
+  parser::make_INT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INT, l);
+  }
+
+  parser::symbol_type
+  parser::make_INTO (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INTO, l);
+  }
+
+  parser::symbol_type
+  parser::make_LIMIT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_LIMIT, l);
+  }
+
+  parser::symbol_type
+  parser::make_NUMBER (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NUMBER, l);
+  }
+
+  parser::symbol_type
+  parser::make_ORDER (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_ORDER, l);
+  }
+
+  parser::symbol_type
+  parser::make_PARALLEL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_PARALLEL, l);
+  }
+
+  parser::symbol_type
+  parser::make_SELECT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_SELECT, l);
+  }
+
+  parser::symbol_type
+  parser::make_SET (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_SET, l);
+  }
+
+  parser::symbol_type
+  parser::make_SHOW (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_SHOW, l);
+  }
+
+  parser::symbol_type
+  parser::make_STATIS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_STATIS, l);
+  }
+
+  parser::symbol_type
+  parser::make_STATUS (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_STATUS, l);
+  }
+
+  parser::symbol_type
+  parser::make_TABLE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TABLE, l);
+  }
+
+  parser::symbol_type
+  parser::make_TABLES (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TABLES, l);
+  }
+
+  parser::symbol_type
+  parser::make_UPDATE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_UPDATE, l);
+  }
+
+  parser::symbol_type
+  parser::make_USING (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_USING, l);
+  }
+
+  parser::symbol_type
+  parser::make_VALUES (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_VALUES, l);
+  }
+
+  parser::symbol_type
+  parser::make_VARCHAR (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_VARCHAR, l);
+  }
+
+  parser::symbol_type
+  parser::make_WHERE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_WHERE, l);
+  }
+
+  parser::symbol_type
+  parser::make_TINYINT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TINYINT, l);
+  }
+
+  parser::symbol_type
+  parser::make_SMALLINT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_SMALLINT, l);
+  }
+
+  parser::symbol_type
+  parser::make_MEDIUMINT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_MEDIUMINT, l);
+  }
+
+  parser::symbol_type
+  parser::make_BIGINT (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_BIGINT, l);
+  }
+
+  parser::symbol_type
+  parser::make_DECIMAL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DECIMAL, l);
+  }
+
+  parser::symbol_type
+  parser::make_NUMERIC_SYM (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NUMERIC_SYM, l);
+  }
+
+  parser::symbol_type
+  parser::make_REAL (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_REAL, l);
+  }
+
+  parser::symbol_type
+  parser::make_CHAR (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CHAR, l);
+  }
+
+  parser::symbol_type
+  parser::make_BINARY (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_BINARY, l);
+  }
+
+  parser::symbol_type
+  parser::make_VARBINARY (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_VARBINARY, l);
+  }
+
+  parser::symbol_type
+  parser::make_TIMESTAMP_SYM (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TIMESTAMP_SYM, l);
+  }
+
+  parser::symbol_type
+  parser::make_DATE (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_DATE, l);
+  }
+
+  parser::symbol_type
+  parser::make_TIME (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_TIME, l);
+  }
+
+
+#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // lalr1.cc:377
 } // CatDB
-#line 3071 "D:/CatDB/parser/lex_yacc/sql_parser.hpp"
+#line 2301 "/home/test/CatDB/parser/lex_yacc/sql_parser.hpp" // lalr1.cc:377
 
 
 
 
-
-#endif // !YY_YY_D_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED
+#endif // !YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_SQL_PARSER_HPP_INCLUDED

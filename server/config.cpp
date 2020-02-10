@@ -69,3 +69,18 @@ String ServerServiceConfig::recycle_dir()const
 	String dir = m_config.value("recycle_dir");
 	return dir;
 }
+
+String ServerServiceConfig::log_file_path()const
+{
+	String dir = m_config.value("log_dir");
+	return dir;
+}
+
+int ServerServiceConfig::debug_level()const
+{
+	String level = m_config.value("debug_level");
+	if(level.empty())
+		return 1;
+	else
+		return std::stoi(level);
+}

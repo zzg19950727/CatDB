@@ -17,6 +17,13 @@ ServerService::ServerService(const String& config)
 {
 	TableSpace::data_dir = m_config.data_dir();
 	TableSpace::recycle_dir = m_config.recycle_dir();
+	String log_path = m_config.log_file_path();
+	if(!log_path.empty())
+	{
+		log_path += "/catdb.log";
+		CatDB::Common::set_log_file(log_path.c_str());
+	}
+	CatDB::Common::set_debug_level(m_config.debug_level());
 }
 
 ServerService::~ServerService()
@@ -70,6 +77,7 @@ void ServerService::do_login(int fd)
 		ptr->set_delete_handle(ptr);
 		++m_clients;
 		++m_thread_id;
+		Log(LOG_TRACE, "ServerService", "new client %d login", fd);
 	}
 	else {
 		Log(LOG_WARN, "ServerService", "login failed");
@@ -79,6 +87,7 @@ void ServerService::do_login(int fd)
 void ServerService::close_connection(int fd)
 {
 	--m_clients;
+	Log(LOG_TRACE, "ServerService", "client %d closed", fd);
 }
 
 void ServerService::close_connection()

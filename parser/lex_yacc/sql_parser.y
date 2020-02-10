@@ -274,7 +274,7 @@
 %type<int>			limit_expr data_type
 %type<bool>			opt_distinct opt_asc_desc  distinct_or_all
 %type<Stmt_s>		select_expr_list from_list opt_where opt_groupby opt_having
-%type<Stmt_s>		opt_order_by opt_select_limit order_by opt_hint opt_hint_body opt_hint_list hint_item
+%type<Stmt_s>		opt_order_by opt_select_limit order_by 
 %type<Stmt_s>		projection table_factor relation_factor 
 %type<Stmt_s>		expr_list expr simple_expr arith_expr in_expr column_ref expr_const func_expr
 %type<Stmt_s>		insert_stmt insert_vals_list insert_vals
@@ -331,7 +331,7 @@ select_with_parens:
 	;
 
 select_no_parens:
-	SELECT opt_hint opt_distinct select_expr_list
+	SELECT opt_distinct select_expr_list
     FROM from_list
     opt_where opt_groupby opt_having
     opt_order_by opt_asc_desc opt_select_limit
@@ -339,16 +339,15 @@ select_no_parens:
 		//构建select stmt
 		Stmt_s stmt = SelectStmt::make_select_stmt();
 		SelectStmt* select_stmt = dynamic_cast<SelectStmt*>(stmt.get());
-		select_stmt->hint_list = $2;
-		select_stmt->is_distinct = $3;
-		select_stmt->select_expr_list = $4;
-		select_stmt->from_stmts = $6;
-		select_stmt->where_stmt = $7;
-		select_stmt->group_columns = $8;
-		select_stmt->having_stmt = $9;
-		select_stmt->order_columns = $10;
-		select_stmt->asc_desc = $11;
-		select_stmt->limit_stmt = $12;
+		select_stmt->is_distinct = $2;
+		select_stmt->select_expr_list = $3;
+		select_stmt->from_stmts = $5;
+		select_stmt->where_stmt = $6;
+		select_stmt->group_columns = $7;
+		select_stmt->having_stmt = $8;
+		select_stmt->order_columns = $9;
+		select_stmt->asc_desc = $10;
+		select_stmt->limit_stmt = $11;
 		$$ = stmt;
     }
   | select_with_parens UNION select_with_parens
@@ -390,41 +389,8 @@ select_no_parens:
 	}
 	;
 
-opt_hint:
-	/*EMPTY*/	{ $$ = nullptr; }
-  | "/" "*" opt_hint_body "*" "/"
-	{
-		$$ = $3;
-	}
-  
-opt_hint_body:
-	/*EMPTY*/	{ $$ = nullptr; }
-  | "+"	opt_hint_list	
-	{
-		$$ = $2;
-	}
-  
-opt_hint_list:
-	/*EMPTY*/	{ $$ = nullptr; }
-  | hint_item
-	{
-		make_list_stmt($$, $1);
-	}
-  | opt_hint_list "," hint_item
-	{
-		list_stmt_push($$, $1, $3);
-	}
-
-hint_item:
-	PARALLEL "(" number ")"
-	{
-		HintStmt::HintBody hint;
-		hint.dop = std::stoi($3);
-		$$ = HintStmt::make_hint_stmt(HintStmt::Parallel, hint);
-	}
-
 opt_distinct:
-    /* EMPTY */		{ $$ = false; }
+    /*empty*/		{ $$ = false; }
   | DISTINCT		{ $$ = true; }
   ;
 

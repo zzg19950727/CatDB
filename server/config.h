@@ -14,8 +14,10 @@ namespace CatDB {
 			int max_client_count()const;
 			String data_dir()const;
 			String recycle_dir()const;
+			String log_file_path()const;
 			int cache_size()const;
 			int thread_pool_size()const;
+			int debug_level()const;
 		private:
 			Config m_config;
 		};
