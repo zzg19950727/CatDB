@@ -18,15 +18,8 @@ namespace CatDB {
 				Insert,
 				Delete,
 				ColumnDefine,
-				CreateTable,
-				DropTable,
-				CreateDatabase,
-				DropDatabase,
-				ShowTables,
-				ShowDatabases,
-				DescTable,
-				UseDatabase,
-				Analyze
+				CMDParam,
+				DoCMD
 			};
 			Stmt();
 			virtual ~Stmt();

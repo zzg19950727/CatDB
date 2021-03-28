@@ -31,18 +31,18 @@
 // version 2.2 of Bison.
 
 /**
- ** \file /home/test/CatDB/parser/lex_yacc/stack.hh
+ ** \file /root/CatDB/parser/lex_yacc/stack.hh
  ** Define the CatDB::stack class.
  */
 
-#ifndef YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED
-# define YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED
+#ifndef YY_YY_ROOT_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED
+# define YY_YY_ROOT_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED
 
 # include <vector>
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // stack.hh:132
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // stack.hh:132
 namespace CatDB {
-#line 46 "/home/test/CatDB/parser/lex_yacc/stack.hh" // stack.hh:132
+#line 46 "/root/CatDB/parser/lex_yacc/stack.hh" // stack.hh:132
   template <class T, class S = std::vector<T> >
   class stack
   {
@@ -150,8 +150,8 @@ namespace CatDB {
     unsigned int range_;
   };
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // stack.hh:132
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // stack.hh:132
 } // CatDB
-#line 156 "/home/test/CatDB/parser/lex_yacc/stack.hh" // stack.hh:132
+#line 156 "/root/CatDB/parser/lex_yacc/stack.hh" // stack.hh:132
 
-#endif // !YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED
+#endif // !YY_YY_ROOT_CATDB_PARSER_LEX_YACC_STACK_HH_INCLUDED

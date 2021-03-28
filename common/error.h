@@ -53,7 +53,8 @@
 #define OBJ_TYPE_ERROR			0x32
 #define ERR_UNEXPECTED			0x33
 #define INVALID_ARGUMENT		0x34
-#define MAX_ERROR_CODE			0x35
+#define INVALID_CMD_TYPE        0x35
+#define MAX_ERROR_CODE			0x36
 #include "type.h"
 const char* err_string(u32 err_code);
 #endif	//ERROR_H

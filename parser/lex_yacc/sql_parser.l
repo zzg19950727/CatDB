@@ -13,9 +13,6 @@
 	# undef yywrap
   	# define yywrap() 1
 	#define YY_NO_UNISTD_H
-  	static CatDB::location loc;	//声明位置实例
-	std::string parse_str;
-	char* tmp_ptr;
 %}
 
 letter 	[A-Za-z_]
@@ -78,6 +75,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "explain"		{ return CatDB::SqlParser::make_EXPLAIN(loc); }
 "float"			{ return CatDB::SqlParser::make_FLOAT(loc); }
 "from"			{ return CatDB::SqlParser::make_FROM(loc); }
+"full"                  { return CatDB::SqlParser::make_FULL(loc); }
 "group"			{ return CatDB::SqlParser::make_GROUP(loc); }
 "having"		{ return CatDB::SqlParser::make_HAVING(loc); }
 "insert"		{ return CatDB::SqlParser::make_INSERT(loc); }

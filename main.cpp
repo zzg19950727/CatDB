@@ -4,8 +4,11 @@
 int main(int argc, char* argv[])
 {
 	CatDB::Server::ServerService service("catdb.conf");
-	//init_db();
-	//load_tpch_data();
+	if (argc > 2) {
+		if (argv[1] == "init") {
+			init_db();
+		}
+	}
 	service.run();
 	return 0;
 }

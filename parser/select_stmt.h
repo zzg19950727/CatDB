@@ -1,13 +1,13 @@
 ﻿#ifndef SELECT_STMT_H
 #define SELECT_STMT_H
-#include "stmt.h"
+#include "dml_stmt.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
+		DECLARE(DMLStmt);
 
-		class SelectStmt : public Stmt
+		class SelectStmt : public DMLStmt
 		{
 		private:
 			SelectStmt();

@@ -188,7 +188,7 @@ u64 IoService::get_file_size(const String & table_file)
 u32 IoService::make_dir(const String & dir)
 {
 	String cmd = "mkdir " + dir;
-	system(cmd.c_str());
+	int ret = system(cmd.c_str());
 	return SUCCESS;
 }
 
@@ -197,9 +197,9 @@ u32 IoService::remove_dir(const String & dir)
 #ifdef _WIN32
 	String cmd = "rmdir /s /q " + dir;
 #else
-	String cmd = "rm -rf" + dir;
+	String cmd = "rm -rf " + dir;
 #endif
-	system(cmd.c_str());
+	int ret = system(cmd.c_str());
 	return SUCCESS;
 }
 
@@ -210,6 +210,6 @@ u32 IoService::move_dir(const String& src_dir, const String& dst_dir)
 #else
 	String cmd = "mv " + src_dir + " " + dst_dir;
 #endif
-	system(cmd.c_str());
+	int ret = system(cmd.c_str());
 	return SUCCESS;
 }

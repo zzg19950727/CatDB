@@ -7,7 +7,7 @@
 #include "type.h"
 #include "log.h"
 //#define LOG_SET		LOG_TRACE
-static int LOG_SET = LOG_ERR;
+static int LOG_SET = LOG_TRACE;
 class LogStream
 {
 public:
@@ -86,84 +86,98 @@ void LogStream::set_log_file(const char* path)
 LogStream &LogStream::operator << (char value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned char value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (short value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned short value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (int value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned int value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (long value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned long value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (long long value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (unsigned long long value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator<<(float value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator<<(double value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator<<(const char *value)
 {
 	*os << std::string(value);
+	os->flush();
 	return *this;
 }
 
 LogStream &LogStream::operator << (const std::string& value)
 {
 	*os << value;
+	os->flush();
 	return *this;
 }
 

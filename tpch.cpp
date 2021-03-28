@@ -582,16 +582,3 @@ void init_db()
 		execute_sql(sqls[i]);
 	}
 }
-
-void load_tpch_data()
-{
-	create_table();
-	load_nation_data();
-	load_region_data();
-	load_supplier_data();
-	load_part_data();
-	load_customer_data();
-	load_partsupp_data();
-	load_orders_data();
-	load_lineitem_data();
-}

@@ -14,6 +14,7 @@
 #include "error.h"
 #include "plan.h"
 #include "util.h"
+#include "../tpch.h"
 #include "row.h"
 #include "log.h"
 #define BLOCK_SIZE	2048
@@ -22,6 +23,7 @@ using namespace CatDB::Server;
 using namespace CatDB;
 using namespace CatDB::Sql;
 using CatDB::SqlDriver;
+static bool is_com_field_list = false;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
@@ -150,7 +152,7 @@ u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 	else
 	{
 		len_pos = 0;
-		// д����ĳ���
+		// Ð´Èë°üµÄ³¤¶È
 		pkt_len = static_cast<int32_t>(pos - PACKET_HEADER_SIZE);
 		Util::store_int3(buff, size, pkt_len, len_pos);
 		if (!m_write_cache.write_package((const char*)buf->buf, pos))
@@ -196,6 +198,18 @@ u32 RequestHandle::send_result_set(const Plan_s& plan)
 	Common::Buffer_s buf = Common::Buffer::make_buffer(MAX_PACKET_LENGTH);
 	char *data_buffer = reinterpret_cast<char *>(buf->buf);
 	buffer_length = MAX_PACKET_LENGTH;
+	if (is_com_field_list)
+	{
+		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
+        	{
+                	Log(LOG_WARN, "RequestHandle", "process row packet failed ret is %d", ret);
+        	}
+        	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
+        	{
+                	Log(LOG_WARN, "RequestHandle", "process row eof packet failed ret is %d", ret);
+        	}
+		return ret;
+	}
 	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, plan)))
 	{
 		Log(LOG_WARN, "RequestHandle", "process resheasder packet failed ret is %d", ret);
@@ -351,7 +365,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 
 	parser.set_global_database(cur_database);
 	int ret = parser.parse_sql(query);
-	//Ϊ��֤�ͻ��˼��ݣ���֧�ֵ�SQL�﷨����OK��
+	//Îª±£Ö¤¿Í»§¶Ë¼æÈÝ£¬²»Ö§³ÖµÄSQLÓï·¨·µ»ØOK°ü
 	if (parser.is_sys_error()) {
 		return send_ok_packet();
 		//return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
@@ -397,10 +411,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			}
 		}
 		else {
-			if (plan->type() == Plan::SELECT
-				|| plan->type() == Plan::ShowDatabases
-				|| plan->type() == Plan::ShowTables
-				|| plan->type() == Plan::DescTable) {
+			if (plan->send_plan_result()) {
 				return send_result_set(plan);
 			}
 			else {
@@ -426,6 +437,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	enum enum_server_command command;
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
+	is_com_field_list = false;
 	Log(LOG_TRACE, "RequestHandle", "handle client command %u", command);
 	switch (command)
 	{
@@ -448,9 +460,30 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_QUERY:
 		{
 			String query(buf + 1, len - 1);
+			if (query.find("SHOW SESSION") != String::npos)
+					query = "select * from system.sys_vars";
+			else if (query.find("SELECT current_user") != String::npos)
+					query = "select * from system.current_user";
+			else if (query.find("SELECT CONNECTION_ID") != String::npos)
+					query = "select * from system.connection_id";
+			else if (query.find("show char") != String::npos)
+					query = "select * from system.charset";
+			else if (query.find("show engines") != String::npos)
+					query = "select * from system.engine";
+			else if (query.find("show collation") != String::npos)
+					query = "select * from system.collation";
+			else if (query.find("show variables") != String::npos)
+					query = "select * from system.sys_vars";
+			else if (query.find("SHOW VARIABLES") != String::npos)
+					query = "select * from system.sys_vars";
+			else if (query.find("SHOW PROCEDURE") != String::npos)
+					{send_ok_packet();return;}
+			else if (query.find("SHOW FUNCTION") != String::npos)
+					{send_ok_packet();return;}
+			else if (query.find("load tpch data") != String::npos)
+					{load_tpch_data();return;}
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
-			//do_cmd_query(query);
 			break;
 		}
 		case COM_PING:
@@ -458,7 +491,37 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			send_ok_packet();
 			break;
 		}
+		case COM_FIELD_LIST:
+		{
+			is_com_field_list = true;
+			String query = "select * from "+String(buf+1,len-1) + " limit 1";
+			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
+			m_server_service.workers().append_task(task);
+			break;
+		}
 		default:
 			do_not_support();
 	}
+}
+
+void RequestHandle::load_tpch_data()
+{
+	create_table();
+	Task_type task = std::bind(load_lineitem_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_orders_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_partsupp_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_customer_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_part_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_supplier_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_region_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_nation_data);
+	m_server_service.workers().append_task(task);
+	send_ok_packet();
 }

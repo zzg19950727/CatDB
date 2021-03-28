@@ -72,7 +72,7 @@ String ServerServiceConfig::recycle_dir()const
 
 String ServerServiceConfig::log_file_path()const
 {
-	String dir = m_config.value("log_dir");
+	String dir = m_config.value("log_file");
 	return dir;
 }
 

@@ -46,6 +46,7 @@ namespace CatDB {
 			u32 build_plan();
 			u32 optimizer();
 			PlanType type() const;
+			bool send_plan_result()const;
 			void set_alias_table_id(u32 id);
 			u32 get_alias_table_id()const;
 			u32 get_column_from_select_list(const String& column_name, ColumnDesc& col_desc);
@@ -57,8 +58,8 @@ namespace CatDB {
 			double get_select_rows();
 
 		private:
-			/*µÚÒ»¸öpairÖ¸¶¨joinµÄÁ½ÕÅ±í£¬µÚ¶ş¸öpairÖ¸¶¨join conditionºÍjoin equal condition
-			  join condition°üº¬join equal condition*/
+			/*ï¿½ï¿½Ò»ï¿½ï¿½pairÖ¸ï¿½ï¿½joinï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½ï¿½ï¿½pairÖ¸ï¿½ï¿½join conditionï¿½ï¿½join equal condition
+			  join conditionï¿½ï¿½ï¿½ï¿½join equal condition*/
 			typedef Pair<TableStmt*, TableStmt*> JoinableTables;
 			typedef Pair<Expression_s, Expression_s> JoinConditions;
 			struct SubqueryInfo {
@@ -66,68 +67,68 @@ namespace CatDB {
 				ExprStmt::OperationType op;
 				Plan_s subplan;
 			};
-			//½âÎöwhere×Ó¾ä£¬²ğ·Ö³ÉÒ»¸öÒ»¸öandÁ¬½ÓµÄstmt
+			//ï¿½ï¿½ï¿½ï¿½whereï¿½Ó¾ä£¬ï¿½ï¿½Ö³ï¿½Ò»ï¿½ï¿½Ò»ï¿½ï¿½andï¿½ï¿½ï¿½Óµï¿½stmt
 			u32 resolve_where_stmt(const Stmt_s& where_stmt);
-			//½âÎöµ¥¸östmt£¬¿ÉÄÜÊÇÁ¬½ÓÎ½´Ê£¬¿ÉÄÜÊÇ»ù±í¹ıÂËÎ½´Ê£¬Ò²¿ÉÄÜÊÇÆÕÍ¨µÄ¹ıÂËÎ½´Ê
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½stmtï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê£ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½Ä¹ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			u32 resolve_simple_stmt(const Stmt_s& expr_stmt);
 			u32 resolve_simple_expr(const Expression_s& expr);
-			//µ±Ç°Óï¾ä¿éÈç¹ûÊÇÁĞÃèÊöÔò·µ»ØÁĞÃèÊö£¬·ñÔò·µ»Ønull
+			//ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½null
 			ColumnStmt* resolve_column_stmt(const Stmt_s& stmt);
-			//½«Óï¾ä¿é×ª»»³É±í´ïÊ½
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½É±ï¿½ï¿½ï¿½Ê½
 			u32 resolve_expr(const Stmt_s& expr_stmt, Expression_s& expr, bool& have_parent_column);
-			//½âÎöselect listÖĞµÄ*ÁĞ
+			//ï¿½ï¿½ï¿½ï¿½select listï¿½Ğµï¿½*ï¿½ï¿½
 			u32 resolve_all_column_in_select_list(const Stmt_s& stmt);
-			//½âÎöcount¾ÛºÏº¯ÊıÄÚµÄ*±í´ïÊ½
+			//ï¿½ï¿½ï¿½ï¿½countï¿½ÛºÏºï¿½ï¿½ï¿½ï¿½Úµï¿½*ï¿½ï¿½ï¿½ï¿½Ê½
 			u32 resolve_all_column_in_count_agg(const Stmt_s& stmt, Expression_s& expr);
-			//ÅĞ¶Ïµ±Ç°Î½´Ê¿éÊÇ·ñÊÇ»ù±í¹ıÂËÎ½´Ê
+			//ï¿½Ğ¶Ïµï¿½Ç°Î½ï¿½Ê¿ï¿½ï¿½Ç·ï¿½ï¿½Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			bool is_table_filter(const Stmt_s& expr_stmt, TableStmt*& table);
 			bool is_table_filter(const Expression_s& expr, TableStmt*& table);
-			//¸ù¾İÁĞÓï¾ä¿é»ñÈ¡ÁĞÃèÊö
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 resolve_column_desc(ColumnStmt* column_stmt, ColumnDesc& col_desc, bool& from_partent);
-			//´Ófrom listÖĞËÑË÷±í
+			//ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 find_table(const String& table_name, TableStmt*& table);
-			//´Ó¸¸²éÑ¯ÖĞËÑË÷±í
+			//ï¿½Ó¸ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 find_table_from_parent(const String& table_name, TableStmt*& table);
 			bool find_table_from_parent(TableStmt* table);
-			//´Ófrom listÖĞËÑË÷º¬ÓĞÖ¸¶¨ÁĞµÄ±í
+			//ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ĞµÄ±ï¿½
 			u32 who_have_column(ColumnStmt* column_stmt, TableStmt*& table);
-			//´Ófrom listÖĞËÑË÷º¬ÓĞÖ¸¶¨ÁĞµÄ±í
+			//ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ĞµÄ±ï¿½
 			u32 who_have_column(const String& column_name, TableStmt*& table);
 			u32 who_have_column(const ColumnDesc& col_desc, TableStmt*& table);
-			//´Ó¸¸²éÑ¯ÖĞËÑË÷º¬ÓĞÖ¸¶¨ÁĞµÄ±í
+			//ï¿½Ó¸ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ĞµÄ±ï¿½
 			u32 which_partent_table_have_column(const String& column_name, TableStmt*& table);
-			//½âÎöfromÓï¾ä¿éÎªtable list
+			//ï¿½ï¿½ï¿½ï¿½fromï¿½ï¿½ï¿½ï¿½Îªtable list
 			u32 get_ref_tables(const Stmt_s& from_stmt);
-			//Èç¹ûfromÖĞ³öÏÖ×Ó²éÑ¯
+			//ï¿½ï¿½ï¿½fromï¿½Ğ³ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯
 			u32 get_ref_table_from_query(QueryStmt* subquery);
-			//¸ù¾İÁ½ÕÅ±íËÑËØÕâÁ½ÕÅ±íµÄÁ¬½ÓÎ½´Ê
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			u32 search_jon_info(const JoinableTables& join_tables, JoinConditions& join_cond);
 			u32 search_jon_info(const JoinableTables& join_tables, JoinConditions*& join_cond);
-			//Ìí¼ÓÁ½ÕÅ±íµÄÁ¬½ÓÎ½´Ê
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			u32 add_join_cond(const JoinableTables& join_tables, const Expression_s& expr);
-			//Ìí¼ÓÁ½ÕÅ±íµÄµÈÖµÁ¬½ÓÎ½´Ê
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½Äµï¿½Öµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			u32 add_join_equal_cond(const JoinableTables& join_tables, const Expression_s& expr);
-			//Ìí¼Ó»ù±í¹ıÂËÎ½´Ê
+			//ï¿½ï¿½ï¿½Ó»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			u32 add_table_filter(TableStmt* table, const Expression_s& filter);
 			//expr = expr and other
 			u32 make_and_expression(Expression_s& expr, const Expression_s& other);
-			//Ñ¡Ôñ×îÓÅµÄjoin order
+			//Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½Åµï¿½join order
 			u32 choos_best_join_order();
-			//½âÎögroupÁĞ
+			//ï¿½ï¿½ï¿½ï¿½groupï¿½ï¿½
 			u32 resolve_group_stmt(const Stmt_s& group_stmt);
-			//½âÎöhaving×Ó¾ä
+			//ï¿½ï¿½ï¿½ï¿½havingï¿½Ó¾ï¿½
 			u32 resolve_having_stmt(const Stmt_s& having_stmt);
-			//½âÎölimit×Ó¾ä
+			//ï¿½ï¿½ï¿½ï¿½limitï¿½Ó¾ï¿½
 			u32 resolve_limit_stmt(const Stmt_s& limit_stmt);
-			//½âÎösortÁĞ
+			//ï¿½ï¿½ï¿½ï¿½sortï¿½ï¿½
 			u32 resolve_sort_stmt(const Stmt_s& sort_stmt);
-			//½âÎöselect list
+			//ï¿½ï¿½ï¿½ï¿½select list
 			u32 resolve_select_list(const Stmt_s& select_list);
-			//Èç¹ûÅÅĞòÁĞ²»ÔÚ»ù±í£¬ÔòÔÚ²éÑ¯Éú³ÉÁĞÖĞ½âÎö
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ²ï¿½ï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ½ï¿½ï¿½ï¿½
 			u32 resolve_column_from_select_list(const Stmt_s& expr_stmt, Expression_s& expr);
-			//Ìí¼ÓÃ¿ÕÅ±íĞèÒª·ÃÎÊµÄÁĞ
+			//ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Å±ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½
 			u32 add_access_column(TableStmt* table, const ColumnDesc& col_desc);
-			//Éú³É¶ÔÓ¦µÄ¼Æ»®
+			//ï¿½ï¿½ï¿½É¶ï¿½Ó¦ï¿½Ä¼Æ»ï¿½
 			u32 make_access_row_desc();
 			u32 make_join_plan(PhyOperator_s& op);
 			u32 make_table_scan(TableStmt* table, PhyOperator_s& op);
@@ -140,61 +141,61 @@ namespace CatDB {
 			
 		private:
 
-			//Ã¿ÕÅ±íĞèÒª·ÃÎÊµÄÁĞ
+			//Ã¿ï¿½Å±ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½
 			HashMap<TableStmt*, Vector<ColumnDesc> > parent_table_access_column;
 			HashMap<TableStmt*, Vector<ColumnDesc> > table_access_column; 
 			HashMap<TableStmt*, RowDesc > table_access_row_desc;
-			//Á½±íÁ¬½ÓÌõ¼şĞÅÏ¢
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 			HashMap<JoinableTables, JoinConditions> join_info;
-			//Ã¿ÕÅ±íµÄ¹ıÂËÎ½´Ê
+			//Ã¿ï¿½Å±ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			HashMap<TableStmt*, Expression_s> table_filters;
-			//select listÓï¾ä¿éÖĞ³öÏÖ¹ıµÄ¾ÛºÏº¯Êı
+			//select listï¿½ï¿½ï¿½ï¿½ï¿½Ğ³ï¿½ï¿½Ö¹ï¿½ï¿½Ä¾ÛºÏºï¿½ï¿½ï¿½
 			Vector<Expression_s> aggr_exprs;
-			//select listÓï¾ä¿éÖĞÃ¿Ò»¸öÊä³ö±í´ïÊ½£¬¾ÛºÏº¯ÊıÔ¤´¦Àí¹ı£¬Ïê¼ûselect_list½âÎöº¯Êı
+			//select listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ÛºÏºï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½select_listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			Vector<Expression_s> select_list;
-			//ĞÂµÄÊä³öÁĞÃû
+			//ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			Vector<String> select_list_name;
-			//from listµÄ±í
+			//from listï¿½Ä±ï¿½
 			Vector<TableStmt*> table_list;
-			//À´ÖÁ¸¸²éÑ¯µÄ±í£¬µ±Ç°²éÑ¯¿ÉÄÜÊÇÏà¹Ø×Ó²éÑ¯£¬ÒıÓÃÁË¸¸²éÑ¯µÄ±í
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¸ï¿½ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½
 			Vector<TableStmt*> parent_table_list;
-			//ÒıÓÃÁËµÄ¸¸²éÑ¯µÄ±í
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ËµÄ¸ï¿½ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½
 			Vector<TableStmt*> ref_parent_table_list;
-			//ĞèÒª±£´æÁÙÊ±±íµÄÒıÓÃ£¬·ÀÖ¹ÄÚ´æÊÍ·Å
+			//ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½Ö¹ï¿½Ú´ï¿½ï¿½Í·ï¿½
 			Vector<Stmt_s> tmp_table_handle;
-			//±£´æ×Ó²éÑ¯£¬´ı¸ÄĞ´½áÊøºóÍ³Ò»Éú³É¼Æ»®
+			//ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í³Ò»ï¿½ï¿½ï¿½É¼Æ»ï¿½
 			Vector<Plan_s> subquerys;
-			//Ïà¹Ø×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+			//ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 			Vector<Expression_s> corrected_predicates;
-			//¾ÛºÏÁĞ
+			//ï¿½Ûºï¿½ï¿½ï¿½
 			Vector<Expression_s> group_cols;
-			//ÅÅĞòÁĞ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			Vector<Expression_s> sort_cols;
-			//Èç¹ûÊÇ¼¯ºÏ²éÑ¯£¬Ôò·Ö±ğ±£´æ×óÓÒ¼¯ºÏµÄ¼Æ»®
+			//ï¿½ï¿½ï¿½ï¿½Ç¼ï¿½ï¿½Ï²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½Ö±ğ±£´ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ï¿½ÏµÄ¼Æ»ï¿½
 			Plan_s first_plan, second_plan;
-			//having¹ıÂËÎ½´Ê±í´ïÊ½
+			//havingï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê±ï¿½ï¿½ï¿½Ê½
 			Expression_s having_filter;
-			/*²»ÄÜÓÃÓÚtable scanºÍjoinµÄfilter£¬±ÈÈçorÌõ¼şÁ¬½ÓµÄË«±íÎ½´Ê*/
+			/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½table scanï¿½ï¿½joinï¿½ï¿½filterï¿½ï¿½ï¿½ï¿½ï¿½ï¿½orï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½Ë«ï¿½ï¿½Î½ï¿½ï¿½*/
 			Expression_s filter_after_join;
-			//limitÏà¹Ø
+			//limitï¿½ï¿½ï¿½
 			u32 limit_offset, limit_size;
-			//µ±Ç°ÔÚ½âÎöselect_list»¹ÊÇhavingÓï¾ä¿é£¬ÓÃÓÚÇø·Ö¾ÛºÏº¯ÊıµÄ½âÎö´¦Àí
+			//ï¿½ï¿½Ç°ï¿½Ú½ï¿½ï¿½ï¿½select_listï¿½ï¿½ï¿½ï¿½havingï¿½ï¿½ï¿½é£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ÛºÏºï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 resolve_select_list_or_having;
-			//²éÑ¯Éú³ÉµÄÁÙÊ±±íID
+			//ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 			u32 alias_table_id;
-			//ÓÃ»§Ö¸¶¨²¢ĞĞÖ´ĞĞ
+			//ï¿½Ã»ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½
 			u32 dop;
-			//µ±Ç°ÊÇ·ñÊÇÔÚ½âÎöwhere×Ó¾ä£¬ÓÃÓÚÅĞ¶ÏÊÇ·ñÄÜÒıÓÃÍâ²¿²éÑ¯ÁĞ
+			//ï¿½ï¿½Ç°ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½whereï¿½Ó¾ä£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½ï¿½Ñ¯ï¿½ï¿½
 			bool is_resolve_where;
-			//²éÑ¯ÁĞÊÇ·ñÈ¥ÖØ
+			//ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½Ç·ï¿½È¥ï¿½ï¿½
 			bool is_distinct;
-			//ÅÅĞòÁĞÊÇ·ñÊÇ²éÑ¯µÄÉú³ÉÁĞ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ç²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			bool is_sort_query_result;
-			//ÊÇ·ñÉıĞò
+			//ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½
 			bool asc;
-			//ÊÇ·ñÓĞlimit
+			//ï¿½Ç·ï¿½ï¿½ï¿½limit
 			bool have_limit;
-			//¼ÇÂ¼²éÑ¯Ê÷µÄ¸ùĞÅÏ¢
+			//ï¿½ï¿½Â¼ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½Ï¢
 			SelectPlan* root_plan;
 
 

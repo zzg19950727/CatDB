@@ -16,6 +16,9 @@ namespace CatDB {
 		{
 	  	private:
 			SqlDriver& m_driver;
+			location loc;   //声明位置实例
+			std::string parse_str;
+			char* tmp_ptr;
 	 
 	  	public:
 			SqlScanner (SqlDriver& driver):m_driver(driver)

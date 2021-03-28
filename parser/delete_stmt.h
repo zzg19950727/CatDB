@@ -1,14 +1,14 @@
 #ifndef DELETE_STMT_H
 #define DELETE_STMT_H
 
-#include "stmt.h"
+#include "dml_stmt.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
+		DECLARE(DMLStmt);
 
-		class DeleteStmt : public Stmt
+		class DeleteStmt : public DMLStmt
 		{
 		private:
 			DeleteStmt();

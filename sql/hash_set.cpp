@@ -378,9 +378,11 @@ u32 CatDB::Sql::UnionAll::reopen(const Row_s & row)
 u32 CatDB::Sql::UnionAll::get_next_row(Row_s & row)
 {
 	while (right_child->get_next_row(row) == SUCCESS){
+		row = make_row(row);
 		return SUCCESS;
 	}
 	while (left_child->get_next_row(row) == SUCCESS){
+		row = make_row(row);
 		return SUCCESS;
 	}
 	return NO_MORE_ROWS;
@@ -396,4 +398,15 @@ u32 UnionAll::explain_operator(u32 depth, QueryResult * result)
 	result->add_operation_info(depth, "union all", "", output_rows, finished_time);
 	left_child->explain_operator(depth + 1, result);
 	return right_child->explain_operator(depth + 1, result);
+}
+
+Row_s UnionAll::make_row(Row_s & row)
+{
+        RowDesc &row_desc = row->get_row_desc();
+        for (u32 i = 0; i < row_desc.get_column_num(); ++i) {
+                ColumnDesc col_desc;
+                col_desc.set_tid_cid(0, i);
+                row_desc.set_column_desc(i, col_desc);
+        }
+        return row;
 }

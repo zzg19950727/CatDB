@@ -4,9 +4,7 @@
 #include "select_plan.h"
 #include "query_result.h"
 #include "phy_operator.h"
-#include "show_plan.h"
-#include "create_plan.h"
-#include "drop_plan.h"
+#include "cmd_plan.h"
 #include "plan.h"
 #include "stmt.h"
 #include "object.h"
@@ -45,24 +43,8 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 	case Stmt::Expr:
 	case Stmt::Select:
 		return SelectPlan::make_select_plan(lex_stmt);
-	case Stmt::CreateTable:
-		return CreateTablePlan::make_create_table_plan(lex_stmt);
-	case Stmt::CreateDatabase:
-		return CreateDatabasePlan::make_create_database_plan(lex_stmt);
-	case Stmt::DropTable:
-		return DropTablePlan::make_drop_table_plan(lex_stmt);
-	case Stmt::DropDatabase:
-		return DropDatabasePlan::make_drop_database_plan(lex_stmt);
-	case Stmt::ShowTables:
-		return ShowTablesPlan::make_show_tables_plan(lex_stmt);
-	case Stmt::ShowDatabases:
-		return ShowDatabasesPlan::make_show_databases_plan(lex_stmt);
-	case Stmt::DescTable:
-		return DescTablePlan::make_desc_table_plan(lex_stmt);
-	case Stmt::UseDatabase:
-		return UseDatabasePlan::make_use_database_plan(lex_stmt);
-	case Stmt::Analyze:
-		return AnalyzePlan::make_analyze_plan(lex_stmt);
+	case Stmt::DoCMD:
+		return CMDPlan::make_cmd_plan(lex_stmt);
 	default:
 		return Plan_s();
 	}
@@ -81,6 +63,11 @@ Stmt_s Plan::get_lex_stmt() const
 Object_s Plan::get_result()
 {
 	return result;
+}
+
+bool Plan::send_plan_result() const
+{
+	return false;
 }
 
 Row_s Plan::get_result_title() const
@@ -114,12 +101,12 @@ void Plan::set_thd(RequestHandle_s & thd)
 
 u32 Plan::explain_plan()
 {
-	//´´½¨²éÑ¯½á¹û¶ÔÏó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (!result) {
 		result = QueryResult::make_query_result();
 	}
 	QueryResult* query_result = dynamic_cast<QueryResult*>(result.get());
-	//ÉèÖÃÊä³ötitle
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½title
 	query_result->init_title_for_explain(result_title);
 	root_operator->explain_operator(0, query_result);
 	return SUCCESS;

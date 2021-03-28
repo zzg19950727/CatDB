@@ -29,15 +29,7 @@ namespace CatDB {
 				DELETE_PLAN,
 				UPDATE,
 				SELECT,
-				CreateTable,
-				CreateDatabase,
-				DropTable,
-				DropDatabase,
-				ShowTables,
-				ShowDatabases,
-				DescTable,
-				UseDatabase,
-				Analyze
+				DoCMD
 			};
 		protected:
 			Plan();
@@ -57,12 +49,13 @@ namespace CatDB {
 			virtual u32 build_plan() = 0;
 			virtual u32 optimizer() = 0;
 			virtual PlanType type() const = 0;
+			virtual bool send_plan_result()const;
 			void set_error_code(u32 code);
 			PhyOperator_s get_root_operator();
 			void set_thd(RequestHandle_s& thd);
 
 		protected:
-			//½«¼Æ»®Êä³öµ½resultÖÐ
+			//ï¿½ï¿½ï¿½Æ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½resultï¿½ï¿½
 			u32 explain_plan();
 
 			Stmt_s lex_stmt;

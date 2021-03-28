@@ -31,18 +31,18 @@
 // version 2.2 of Bison.
 
 /**
- ** \file /home/test/CatDB/parser/lex_yacc/location.hh
+ ** \file /root/CatDB/parser/lex_yacc/location.hh
  ** Define the CatDB::location class.
  */
 
-#ifndef YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
-# define YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
+#ifndef YY_YY_ROOT_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
+# define YY_YY_ROOT_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
 
 # include "position.hh"
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
 namespace CatDB {
-#line 46 "/home/test/CatDB/parser/lex_yacc/location.hh" // location.cc:296
+#line 46 "/root/CatDB/parser/lex_yacc/location.hh" // location.cc:296
   /// Abstract a location.
   class location
   {
@@ -186,7 +186,7 @@ namespace CatDB {
     return ostr;
   }
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
 } // CatDB
-#line 192 "/home/test/CatDB/parser/lex_yacc/location.hh" // location.cc:296
-#endif // !YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED
+#line 192 "/root/CatDB/parser/lex_yacc/location.hh" // location.cc:296
+#endif // !YY_YY_ROOT_CATDB_PARSER_LEX_YACC_LOCATION_HH_INCLUDED

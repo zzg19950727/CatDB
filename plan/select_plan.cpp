@@ -59,6 +59,11 @@ Plan_s SelectPlan::make_select_plan(const Stmt_s& lex_insert_stmt)
 	return Plan_s(plan);
 }
 
+bool SelectPlan::send_plan_result() const
+{
+	return true;
+}
+
 Plan_s SelectPlan::make_select_plan(const Vector<TableStmt*>& grandparent_query_tables, 
 	const Vector<TableStmt*>& parent_query_tables, 
 	const Stmt_s & lex_insert_stmt)
@@ -74,30 +79,30 @@ Plan_s SelectPlan::make_select_plan(const Vector<TableStmt*>& grandparent_query_
 	return Plan_s(plan);
 }
 
-/*Ö´ÐÐselect¼Æ»®*/
+/*Ö´ï¿½ï¿½selectï¿½Æ»ï¿½*/
 u32 SelectPlan::execute()
 {
 	if (!root_operator) {
 		return_result(PLAN_NOT_BUILD);
 	}
-	//·¢ËÍ¼Æ»®
+	//ï¿½ï¿½ï¿½Í¼Æ»ï¿½
 	if (is_explain) {
 		return explain_plan();
 	}
-	//´ò¿ª¶¥²ãËã×Ó
+	//ï¿½ò¿ª¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
 		return_result(ret);
 	}
-	//ÉèÖÃÊä³ötitle
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½title
 	RowDesc row_desc(select_list_name.size());
 	result_title = Row::make_row(row_desc);
 	for (u32 i = 0; i < select_list_name.size(); ++i) {
 		Object_s label = Varchar::make_object(select_list_name[i]);
 		result_title->set_cell(i, label);
 	}
-	//´´½¨²éÑ¯½á¹û¶ÔÏó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	affect_rows_ = 0;
 	Row_s row;
 	if (!result) {
@@ -109,7 +114,7 @@ u32 SelectPlan::execute()
 		query_result->add_row(row);
 		++affect_rows_;
 	}
-	//¹Ø±ÕËã×Ó
+	//ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
 		return_result(ret);
@@ -124,91 +129,56 @@ u32 SelectPlan::execute()
 
 u32 SelectPlan::build_plan()
 {
-	//Èç¹ûÊÇ¼¯ºÏÔËËã£¬ÔòÒÑ¾­Éú³É¼Æ»®£¬Ö±½Ó·µ»Ø
+	//ï¿½ï¿½ï¿½ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½É¼Æ»ï¿½ï¿½ï¿½Ö±ï¿½Ó·ï¿½ï¿½ï¿½
 	if (root_operator) {
 		return SUCCESS;
 	}
 	for (u32 i = 0; i < subquerys.size(); ++i) {
 		subquerys[i]->build_plan();
 	}
-	//¸ù¾ÝÃ¿ÕÅ±íµÄ·ÃÎÊÁÐÉú³ÉÃ¿ÕÅ±íµÄÐÐÃèÊö
+	//ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Å±ï¿½ï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	u32 ret = make_access_row_desc();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
 		return_result(ret);
 	}
-	//Ñ¡Ôñ×îÓÅjoinË³Ðò
+	//Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½joinË³ï¿½ï¿½
 	ret = choos_best_join_order();
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "choose best join order failed");
 		return_result(ret);
 	}
-	//Éú³Éjoin¼Æ»®
+	//ï¿½ï¿½ï¿½ï¿½joinï¿½Æ»ï¿½
 	ret = make_join_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make join plan failed");
 		return_result(ret);
 	}
-	//Éú³Égroup¼Æ»®
+	//ï¿½ï¿½ï¿½ï¿½groupï¿½Æ»ï¿½
 	ret = make_group_pan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make group plan failed");
 		return_result(ret);
 	}
-	//Éú³Édistinct¼Æ»®
+	//ï¿½ï¿½ï¿½ï¿½distinctï¿½Æ»ï¿½
 	ret = make_distinct_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
 		return_result(ret);
 	}
-	//Í¶Ó°Ñ¡ÔñÁÐ
+	//Í¶Ó°Ñ¡ï¿½ï¿½ï¿½ï¿½
 	ret = make_query_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
 		return_result(ret);
 	}
-	//ÊÇ·ñÐèÒªÅÅÐò
+	//ï¿½Ç·ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
 	ret = make_sort_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
 		return_result(ret);
 	}
-	/*
-	//ÐèÒªÅÅÐòµÄÊÇ»ù±íÁÐ£¬Ôò¿ÉÒÔÏÈÖ´ÐÐÅÅÐò£¬ÔÙÖ´ÐÐselectÍ¶Ó°Ëã×Ó
-	if (!is_sort_query_result) {
-		ret = make_sort_plan(root_operator);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "make sort plan failed");
-			return_result(ret);
-		}
-		ret = make_query_plan(root_operator);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "make expression plan failed");
-			return_result(ret);
-		}
-	}
-	//·ñÔòÐèÒªÏÈÍ¶Ó°selectÁÐÔÙÅÅÐò
-	else {
-		ret = make_query_plan(root_operator);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "make expression plan failed");
-			return_result(ret);
-		}
-		//ÊÇ·ñÐèÒªÅÅÐò
-		ret = make_sort_plan(root_operator);
-		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "make sort plan failed");
-			return_result(ret);
-		}
-	}
-	//Éú³Édistinct¼Æ»®
-	ret = make_distinct_plan(root_operator);
-	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
-		return_result(ret);
-	}
-	*/
-	//Éú³Élimit¼Æ»®
+	//ï¿½ï¿½ï¿½ï¿½limitï¿½Æ»ï¿½
 	ret = make_limit_plan(root_operator);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "make limit plan failed");
@@ -233,9 +203,10 @@ u32 SelectPlan::optimizer()
 			Log(LOG_TRACE, "SelectPlan", "build subquery plan");
 			QueryStmt* query = dynamic_cast<QueryStmt*>(expr);
 			lex_stmt = query->query_stmt;
+			return optimizer();
 		}
 		else if (expr->expr_stmt_type() == ExprStmt::Binary) {
-			//Éú³É½»¡¢²¢¡¢²¹¼Æ»®
+			//ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ»ï¿½
 			u32 ret = make_set_plan(root_operator);
 			return_result(ret);
 		}
@@ -246,7 +217,7 @@ u32 SelectPlan::optimizer()
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	//ÊÇ·ñÓÐdistinct¡¢limit
+	//ï¿½Ç·ï¿½ï¿½ï¿½distinctï¿½ï¿½limit
 	SelectStmt* lex = dynamic_cast<SelectStmt*>(lex_stmt.get());
 	is_distinct = lex->is_distinct;
 	asc = lex->asc_desc;
@@ -254,19 +225,19 @@ u32 SelectPlan::optimizer()
 		have_limit = true;
 	else
 		have_limit = false;
-	//»ñÈ¡ÒýÓÃ±í
+	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ã±ï¿½
 	u32 ret = get_ref_tables(lex->from_stmts);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
 		return_result(ret);
 	}
-	//½âÎöselectÊä³öÁÐ
+	//ï¿½ï¿½ï¿½ï¿½selectï¿½ï¿½ï¿½ï¿½ï¿½
 	ret = resolve_select_list(lex->select_expr_list);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
 		return_result(ret);
 	}
-	//½âÎöwhere×Ó¾ä
+	//ï¿½ï¿½ï¿½ï¿½whereï¿½Ó¾ï¿½
 	is_resolve_where = true;
 	ret = resolve_where_stmt(lex->where_stmt);
 	is_resolve_where = false;
@@ -274,25 +245,25 @@ u32 SelectPlan::optimizer()
 		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
 		return_result(ret);
 	}
-	//½âÎögroup×Ó¾ä
+	//ï¿½ï¿½ï¿½ï¿½groupï¿½Ó¾ï¿½
 	ret = resolve_group_stmt(lex->group_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
 		return_result(ret);
 	}
-	//½âÎöhaving×Ó¾ä
+	//ï¿½ï¿½ï¿½ï¿½havingï¿½Ó¾ï¿½
 	ret = resolve_having_stmt(lex->having_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
 		return_result(ret);
 	}
-	//½âÎösort×Ó¾ä
+	//ï¿½ï¿½ï¿½ï¿½sortï¿½Ó¾ï¿½
 	ret = resolve_sort_stmt(lex->order_columns);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
 		return_result(ret);
 	}
-	//½âÎölimit×Ó¾ä
+	//ï¿½ï¿½ï¿½ï¿½limitï¿½Ó¾ï¿½
 	ret = resolve_limit_stmt(lex->limit_stmt);
 	if (ret != SUCCESS) {
 		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
@@ -367,7 +338,7 @@ double SelectPlan::get_select_rows()
 }
 
 /*
- * ½âÎöwhere×Ó¾ä¿é£¬ÇÐ·Ö³ÉandÁ¬½ÓµÄÎ½´Ê·ÖÎö
+ * ï¿½ï¿½ï¿½ï¿½whereï¿½Ó¾ï¿½é£¬ï¿½Ð·Ö³ï¿½andï¿½ï¿½ï¿½Óµï¿½Î½ï¿½Ê·ï¿½ï¿½ï¿½
  */
 u32 SelectPlan::resolve_where_stmt(const Stmt_s& where_stmt)
 {
@@ -379,17 +350,17 @@ u32 SelectPlan::resolve_where_stmt(const Stmt_s& where_stmt)
 	}
 
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(where_stmt.get());
-	//Èç¹ûÊÇandÁ¬½ÓµÄÎ½´Ê
+	//ï¿½ï¿½ï¿½ï¿½ï¿½andï¿½ï¿½ï¿½Óµï¿½Î½ï¿½ï¿½
 	if (expr_stmt->expr_stmt_type() == ExprStmt::Binary) {
 		BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
 		if (binary_stmt->op_type == ExprStmt::OP_AND) {
-			//µÝ¹é½âÎö×óÓï¾ä¿é
+			//ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 ret = resolve_where_stmt(binary_stmt->first_expr_stmt);
 			if (ret != SUCCESS) {
 				Log(LOG_ERR, "SelectPlan", "create binary expression`s first expression failed");
 				return ret;
 			}
-			//µÝ¹é½âÎöÓÒÓï¾ä¿é
+			//ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			ret = resolve_where_stmt(binary_stmt->second_expr_stmt);
 			if (ret != SUCCESS) {
 				Log(LOG_ERR, "SelectPlan", "create binary expression`s second expression failed");
@@ -398,14 +369,14 @@ u32 SelectPlan::resolve_where_stmt(const Stmt_s& where_stmt)
 			return SUCCESS;
 		}
 	}
-	//·Ö¸îµ½×îÐ¡¿éÁË
+	//ï¿½Ö¸îµ½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½
 	return resolve_simple_stmt(where_stmt);
 }
 
 /*
- * ½âÎö×îÐ¡¿éÓï¾ä£¬·Ö³ÉËÄÖÖÇé¿ö£º
- * Á½±íµÈÖµÁ¬½ÓÎ½´Ê¡¢Á½±íÆÕÍ¨Á¬½ÓÎ½´Ê
- * »ù±í¹ýÂËÎ½´Ê¡¢ÆÕÍ¨¹ýÂËÎ½´Ê
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ä£¬ï¿½Ö³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê¡ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
  */
 u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 {
@@ -418,7 +389,7 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	//Èç¹ûÊÇÏà¹Ø×Ó²éÑ¯µÄÏà¹ØÎ½´Ê£¬ÔòµÈ´ý¸ÄÐ´½áÊøºó¼ÌÐø½âÎö
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê£ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (have_parent_column) {
 		corrected_predicates.push_back(expr);
 		return SUCCESS;
@@ -432,7 +403,7 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 			}
 			return ret;
 		}
-		//¿ÉÄÜÊÇjoinÌõ¼þ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½joinï¿½ï¿½ï¿½ï¿½
 		else if (binary_expr->first_expr->get_type() == Expression::Column
 			&& binary_expr->second_expr->get_type() == Expression::Column) {
 			TableStmt* first_table = nullptr;
@@ -447,7 +418,7 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 			if (ret != SUCCESS) {
 				return ret;
 			}
-			//Á½ÕÅ±íµÄÁÐ¹¹³ÉÁ¬½ÓÌõ¼þ£¬Ç°ÌáÊÇÁ½ÕÅ±í¶¼²»ÊÇÀ´ÖÁ¸¸²éÑ¯£¬²¢ÇÒÁ½ÕÅ±í²»ÊÇÍ¬Ò»ÕÅ±í
+			//ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ò»ï¿½Å±ï¿½
 			if(!find_table_from_parent(first_table)
 				&& !find_table_from_parent(second_table)
 				&& first_table->table_id != second_table->table_id) {
@@ -464,13 +435,13 @@ u32 SelectPlan::resolve_simple_stmt(const Stmt_s& stmt)
 		}
 	}
 
-	//¼ì²éÊÇ·ñÊÇµ¥ÕÅ±íµÄ¹ýÂËÎ½´Ê
+	//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Çµï¿½ï¿½Å±ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 	TableStmt* table = nullptr;
 	if (is_table_filter(expr, table)) {
 		add_table_filter(table, expr);
 	}
 	else {
-		//ÆÕÍ¨¹ýÂËÎ½´ÊÔÚÍê³ÉËùÓÐjoinºóÊ¹ÓÃ
+		//ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½joinï¿½ï¿½Ê¹ï¿½ï¿½
 		make_and_expression(filter_after_join, expr);
 	}
 	return SUCCESS;
@@ -487,7 +458,7 @@ u32 SelectPlan::resolve_simple_expr(const Expression_s & expr)
 			}
 			return ret;
 		}
-		//¿ÉÄÜÊÇjoinÌõ¼þ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½joinï¿½ï¿½ï¿½ï¿½
 		else if (binary_expr->first_expr->get_type() == Expression::Column
 			&& binary_expr->second_expr->get_type() == Expression::Column) {
 			TableStmt* first_table = nullptr;
@@ -502,7 +473,7 @@ u32 SelectPlan::resolve_simple_expr(const Expression_s & expr)
 			if (ret != SUCCESS) {
 				return ret;
 			}
-			//Á½ÕÅ±íµÄÁÐ¹¹³ÉÁ¬½ÓÌõ¼þ£¬Ç°ÌáÊÇÁ½ÕÅ±í¶¼²»ÊÇÀ´ÖÁ¸¸²éÑ¯£¬²¢ÇÒÁ½ÕÅ±í²»ÊÇÍ¬Ò»ÕÅ±í
+			//ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ò»ï¿½Å±ï¿½
 			if (!find_table_from_parent(first_table)
 				&& !find_table_from_parent(second_table)
 				&& first_table->table_id != second_table->table_id) {
@@ -519,20 +490,20 @@ u32 SelectPlan::resolve_simple_expr(const Expression_s & expr)
 		}
 	}
 
-	//¼ì²éÊÇ·ñÊÇµ¥ÕÅ±íµÄ¹ýÂËÎ½´Ê
+	//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Çµï¿½ï¿½Å±ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 	TableStmt* table = nullptr;
 	if (is_table_filter(expr, table)) {
 		add_table_filter(table, expr);
 	}
 	else {
-		//ÆÕÍ¨¹ýÂËÎ½´ÊÔÚÍê³ÉËùÓÐjoinºóÊ¹ÓÃ
+		//ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½joinï¿½ï¿½Ê¹ï¿½ï¿½
 		make_and_expression(filter_after_join, expr);
 	}
 	return SUCCESS;
 }
 
 /*
- * Èç¹ûµ±Ç°Î½´ÊÊÇÁÐÔòºó·µ»ØÁÐ£¬·ñÔò·µ»Ønull
+ * ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó·µ»ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½null
  */
 ColumnStmt * SelectPlan::resolve_column_stmt(const Stmt_s & stmt)
 {
@@ -549,7 +520,7 @@ ColumnStmt * SelectPlan::resolve_column_stmt(const Stmt_s & stmt)
 }
 
 /*
- * ½«Î½´ÊÓï¾ä¿é×ª»»Îª±í´ïÊ½
+ * ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ê½
  */
 u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_parent_column)
 {
@@ -605,14 +576,14 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
 		subplan->root_plan = root_plan;
 		bool is_correlated = subplan->is_correlated_query();
-		//Èç¹û×Ó²éÑ¯ÒýÓÃÁËµ±Ç°²éÑ¯µÄ¸¸²éÑ¯µÄ±í£¬ÔòÍ¬ÑùÐèÒªÌí¼Óµ½µ±Ç°²éÑ¯µÄÒýÓÃÁÐ±íÖÐ
+		//ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½Ç°ï¿½ï¿½Ñ¯ï¿½Ä¸ï¿½ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½
 		for (u32 i = 0; i < subplan->ref_parent_table_list.size(); ++i) {
 			TableStmt* table = subplan->ref_parent_table_list[i];
 			if (find_table_from_parent(table)) {
 				ref_parent_table_list.push_back(table);
 			}
 		}
-		//Èç¹û×Ó²éÑ¯ÒýÓÃÁËµ±Ç°²éÑ¯µÄ±íµÄÁÐ£¬ÔòÍ¬ÑùÐèÒªÌí¼Óµ½µ±Ç°²éÑ¯µÄÒýÓÃÁÐÖÐ
+		//ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½Ç°ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (auto iter = subplan->parent_table_access_column.cbegin(); iter != subplan->parent_table_access_column.cend(); ++iter) {
 			const Vector<ColumnDesc>& access_column = iter->second;
 			for (u32 j = 0; j < access_column.size(); ++j) {
@@ -649,7 +620,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
 			return ERROR_LEX_STMT;
 		}
-		//scalar group²»Ö§³Öhaving
+		//scalar groupï¿½ï¿½Ö§ï¿½ï¿½having
 		else if (resolve_select_list_or_having == 1 && group_cols.empty()) {
 			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
 			return ERROR_LEX_STMT;
@@ -674,7 +645,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		}
 		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func);
 		aggr_exprs.push_back(expr);
-		//ÎªÁËÍ³Ò»±í´ïÊ½¼ÆËã¿ò¼Ü°Ñ¾ÛºÏ±í´ïÊ½Ìæ»»³ÉgroupËã×ÓÊä³öÁÐÃèÊö£¬ÒòÎª¾ÛºÏº¯Êý±¾ÉíÓÉgroupËã×Ó¼ÆËã
+		//Îªï¿½ï¿½Í³Ò»ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½Ü°Ñ¾ÛºÏ±ï¿½ï¿½ï¿½Ê½ï¿½æ»»ï¿½ï¿½groupï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ÛºÏºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½groupï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½
 		ColumnDesc col_desc;
 		col_desc.set_tid_cid(alias_table_id, aggr_exprs.size() - 1);
 		expr = ColumnExpression::make_column_expression(col_desc);
@@ -690,7 +661,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			Log(LOG_ERR, "SelectPlan", "create unary expression`s first expression failed");
 			break;
 		}
-		//Èç¹ûÊÇ×Ó²éÑ¯£¬Ôò½øÐÐ²Ù×÷·û¼ì²éºÍ¸ÄÐ´
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½Ð´
 		if (first_expr->get_type() == Expression::Subplan) {
 			SqlRewriter_s sql_rewriter = SqlRewriter::make_sql_rewriter(this, first_expr, Expression_s(), unary_stmt->op_type);
 			ret = sql_rewriter->rewrite_for_select(expr);
@@ -698,7 +669,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 				break;
 			}
 			else if (ret == CAN_NOT_REWRITE) {
-				//Ã»ÓÐ¸ÄÐ´³É¹¦ÔòÐèÒª¼ÌÐø½âÎö×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+				//Ã»ï¿½Ð¸ï¿½Ð´ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(first_expr.get());
 				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
 				u32 ret;
@@ -732,7 +703,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 			Log(LOG_ERR, "SelectPlan", "create binary expression`s second expression failed");
 			break;
 		}
-		//Èç¹ûÊÇ×Ó²éÑ¯£¬Ôò½øÐÐ²Ù×÷·û¼ì²éºÍ¸ÄÐ´
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½Ð´
 		if (first_expr->get_type() == Expression::Subplan
 			&& second_expr->get_type() == Expression::Subplan) {
 			Log(LOG_INFO, "SelectPlan", "subquery op subquery rewrite not support yet");
@@ -744,7 +715,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 				break;
 			}
 			else if (ret == CAN_NOT_REWRITE) {
-				//Ã»ÓÐ¸ÄÐ´³É¹¦ÔòÐèÒª¼ÌÐø½âÎö×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+				//Ã»ï¿½Ð¸ï¿½Ð´ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(first_expr.get());
 				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
 				u32 ret;
@@ -767,7 +738,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 				break;
 			}
 			else if (ret == CAN_NOT_REWRITE) {
-				//Ã»ÓÐ¸ÄÐ´³É¹¦ÔòÐèÒª¼ÌÐø½âÎö×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+				//Ã»ï¿½Ð¸ï¿½Ð´ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 				SubplanExpression* subplan_expr = dynamic_cast<SubplanExpression*>(second_expr.get());
 				SelectPlan* subquery_plan = dynamic_cast<SelectPlan*>(subplan_expr->subplan.get());
 				u32 ret;
@@ -959,9 +930,9 @@ u32 SelectPlan::resolve_all_column_in_count_agg(const Stmt_s & stmt, Expression_
 	return SUCCESS;
 }
 /*
- * µ±Ç°Î½´ÊÓï¾ä¿éÊÇ·ñÊÇ»ù±í¹ýÂËÎ½´Ê£º
- * Èç¹ûÎ½´ÊÖÐÖ»³öÏÖÁËÒ»ÕÅ±íµÄÁÐ»òÕß¶¼ÊÇ³£Á¿£¬
- * Ôò±íÊ¾ÊÇ»ù±í¹ýÂËÎ½´Ê£¬²¢·µ»Ø»ù±í
+ * ï¿½ï¿½Ç°Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê£ï¿½
+ * ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Å±ï¿½ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ß¶ï¿½ï¿½Ç³ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½Ê¾ï¿½Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½Ê£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½
  */
 bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 {
@@ -992,12 +963,12 @@ bool SelectPlan::is_table_filter(const Stmt_s & stmt, TableStmt *& table)
 			ret = false;
 			break;
 		}
-		//ÔÚ´ËÖ®Ç°Ã»ÓÐ³öÏÖ¹ýÁÐÏà¹ØÎ½´Ê
+		//ï¿½Ú´ï¿½Ö®Ç°Ã»ï¿½Ð³ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 		if (table == nullptr) {
 			table = table_belong;
 			ret = true;
 		}
-		//ÔÚ´ËÖ®Ç°³öÏÖ¹ýÁÐÏà¹ØÎ½´Ê
+		//ï¿½Ú´ï¿½Ö®Ç°ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 		else if(table != table_belong){
 			ret = false;
 		}
@@ -1076,12 +1047,12 @@ bool SelectPlan::is_table_filter(const Expression_s & expr, TableStmt *& table)
 			ret = false;
 			break;
 		}
-		//ÔÚ´ËÖ®Ç°Ã»ÓÐ³öÏÖ¹ýÁÐÏà¹ØÎ½´Ê
+		//ï¿½Ú´ï¿½Ö®Ç°Ã»ï¿½Ð³ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 		if (table == nullptr) {
 			table = table_belong;
 			ret = true;
 		}
-		//ÔÚ´ËÖ®Ç°³öÏÖ¹ýÁÐÏà¹ØÎ½´Ê
+		//ï¿½Ú´ï¿½Ö®Ç°ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 		else if (table != table_belong) {
 			ret = false;
 		}
@@ -1145,7 +1116,7 @@ bool SelectPlan::is_table_filter(const Expression_s & expr, TableStmt *& table)
 }
 
 /*
- * »ñÈ¡ÁÐÃèÊö
+ * ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_desc, bool& from_partent)
 {
@@ -1156,7 +1127,7 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	//Èç¹ûÒýÓÃµÄÁÐÀ´ÖÁ¸¸²éÑ¯µÄ±í£¬×¢Ã÷
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½×¢ï¿½ï¿½
 	if (find_table_from_parent(table)) {
 		if (!is_resolve_where) {
 			return ERROR_LEX_STMT;
@@ -1185,14 +1156,14 @@ u32 SelectPlan::resolve_column_desc(ColumnStmt * column_stmt, ColumnDesc & col_d
 }
 
 /*
- * ´Ófrom listÖÐËÑË÷Ö¸¶¨±í£¬ÖØ¸´³öÏÖ±íÊ¾from list³ö´í
+ * ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ê¾from listï¿½ï¿½ï¿½ï¿½
  */
 u32 SelectPlan::find_table(const String & table_name, TableStmt*& table)
 {
 	u32 find = 0;
 	for (u32 i = 0; i < table_list.size(); ++i) {
-		//Èç¹ûÒýÓÃµÄ±íÃ»ÓÐÊ¹ÓÃ±ðÃû£¬ÔÚ½âÎöµÄÊ±ºò»áÊ¹ÓÃÕæÊµ±íÃ÷±íÊ¾±ðÃû
-		//ËùÒÔÕâÀïÖ»ÐèÒªËÑË÷±íµÄ±ðÃû
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ±ï¿½Ã»ï¿½ï¿½Ê¹ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
 		if (table_name == table_list[i]->alias_name) {
 			++find;
 			table = table_list[i];
@@ -1209,10 +1180,10 @@ u32 SelectPlan::find_table(const String & table_name, TableStmt*& table)
 u32 SelectPlan::find_table_from_parent(const String & table_name, TableStmt *& table)
 {
 	u32 find = 0;
-	//ÔÚ¸¸²éÑ¯ÖÐËÑË÷
+	//ï¿½Ú¸ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (u32 i = 0; i < parent_table_list.size(); ++i) {
-		//Èç¹ûÒýÓÃµÄ±íÃ»ÓÐÊ¹ÓÃ±ðÃû£¬ÔÚ½âÎöµÄÊ±ºò»áÊ¹ÓÃÕæÊµ±íÃ÷±íÊ¾±ðÃû
-		//ËùÒÔÕâÀïÖ»ÐèÒªËÑË÷±íµÄ±ðÃû
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ±ï¿½Ã»ï¿½ï¿½Ê¹ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
 		if (table_name == parent_table_list[i]->alias_name) {
 			++find;
 			table = parent_table_list[i];
@@ -1229,8 +1200,8 @@ u32 SelectPlan::find_table_from_parent(const String & table_name, TableStmt *& t
 bool SelectPlan::find_table_from_parent(TableStmt * table)
 {
 	for (u32 i = 0; i < parent_table_list.size(); ++i) {
-		//Èç¹ûÒýÓÃµÄ±íÃ»ÓÐÊ¹ÓÃ±ðÃû£¬ÔÚ½âÎöµÄÊ±ºò»áÊ¹ÓÃÕæÊµ±íÃ÷±íÊ¾±ðÃû
-		//ËùÒÔÕâÀïÖ»ÐèÒªËÑË÷±íµÄ±ðÃû
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ±ï¿½Ã»ï¿½ï¿½Ê¹ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
 		if (table == parent_table_list[i]) {
 			return true;
 		}
@@ -1239,11 +1210,11 @@ bool SelectPlan::find_table_from_parent(TableStmt * table)
 }
 
 /*
- * ´Ófrom listÖÐËÑË÷°üº¬Ö¸¶¨ÁÐµÄ±í
+ * ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ÐµÄ±ï¿½
  */
 u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 {
-	//SQLÖÐÃ»ÓÐÖ¸¶¨ÁÐËùÊôµÄ±í
+	//SQLï¿½ï¿½Ã»ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½
 	if (column_stmt->table.empty()) {
 		u32 ret = who_have_column(column_stmt->column, table);
 		if (ret != SUCCESS) {
@@ -1254,7 +1225,7 @@ u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 			}
 		}
 	}
-	//SQLÖÐÖ¸¶¨ÁËÁÐËùÊôµÄ±í
+	//SQLï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½
 	else {
 		u32 ret = find_table(column_stmt->table, table);
 		if (ret == TABLE_NOT_EXISTS) {
@@ -1272,7 +1243,7 @@ u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 	return SUCCESS;
 }
 /*
- * ´Ófrom listÖÐËÑË÷°üº¬Ö¸¶¨ÁÐµÄ±í
+ * ï¿½ï¿½from listï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ÐµÄ±ï¿½
  */
 u32 SelectPlan::who_have_column(const String & column_name, TableStmt*& table)
 {
@@ -1315,7 +1286,7 @@ u32 SelectPlan::who_have_column(const ColumnDesc & col_desc, TableStmt *& table)
 		return SUCCESS;
 	else if (find > 1)
 		return TABLE_REDEFINE;
-	//µ±Ç°²éÑ¯ÖÐÃ»ÓÐÕÒµ½£¬Ôò¼ÌÐøÏòÉÏ²ã¸¸²éÑ¯²éÕÒ
+	//ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï²ã¸¸ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½
 	find = 0;
 	for (u32 i = 0; i < parent_table_list.size(); ++i) {
 		if (parent_table_list[i]->table_id == tid) {
@@ -1357,7 +1328,7 @@ u32 SelectPlan::which_partent_table_have_column(const String & column_name, Tabl
 		return TABLE_REDEFINE;
 }
 /*
- * ´Ófrom Óï¾ä¿éÖÐ½âÎö³öËùÓÐÒýÓÃÁËµÄ±í
+ * ï¿½ï¿½from ï¿½ï¿½ï¿½ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ËµÄ±ï¿½
  */
 u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 {
@@ -1403,7 +1374,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 
 u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 {
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	if (find_table(subquery->alias_name, table) == SUCCESS) {
 		return TABLE_EXISTS;
@@ -1412,18 +1383,18 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	tmp_table_handle.push_back(stmt);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íµÄÊµ¼Ê²éÑ¯¼Æ»®
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Êµï¿½Ê²ï¿½Ñ¯ï¿½Æ»ï¿½
 	Plan_s plan = SelectPlan::make_select_plan(subquery->query_stmt);
 	if (!plan) {
 		return ERROR_LEX_STMT;
 	}
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	SelectPlan* tmp_table = dynamic_cast<SelectPlan*>(plan.get());
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	tmp_table->root_plan = root_plan;
 	tmp_table->set_alias_table_id(table_id);
-	//½âÎö×Ó²éÑ¯
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯
 	u32 ret = plan->optimizer();
 	if (ret != SUCCESS) {
 		return ret;
@@ -1439,7 +1410,7 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	return SUCCESS;
 }
 /*
- * ËÑË÷Ö¸¶¨Á½ÕÅ±íµÄÁ¬½ÓÎ½´Ê
+ * ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
  */
 u32 SelectPlan::search_jon_info(const JoinableTables & join_tables, JoinConditions & join_cond)
 {
@@ -1480,7 +1451,7 @@ u32 SelectPlan::search_jon_info(const JoinableTables & join_tables, JoinConditio
 	return ret;
 }
 /*
- * Ìí¼ÓÖ¸¶¨Á½ÕÅ±íµÄÁ¬½ÓÎ½´Ê
+ * ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
  */
 u32 SelectPlan::add_join_cond(const JoinableTables & join_tables, const Expression_s & expr)
 {
@@ -1495,7 +1466,7 @@ u32 SelectPlan::add_join_cond(const JoinableTables & join_tables, const Expressi
 	return SUCCESS;
 }
 /*
- * Ìí¼ÓÖ¸¶¨Á½ÕÅ±íµÄµÈÖµÁ¬½ÓÎ½´Ê
+ * ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½Äµï¿½Öµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
  */
 u32 SelectPlan::add_join_equal_cond(const JoinableTables & join_tables, const Expression_s & expr)
 {
@@ -1510,7 +1481,7 @@ u32 SelectPlan::add_join_equal_cond(const JoinableTables & join_tables, const Ex
 	return SUCCESS;
 }
 /*
- * Ìí¼Ó»ù±í¹ýÂËÎ½´Ê
+ * ï¿½ï¿½ï¿½Ó»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
  */
 u32 SelectPlan::add_table_filter(TableStmt * table, const Expression_s & filter)
 {
@@ -1530,7 +1501,7 @@ u32 SelectPlan::add_table_filter(TableStmt * table, const Expression_s & filter)
 	return SUCCESS;
 }
 /*
- * ¹¦ÄÜ£ºexpr = expr and other
+ * ï¿½ï¿½ï¿½Ü£ï¿½expr = expr and other
  */
 u32 SelectPlan::make_and_expression(Expression_s & expr, const Expression_s & other)
 {
@@ -1561,17 +1532,17 @@ u32 SelectPlan::choos_best_join_order()
 		for (u32 i = k; i < end; ++i) {
 			TableStmt* right_table = table_list[i];
 			Expression_s join_cond, join_equal_cond;
-			//ËÑË÷µ±Ç°±íÓëÒÑÉú³É¼Æ»®µÄ±íÊÇ·ñÓÐÁ¬½ÓÌõ¼þ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¼Æ»ï¿½ï¿½Ä±ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			for (u32 j = 0; j < i; ++j) {
 				TableStmt* left_table = table_list[j];
 				JoinableTables joinable_table(left_table, right_table);
 				JoinConditions condition;
 				u32 ret = search_jon_info(joinable_table, condition);
-				//Á½ÕÅ±íÃ»ÓÐjoinÌõ¼þ
+				//ï¿½ï¿½ï¿½Å±ï¿½Ã»ï¿½ï¿½joinï¿½ï¿½ï¿½ï¿½
 				if (ret != SUCCESS) {
 					continue;
 				}
-				//ºÏ²¢Á¬½ÓÌõ¼þ
+				//ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				make_and_expression(join_cond, condition.first);
 				make_and_expression(join_equal_cond, condition.second);
 			}
@@ -1674,20 +1645,20 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 			return ERROR_LEX_STMT;
 		}
 		Expression_s column;
-		//ÔÚselect listÖÐ²éÕÒÅÅÐòÁÐ
+		//ï¿½ï¿½select listï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		ret = resolve_column_from_select_list(list_stmt->stmt_list[i], column);
 		if (ret == SUCCESS) {
 			is_sort_query_result = true;
 		}
 		else {
-			//Èç¹ûÔÚselect listÖÐÃ»ÓÐÕÒµ½ÅÅÐòÁÐ£¬ÔÙ´Ó»ù±íÖÐ²éÕÒ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½select listï¿½ï¿½Ã»ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½Ù´Ó»ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½
 			bool have_parent_column = false;
 			ret = resolve_expr(list_stmt->stmt_list[i], column, have_parent_column);
 			if (ret != SUCCESS) {
 				return ret;
 			}
 			else if (is_sort_query_result) {
-				Log(LOG_ERR, "SelectPlan", "ÔÝÊ±²»Ö§³ÖÅÅÐòÍ¬Ê±³öÏÖÔÚ»ù±íºÍselect list");
+				Log(LOG_ERR, "SelectPlan", "ï¿½ï¿½Ê±ï¿½ï¿½Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½select list");
 				return ERROR_LEX_STMT;
 			}
 			else if (have_parent_column) {
@@ -1808,8 +1779,8 @@ u32 SelectPlan::add_access_column(TableStmt* table, const ColumnDesc& col_desc)
 }
 
 /*
- * ÎªÃ¿Ò»ÕÅÐèÒª·ÃÎÊµÄ±í½¨Á¢·ÃÎÊÐÐÃèÊö
- * ¼´ÐèÒª·ÃÎÊÄÄÐ©ÁÐ
+ * ÎªÃ¿Ò»ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ÊµÄ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½
  */
 u32 SelectPlan::make_access_row_desc()
 {
@@ -1846,21 +1817,21 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 		if (ret != SUCCESS) {
 			return ret;
 		}
-		//Îªtable listÖÐÃ¿Ò»ÕÅ±íÉú³Éjoin¼Æ»®
+		//Îªtable listï¿½ï¿½Ã¿Ò»ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½joinï¿½Æ»ï¿½
 		for (u32 i = 1; i < table_list.size(); ++i) {
 			TableStmt* right_table = table_list[i];
 			Expression_s join_cond, join_equal_cond;
-			//ËÑË÷µ±Ç°±íÓëÒÑÉú³É¼Æ»®µÄ±íÊÇ·ñÓÐÁ¬½ÓÌõ¼þ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¼Æ»ï¿½ï¿½Ä±ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			for (u32 j = 0; j < i; ++j) {
 				TableStmt* left_table = table_list[j];
 				JoinableTables joinable_table(left_table, right_table);
 				JoinConditions condition;
 				u32 ret = search_jon_info(joinable_table, condition);
-				//Á½ÕÅ±íÃ»ÓÐjoinÌõ¼þ
+				//ï¿½ï¿½ï¿½Å±ï¿½Ã»ï¿½ï¿½joinï¿½ï¿½ï¿½ï¿½
 				if (ret != SUCCESS) {
 					continue;
 				}
-				//ºÏ²¢Á¬½ÓÌõ¼þ
+				//ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				make_and_expression(join_cond, condition.first);
 				make_and_expression(join_equal_cond, condition.second);
 			}
@@ -1874,8 +1845,8 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 			if (root_plan->is_explain) {
 				out_rows = cal_join_select_rows(left_root_operator->output_rows, right_op->output_rows, join_cond);
 			}
-			//Ã»ÓÐµÈÖµÁ¬½ÓÌõ¼þµÄÁ¬½ÓÖ»ÄÜÑ¡Ôñnested loopËã·¨
-			//Ä¿Ç°Ö»ÓÐnested loopËã·¨Ö§³Öanti join
+			//Ã»ï¿½Ðµï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ñ¡ï¿½ï¿½nested loopï¿½ã·¨
+			//Ä¿Ç°Ö»ï¿½ï¿½nested loopï¿½ã·¨Ö§ï¿½ï¿½anti join
 			if (right_table->join_type == JoinPhyOperator::AntiJoin) {
 				SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 				assert(checker);
@@ -1970,9 +1941,9 @@ u32 SelectPlan::make_group_pan(PhyOperator_s & op)
 {
 	//scalar group by
 	if (group_cols.size() == 0) {
-		//Ã»ÓÐÈÎºÎÐèÒª¼ÆËãµÄ¾ÛºÏº¯Êý
+		//Ã»ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ä¾ÛºÏºï¿½ï¿½ï¿½
 		if (aggr_exprs.size() == 0) {
-			//²»ÐèÒª¾ÛºÏËã×Ó
+			//ï¿½ï¿½ï¿½ï¿½Òªï¿½Ûºï¿½ï¿½ï¿½ï¿½ï¿½
 			if (having_filter) {
 				Log(LOG_ERR, "SelectPlan", "can not have having filter when there is no group operation");
 				return HAVING_ERROR;
@@ -2019,11 +1990,11 @@ u32 SelectPlan::make_sort_plan(PhyOperator_s & op)
 		return SUCCESS;
 	}
 	else {
-		//limit 30000ÒÔÄÚÐÐ¿ÉÒÔÓÃtop-NÅÅÐò,Èç¹ûÓÐdistinctÔò²»ÄÜ¸ÄÐ´
+		//limit 30000ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿ï¿½ï¿½ï¿½ï¿½ï¿½top-Nï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½distinctï¿½ï¿½ï¿½Ü¸ï¿½Ð´
 		if (!is_distinct && have_limit && limit_size + limit_offset < 30000) {
 			op = TopNSort::make_topn_sort(op, sort_cols, limit_size + limit_offset, asc);
 			op->output_rows = limit_size;
-			//limitÃ»ÓÐÆ«ÒÆÔò²»ÐèÒªÔÙÖ´ÐÐÒ»´Îlimit²Ù×÷
+			//limitÃ»ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ö´ï¿½ï¿½Ò»ï¿½ï¿½limitï¿½ï¿½ï¿½ï¿½
 			if (limit_offset == 0) {
 				have_limit = false;
 			}
@@ -2150,7 +2121,14 @@ u32 SelectPlan::make_set_plan(PhyOperator_s & op)
 	default:
 		break;
 	}
-	select_list = first_select->select_list;
+	
 	select_list_name = first_select->select_list_name;
+	for (u32 i = 0; i < select_list_name.size(); ++i) {
+		ColumnDesc col_desc;
+		col_desc.set_tid_cid(0, i);
+		Expression_s col = ColumnExpression::make_column_expression(col_desc);
+		select_list.push_back(col);
+	}
+	make_query_plan(root_operator);
 	return ret;
 }

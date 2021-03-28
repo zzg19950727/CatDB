@@ -97,6 +97,7 @@ namespace CatDB {
 			u32 get_next_row(Row_s &row);
 			u32 type() const;
 			u32 explain_operator(u32 depth, QueryResult* result)override;
+			Row_s make_row(Row_s & row);
 		};
 	}
 }

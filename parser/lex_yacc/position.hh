@@ -31,12 +31,12 @@
 // version 2.2 of Bison.
 
 /**
- ** \file /home/test/CatDB/parser/lex_yacc/position.hh
+ ** \file /root/CatDB/parser/lex_yacc/position.hh
  ** Define the CatDB::position class.
  */
 
-#ifndef YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED
-# define YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED
+#ifndef YY_YY_ROOT_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED
+# define YY_YY_ROOT_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED
 
 # include <algorithm> // std::max
 # include <iostream>
@@ -50,9 +50,9 @@
 #  endif
 # endif
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
 namespace CatDB {
-#line 56 "/home/test/CatDB/parser/lex_yacc/position.hh" // location.cc:296
+#line 56 "/root/CatDB/parser/lex_yacc/position.hh" // location.cc:296
   /// Abstract a position.
   class position
   {
@@ -174,7 +174,7 @@ namespace CatDB {
     return ostr << pos.line << '.' << pos.column;
   }
 
-#line 3 "/home/test/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
+#line 3 "/root/CatDB/parser/lex_yacc/sql_parser.y" // location.cc:296
 } // CatDB
-#line 180 "/home/test/CatDB/parser/lex_yacc/position.hh" // location.cc:296
-#endif // !YY_YY_HOME_TEST_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED
+#line 180 "/root/CatDB/parser/lex_yacc/position.hh" // location.cc:296
+#endif // !YY_YY_ROOT_CATDB_PARSER_LEX_YACC_POSITION_HH_INCLUDED

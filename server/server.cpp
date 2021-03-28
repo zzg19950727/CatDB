@@ -20,7 +20,6 @@ ServerService::ServerService(const String& config)
 	String log_path = m_config.log_file_path();
 	if(!log_path.empty())
 	{
-		log_path += "/catdb.log";
 		CatDB::Common::set_log_file(log_path.c_str());
 	}
 	CatDB::Common::set_debug_level(m_config.debug_level());

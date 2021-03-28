@@ -43,6 +43,7 @@ namespace CatDB {
 			u32 do_cmd_query(const String& query);
 			void handle_request(char* buf, size_t len);
 			void worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len);
+			void load_tpch_data();
 
 			std::shared_ptr<RequestHandle> m_self;//delete self when no connection
 			ServerService& m_server_service;

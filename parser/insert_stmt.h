@@ -1,14 +1,14 @@
 #ifndef INSERT_STMT_H
 #define INSERT_STMT_H
 
-#include "stmt.h"
+#include "dml_stmt.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
+		DECLARE(DMLStmt);
 
-		class InsertStmt : public Stmt
+		class InsertStmt : public DMLStmt
 		{
 		private:
 			InsertStmt();

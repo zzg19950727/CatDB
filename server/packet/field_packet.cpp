@@ -47,6 +47,8 @@ int FieldPacket::serialize(char* buffer, int64_t length, int64_t& pos)
 	Util::store_int1(buffer, length, num_decimals, pos);
 	//fill_2
 	Util::store_int2(buffer, length, 0, pos);
+	Util::store_length(buffer, length, 0, pos);
+	//Util::store_obstr_zt(buffer, len, "NULL", pos);
 	return SUCCESS;
 }
 

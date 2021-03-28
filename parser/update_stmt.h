@@ -1,14 +1,14 @@
 #ifndef UPDATE_STMT_H
 #define UPDATE_STMT_H
 
-#include "stmt.h"
+#include "dml_stmt.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
+		DECLARE(DMLStmt);
 
-		class UpdateStmt : public Stmt
+		class UpdateStmt : public DMLStmt
 		{
 		private:
 			UpdateStmt();

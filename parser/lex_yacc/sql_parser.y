@@ -32,9 +32,7 @@
 	#include "insert_stmt.h"
 	#include "update_stmt.h"
 	#include "delete_stmt.h"
-	#include "create_stmt.h"
-	#include "drop_stmt.h"
-	#include "show_stmt.h"
+	#include "cmd_stmt.h"
 	#include "expr_stmt.h"
 	#include "object.h"
 	
@@ -233,6 +231,7 @@
 %token EXPLAIN
 %token FLOAT
 %token FROM
+%token FULL
 %token GROUP
 %token HAVING
 %token INDEX
@@ -270,7 +269,7 @@
 %token TIME
 %token END 0
 
-%type<Stmt_s>		sql_stmt stmt select_stmt select_with_parens select_no_parens
+%type<Stmt_s>		sql_stmt stmt select_stmt select_with_parens select_no_parens simple_select
 %type<int>			limit_expr data_type
 %type<bool>			opt_distinct opt_asc_desc  distinct_or_all
 %type<Stmt_s>		select_expr_list from_list opt_where opt_groupby opt_having
@@ -318,10 +317,41 @@ select_stmt:
 	{ 
 		$$ = $1;
 	}
+	| select_with_parens
+	{
+		$$ = $1;
+	}
+	;
+
+select_no_parens:
+	simple_select
+	{
+		$$ = $1;
+	}
+	| select_stmt UNION select_stmt
+    {
+		//构建union二元表达式
+		make_binary_stmt($$, $1, $3, ExprStmt::OP_UNION);
+    }
+  	| select_stmt UNION ALL select_stmt
+    {
+		//构建union all二元表达式
+		make_binary_stmt($$, $1, $4, ExprStmt::OP_UNION_ALL);
+    }
+  	| select_stmt INTERSECT select_stmt
+    {
+		//构建intersect二元表达式
+		make_binary_stmt($$, $1, $3, ExprStmt::OP_INTERSECT);
+    }
+  	| select_stmt EXCEPT select_stmt
+    {
+		//构建except二元表达式
+		make_binary_stmt($$, $1, $3, ExprStmt::OP_EXCEPT);
+    }
 	;
 
 select_with_parens:
-	"(" select_no_parens ")"		
+	"(" select_stmt ")"		
 	{
 		Stmt_s stmt = QueryStmt::make_query_stmt();
 		QueryStmt* query = dynamic_cast<QueryStmt*>(stmt.get());
@@ -330,7 +360,7 @@ select_with_parens:
 	}
 	;
 
-select_no_parens:
+simple_select:
 	SELECT opt_distinct select_expr_list
     FROM from_list
     opt_where opt_groupby opt_having
@@ -350,29 +380,13 @@ select_no_parens:
 		select_stmt->limit_stmt = $11;
 		$$ = stmt;
     }
-  | select_with_parens UNION select_with_parens
-    {
-		//构建union二元表达式
-		make_binary_stmt($$, $1, $3, ExprStmt::OP_UNION);
-    }
-  | select_with_parens UNION ALL select_with_parens
-    {
-		//构建union all二元表达式
-		make_binary_stmt($$, $1, $4, ExprStmt::OP_UNION_ALL);
-    }
-  | select_with_parens INTERSECT select_with_parens
-    {
-		//构建intersect二元表达式
-		make_binary_stmt($$, $1, $3, ExprStmt::OP_INTERSECT);
-    }
-  | select_with_parens EXCEPT select_with_parens
-    {
-		//构建except二元表达式
-		make_binary_stmt($$, $1, $3, ExprStmt::OP_EXCEPT);
-    }
   | SELECT simple_function_expr
 	{
-		$$ = ShowDatabasesStmt::make_show_databases_stmt(true);
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowDatabases);
+		check(stmt);
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.show_databases_params.is_select_current_database = true;
+		$$ = stmt;
 	}
   | SELECT opt_distinct select_expr_list FROM DUAL
 	{
@@ -1017,19 +1031,19 @@ explainable_stmt:
 create_stmt:
     CREATE TABLE relation_factor "(" table_element_list ")"
     {
-		Stmt_s stmt = CreateTableStmt::make_create_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::CreateTable);
 		check(stmt);
-		CreateTableStmt* create_table_stmt = dynamic_cast<CreateTableStmt*>(stmt.get());
-		create_table_stmt->table = $3;
-		create_table_stmt->column_define_list = $5;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.create_table_params.table = $3;
+		cmd_stmt->params.create_table_params.column_define_list = $5;
 		$$ = stmt;
     }
 	| CREATE DATABASE database_name
 	{
-		Stmt_s stmt = CreateDatabaseStmt::make_create_database_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::CreateDatabase);
 		check(stmt);
-		CreateDatabaseStmt* create_database_stmt = dynamic_cast<CreateDatabaseStmt*>(stmt.get());
-		create_database_stmt->database = $3;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.create_database_params.database = $3;
 		$$ = stmt;
 	}
   ;
@@ -1131,18 +1145,18 @@ opt_char_length:
  drop_stmt:
     DROP TABLE table_factor
     {
-		Stmt_s stmt = DropTableStmt::make_drop_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropTable);
 		check(stmt);
-		DropTableStmt* drop_table_stmt = dynamic_cast<DropTableStmt*>(stmt.get());
-		drop_table_stmt->table = $3;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.drop_table_params.table = $3;
 		$$ = stmt;
     }
 	| DROP DATABASE database_name
 	{
-		Stmt_s stmt = DropDatabaseStmt::make_drop_database_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropDatabase);
 		check(stmt);
-		DropDatabaseStmt* drop_database_stmt = dynamic_cast<DropDatabaseStmt*>(stmt.get());
-		drop_database_stmt->database = $3;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.drop_database_params.database = $3;
 		$$ = stmt;
 	}
   ;
@@ -1154,19 +1168,35 @@ opt_char_length:
  **************************************************************/
  show_stmt:
     SHOW DATABASES
-    {
-		$$ = ShowDatabasesStmt::make_show_databases_stmt(false);
-    }
+	{
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowDatabases);
+		check(stmt);
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.show_databases_params.is_select_current_database = false;
+		$$ = stmt;
+ 	}
+	| SHOW FULL TABLES op_from_database
+	{
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowTables);
+		check(stmt);
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.show_tables_params.database = $4;
+		$$ = stmt;
+	}
 	| SHOW TABLES op_from_database
 	{
-		$$ = ShowTablesStmt::make_show_tables_stmt($3);
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowTables);
+		check(stmt);
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.show_tables_params.database = $3;
+		$$ = stmt;
 	}
 	| SHOW COLUMNS FROM relation_factor
 	{
-		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
 		check(stmt);
-		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
-		desc_table_stmt->table = $4;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.desc_table_params.table = $4;
 		$$ = stmt;
 	}
 	| SHOW INDEX FROM relation_factor
@@ -1179,20 +1209,20 @@ opt_char_length:
 	}
 	| SHOW TABLE STATIS relation_factor
 	{
-		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
 		check(stmt);
-		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
-		desc_table_stmt->table = $4;
-		desc_table_stmt->is_show_table_statis = true;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.desc_table_params.table = $4;
+		cmd_stmt->params.desc_table_params.is_show_table_statis = true;
 		$$ = stmt;
 	}
 	| SHOW COLUMN STATIS relation_factor
 	{
-		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
 		check(stmt);
-		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
-		desc_table_stmt->table = $4;
-		desc_table_stmt->is_show_column_statis = true;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.desc_table_params.table = $4;
+		cmd_stmt->params.desc_table_params.is_show_column_statis = true;
 		$$ = stmt;
 	}
   ;
@@ -1209,10 +1239,10 @@ op_from_database:
  use_stmt:
 	USING database_name
 	{
-		Stmt_s stmt = UseDatabaseStmt::make_use_database_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::UseDatabase);
 		check(stmt);
-		UseDatabaseStmt* use_database_stmt = dynamic_cast<UseDatabaseStmt*>(stmt.get());
-		use_database_stmt->database = $2;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.use_database_params.database = $2;
 		$$ = stmt;
 	}
 	;
@@ -1225,18 +1255,18 @@ op_from_database:
  desc_stmt:
     DESCRIBE relation_factor
     {
-		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
 		check(stmt);
-		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
-		desc_table_stmt->table = $2;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.desc_table_params.table = $2;
 		$$ = stmt;
     }
 	| DESC relation_factor
 	{
-		Stmt_s stmt = DescTableStmt::make_desc_table_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
 		check(stmt);
-		DescTableStmt* desc_table_stmt = dynamic_cast<DescTableStmt*>(stmt.get());
-		desc_table_stmt->table = $2;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.desc_table_params.table = $2;
 		$$ = stmt;
 	}
   ;
@@ -1248,29 +1278,29 @@ op_from_database:
  analyze_stmt:
     ANALYZE TABLE database_name "." relation_name
     {
-		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(stmt);
-		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
-		analyze_stmt->database = $3;
-		analyze_stmt->table = $5;
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.analyze_params.database = $3;
+		cmd_stmt->params.analyze_params.table = $5;
 		$$ = stmt;
     }
   | ANALYZE TABLE database_name "." "*"
     {
-		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(stmt);
-		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
-		analyze_stmt->database = $3;
-		analyze_stmt->table = "*";
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.analyze_params.database = $3;
+		cmd_stmt->params.analyze_params.table = "*";
 		$$ = stmt;
     }
   | ANALYZE TABLE "*" "." "*"
     {
-		Stmt_s stmt = AnalyzeStmt::make_analyze_stmt();
+		Stmt_s stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(stmt);
-		AnalyzeStmt* analyze_stmt = dynamic_cast<AnalyzeStmt*>(stmt.get());
-		analyze_stmt->database = "*";
-		analyze_stmt->table = "*";
+		CMDStmt* cmd_stmt = dynamic_cast<CMDStmt*>(stmt.get());
+		cmd_stmt->params.analyze_params.database = "*";
+		cmd_stmt->params.analyze_params.table = "*";
 		$$ = stmt;
     }
   ;
