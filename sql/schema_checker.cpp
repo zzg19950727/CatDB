@@ -302,7 +302,7 @@ u32 SchemaChecker::get_table_id(const String & database, const String & table, u
 	}
 }
 
-u32 SchemaChecker::analyze_table(const String & database, const String & table)
+u32 SchemaChecker::analyze_table(const String & database, const String & table, double sample_size)
 {
 	if (database == "system") {
 		Log(LOG_WARN, "AnalyzeStatis", "skip analyze system database");
@@ -324,7 +324,7 @@ u32 SchemaChecker::analyze_table(const String & database, const String & table)
 				continue;
 			}
 			for (u32 j = 0; j < tables.size(); ++j) {
-				ret = analyze_table_system(databases[i], tables[j]);
+				ret = analyze_table_system(databases[i], tables[j], sample_size);
 			}
 		}
 		return ret;
@@ -336,12 +336,12 @@ u32 SchemaChecker::analyze_table(const String & database, const String & table)
 			return ret;
 		}
 		for (u32 i = 0; i < tables.size(); ++i) {
-			ret = analyze_table_system(database, tables[i]);
+			ret = analyze_table_system(database, tables[i], sample_size);
 		}
 		return ret;
 	}
 	else {
-		return analyze_table_system(database, table);
+		return analyze_table_system(database, table, sample_size);
 	}
 }
 
@@ -771,7 +771,7 @@ u32 SchemaChecker::get_row_desc_from_result(u32 table_id, RowDesc & row_desc, co
 	return SUCCESS;
 }
 
-u32 SchemaChecker::execute_sys_sql(const String & sql, Object_s& result)
+u32 SchemaChecker::execute_sys_sql(const String & sql, Object_s& result, double sample_size)
 {
 	SqlDriver parser;
 	int ret = parser.parse_sql(sql);
@@ -786,6 +786,7 @@ u32 SchemaChecker::execute_sys_sql(const String & sql, Object_s& result)
 	}
 	else {
 		Plan_s plan = Plan::make_plan(parser.parse_result());
+		plan->query_ctx.sample_size = sample_size;
 		u32 ret = plan->optimizer();
 		if (ret != SUCCESS) {
 			Object_s result = plan->get_result();
@@ -971,7 +972,7 @@ bool SchemaChecker::have_column_system(const String &, const String & table_name
 	}
 }
 
-u32 SchemaChecker::analyze_table_system(const String & database, const String & table)
+u32 SchemaChecker::analyze_table_system(const String & database, const String & table, double sample_size)
 {
 	Vector<Pair<String, String>> columns;
 	u32 ret = desc_table(database, table, columns);
@@ -979,7 +980,7 @@ u32 SchemaChecker::analyze_table_system(const String & database, const String & 
 		Log(LOG_WARN, "AnalyzeStatic", "%s.%s not exists", database.c_str(), table.c_str());
 		return ret;
 	}
-	ret = analyze_table_statis(database, table);
+	ret = analyze_table_statis(database, table, sample_size);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s failed", database.c_str(), table.c_str());
 		return ret;
@@ -988,7 +989,7 @@ u32 SchemaChecker::analyze_table_system(const String & database, const String & 
 		if (columns[i].second == "varchar") {
 			continue;
 		}
-		ret = analyze_column_statis(database, table, columns[i].first);
+		ret = analyze_column_statis(database, table, columns[i].first, sample_size);
 		if (ret != SUCCESS) {
 			Log(LOG_WARN, "AnalyzeStatic", "analyze %s.%s:%s failed", database.c_str(), table.c_str(), columns[i].first.c_str());
 		}
@@ -996,7 +997,7 @@ u32 SchemaChecker::analyze_table_system(const String & database, const String & 
 	return SUCCESS;
 }
 
-u32 SchemaChecker::analyze_table_statis(const String & database, const String & table)
+u32 SchemaChecker::analyze_table_statis(const String & database, const String & table, double sample_size)
 {
 	u32 table_id;
 	u32 ret = get_table_id(database, table, table_id);
@@ -1010,7 +1011,7 @@ u32 SchemaChecker::analyze_table_statis(const String & database, const String & 
 	if (file_size > 0) {
 		String query = "select count(*) from " + database + "." + table +";";
 		Object_s result;
-		ret = execute_sys_sql(query, result);
+		ret = execute_sys_sql(query, result, sample_size);
 		if (ret != SUCCESS) {
 			Log(LOG_WARN, "AnalyzeStatic", "query %s.%s count failed", database.c_str(), table.c_str());
 			return ret;
@@ -1020,6 +1021,8 @@ u32 SchemaChecker::analyze_table_statis(const String & database, const String & 
 			if (ret != SUCCESS) {
 				Log(LOG_WARN, "AnalyzeStatic", "get %s.%s count failed", database.c_str(), table.c_str());
 				return ret;
+			} else {
+				row_count /= sample_size;
 			}
 		}
 	}
@@ -1037,7 +1040,7 @@ u32 SchemaChecker::analyze_table_statis(const String & database, const String & 
 	return ret;
 }
 
-u32 SchemaChecker::analyze_column_statis(const String & database, const String & table, const String & column, bool varchar_type)
+u32 SchemaChecker::analyze_column_statis(const String & database, const String & table, const String & column, double sample_size, bool varchar_type)
 {
 	u32 tid, cid;
 	ColumnDesc col_desc;
@@ -1055,10 +1058,10 @@ u32 SchemaChecker::analyze_column_statis(const String & database, const String &
 	}*/
 	u32 ndv, null_count;
 	String max_value, min_value;
-	//NDVÍ³¼Æ
+	//NDVÍ³ï¿½ï¿½
 	String query = "select count(*) from ( select distinct `" + column + "` from `" + database + "`.`" + table + "`) as tmp;";
 	Object_s result;
-	ret = execute_sys_sql(query, result);
+	ret = execute_sys_sql(query, result, sample_size);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s NDV failed", database.c_str(), table.c_str(), column.c_str());
 		return ret;
@@ -1068,11 +1071,13 @@ u32 SchemaChecker::analyze_column_statis(const String & database, const String &
 		if (ret != SUCCESS) {
 			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s NDV failed", database.c_str(), table.c_str(), column.c_str());
 			return ret;
+		} else {
+			ndv /= sample_size;
 		}
 	}
-	//null countÍ³¼Æ
+	//null countÍ³ï¿½ï¿½
 	query = "select count(`" + column + "`) from `" + database + "`.`" + table + "` where `" + column + "`  is null;";
-	ret = execute_sys_sql(query, result);
+	ret = execute_sys_sql(query, result, sample_size);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s null count failed", database.c_str(), table.c_str(), column.c_str());
 		return ret;
@@ -1082,11 +1087,13 @@ u32 SchemaChecker::analyze_column_statis(const String & database, const String &
 		if (ret != SUCCESS) {
 			Log(LOG_WARN, "AnalyzeStatic", "get %s.%s:%s null count failed", database.c_str(), table.c_str(), column.c_str());
 			return ret;
+		} else {
+			null_count /= sample_size;
 		}
 	}
-	//»ñÈ¡×î´óÖµ
+	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Öµ
 	query = "select max(`" + column + "`) from `" + database + "`.`" + table + "`;";
-	ret = execute_sys_sql(query, result);
+	ret = execute_sys_sql(query, result, sample_size);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s max value failed", database.c_str(), table.c_str(), column.c_str());
 		return ret;
@@ -1102,9 +1109,9 @@ u32 SchemaChecker::analyze_column_statis(const String & database, const String &
 			max_value = std::to_string(value);
 		}
 	}
-	//»ñÈ¡×îÐ¡Öµ
+	//ï¿½ï¿½È¡ï¿½ï¿½Ð¡Öµ
 	query = "select min(`" + column + "`) from `" + database + "`.`" + table + "`;";
-	ret = execute_sys_sql(query, result);
+	ret = execute_sys_sql(query, result, sample_size);
 	if (ret != SUCCESS) {
 		Log(LOG_WARN, "AnalyzeStatic", "query %s.%s:%s min value failed", database.c_str(), table.c_str(), column.c_str());
 		return ret;

@@ -19,8 +19,6 @@ namespace CatDB {
 			Stmt_s select_expr_list;	//select语句块
 			Stmt_s hint_list;			//
 			bool is_distinct;			//输出集是否去重？
-			Stmt_s from_stmts;			//from语句块
-			Stmt_s where_stmt;			//where语句块
 			Stmt_s group_columns;		//groupby 列
 			Stmt_s having_stmt;			//having语句块
 			Stmt_s order_columns;		//order by列

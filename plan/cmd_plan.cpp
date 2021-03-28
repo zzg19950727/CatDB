@@ -617,7 +617,7 @@ u32 CMDPlan::do_cmd_analyze()
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	ret = checker->analyze_table(database, table);
+	ret = checker->analyze_table(database, table, 0.01);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;

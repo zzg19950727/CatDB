@@ -20,13 +20,18 @@ TableSpace::~TableSpace()
 {
 }
 
-TableSpace_s TableSpace::make_table_space(const String& table_name, const String & database)
+TableSpace_s TableSpace::make_table_space(const String& table_name, const String & database, double sample_size)
 {
 	TableSpace* table_space = new TableSpace;
 	table_space->database = database;
 	table_space->table_name = table_name;
 	table_space->alias_table_name = table_name;
 	table_space->alias_table_id = table_space->get_table_id();
+	if (sample_size > 0.99) {
+		table_space->page_skip_size = 0;
+	} else {
+		table_space->page_skip_size = 1.0 / sample_size;
+	}
 	return TableSpace_s(table_space);
 }
 
@@ -64,7 +69,7 @@ u32 TableSpace::get_next_row(Row_s & row)
 		Log(LOG_TRACE, "TableSpace", "page %u have read end, load next page", cur_page_offset);
 		//读取下一页
 		pages.erase(pages.find(cur_page_offset));
-		cur_page_offset = page->next_page_offset();
+		cur_page_offset = page->next_page_offset() + page_skip_size;
 		//下一页不在内存中
 		ret = get_page_from_offset(cur_page_offset, page);
 		if (ret == END_OF_TABLE_SPACE) {

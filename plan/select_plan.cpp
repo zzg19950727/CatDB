@@ -1929,7 +1929,11 @@ u32 SelectPlan::make_table_scan(TableStmt * table, PhyOperator_s & op)
 		}
 	}
 	else {
-		op = TableScan::make_table_scan(table->database, table->table_name, table_access_row_desc[table], filter);
+		op = TableScan::make_table_scan(table->database,
+										table->table_name,
+										table_access_row_desc[table],
+										filter,
+										query_ctx.sample_size);
 		TableScan* table_scan = dynamic_cast<TableScan*>(op.get());
 		table_scan->set_alias_table_name(table->alias_name);
 		table_scan->output_rows = table->select_rows;

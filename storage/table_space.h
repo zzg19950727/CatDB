@@ -18,7 +18,7 @@ namespace CatDB {
 			TableSpace();
 		public:
 			~TableSpace();
-			static TableSpace_s make_table_space(const String& table_name, const String& database="");
+			static TableSpace_s make_table_space(const String& table_name, const String& database="", double sample_size = 1);
 			//对外获取记录接口
 			u32 open();
 			u32 get_next_row(Row_s& row);
@@ -64,6 +64,7 @@ namespace CatDB {
 			IoService_s io;
 			u32 cur_page_offset;
 			u32 alias_table_id;
+			u32 page_skip_size;
 		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)

@@ -17,35 +17,35 @@ namespace CatDB {
 		{
 		public:
 			static SchemaChecker_s make_schema_checker();
-			//»ñÈ¡ÁÙÊ±±íID
+			//ï¿½ï¿½È¡ï¿½ï¿½Ê±ï¿½ï¿½ID
 			u32 get_table_id(const String& database, const String& table_name);
-			//»ñÈ¡±íµÄĞĞÃèÊö
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 get_row_desc(const String& database, const String& table_name, RowDesc& row_desc);
-			//»ñÈ¡ÁĞÃèÊö
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 get_column_desc(const String& database, const String& table_name, const String& column_name, ColumnDesc& col_desc);
-			//ÊÇ·ñº¬ÓĞÁĞ
+			//ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½
 			bool have_column(const String& database, const String& table_name, const String& column_name);
-			//Ä£Ê½ĞÅÏ¢Ìí¼ÓÒ»¸öÊı¾İ¿â
+			//Ä£Ê½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½
 			u32 add_database(const String& database);
-			//Ä£Ê½ĞÅÏ¢É¾³ıÒ»¸öÊı¾İ¿â
+			//Ä£Ê½ï¿½ï¿½Ï¢É¾ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½
 			u32 delete_database(const String& database);
-			//Ä£Ê½ĞÅÏ¢Ìí¼ÓÒ»ÕÅ±í
+			//Ä£Ê½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Å±ï¿½
 			u32 add_table(const String& database, const String& table, const Vector<Pair<String, String>>& columns);
-			//Ä£Ê½ĞÅÏ¢É¾³ıÒ»ÕÅ±í
+			//Ä£Ê½ï¿½ï¿½Ï¢É¾ï¿½ï¿½Ò»ï¿½Å±ï¿½
 			u32 delete_table(const String& database, const String& table);
-			//´ÓÄ£Ê½±íÖĞ»ñÈ¡ËùÓĞµÄÊı¾İ¿âÃû
+			//ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ğ»ï¿½È¡ï¿½ï¿½ï¿½Ğµï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½
 			u32 show_database(Vector<String>& databases);
-			//´ÓÄ£Ê½±íÖĞ»ñÈ¡ËùÓĞµÄ±íÃû
+			//ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ğ»ï¿½È¡ï¿½ï¿½ï¿½ĞµÄ±ï¿½ï¿½ï¿½
 			u32 show_tables(const String& database, Vector<String>& tables);
-			//»ñÈ¡½¨±íĞÅÏ¢
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 			u32 desc_table(const String& database, const String& table, Vector<Pair<String, String>>& columns);
-			//»ñÈ¡Êı¾İ¿âÔÚÄ£Ê½±íÖĞµÄID
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ğµï¿½ID
 			u32 get_database_id(const String& database, u32& id);
-			//»ñÈ¡±íÔÙÄ£Ê½±íÖĞµÄID
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ğµï¿½ID
 			u32 get_table_id(const String& database, const String& table, u32& id);
 
-			//ÊÕ¼¯Í³¼ÆĞÅÏ¢
-			u32 analyze_table(const String& database, const String& table);
+			//ï¿½Õ¼ï¿½Í³ï¿½ï¿½ï¿½ï¿½Ï¢
+			u32 analyze_table(const String& database, const String& table, double sample_size);
 			u32 statis_table_row_count(const String& database, const String& table);
 			u32 statis_column_ndv(const String& database, const String& table_name, const String& column_name);
 			u32 statis_column_max_value(const String& database, const String& table_name, const String& column_name);
@@ -58,31 +58,31 @@ namespace CatDB {
 
 			u32 init_db();
 		private:
-			//»ñÈ¡×îºóÒ»¸öÊı¾İ¿âµÄID
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ID
 			u32 get_last_database_id(u32& id);
-			//»ñÈ¡×îºóÒ»ÕÅ±íµÄID
+			//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ò»ï¿½Å±ï¿½ï¿½ï¿½ID
 			u32 get_last_table_id(const String& database, u32& id);
-			//´ÓÏµÍ³²éÑ¯½á¹ûÖĞ½âÎöÁĞID
+			//ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½Ğ½ï¿½ï¿½ï¿½ï¿½ï¿½ID
 			u32 get_id_from_result(u32& id, const Object_s& result);
 			u32 get_value_from_result(double& value, const Object_s& result);
-			//´ÓÏµÍ³²éÑ¯½á¹ûÖĞ½âÎöÃû×ÖÁĞ±í
+			//ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½Ğ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ±ï¿½
 			u32 get_name_from_result(Vector<String>& list, const Object_s& result);
-			//´ÓÏµÍ³²éÑ¯ÖĞ½âÎö±íĞÅÏ¢
+			//ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ñ¯ï¿½Ğ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 			u32 get_columns_from_result(Vector<Pair<String, String>>& list, const Object_s& result);
 			u32 get_columns_desc_from_result(ColumnDesc& col_desc, const Object_s& result);
-			//´ÓÏµÍ³²éÑ¯ÖĞ½âÎöĞĞÃèÊö
+			//ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ñ¯ï¿½Ğ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 get_row_desc_from_result(u32 table_id, RowDesc& row_desc, const Object_s& result);
-			//Ö´ĞĞÏµÍ³SQL
-			u32 execute_sys_sql(const String& sql, Object_s& result);
-			//»ñÈ¡ÏµÍ³¶¥²ãĞĞÃèÊö
+			//Ö´ï¿½ï¿½ÏµÍ³SQL
+			u32 execute_sys_sql(const String& sql, Object_s& result, double sample_size=1);
+			//ï¿½ï¿½È¡ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 get_row_desc_system(const String& database, const String& table_name, RowDesc& row_desc);
-			//»ñÈ¡ÏµÍ³¶¥²ãÁĞÃèÊö
+			//ï¿½ï¿½È¡ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			u32 get_column_desc_system(const String& database, const String& table_name, const String& column_name, ColumnDesc& col_desc);
 			bool have_column_system(const String& database, const String& table_name, const String& column_name);
 
-			u32 analyze_table_system(const String& database, const String& table);
-			u32 analyze_table_statis(const String& database, const String& table);
-			u32 analyze_column_statis(const String& database, const String& table, const String& column, bool varchar_type=false);
+			u32 analyze_table_system(const String& database, const String& table, double sample_size);
+			u32 analyze_table_statis(const String& database, const String& table, double sample_size);
+			u32 analyze_column_statis(const String& database, const String& table, const String& column, double sample_size, bool varchar_type=false);
 		};
 	}
 }

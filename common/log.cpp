@@ -52,6 +52,7 @@ private:
 	std::ofstream out_file;
 	std::ostream* os;
 	std::string module;
+	std::string path;
 	int log_level;
 };
 
@@ -80,6 +81,7 @@ std::ostream* LogStream::switch_ostream(std::ostream* os)
 void LogStream::set_log_file(const char* path)
 {
 	out_file.open(path);
+	this->path = std::string(path);
 	os = &out_file;
 }
 
@@ -213,6 +215,12 @@ bool LogStream::print_info(const char * file, int line, const char * function)
 {
 	if (log_level > LOG_SET || module=="Object" || module=="Page" || module=="TableSpace" || module == "IoService")
 		return false;
+		out_file.open(path);
+	if (!path.empty()) {
+		out_file.close();
+		out_file.open(path);
+		os = &out_file;
+	}
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	*os << "[" << put_time(t) <<"] ";
 	if (log_level == LOG_ERR)
@@ -223,7 +231,7 @@ bool LogStream::print_info(const char * file, int line, const char * function)
 		*os << "[INFO ] [" << module << "] ";
 	else if (log_level == LOG_TRACE)
 		*os << "[TRACE] [" << module << "] ";
-	*os << "[" << file << "] [" << line << "] [" << function << "(...)] ";
+	*os << "[" << file << ":" << line << "] [" << function << "(...)] ";
 	return true;
 }
 

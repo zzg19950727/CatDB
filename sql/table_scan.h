@@ -22,11 +22,13 @@ namespace CatDB {
 			~TableScan();
 			static PhyOperator_s make_table_scan(const String&database,
 				const String& table,
-				const Common::RowDesc& desc);
+				const Common::RowDesc& desc,
+				double sample_size = 1);
 			static PhyOperator_s make_table_scan(const String&database,
 				const String& table,
 				const Common::RowDesc& desc,
-				const Filter_s& filter);
+				const Filter_s& filter,
+				double sample_size);
 			void set_alias_table_name(const String& alias_name);
 			u32 set_filter(const Filter_s& filter);
 			Filter_s get_filter()const;

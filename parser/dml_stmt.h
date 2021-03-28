@@ -16,6 +16,8 @@ namespace CatDB {
 			virtual ~DMLStmt() {};
 			virtual StmtType stmt_type() const = 0;
 		public:
+			Stmt_s from_stmts;			//from语句块
+			Stmt_s where_stmt;			//where语句块
 		};
 	}
 }

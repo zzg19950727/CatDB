@@ -22,9 +22,10 @@ CatDB::Sql::TableScan::~TableScan()
 
 PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const String&database,
 	const String& table,
-	const RowDesc& desc)
+	const RowDesc& desc,
+	double sample_size)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	TableSpace_s table_space = TableSpace::make_table_space(table, database, sample_size);
 	TableScan* scan = new TableScan(table_space);
 	scan->set_access_desc(desc);
 	scan->set_output_desc(desc);
@@ -34,9 +35,10 @@ PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const String&database,
 PhyOperator_s CatDB::Sql::TableScan::make_table_scan(const String&database,
 	const String& table,
 	const RowDesc& desc,
-	const Filter_s & filter)
+	const Filter_s & filter,
+	double sample_size)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	TableSpace_s table_space = TableSpace::make_table_space(table, database, sample_size);
 	TableScan* scan = new TableScan(table_space);
 	scan->set_filter(filter);
 	scan->set_access_desc(desc);

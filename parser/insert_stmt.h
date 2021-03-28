@@ -17,7 +17,6 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_insert_stmt();
 		public:
-			Stmt_s table;
 			Stmt_s values;
 		};
 	}

@@ -1,5 +1,4 @@
 #include "request_handle.h"
-#include "schema_checker.h"
 #include "query_result.h"
 #include "sql_driver.h"
 #include "resheader_packet.h"
@@ -444,17 +443,9 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_INIT_DB:
 		{
 			String db(buf + 1, len - 1);
-			SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-			assert(checker);
-			u32 id;
-			u32 ret = checker->get_database_id(db, id);
-			if (ret != SUCCESS) {
-				send_error_packet(ret, "database not exists");
-			}
-			else {
-				cur_database = db;
-				send_ok_packet();
-			}
+			String query = "use "+db;
+			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
+			m_server_service.workers().append_task(task);
 			break;
 		}
 		case COM_QUERY:
@@ -505,7 +496,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 }
 
 void RequestHandle::load_tpch_data()
-{
+{/*
 	create_table();
 	Task_type task = std::bind(load_lineitem_data);
 	m_server_service.workers().append_task(task);
@@ -520,8 +511,10 @@ void RequestHandle::load_tpch_data()
 	task = std::bind(load_supplier_data);
 	m_server_service.workers().append_task(task);
 	task = std::bind(load_region_data);
+	m_server_service.workers().append_task(task);*/
+	Task_type task = std::bind(load_nation_data);
 	m_server_service.workers().append_task(task);
-	task = std::bind(load_nation_data);
+	task = std::bind(load_partsupp_data);
 	m_server_service.workers().append_task(task);
 	send_ok_packet();
 }
