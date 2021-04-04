@@ -1,13 +1,14 @@
 # CatDB简介
-借鉴OceanBase0.4开源代码，以Volcano模型实现SQL引擎，存储引擎以行为存储格式，不支持锁和缓存。
+以Volcano模型实现SQL引擎，存储引擎以行为存储格式，不支持锁和缓存。
 SQL引擎支持基本的insert、delete、update、select，支持多层嵌套子查询（包括相关子查询和非相关子查询），
 优化器部分支持N、A、J、JA四种子查询改写，提高子查询的效率。
 接口驱动使用MySQL5.0的TEXT协议，各种MySQL客户端可以登录使用。
 
 # Unix平台编译
-依赖flex、bison、g++、pthread、cmake
+依赖flex、bison、g++、pthread、cmake [apt-get install flex bison g++ cmake]
 预先删除parser/lex_yacc/FlexLexer.h文件，避免linux下bison版本冲突
-使用cmake编译
+使用cmake编译 [mkdir build;cd build;cmake ..;make]
+
 
 # Windows平台编译
 依赖flex、bison、cmake
