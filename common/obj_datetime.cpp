@@ -17,7 +17,6 @@ DateTime::DateTime(const RawData & data)
 	obj_width = data.length;
 	obj_type = data.type;
 	memcpy(&this->data, data.data, obj_width);
-	Log(LOG_TRACE, "Object", "make datetime object, value %f", this->data);
 }
 
 Object_s DateTime::make_object(double value)
@@ -139,7 +138,7 @@ Object_s DateTime::operator+(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not add %u", other->get_type());
+		LOG_ERR("datetime type can not add ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -154,13 +153,13 @@ Object_s DateTime::operator-(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not sub %u", other->get_type());
+		LOG_ERR("datetime type can not sub ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
 		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
-		if (data - rhs->data) {
-			Log(LOG_WARN, "Object", "uncorrect datetimer after sub");
+		if (data < rhs->data) {
+			LOG_WARN("uncorrect datetime after sub");
 			return DateTime::make_object(0);
 		}
 		else {
@@ -175,7 +174,7 @@ Object_s DateTime::operator==(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not compare %u", other->get_type());
+		LOG_ERR("datetime type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -190,7 +189,7 @@ Object_s DateTime::operator>(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not compare %u", other->get_type());
+		LOG_ERR("datetime type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -205,7 +204,7 @@ Object_s DateTime::operator<(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not compare %u", other->get_type());
+		LOG_ERR("datetime type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -230,7 +229,7 @@ Object_s DateTime::between(const Object_s & left, const Object_s & right)
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not comapre %u", left->get_type());
+		LOG_ERR("datetime type can not comapre ", K(left), K(right));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -246,7 +245,7 @@ void DateTime::accumulate(const Object_s & other)
 		set_null();
 	}
 	else if (other->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not accumulate with %u", other->get_type());
+		LOG_ERR("datetime type can not accumulate with ", K(other));
 	}
 	else {
 		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));

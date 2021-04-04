@@ -22,7 +22,7 @@ ServerService::ServerService(const String& config)
 	{
 		CatDB::Common::set_log_file(log_path.c_str());
 	}
-	CatDB::Common::set_debug_level(m_config.debug_level());
+	CatDB::Common::set_debug_level(m_config.log_level());
 }
 
 ServerService::~ServerService()
@@ -59,7 +59,7 @@ void ServerService::new_connection(int fd, NetService::Event e)
 	{
 		if(m_clients >= m_config.max_client_count())
 		{
-			Log(LOG_WARN, "ServerService", "ServerService::new_connection too much clients,rejuect");
+			LOG_WARN("ServerService::new_connection too much clients,rejuect", K(m_clients));
 			net_close(client_fd);
 			return;
 		}
@@ -76,22 +76,22 @@ void ServerService::do_login(int fd)
 		ptr->set_delete_handle(ptr);
 		++m_clients;
 		++m_thread_id;
-		Log(LOG_TRACE, "ServerService", "new client %d login", fd);
+		LOG_TRACE("new client login", K(fd));
 	}
 	else {
-		Log(LOG_WARN, "ServerService", "login failed");
+		LOG_WARN("login failed");
 	}
 }
 
 void ServerService::close_connection(int fd)
 {
 	--m_clients;
-	Log(LOG_TRACE, "ServerService", "client %d closed", fd);
+	LOG_TRACE("client closed", K(fd));
 }
 
 void ServerService::close_connection()
 {
-	Log(LOG_TRACE, "ServerService", "stop ServerService success");
+	LOG_TRACE("stop ServerService success");
 	net_close(m_fd);
 	m_fd = -1;
 }

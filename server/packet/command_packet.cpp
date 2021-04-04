@@ -23,7 +23,7 @@ int CommandPacket::set_request(Request_s req)
 	int ret = SUCCESS;
 	if (!req)
 	{
-		Log(LOG_ERR, "CommandPacket", "invalid argument reqeust is %p", req);
+		LOG_ERR("invalid argument");
 		ret = INVALID_ARGUMENT;
 	}
 	else

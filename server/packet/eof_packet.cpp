@@ -24,7 +24,7 @@ int EofPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 
 	if (NULL == buffer || len <= 0 || pos < 0)
 	{
-		Log(LOG_ERR,"EofPacket", "invalid argument buffer=%p, len=%ld, pos=%ld",
+		LOG_ERR("invalid argument buffer=%p, len=%ld, pos=%ld",
 			buffer, len, pos);
 		ret = INVALID_ARGUMENT;
 	}
@@ -32,17 +32,17 @@ int EofPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 	{
 		if (SUCCESS != (ret = Util::store_int1(buffer, len, field_count_, pos)))
 		{
-			Log(LOG_ERR, "EofPacket", "serialize field_count failed, buffer=%p, len=%ld, field_count=%u, pos=%ld, ret=%d",
+			LOG_ERR("serialize field_count failed, buffer=%p, len=%ld, field_count=%u, pos=%ld, ret=%d",
 				buffer, len, field_count_, pos, ret);
 		}
 		else if (SUCCESS != (ret = Util::store_int2(buffer, len, warning_count_, pos)))
 		{
-			Log(LOG_ERR, "EofPacket", "serialize warning_count failed, buffer=%p, len=%ld, warning_count=%u, pos=%ld, ret=%d",
+			LOG_ERR("serialize warning_count failed, buffer=%p, len=%ld, warning_count=%u, pos=%ld, ret=%d",
 				buffer, len, warning_count_, pos, ret);
 		}
 		else if (SUCCESS != (ret = Util::store_int2(buffer, len, server_status_, pos)))
 		{
-			Log(LOG_ERR, "EofPacket", "serialize marker failed, buffer=%p, len=%ld, marker=%c, pos=%ld, ret=%d",
+			LOG_ERR("serialize marker failed, buffer=%p, len=%ld, marker=%c, pos=%ld, ret=%d",
 				buffer, len, server_status_, pos, ret);
 		}
 	}

@@ -48,7 +48,7 @@ int RowPacket::cell_str(const Object_s & obj, char * buf, const int64_t len, int
 		ret = varchar_cell_str(obj, buf, len, pos);
 		break;
 	default:
-		Log(LOG_WARN, "RowPacket", "invalid ob type=%d", obj->get_type());
+		LOG_WARN("invalid data type", K(obj));
 		Util::store_obstr(buf, len, obj->to_string(), pos);
 		break;
 	}
@@ -156,7 +156,7 @@ int RowPacket::varchar_cell_str(const Object_s & obj, char * buf, const int64_t 
 		}
 		else
 		{
-			Log(LOG_ERR, "RowPacket", "serialize data len failed len = %lu", length);
+			LOG_ERR("serialize data len failed len = %lu", length);
 		}
 	}
 	else

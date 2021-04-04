@@ -20,7 +20,7 @@ u32 PageManager::get_page_from_row_id(u32 row_id, Page_s& page)
 {
 	u32 page_offset = get_page_offset_from_row_id(row_id);
 	if (pages.find(page_offset) == pages.end()) {
-		Log(LOG_TRACE, "TableSpace", "page %u is not in memory", page_offset);
+		LOG_TRACE("page is not in memory", K(page_offset));
 		u32 ret = read_page(page_offset, page);
 		return ret;
 	}
@@ -33,7 +33,7 @@ u32 PageManager::get_page_from_row_id(u32 row_id, Page_s& page)
 u32 PageManager::get_page_from_offset(u32 page_offset, Page_s& page)
 {
 	if (pages.find(page_offset) == pages.end()) {
-		Log(LOG_TRACE, "TableSpace", "page %u is not in memory", page_offset);
+		LOG_TRACE("page is not in memory", K(page_offset));
 		u32 ret = read_page(page_offset, page);
 		return ret;
 	}
@@ -48,7 +48,7 @@ u32 PageManager::read_page(u32 page_offset, Page_s& page)
 	u32 offset = 0;
 	u32 ret = io->end_offset(offset);
 	if (ret == EMPTY_TABLE_SPACE || offset < page_offset) {
-		Log(LOG_INFO, "TableSpace", "page %u not in table space", page_offset);
+		LOG_TRACE("page not in table space", K(page_offset));
 		return END_OF_TABLE_SPACE;
 	}
 	page = Page::make_page(io, get_table_id(), page_offset, 0, 0, page_offset);
@@ -84,14 +84,14 @@ u32 PageManager::get_last_page(Page_s& page)
 {
 	u32 offset = 0;
 	u32 ret = io->end_offset(offset);
-	//¿Õ±í
+	//ï¿½Õ±ï¿½
 	if (ret == EMPTY_TABLE_SPACE) {
-		//ÄÚ´æÖÐÒ²Ã»ÓÐÊý¾ÝÒ³
+		//ï¿½Ú´ï¿½ï¿½ï¿½Ò²Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò³
 		if (pages.empty()) {
 			create_page(offset, page);
 			return SUCCESS;
 		}
-		else {//·ñÔòÄÚ´æÖÐ×îºóÒ»Ò³
+		else {//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Ò³
 			auto iter = pages.end();
 			--iter;
 			page = iter->second;
@@ -99,14 +99,14 @@ u32 PageManager::get_last_page(Page_s& page)
 		}
 	}
 	else {
-		//»ñÈ¡´ÅÅÌµÄ×îºóÒ»Ò³
+		//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½Ò»Ò³
 		u32 ret = get_page_from_offset(offset, page);
 		if (ret != SUCCESS) {
 			return ret;
 		}
 		auto iter = pages.end();
 		--iter;
-		//ÄÚ´æ×îºóÒ»Ò³ÔÚ´ÅÅÌ×îºóÒ»Ò³Ö®ºó
+		//ï¿½Ú´ï¿½ï¿½ï¿½ï¿½Ò»Ò³ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Ò³Ö®ï¿½ï¿½
 		if (iter->first > offset)
 			page = iter->second;
 		return SUCCESS;
@@ -117,7 +117,7 @@ u32 PageManager::delete_all_row()
 {
 	u32 ret = io->clear_file(table_name);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
+		LOG_ERR("delete table all rows failed", K(table_name), err_string(ret));
 		return ret;
 	}
 	else {
@@ -133,7 +133,7 @@ u32 PageManager::clear()
 	}
 	pages.clear();
 	pages_copy.clear();
-	Log(LOG_TRACE, "PageManager", "clear page manager %s", table_name.c_str());
+	LOG_TRACE("clear page manager", K(table_name));
 	return SUCCESS;
 }
 

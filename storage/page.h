@@ -1,6 +1,7 @@
 ﻿#ifndef PAGE_H
 #define PAGE_H
 #include "type.h"
+#include "log.h"
 //PAGE_SIZE跟row_id的结构设计相关，改大后注意是否向前兼容row_id
 //详见row_id设计
 #define PAGE_SIZE 16384
@@ -24,6 +25,13 @@ namespace CatDB {
 			u32 page_offset;	//表空间内的偏移，虚拟地址，以16K压缩地址，真正的地址需要向左移14位
 			u32 page_pre;		//上一页
 			u32 page_next;		//下一页
+			KV_STRING(
+				K(page_checksum),
+				K(table_id),
+				K(page_offset),
+				K(page_pre),
+				K(page_next)
+			);
 		};
 		/* row_id的定义：前22位为当前页偏移的虚拟地址，
 		 * 页实际偏移等于虚拟地址左移14位
@@ -42,12 +50,23 @@ namespace CatDB {
 			u32 row_count;		//存放的行数
 			u32 free_offset;	//空闲空间偏移
 			u32 free_size;		//空闲空间大小
+			KV_STRING(
+				K(beg_row_id),
+				K(end_row_id),
+				K(row_count),
+				K(free_offset),
+				K(free_size)
+			);
 		};
 
 		struct RowInfo
 		{
 			u32 row_id;
 			u16 offset;
+			KV_STRING(
+				K(row_id),
+				K(offset)
+			);
 		};
 
 		class RawRecord
@@ -90,6 +109,10 @@ namespace CatDB {
 			void reset_page();
 			u32 row_id_exists(u32 row_id)const;
 			bool have_free_space_insert(const Row_s& row);
+			KV_STRING(
+				K(file_header_),
+				K(page_header_)
+			);
 
 		private:
 			Page(const Buffer_s& buffer, IoService_s& io_service);

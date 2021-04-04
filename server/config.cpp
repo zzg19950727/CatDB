@@ -1,4 +1,5 @@
 #include "config.h"
+#include "log.h"
 
 using namespace CatDB::Server;
 
@@ -76,9 +77,23 @@ String ServerServiceConfig::log_file_path()const
 	return dir;
 }
 
-int ServerServiceConfig::debug_level()const
+int ServerServiceConfig::log_level()const
 {
-	String level = m_config.value("debug_level");
+	String level_str = m_config.value("log_level");
+	int level = LOG_LEVEL_ERR;
+	if (level_str == "trace") {
+		level = LOG_LEVEL_TRACE;
+	} else if (level_str == "warning") {
+		level = LOG_LEVEL_WARN;
+	} else if (level_str == "error") {
+		level = LOG_LEVEL_ERR;
+	}
+	return level;
+}
+
+int ServerServiceConfig::sample_level() const
+{
+	String level = m_config.value("sample_level");
 	if(level.empty())
 		return 1;
 	else

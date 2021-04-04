@@ -2,6 +2,7 @@
 #define EXPR_STMT_H
 #include "stmt.h"
 #include "type.h"
+#include "log.h"
 
 namespace CatDB {
 	namespace Common {
@@ -68,6 +69,11 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			virtual ExprType expr_stmt_type()const = 0;
 			virtual String to_string()const = 0;
+			static String op_string(OperationType op_type);
+			virtual KV_STRING(
+				K(alias_name)
+			);
+
 		public:
 			String alias_name;	//表达式的别名
 		};
@@ -81,6 +87,10 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_const_stmt(const Object_s& value);
 			String to_string()const;
+			KV_STRING(
+				K(value)
+			);
+
 		public:
 			Object_s value;
 		};
@@ -99,6 +109,11 @@ namespace CatDB {
 			static Stmt_s make_all_column_stmt();
 			bool is_all_column()const;
 			String to_string()const;
+			KV_STRING(
+				K(table),
+				K(column)
+			);
+
 		public:
 			String table;	//所属表
 			String column;	//列名
@@ -114,6 +129,13 @@ namespace CatDB {
 			static Stmt_s make_table_stmt(const String& database, const String& table_name);
 			static Stmt_s make_table_stmt(const String& table_name);
 			String to_string()const;
+			KV_STRING(
+				K(database),
+				K(table_name),
+				K(table_id),
+				K(is_tmp_table)
+			);
+
 		public:
 			String database;
 			String table_name;
@@ -142,6 +164,10 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_query_stmt();
 			String to_string()const;
+			KV_STRING(
+				K(query_stmt)
+			);
+
 		public:
 			Stmt_s query_stmt;
 		};
@@ -155,6 +181,10 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_list_stmt();
 			String to_string()const;
+			KV_STRING(
+				K(stmt_list)
+			);
+
 		public:
 			Vector<Stmt_s> stmt_list;
 		};
@@ -175,6 +205,12 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_aggr_stmt();
 			String to_string()const;
+			String aggr_func_name()const;
+			KV_STRING(
+				K(aggr_func_name()),
+				K(aggr_expr),
+				K(distinct)
+			);
 
 		public:
 			Stmt_s aggr_expr;	//聚合函数内的表达式
@@ -191,6 +227,11 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_unary_stmt();
 			String to_string()const;
+			KV_STRING(
+				K(op_string(op_type)),
+				K(expr_stmt)
+			);
+
 		public:
 			Stmt_s expr_stmt;
 			OperationType op_type;
@@ -205,6 +246,12 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_binary_stmt();
 			String to_string()const;
+			KV_STRING(
+				K(op_string(op_type)),
+				K(first_expr_stmt),
+				K(second_expr_stmt)
+			);
+
 		public:
 			Stmt_s first_expr_stmt;
 			Stmt_s second_expr_stmt;
@@ -220,6 +267,13 @@ namespace CatDB {
 			ExprType expr_stmt_type()const;
 			static Stmt_s make_ternary_stmt();
 			String to_string()const;
+			KV_STRING(
+				K(op_string(op_type)),
+				K(first_expr_stmt),
+				K(second_expr_stmt),
+				K(third_expr_stmt)
+			);
+
 		public:
 			Stmt_s first_expr_stmt;
 			Stmt_s second_expr_stmt;

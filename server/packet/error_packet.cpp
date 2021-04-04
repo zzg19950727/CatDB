@@ -22,8 +22,7 @@ int ErrorPacket::encode(char* buffer, int64_t length, int64_t& pos)
 	int64_t start_pos = pos;
 	if (NULL == buffer || 0 >= length || pos < 0)
 	{
-		Log(LOG_ERR,"ErrorPacket", "invalid argument buffer=%p, length=%ld, pos=%ld",
-			buffer, length, pos);
+		LOG_ERR("invalid argument", K(length), K(pos));
 		ret = INVALID_ARGUMENT;
 	}
 	else
@@ -35,18 +34,16 @@ int ErrorPacket::encode(char* buffer, int64_t length, int64_t& pos)
 			uint32_t pkt_len = static_cast<uint32_t>(pos - start_pos - PACKET_HEADER_SIZE);
 			if (SUCCESS != (ret = Util::store_int3(buffer, length, pkt_len, start_pos)))
 			{
-				Log(LOG_ERR,"ErrorPacket", "serialize packet haader size failed, buffer=%p, buffer length=%ld, packet length=%d, pos=%ld",
-					buffer, length, pkt_len, start_pos);
+				LOG_ERR("serialize packet haader size failed", K(length), K(pkt_len), K(start_pos));
 			}
 			else if (SUCCESS != (ret = Util::store_int1(buffer, length, 2, start_pos)))
 			{
-				Log(LOG_ERR,"ErrorPacket", "serialize packet haader seq failed, buffer=%p, buffer length=%ld, seq number=%d, pos=%ld",
-					buffer, length, 2, start_pos);
+				LOG_ERR("serialize packet haader seq failed,seq number=2", K(length), K(start_pos));
 			}
 		}
 		else
 		{
-			Log(LOG_ERR,"ErrorPacket", "encode error packet data failed");
+			LOG_ERR("encode error packet data failed");
 		}
 	}
 	return ret;
@@ -58,26 +55,22 @@ int ErrorPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 
 	if (NULL == buffer || 0 >= len || pos < 0)
 	{
-		Log(LOG_ERR,"ErrorPacket", "invalid argument buffer=%p, length=%ld, pos=%ld",
-			buffer, len, pos);
+		LOG_ERR("invalid argument", K(len), K(pos));
 		ret = INVALID_ARGUMENT;
 	}
 	else
 	{
 		if (SUCCESS != (ret = Util::store_int1(buffer, len, field_count_, pos)))
 		{
-			Log(LOG_ERR,"ErrorPacket", "serialize field_count failed, buffer=%p, len=%ld, field_count_=%u, pos=%ld",
-				buffer, len, field_count_, pos);
+			LOG_ERR("serialize field_count failed", K(len), K(field_count_), K(pos));
 		}
 		else if (SUCCESS != (ret = Util::store_int2(buffer, len, errcode_, pos)))
 		{
-			Log(LOG_ERR,"ErrorPacket", "serialize errcode failed, buffer=%p, len=%ld, errcode=%u, pos=%ld",
-				buffer, len, errcode_, pos);
+			LOG_ERR("serialize errcode failed", K(len), K(errcode_), K(pos));
 		}
 		else if (SUCCESS != (ret = Util::store_int1(buffer, len, MARKER, pos)))
 		{
-			Log(LOG_ERR,"ErrorPacket", "serialize marker failed, buffer=%p, len=%ld, marker=%c, pos=%ld",
-				buffer, len, '#', pos);
+			LOG_ERR("serialize marker failed, marker=#", K(len), K(pos));
 		}
 
 		if (SUCCESS == ret)
@@ -89,8 +82,7 @@ int ErrorPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 			}
 			else
 			{
-				Log(LOG_ERR,"ErrorPacket", "not enough buffer to serialize sqlstate, buffer=%p, len=%ld,"
-					"sqlstate length=%ld,pos=%ld", buffer, len, SQLSTATE_SIZE, pos);
+				LOG_ERR("not enough buffer to serialize sqlstate", K(len), K(pos));
 				ret = ERR_UNEXPECTED;
 			}
 		}
@@ -100,8 +92,7 @@ int ErrorPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 			ret = Util::store_obstr_nzt(buffer, len, message_, pos);
 			if (SUCCESS != ret)
 			{
-				Log(LOG_ERR,"ErrorPacket", "serialize message failed, buffer=%p, len=%ld, message length=%d,"
-					"pos=%ld", buffer, len, message_.length(), pos);
+				LOG_ERR("serialize message failed", K(len), message_, K(pos));
 			}
 		}
 	}

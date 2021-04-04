@@ -35,7 +35,7 @@ IoService_s IoService::make_io_service()
 
 u32 IoService::open(const String & table_file)
 {
-	Log(LOG_INFO, "IoService", "open table %s", table_file.c_str());
+	LOG_TRACE("open table", K(table_file));
 	file_handle = fopen(table_file.c_str(), "rb+");
 	if (file_handle){
 		return SUCCESS;
@@ -46,7 +46,7 @@ u32 IoService::open(const String & table_file)
 			file_handle = fopen(table_file.c_str(), "rb+");
 			return SUCCESS;
 		}else{
-			Log(LOG_ERR, "IoService", "open table file failed!");
+			LOG_ERR("open table file failed!");
 			return TABLE_FILE_NOT_EXISTS;
 		}
 	}
@@ -70,16 +70,16 @@ u32 IoService::read_page(Page_s & page)
 	fpos_t real_offset;
 	SET_FILE_POS(real_offset, value);
 	if (fsetpos(file_handle, &real_offset) != 0) {
-		Log(LOG_ERR, "IoService", "set offset error when read page!");
+		LOG_ERR("set offset error when read page!");
 		return UNKNOWN_PAGE_OFFSET;
 	}
 	u32 ret = fread(buffer->buf, 1, size, file_handle);
 	if (ret != size){
-		Log(LOG_ERR, "IoService", "read page error:%u", ret);
+		LOG_ERR("read page error", err_string(ret));
 		return BAD_PAGE_IN_FILE;
 	}
 	page->reset_page();
-	Log(LOG_TRACE, "IoService", "read page %u, size %u", offset, size);
+	LOG_TRACE("read page success", K(offset), K(size));
 	return SUCCESS;
 }
 
@@ -100,15 +100,15 @@ u32 IoService::write_page(const Page * page)
 	fpos_t real_offset;
 	SET_FILE_POS(real_offset, value);
 	if (fsetpos(file_handle, &real_offset) != 0) {
-		Log(LOG_ERR, "IoService", "set offset error when write page!");
+		LOG_ERR("set offset error when write page!");
 		return UNKNOWN_PAGE_OFFSET;
 	}
 	u32 ret = fwrite(buffer->buf, 1, size, file_handle);
 	if (ret != size){
-		Log(LOG_ERR, "IoService", "write page error:%u", ret);
+		LOG_ERR("write page error", err_string(ret));
 		return WRITE_PAGE_ERROR;
 	}
-	Log(LOG_TRACE, "IoService", "read page %u, size %u", offset, size);
+	LOG_TRACE("write page succees", K(offset), K(size));
 	return SUCCESS;
 }
 
@@ -147,7 +147,7 @@ bool IoService::eof() const
 
 u32 IoService::delete_file(const String& table_file)
 {
-	Log(LOG_TRACE, "IoService", "delete table file %s", table_file.c_str());
+	LOG_TRACE("delete table file", K(table_file));
 	if (remove(table_file.c_str()) == 0) {
 		return SUCCESS;
 	}else {
@@ -157,7 +157,7 @@ u32 IoService::delete_file(const String& table_file)
 
 u32 IoService::clear_file(const String& table_file)
 {
-	Log(LOG_TRACE, "IoService", "clear table file %s", table_file.c_str());
+	LOG_TRACE("clear table file", K(table_file));
 	file_handle = fopen(table_file.c_str(), "w");
 	if (file_handle) {
 		fclose(file_handle);

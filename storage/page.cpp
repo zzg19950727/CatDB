@@ -19,7 +19,7 @@ u32 CatDB::Storage::get_virtual_page_offset(u64 page_offset)
 {
 	page_offset >>= 14;
 	if (page_offset > 0x7FFFFFFF) {
-		Log(LOG_ERR, "Storage", "page offset overflow");
+		LOG_ERR("page offset overflow", K(page_offset));
 		return 0;
 	}
 	u32 offset = static_cast<u32>(page_offset);
@@ -68,13 +68,13 @@ Page::~Page()
 	//写回脏数据
 	if (is_dirty){
 		if (!io_service_->is_open()){
-			Log(LOG_ERR, "Page", "IO service not open");
+			LOG_ERR("IO service not open");
 			return;
 		}
-		Log(LOG_INFO, "Page", "page %u is dirty and need write to disk", file_header_->page_offset);
+		LOG_TRACE("page is dirty and need write to disk", K(file_header_), K(page_header_));
 		u32 ret = io_service_->write_page(this);
 		if (ret != SUCCESS){
-			Log(LOG_ERR, "Page", "write page error, error code:%u", ret);
+			LOG_ERR("write page error", K(ret));
 		}
 	}
 	
@@ -113,7 +113,7 @@ Page_s Page::make_page(
 u32 Page::open()
 {
 	row_idx_ = 0;
-	Log(LOG_TRACE, "Page", "open page %u", file_header_->page_offset);
+	LOG_TRACE("open page", K(file_header_), K(page_header_));
 	return SUCCESS;
 }
 
@@ -123,7 +123,7 @@ u32 Page::get_next_row(Row_s & row)
 		++row_idx_;
 	}
 	if (row_idx_ >= page_header_->row_count){
-		Log(LOG_TRACE, "Page", "page %u read at end", file_header_->page_offset);
+		LOG_TRACE("page read at end", K(file_header_), K(page_header_));
 		return NO_MORE_ROWS;
 	}
 	u32 ret = deserialize_row(&row_info_[row_idx_], row);
@@ -147,14 +147,14 @@ bool Page::have_row() const
 u32 Page::reset()
 {
 	row_idx_ = 0;
-	Log(LOG_TRACE, "Page", "reset page %u", file_header_->page_offset);
+	LOG_TRACE("reset page", K(file_header_), K(page_header_));
 	return SUCCESS;
 }
 
 u32 Page::close()
 {
 	row_idx_ = 0;
-	Log(LOG_TRACE, "Page", "close page %u", file_header_->page_offset);
+	LOG_TRACE("close page", K(file_header_), K(page_header_));
 	return SUCCESS;
 }
 
@@ -168,7 +168,7 @@ u32 Page::select_row(u32 row_id, Row_s & row)const
 	RowInfo* info = nullptr;
 	u32 ret = search_row(row_id, info);
 	if (ret != SUCCESS){
-		Log(LOG_ERR, "Page", "row %u not found when select row", row_id);
+		LOG_ERR("row not found when select row", K(row_id));
 		return ret;
 	}
 	return deserialize_row(info, row);
@@ -177,7 +177,7 @@ u32 Page::select_row(u32 row_id, Row_s & row)const
 u32 Page::insert_row(u32& row_id, const Row_s & row)
 {
 	if (page_header_->free_size < row_width(row) + sizeof(RowInfo) ){
-		Log(LOG_ERR, "Page", "page %u have no more memory to store row %u", file_header_->page_offset, row->get_row_id());
+		LOG_ERR("page have no more memory to store row", K(file_header_), K(page_header_), K(row));
 		return NO_MORE_PAGE_FREE_SPACE;
 	}
 	u32 store_len = 0;
@@ -199,7 +199,7 @@ u32 Page::insert_row(u32& row_id, const Row_s & row)
 		//设置页含有脏数据
 		is_dirty = true;
 		row->set_row_id(row_id);
-		Log(LOG_TRACE, "Page", "insert row %u into page %u success", row->get_row_id(), file_header_->page_offset);
+		LOG_TRACE("insert row into page success", K(file_header_), K(page_header_), K(row));
 	}
 	return ret;
 }
@@ -218,7 +218,7 @@ u32 Page::update_row(u32 row_id, Row_s & row)
 			//需要先删除旧数据，再插入新数据
 			//目前只支持定长数据的原地更新
 			if (!cell->is_fixed_length()){
-				Log(LOG_INFO, "Page", "found none fixed column when update row %u", row->get_row_id());
+				LOG_TRACE("found none fixed column when update row", K(row));
 				return update_none_fix_row(row_id, row);
 			}
 		}else{
@@ -228,7 +228,7 @@ u32 Page::update_row(u32 row_id, Row_s & row)
 	RowInfo* info = nullptr;
 	ret = search_row(row_id, info);
 	if (ret != SUCCESS){
-		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
+		LOG_ERR("row not found when update row", K(row_id));
 		return ret;
 	}
 	//定位目标记录
@@ -243,13 +243,13 @@ u32 Page::update_row(u32 row_id, Row_s & row)
 		u8* buf = reinterpret_cast<u8*>(record) + record->column_offset[column_id];
 		ret = cell->serialization(buf);
 		if (ret != SUCCESS){
-			Log(LOG_ERR, "Page", "seria column %u error when update row %u", column_id, row_id);
+			LOG_ERR("seria column error when update row", K(column_id), K(row_id));
 			break;
 		}
 	}
 	//成功更新记录
 	if (ret == SUCCESS){
-		Log(LOG_TRACE, "Page", "update row %u success", row_id);
+		LOG_TRACE("update row success", K(row));
 		//设置页含有脏数据
 		is_dirty = true;
 	}
@@ -261,12 +261,12 @@ u32 Page::delete_row(u32 row_id)
 	RowInfo* info = nullptr;
 	u32 ret = search_row(row_id, info);
 	if (ret != SUCCESS){
-		Log(LOG_ERR, "Page", "row %u not found when delete row", row_id);
+		LOG_ERR("row not found when delete row", K(row_id));
 		return ret;
 	}else{
 		ret = set_row_id_deleted(info->row_id);
 		if (ret == SUCCESS){
-			Log(LOG_TRACE, "Page", "delete row %u success", row_id);
+			LOG_TRACE("delete row success", K(row_id));
 			//设置页含有脏数据
 			is_dirty = true;
 		}
@@ -345,7 +345,7 @@ u32 Page::deserialize_row(RowInfo * row_info, Row_s & row)const
 	RawRecord* record = RawRecord::make_raw_record(records_space_ + row_info->offset);
 	//如果行没有任何列描述，默认为投影所有列
 	if (!row){
-		Log(LOG_INFO, "Page", "project row %u with no row_desc and then project all column", row_info->row_id);
+		LOG_TRACE("project row with no row_desc and then project all column", K(row_info));
 		fix_row_desc(record, row);
 	}
 	const RowDesc& desc = row->get_row_desc();
@@ -362,13 +362,13 @@ u32 Page::deserialize_row(RowInfo * row_info, Row_s & row)const
 				row->set_cell(i, Object::make_object(*data));
 			}
 		}else{
-			Log(LOG_ERR, "Page", "row desc error when project row %u", row_info->row_id);
+			LOG_ERR("row desc error when project row", K(row_info));
 			return ERR_ROW_DESC;
 		}
 	}
 	u32 id = row_info->row_id;
 	row->set_row_id(id);
-	Log(LOG_TRACE, "Page", "project row %u success", id);
+	LOG_TRACE("project row success", K(row));
 	return SUCCESS;
 }
 
@@ -380,12 +380,12 @@ u32 Page::update_none_fix_row(u32 row_id, Row_s & row)
 	RowInfo* info = nullptr;
 	ret = search_row(row_id, info);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
+		LOG_ERR("row not found when update row", K(row_id));
 		return ret;
 	}
 	ret = deserialize_row(info, old_row);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "Page", "row %u not found when update row", row_id);
+		LOG_ERR("row not found when update row", K(row_id));
 		return ret;
 	}
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i) {
@@ -394,7 +394,7 @@ u32 Page::update_none_fix_row(u32 row_id, Row_s & row)
 		u32 idx;
 		ret = old_row->get_row_desc().get_column_idx(col_desc, idx);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "Page", "column %u not found when update row", i);
+			LOG_ERR("column not found when update row", K(i));
 			break;
 		}
 		Object_s cell;
@@ -418,12 +418,12 @@ u32 Page::serialize_row(const Row_s & row, u32 & store_len)
 		Object_s cell;
 		u32 ret = row->get_cell(i, cell);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "Page", "get column %u from row %u error", i, row->get_row_id());
+			LOG_ERR("get column from row error", K(i), K(row));
 			return ret;
 		}
 		ret = cell->serialization(buf);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "Page", "serial column %u from row %u error", i, row->get_row_id());
+			LOG_ERR("serial column from row error", K(i), K(row));
 			return ret;
 		}
 		if (i < record->column_count - 1)

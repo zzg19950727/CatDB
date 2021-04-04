@@ -200,11 +200,11 @@ u32 HashJoin::init_hash_table()
 				expr_queue.push(bin_expr->first_expr);
 				expr_queue.push(bin_expr->second_expr);
 			}else{
-				Log(LOG_ERR, "HashJoin", "either 'equal' or 'and' operation found in equal condition");
+				LOG_ERR("either 'equal' or 'and' operation found in equal condition");
 				return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
 			}
 		}else{
-			Log(LOG_ERR, "HashJoin", "either 'equal' or 'and' operation found in equal condition");
+			LOG_ERR("either 'equal' or 'and' operation found in equal condition");
 			return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
 		}
 	}
@@ -475,12 +475,12 @@ u32 HashNullAwareAntiJoin::init_hash_table()
 					expr_queue.push(bin_expr->second_expr);
 				}
 				else {
-					Log(LOG_ERR, "HashNullAwareAntiJoin", "either 'anti equal' or 'and' operation found in equal condition");
+					LOG_ERR("either 'anti equal' or 'and' operation found in equal condition");
 					return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
 				}
 			}
 			else {
-				Log(LOG_ERR, "HashNullAwareAntiJoin", "either 'anti equal' or 'and' operation found in equal condition");
+				LOG_ERR("either 'anti equal' or 'and' operation found in equal condition");
 				return ERROR_OPERATION_IN_EUQAL_JOIN_CONDITION;
 			}
 		}

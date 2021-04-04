@@ -37,7 +37,7 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 
 u32 TableSpace::open()
 {
-	Log(LOG_TRACE, "TableSpace", "open table space");
+	LOG_TRACE("open table space", K(database), K(table_name));
 	String path = table_path(database, table_name);
 	io->open(path);
 	cur_page_offset = 0;
@@ -53,20 +53,11 @@ u32 TableSpace::get_next_row(Row_s & row)
 		return ret;
 	}
 	else if (ret != SUCCESS){
-		Log(LOG_ERR, "TableSpace", "can not get page %u, error code:%s", cur_page_offset, err_string(ret));
+		LOG_ERR("can not get page", K(cur_page_offset), err_string(ret));
 		return ret;
 	}
-	
-	//当前页扫描完成
 	while (!page->have_row()){
-		Page_s last_page;
-		get_last_page(last_page);
-		//最后一页
-		if (cur_page_offset == last_page->page_offset()){
-			Log(LOG_TRACE, "TableSpace", "read end of table space");
-			return END_OF_TABLE_SPACE;
-		}
-		Log(LOG_TRACE, "TableSpace", "page %u have read end, load next page", cur_page_offset);
+		LOG_TRACE("page have read end, load next page", K(cur_page_offset));
 		//读取下一页
 		pages.erase(pages.find(cur_page_offset));
 		cur_page_offset = page->next_page_offset() + page_skip_size;
@@ -76,7 +67,7 @@ u32 TableSpace::get_next_row(Row_s & row)
 			return ret;
 		}
 		else if (ret != SUCCESS){
-			Log(LOG_ERR, "TableSpace", "get page %u failed,%s", cur_page_offset, err_string(ret));
+			LOG_ERR("get page failed", K(cur_page_offset), err_string(ret));
 			return ret;
 		}
 	}
@@ -100,7 +91,7 @@ u32 TableSpace::close()
 	}
 	pages.clear();
 	pages_copy.clear();
-	Log(LOG_TRACE, "TableSpace", "close table space %s", table_name.c_str());
+	LOG_TRACE("close table space", K(table_name));
 	return SUCCESS;
 }
 
@@ -113,7 +104,7 @@ u32 TableSpace::insert_row(const Row_s & row)
 	if (page->have_free_space_insert(row)){
 		return page->insert_row(row_id, row);
 	}else{//创建新的页存放
-		Log(LOG_TRACE, "TableSpace", "page %u have no free space to insert row", page->page_offset());
+		LOG_TRACE("page have no free space to insert row", K(page));
 		u32 offset = page->next_page_offset();
 		Page_s page;
 		create_page(offset, page);
@@ -142,7 +133,7 @@ u32 TableSpace::update_row(const Row_s & row)
 			return ret;
 		}
 	}else{
-		Log(LOG_ERR, "TableSpace", "can not get row %u `s page,%s", row_id, err_string(ret));
+		LOG_ERR("can not get row `s page", K(row_id), err_string(ret));
 		return ret;
 	}
 }
@@ -154,7 +145,7 @@ u32 TableSpace::delete_row(u32 row_id)
 	if (ret == SUCCESS){
 		return page->delete_row(row_id);
 	}else{
-		Log(LOG_ERR, "TableSpace", "can not delete row %u,%s", row_id, err_string(ret));
+		LOG_ERR("can not delete row ", K(row_id), err_string(ret));
 		return ret;
 	}
 }
@@ -164,7 +155,7 @@ u32 TableSpace::delete_all_row()
 	String path = table_path(database, table_name);
 	u32 ret = io->clear_file(path);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "TableSpace", "delete table %s all rows error:%s", table_name.c_str(), err_string(ret));
+		LOG_ERR("delete table all rows", K(table_name), err_string(ret));
 		return ret;
 	}
 	else {
@@ -194,7 +185,7 @@ u32 TableSpace::delete_table(const String& database, const String& table_name)
 	String path = table_path(database, table_name);
 	u32 ret = io->delete_file(path);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "TableSpace", "delete table %s error:%s", table_name.c_str(), err_string(ret));
+		LOG_ERR("delete table error", K(table_name), err_string(ret));
 		return ret;
 	}else {
 		return SUCCESS;
@@ -207,7 +198,7 @@ u32 TableSpace::create_table(const String& database, const String& table_name)
 	String path = table_path(database, table_name);
 	u32 ret = io->open(path);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "TableSpace", "create table %s error:%s", table_name.c_str(), err_string(ret));
+		LOG_ERR("create table error", K(table_name), err_string(ret));
 		return ret;
 	}else {
 		io->close();
@@ -233,7 +224,7 @@ u32 TableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
 {
 	u32 page_offset = get_page_offset_from_row_id(row_id);
 	if (pages.find(page_offset) == pages.end()) {
-		Log(LOG_TRACE, "TableSpace", "page %u is not in memory", page_offset);
+		LOG_TRACE("page is not in memory", K(page_offset));
 		u32 ret = read_page(page_offset, page);
 		return ret;
 	}
@@ -246,7 +237,7 @@ u32 TableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
 u32 TableSpace::get_page_from_offset(u32 page_offset, Page_s& page)
 {
 	if (pages.find(page_offset) == pages.end()) {
-		Log(LOG_TRACE, "TableSpace", "page %u is not in memory", page_offset);
+		LOG_TRACE("page is not in memory", K(page_offset));
 		u32 ret = read_page(page_offset, page);
 		return ret;
 	}
@@ -261,10 +252,11 @@ u32 TableSpace::read_page(u32 page_offset, Page_s& page)
 	u32 offset = 0;
 	u32 ret = io->end_offset(offset);
 	if (ret == EMPTY_TABLE_SPACE || offset < page_offset) {
-		Log(LOG_INFO, "TableSpace", "page %u not in table space", page_offset);
+		LOG_TRACE("page not in table space", K(page_offset));
 		return END_OF_TABLE_SPACE;
 	}
 	page = Page::make_page(io, get_table_id(), page_offset, 0, 0, page_offset);
+	
 	ret = io->read_page(page);
 	if (ret != SUCCESS) {
 		return ret;
@@ -272,7 +264,7 @@ u32 TableSpace::read_page(u32 page_offset, Page_s& page)
 	else {
 		ret = page->open();
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "TableSpace", "open page %u failed,%s", cur_page_offset, err_string(ret));
+			LOG_ERR("open page failed", K(cur_page_offset), err_string(ret));
 			return ret;
 		}
 		pages[page_offset] = page;

@@ -95,9 +95,10 @@ u32 CatDB::Sql::TableScan::get_next_row(Row_s & row)
 		if (ret == END_OF_TABLE_SPACE){
 			return NO_MORE_ROWS;
 		}else if (ret != SUCCESS){
-			Log(LOG_ERR, "TableScan", "get next row error:%s", err_string(ret));
+			LOG_ERR("get next row error", err_string(ret));
 			return ret;
 		}else{
+			LOG_TRACE("get next row", K(row));
 			if (filter){
 				if ((*filter)(row)){
 					return SUCCESS;

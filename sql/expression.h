@@ -1,6 +1,7 @@
 ﻿#ifndef EXPRESSION_H
 #define EXPRESSION_H
 #include "expr_stmt.h"
+#include "hash_table.h"
 #include "type.h"
 #include "row.h"
 
@@ -168,10 +169,10 @@ namespace CatDB {
 			typedef Parser::AggrStmt::AggrType	AggrType;
 		private:
 			AggregateExpression() = delete;
-			AggregateExpression(const Expression_s& expr, AggrType op);
+			AggregateExpression(const Expression_s& expr, AggrType op, bool is_distinct);
 		public:
 			~AggregateExpression();
-			static Expression_s make_aggregate_expression(const Expression_s& expr, AggrType op);
+			static Expression_s make_aggregate_expression(const Expression_s& expr, AggrType op, bool is_distinct);
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
 			void reset(const Row_s& row);
@@ -187,8 +188,10 @@ namespace CatDB {
 			AggrType op;
 			Object_s result;
 			u32 row_count;
+			Common::HashTable hash_table;
 		public:
 			Expression_s expr;
+			bool is_distinct;
 		};
 
 		class BinaryExpression : public Expression

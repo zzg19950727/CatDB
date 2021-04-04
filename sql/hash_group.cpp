@@ -74,12 +74,12 @@ u32 HashGroup::open()
 {
 	u32 ret = child->open();
 	if (ret != SUCCESS){
-		Log(LOG_ERR, "HashGroup", "open child operator error:%s", err_string(ret));
+		LOG_ERR("open child operator error", err_string(ret));
 		return ret;
 	}else{
 		ret = build_hash_table();
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "HashGroup", "build hash table error:%s", err_string(ret));
+			LOG_ERR("build hash table error", err_string(ret));
 			return ret;
 		}
 		return ret;
@@ -115,7 +115,7 @@ u32 HashGroup::reopen(const Row_s & row)
 	else {
 		ret = build_hash_table();
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "HashGroup", "build hash table error:%s", err_string(ret));
+			LOG_ERR("build hash table error", err_string(ret));
 			return ret;
 		}
 		

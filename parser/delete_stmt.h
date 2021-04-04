@@ -16,6 +16,13 @@ namespace CatDB {
 			~DeleteStmt();
 			StmtType stmt_type()const;
 			static Stmt_s make_delete_stmt();
+			KV_STRING(
+				K(is_explain),
+				K(table),
+				K(where_stmt)
+			);
+
+			Stmt_s table;
 		};
 	}
 }

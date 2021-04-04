@@ -39,21 +39,21 @@ int Loginer::login()
 	ret = handshake();
 	if (SUCCESS != ret)
 	{
-		Log(LOG_WARN, "Loginer", "send hand shake packet failed");
+		LOG_WARN("send hand shake packet failed");
 	}
 	else
 	{
 		ret = parse_packet();
 		if (SUCCESS != ret)
 		{
-			Log(LOG_WARN, "Loginer", "parse client auth packet failed");
+			LOG_WARN("parse client auth packet failed");
 		}
 		else
 		{
 			 ret = check_privilege();
 			 if (SUCCESS != ret)
 			 {
-				Log(LOG_WARN, "Loginer", "login failed, err=%d", ret);
+				LOG_WARN("login failed", K(ret));
 			 }
 		}
 	}
@@ -76,21 +76,19 @@ int Loginer::handshake()
 	ret = packet.serialize((char*)buffer->buf, buffer->length, pos);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "Loginer", "HandshakPacket serialize failed, buffer is %p, buffer len is %ld,"
-			"pos is %ld", (char*)buffer->buf, buffer->length, pos);
+		LOG_ERR("HandshakPacket serialize failed", K(buffer->length), K(pos));
 	}
 	else
 	{
 		ret = write_data(client_fd, (char*)buffer->buf, pos);
 		if (SUCCESS != ret)
 		{
-			Log(LOG_ERR, "Loginer", "write packet data to client failed fd is %d, buffer is %p, length is %ld",
-				client_fd, (char*)buffer->buf, pos);
+			LOG_ERR("write packet data to client failed", K(client_fd), K(pos));
 			ret = ERR_UNEXPECTED;
 		}
 		else
 		{
-			Log(LOG_INFO, "Loginer", "new client %d login", client_id );
+			LOG_TRACE("new client login", K(client_id));
 		}
 	}
 	return ret;
@@ -107,7 +105,7 @@ int Loginer::parse_packet()
 	ret = read_data(client_fd, (char*)buffer->buf, read_size);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_WARN, "Loginer", "read packet header failed");
+		LOG_WARN("read packet header failed");
 		ret = ERR_UNEXPECTED;
 	}
 	else
@@ -115,16 +113,16 @@ int Loginer::parse_packet()
 		uint32_t packet_len = 0;
 		len_pos = (char*)buffer->buf;
 		Util::get_uint3(len_pos, packet_len);
-		Log(LOG_TRACE, "Loginer", "start read %u bytes", packet_len);
+		LOG_TRACE("start read date", K(packet_len));
 		ret = read_data(client_fd, (char*)buffer->buf + PACKET_HEADER_SIZE, packet_len);
 		if (SUCCESS != ret)
 		{
-			Log(LOG_WARN, "Loginer", "read packet data failed, ret=%d", ret);
+			LOG_WARN("read packet data failed", K(ret));
 			ret = ERR_UNEXPECTED;
 		}
 		else
 		{
-			Log(LOG_TRACE, "Loginer", "readed %u bytes", packet_len);
+			LOG_TRACE("readed bytes", K(packet_len));
 			len_pos = (char*)buffer->buf + PACKET_HEADER_SIZE;
 			uint32_t capability_flags = 0;
 			uint32_t max_packet_size = 0;
@@ -168,19 +166,18 @@ int Loginer::check_privilege()
 	send_err = packet->encode((char*)buffer->buf, buffer->length, pos);
 	if (SUCCESS != send_err)
 	{
-		Log(LOG_ERR, "Loginer", "serialize packet failed, err=%d", send_err);
+		LOG_ERR("serialize packet failed", K(send_err));
 	}
 	else
 	{
 		send_err = write_data(client_fd, (char*)buffer->buf, pos);
 		if (SUCCESS != send_err)
 		{
-			Log(LOG_WARN, "Loginer", "write packet to mysql client failed, fd=%d, buffer=%p,"
-				"length=%ld, err=%d", client_fd, (char*)buffer->buf, pos, send_err);
+			LOG_WARN("write packet to mysql client failed", K(client_fd), K(pos), K(send_err));
 		}
 		else
 		{
-			Log(LOG_TRACE, "Loginer", "send packet");
+			LOG_TRACE("send packet");
 		}
 	}
 	return SUCCESS;
@@ -191,7 +188,7 @@ int Loginer::write_data(int fd, char* buffer, size_t length)
 	int ret = SUCCESS;
 	if (fd < 0 || NULL == buffer || length <= 0)
 	{
-		Log(LOG_ERR, "Loginer", "invalid argument fd=%d, buffer=%p, length=%zd", fd, buffer, length);
+		LOG_ERR("invalid argument", K(fd), K(length));
 		ret = ERR_UNEXPECTED;
 	}
 	else
@@ -209,7 +206,7 @@ int Loginer::write_data(int fd, char* buffer, size_t length)
 				else
 				{
 					ret = ERR_UNEXPECTED;
-					Log(LOG_WARN, "Loginer", "write data faild, errno is %d, errstr is %s", errno, strerror(errno));
+					LOG_WARN("write data faild", K(errno));
 				}
 
 			}
@@ -227,7 +224,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 	static const int64_t timeout = 1000000;//1s
 	if (fd < 0 || NULL == buffer || length <= 0)
 	{
-		Log(LOG_ERR, "Loginer", "invalid argument fd=%d, buffer=%p, length=%zd", fd, buffer, length);
+		LOG_ERR("invalid argument", K(fd), K(length));
 		ret = ERR_UNEXPECTED;
 	}
 	else
@@ -245,7 +242,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 				else
 				{
 					ret = ERR_UNEXPECTED;
-					Log(LOG_WARN, "Loginer", "read data faild, errno is %d, errstr is %s", errno, strerror(errno));
+					LOG_WARN("read data faild", K(errno));
 				}
 			}
 			buff += count;
@@ -254,7 +251,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 		if (0 != length)
 		{
 			ret = ERR_UNEXPECTED;
-			Log(LOG_WARN, "Loginer", "read not return enough data need %zu more bytes", length);
+			LOG_WARN("read not return enough data", K(length));
 		}
 	}
 	return ret;

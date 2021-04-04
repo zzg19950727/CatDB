@@ -16,7 +16,15 @@ namespace CatDB {
 			~UpdateStmt();
 			StmtType stmt_type()const;
 			static Stmt_s make_update_stmt();
+			KV_STRING(
+				K(is_explain),
+				K(table),
+				K(where_stmt),
+				K(update_asgn_stmt)
+			);
+
 		public:
+			Stmt_s table;
 			Stmt_s update_asgn_stmt;
 		};
 	}

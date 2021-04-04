@@ -21,7 +21,7 @@ bool Filter::operator()(Row_s & row)
 	if (expr) {
 		Object_s result = expr->get_result(row);
 		if (result->get_type() == T_ERROR_RESULT) {
-			Log(LOG_ERR, "Filter", "get error result");
+			LOG_ERR("get error result", K(result));
 		}
 		return result->bool_value();
 	}

@@ -72,7 +72,7 @@ Object_s Bool::operator+(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not add %u", other->get_type());
+		LOG_ERR("bool type can not add ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -87,7 +87,7 @@ Object_s Bool::operator-(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not sub %u", other->get_type());
+		LOG_ERR("bool type can not sub ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -102,7 +102,7 @@ Object_s Bool::operator*(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not mul %u", other->get_type());
+		LOG_ERR("bool type can not mul ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -117,7 +117,7 @@ Object_s Bool::operator/(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not div %u", other->get_type());
+		LOG_ERR("bool type can not div ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -132,7 +132,7 @@ Object_s Bool::operator==(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not compare %u", other->get_type());
+		LOG_ERR("bool type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -147,7 +147,7 @@ Object_s Bool::operator>(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not compare %u", other->get_type());
+		LOG_ERR("bool type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -162,7 +162,7 @@ Object_s Bool::operator<(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_BOOL) {
-		Log(LOG_ERR, "Object", "bool type can not compare %u", other->get_type());
+		LOG_ERR("bool type can not compare ", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {

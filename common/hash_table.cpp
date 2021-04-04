@@ -80,7 +80,7 @@ u32 HashTable::probe(const Row_s & row, Queue<Row_s>& out_rows)
 		Row_s new_row = RowAgent::make_agent_row(row, *iter);
 		Object_s result = probe_condition->get_result(new_row);
 		if (result->get_type() == T_ERROR_RESULT) {
-			Log(LOG_WARN, "HashTable", "probe condition calc error");
+			LOG_WARN("probe condition calc error");
 			continue;
 		}
 		else if (result->bool_value()) {
@@ -104,7 +104,7 @@ u32 HashTable::probe_and_drop(const Row_s & row)
 		Row_s new_row = RowAgent::make_agent_row(row, *iter);
 		Object_s result = probe_condition->get_result(new_row);
 		if (result->get_type() == T_ERROR_RESULT) {
-			Log(LOG_WARN, "HashTable", "probe condition calc error");
+			LOG_WARN("probe condition calc error");
 			new_bucket.push_back(*iter);
 			continue;
 		}
@@ -186,7 +186,7 @@ HashTable::BucketIterator HashTable::end_bucket()
 u32 HashTable::sort_bucket(BucketIterator & iter)
 {
 	if (iter == buckets.end()) {
-		Log(LOG_ERR, "HashTable", "end of buckets");
+		LOG_ERR("end of buckets");
 		return ERR_BUCKET_IDX;
 	}
 	auto less_func = std::bind(&HashTable::less, this, std::placeholders::_1, std::placeholders::_2);
@@ -197,7 +197,7 @@ u32 HashTable::sort_bucket(BucketIterator & iter)
 const Vector<Row_s>& HashTable::bucket(const BucketIterator & iter)
 {
 	if (iter == buckets.end()) {
-		Log(LOG_TRACE, "HashTable", "end of buckets");
+		LOG_TRACE("end of buckets");
 		//TODO 错误处理
 	}
 	return *iter;
@@ -266,7 +266,7 @@ u32 HashTable::hash(Vector<Expression_s>& cols, const Row_s & row)
 		for (u32 i = 0; i < cols.size(); ++i){
 			Object_s obj = cols[i]->get_result(row);
 			if (obj->get_type() == T_ERROR_RESULT){
-				//Log(LOG_ERR, "HashTable", "error hash column found");
+				LOG_ERR("error hash column found", K(obj));
 				continue;
 			}
 			value = hash(value + obj->hash());
@@ -280,7 +280,7 @@ bool HashTable::equal(const Row_s & lhs, const Row_s & rhs)
 	bool equal = true;
 	if (probe_cols.empty()){
 		if (lhs->get_row_desc().get_column_num() != rhs->get_row_desc().get_column_num()){
-			Log(LOG_ERR, "HashTable", "two row have different count column");
+			LOG_ERR("two row have different count column", K(lhs), K(rhs));
 			return false;
 		}
 		for (u32 i = 0; i < lhs->get_row_desc().get_column_num(); ++i){

@@ -45,7 +45,7 @@ namespace CatDB {
 			u32 get_table_id(const String& database, const String& table, u32& id);
 
 			//�ռ�ͳ����Ϣ
-			u32 analyze_table(const String& database, const String& table, double sample_size);
+			u32 analyze_table(const String& database, const String& table);
 			u32 statis_table_row_count(const String& database, const String& table);
 			u32 statis_column_ndv(const String& database, const String& table_name, const String& column_name);
 			u32 statis_column_max_value(const String& database, const String& table_name, const String& column_name);
@@ -80,8 +80,8 @@ namespace CatDB {
 			u32 get_column_desc_system(const String& database, const String& table_name, const String& column_name, ColumnDesc& col_desc);
 			bool have_column_system(const String& database, const String& table_name, const String& column_name);
 
-			u32 analyze_table_system(const String& database, const String& table, double sample_size);
-			u32 analyze_table_statis(const String& database, const String& table, double sample_size);
+			u32 inner_analyze_table(const String& database, const String& table);
+			u32 analyze_table_statis(const String& database, const String& table, double &sample_size);
 			u32 analyze_column_statis(const String& database, const String& table, const String& column, double sample_size, bool varchar_type=false);
 		};
 	}

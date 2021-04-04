@@ -36,7 +36,7 @@ int OKPacket::encode(char* buffer, int64_t length, int64_t& pos)
 	int64_t start_pos = pos;
 	if (NULL == buffer || 0 >= length || pos < 0)
 	{
-		Log(LOG_ERR,"OKPacket", "invalid argument buffer=%p, length=%ld, pos=%ld",
+		LOG_ERR("invalid argument buffer=%p, length=%ld, pos=%ld",
 			buffer, length, pos);
 		ret = INVALID_ARGUMENT;
 	}
@@ -49,18 +49,18 @@ int OKPacket::encode(char* buffer, int64_t length, int64_t& pos)
 			uint32_t pkt_len = static_cast<uint32_t>(pos - start_pos - PACKET_HEADER_SIZE);
 			if (SUCCESS != (ret = Util::store_int3(buffer, length, pkt_len, start_pos)))
 			{
-				Log(LOG_ERR,"OKPacket", "serialize packet haader size failed, buffer=%p, buffer length=%ld, packet length=%d, pos=%ld",
+				LOG_ERR("serialize packet haader size failed, buffer=%p, buffer length=%ld, packet length=%d, pos=%ld",
 					buffer, length, pkt_len, start_pos);
 			}
 			else if (SUCCESS != (ret = Util::store_int1(buffer, length, 2, start_pos)))
 			{
-				Log(LOG_ERR,"OKPacket", "serialize packet haader seq failed, buffer=%p, buffer length=%ld, seq number=%d, pos=%ld",
+				LOG_ERR("serialize packet haader seq failed, buffer=%p, buffer length=%ld, seq number=%d, pos=%ld",
 					buffer, length, 2, start_pos);
 			}
 		}
 		else
 		{
-			Log(LOG_ERR,"OKPacket", "encode ok packet data failed");
+			LOG_ERR("encode ok packet data failed");
 		}
 	}
 	return ret;
@@ -82,7 +82,7 @@ int OKPacket::serialize(char* buffer, int64_t length, int64_t& pos)
 
 	if (NULL == buffer || 0 >= length || pos < 0)
 	{
-		Log(LOG_ERR,"OKPacket", "invalid argument buffer=%p, length=%ld, pos=%ld",
+		LOG_ERR("invalid argument buffer=%p, length=%ld, pos=%ld",
 			buffer, length, pos);
 		ret = INVALID_ARGUMENT;
 	}
@@ -90,34 +90,34 @@ int OKPacket::serialize(char* buffer, int64_t length, int64_t& pos)
 	{
 		if (SUCCESS != (ret = Util::store_int1(buffer, length, field_count_, pos)))
 		{
-			Log(LOG_ERR,"OKPacket", "serialize field_count failed, buffer=%p, length=%ld, field_count=%u,"
+			LOG_ERR("serialize field_count failed, buffer=%p, length=%ld, field_count=%u,"
 				"pos=%ld", buffer, length, field_count_, pos);
 		}
 		else if (SUCCESS != (ret = Util::store_length(buffer, length, affected_rows_, pos)))
 		{
-			Log(LOG_ERR,"OKPacket", "serialize affected_row failed, buffer=%p, length=%ld, affected_rows=%lu,"
+			LOG_ERR("serialize affected_row failed, buffer=%p, length=%ld, affected_rows=%lu,"
 				"pos=%ld", buffer, length, affected_rows_, pos);
 		}
 		else if (SUCCESS != (ret = Util::store_length(buffer, length, insert_id_, pos)))
 		{
-			Log(LOG_ERR,"OKPacket", "serialize insert_id failed, buffer=%p, length=%ld, insert_id=%lu,"
+			LOG_ERR("serialize insert_id failed, buffer=%p, length=%ld, insert_id=%lu,"
 				"pos=%ld", buffer, length, insert_id_, pos);
 		}
 		else if (SUCCESS != (ret = Util::store_int2(buffer, length, server_status_, pos)))
 		{
-			Log(LOG_ERR,"OKPacket", "serialize server_status failed, buffer=%p, length=%ld, server_status=%u,"
+			LOG_ERR("serialize server_status failed, buffer=%p, length=%ld, server_status=%u,"
 				"pos=%ld", buffer, length, server_status_, pos);
 		}
 		else if (SUCCESS != (ret = Util::store_int2(buffer, length, warning_count_, pos)))
 		{
-			Log(LOG_ERR,"OKPacket", "serialize warning_count failed, buffer=%p, length=%ld, warning_count=%u,"
+			LOG_ERR("serialize warning_count failed, buffer=%p, length=%ld, warning_count=%u,"
 				"pos=%ld", buffer, length, warning_count_, pos);
 		}
 		else if (0 != message_.length())
 		{
 			if (SUCCESS != (ret = Util::store_obstr(buffer, length, message_, pos)))
 			{
-				Log(LOG_ERR,"OKPacket", "serialize message failed, buffer=%p, length=%ld, insert_id=%lu,"
+				LOG_ERR("serialize message failed, buffer=%p, length=%ld, insert_id=%lu,"
 					"pos=%ld", buffer, length, insert_id_, pos);
 			}
 		}

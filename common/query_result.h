@@ -31,6 +31,10 @@ namespace CatDB {
 			u32 init_title_for_explain(Row_s & result_title);
 			u32 add_operation_info(u32 depth, const String& operator_name,
 				const String& table_name, double rows, u32 times);
+			KV_STRING(
+				K(err_code),
+				K(list)
+			);
 
 		private:
 			Vector<Row_s> list;

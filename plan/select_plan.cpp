@@ -139,49 +139,49 @@ u32 SelectPlan::build_plan()
 	//����ÿ�ű��ķ���������ÿ�ű���������
 	u32 ret = make_access_row_desc();
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make access row desc for from tables failed");
+		LOG_ERR("make access row desc for from tables failed");
 		return_result(ret);
 	}
 	//ѡ������join˳��
 	ret = choos_best_join_order();
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "choose best join order failed");
+		LOG_ERR("choose best join order failed");
 		return_result(ret);
 	}
 	//����join�ƻ�
 	ret = make_join_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make join plan failed");
+		LOG_ERR("make join plan failed");
 		return_result(ret);
 	}
 	//����group�ƻ�
 	ret = make_group_pan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make group plan failed");
+		LOG_ERR("make group plan failed");
 		return_result(ret);
 	}
 	//����distinct�ƻ�
 	ret = make_distinct_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make distinct plan failed");
+		LOG_ERR("make distinct plan failed");
 		return_result(ret);
 	}
 	//ͶӰѡ����
 	ret = make_query_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make expression plan failed");
+		LOG_ERR("make expression plan failed");
 		return_result(ret);
 	}
 	//�Ƿ���Ҫ����
 	ret = make_sort_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make sort plan failed");
+		LOG_ERR("make sort plan failed");
 		return_result(ret);
 	}
 	//����limit�ƻ�
 	ret = make_limit_plan(root_operator);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "make limit plan failed");
+		LOG_ERR("make limit plan failed");
 		return_result(ret);
 	}
 	return_result(SUCCESS);
@@ -191,7 +191,7 @@ u32 SelectPlan::optimizer()
 {
 	if (!lex_stmt)
 	{
-		Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
+		LOG_ERR("error lex stmt when build select plan");
 		return_result(ERROR_LEX_STMT);
 	}
 	is_explain = lex_stmt->is_explain;
@@ -200,7 +200,7 @@ u32 SelectPlan::optimizer()
 		ExprStmt* expr = dynamic_cast<ExprStmt*>(lex_stmt.get());
 
 		if (expr->expr_stmt_type() == ExprStmt::Query) {
-			Log(LOG_TRACE, "SelectPlan", "build subquery plan");
+			LOG_TRACE("build subquery plan");
 			QueryStmt* query = dynamic_cast<QueryStmt*>(expr);
 			lex_stmt = query->query_stmt;
 			return optimizer();
@@ -211,7 +211,7 @@ u32 SelectPlan::optimizer()
 			return_result(ret);
 		}
 		else {
-			Log(LOG_ERR, "SelectPlan", "error lex stmt when build select plan");
+			LOG_ERR("error lex stmt when build select plan", K(expr));
 			return_result(ERROR_LEX_STMT);
 		}
 	}
@@ -228,13 +228,13 @@ u32 SelectPlan::optimizer()
 	//��ȡ���ñ�
 	u32 ret = get_ref_tables(lex->from_stmts);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in from stmts");
+		LOG_ERR("error stmt in from stmts", K(lex->from_stmts));
 		return_result(ret);
 	}
 	//����select�����
 	ret = resolve_select_list(lex->select_expr_list);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in select list");
+		LOG_ERR("error stmt in select list", K(lex->select_expr_list));
 		return_result(ret);
 	}
 	//����where�Ӿ�
@@ -242,31 +242,31 @@ u32 SelectPlan::optimizer()
 	ret = resolve_where_stmt(lex->where_stmt);
 	is_resolve_where = false;
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in where stmts");
+		LOG_ERR("error stmt in where stmts");
 		return_result(ret);
 	}
 	//����group�Ӿ�
 	ret = resolve_group_stmt(lex->group_columns);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in group stmts");
+		LOG_ERR("error stmt in group stmts");
 		return_result(ret);
 	}
 	//����having�Ӿ�
 	ret = resolve_having_stmt(lex->having_stmt);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in having stmts");
+		LOG_ERR("error stmt in having stmts");
 		return_result(ret);
 	}
 	//����sort�Ӿ�
 	ret = resolve_sort_stmt(lex->order_columns);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in sort stmts");
+		LOG_ERR("error stmt in sort stmts");
 		return_result(ret);
 	}
 	//����limit�Ӿ�
 	ret = resolve_limit_stmt(lex->limit_stmt);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "error stmt in limit stmts");
+		LOG_ERR("error stmt in limit stmts");
 		return_result(ret);
 	}
 	return ret;
@@ -357,13 +357,13 @@ u32 SelectPlan::resolve_where_stmt(const Stmt_s& where_stmt)
 			//�ݹ����������
 			u32 ret = resolve_where_stmt(binary_stmt->first_expr_stmt);
 			if (ret != SUCCESS) {
-				Log(LOG_ERR, "SelectPlan", "create binary expression`s first expression failed");
+				LOG_ERR("create binary expression`s first expression failed");
 				return ret;
 			}
 			//�ݹ����������
 			ret = resolve_where_stmt(binary_stmt->second_expr_stmt);
 			if (ret != SUCCESS) {
-				Log(LOG_ERR, "SelectPlan", "create binary expression`s second expression failed");
+				LOG_ERR("create binary expression`s second expression failed");
 				return ret;
 			}
 			return SUCCESS;
@@ -543,7 +543,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 	{
 		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		if (!resolve_select_list_or_having && column_stmt->is_all_column()) {
-			Log(LOG_ERR, "SelectPlan", "* can only exists in select list or count(*)");
+			LOG_ERR("* can only exists in select list or count(*)");
 			return ERROR_LEX_STMT;
 		}
 		else if (column_stmt->is_all_column()) {
@@ -617,12 +617,12 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 	case ExprStmt::Aggregate:
 	{
 		if (!resolve_select_list_or_having) {
-			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
+			LOG_ERR("aggregate function can only exist in select list or having stmt");
 			return ERROR_LEX_STMT;
 		}
 		//scalar group��֧��having
 		else if (resolve_select_list_or_having == 1 && group_cols.empty()) {
-			Log(LOG_ERR, "SelectPlan", "aggregate function can only exist in select list or having stmt");
+			LOG_ERR("aggregate function can only exist in select list or having stmt");
 			return ERROR_LEX_STMT;
 		}
 
@@ -630,7 +630,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		ret = resolve_expr(agg_stmt->aggr_expr, expr, have_parent_column);
 		if (ret == HAVE_ALL_COLUMN_STMT) {
 			if (agg_stmt->aggr_func != AggrStmt::COUNT) {
-				Log(LOG_ERR, "SelectPlan", "only count aggregation can have * expression");
+				LOG_ERR("only count aggregation can have * expression");
 				return ERROR_LEX_STMT;
 			}
 			else {
@@ -643,7 +643,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		else if (ret != SUCCESS) {
 			return ret;
 		}
-		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func);
+		expr = AggregateExpression::make_aggregate_expression(expr, agg_stmt->aggr_func, agg_stmt->distinct);
 		aggr_exprs.push_back(expr);
 		//Ϊ��ͳһ����ʽ�����ܰѾۺϱ���ʽ�滻��group�����������������Ϊ�ۺϺ���������group���Ӽ���
 		ColumnDesc col_desc;
@@ -658,7 +658,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		Expression_s first_expr;
 		ret = resolve_expr(unary_stmt->expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create unary expression`s first expression failed");
+			LOG_ERR("create unary expression`s first expression failed");
 			break;
 		}
 		//������Ӳ�ѯ������в��������͸�д
@@ -695,18 +695,18 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		Expression_s first_expr, second_expr;
 		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create binary expression`s first expression failed");
+			LOG_ERR("create binary expression`s first expression failed");
 			break;
 		}
 		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create binary expression`s second expression failed");
+			LOG_ERR("create binary expression`s second expression failed");
 			break;
 		}
 		//������Ӳ�ѯ������в��������͸�д
 		if (first_expr->get_type() == Expression::Subplan
 			&& second_expr->get_type() == Expression::Subplan) {
-			Log(LOG_INFO, "SelectPlan", "subquery op subquery rewrite not support yet");
+			LOG_TRACE("subquery op subquery rewrite not support yet");
 		}
 		else if (first_expr->get_type() == Expression::Subplan) {
 			SqlRewriter_s sql_rewriter = SqlRewriter::make_sql_rewriter(this, first_expr, second_expr, binary_stmt->op_type);
@@ -764,17 +764,17 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		Expression_s first_expr, second_expr, third_expr;
 		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create ternary expression`s first expression failed");
+			LOG_ERR("create ternary expression`s first expression failed");
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create ternary expression`s second expression failed");
+			LOG_ERR("create ternary expression`s second expression failed");
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr, have_parent_column);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "create ternary expression`s third expression failed");
+			LOG_ERR("create ternary expression`s third expression failed");
 			break;
 		}
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
@@ -782,7 +782,7 @@ u32 SelectPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr, bool& have_
 		break;
 	}
 	default:
-		Log(LOG_ERR, "SelectPlan", "unknown expr stmt in select`s where stmt");
+		LOG_ERR("unknown expr stmt in select`s where stmt");
 		ret = ERROR_LEX_STMT;
 	}
 	return ret;
@@ -1220,7 +1220,7 @@ u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 		if (ret != SUCCESS) {
 			ret = which_partent_table_have_column(column_stmt->column, table);
 			if (ret != SUCCESS) {
-				Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
+				LOG_ERR("parse column define error in where stmt", K(column_stmt));
 				return ret;
 			}
 		}
@@ -1231,12 +1231,12 @@ u32 SelectPlan::who_have_column(ColumnStmt * column_stmt, TableStmt *& table)
 		if (ret == TABLE_NOT_EXISTS) {
 			ret = find_table_from_parent(column_stmt->table, table);
 			if (ret != SUCCESS) {
-				Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
+				LOG_ERR("parse column define error in where stmt", K(column_stmt));
 				return ret;
 			}
 		}
 		else if (ret != SUCCESS) {
-			Log(LOG_ERR, "SelectPlan", "parse column define error in where stmt:%s", err_string(ret));
+			LOG_ERR("parse column define error in where stmt", K(column_stmt));
 			return ret;
 		}
 	}
@@ -1360,7 +1360,7 @@ u32 SelectPlan::get_ref_tables(const Stmt_s & from_stmt)
 			TableStmt* table = dynamic_cast<TableStmt*>(expr_stmt);
 			TableStmt* exist_table = nullptr;
 			if (find_table(table->alias_name, exist_table) == SUCCESS) {
-				Log(LOG_ERR, "SelectPlan", "same alias table %s in from list", table->alias_name.c_str());
+				LOG_ERR("same alias table in from list", K(table));
 				return NOT_UNIQUE_TABLE;
 			}
 			else {
@@ -1401,7 +1401,7 @@ u32 SelectPlan::get_ref_table_from_query(QueryStmt * subquery)
 	}
 	ret = plan->build_plan();
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "SelectPlan", "resolve subquery in from list failed");
+		LOG_ERR("resolve subquery in from list failed");
 		return ret;
 	}
 	table->subplan = plan;
@@ -1564,7 +1564,7 @@ u32 SelectPlan::resolve_group_stmt(const Stmt_s & group_stmt)
 		return SUCCESS;
 	}
 	else if (group_stmt->stmt_type() != Stmt::Expr) {
-		Log(LOG_ERR, "SelectPlan", "error stmt for sort columns");
+		LOG_ERR("error stmt for sort columns");
 		return ERROR_LEX_STMT;
 	}
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(group_stmt.get());
@@ -1612,7 +1612,7 @@ u32 SelectPlan::resolve_limit_stmt(const Stmt_s& limit_stmt)
 		return SUCCESS;
 	}
 	else if (limit_stmt->stmt_type() != Stmt::Limit) {
-		Log(LOG_ERR, "SelectPlan", "error stmt for limit");
+		LOG_ERR("error stmt for limit");
 		return ERROR_LEX_STMT;
 	}
 	LimitStmt* limit = dynamic_cast<LimitStmt*>(limit_stmt.get());
@@ -1627,7 +1627,7 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 		return SUCCESS;
 	}
 	else if (sort_stmt->stmt_type() != Stmt::Expr) {
-		Log(LOG_ERR, "SelectPlan", "error stmt for sort columns");
+		LOG_ERR("error stmt for sort columns");
 		return ERROR_LEX_STMT;
 	}
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(sort_stmt.get());
@@ -1658,7 +1658,6 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 				return ret;
 			}
 			else if (is_sort_query_result) {
-				Log(LOG_ERR, "SelectPlan", "��ʱ��֧������ͬʱ�����ڻ�����select list");
 				return ERROR_LEX_STMT;
 			}
 			else if (have_parent_column) {
@@ -1673,11 +1672,11 @@ u32 SelectPlan::resolve_sort_stmt(const Stmt_s& sort_stmt)
 u32 SelectPlan::resolve_select_list(const Stmt_s & select_list)
 {
 	if (!select_list) {
-		Log(LOG_ERR, "SelectPlan", "select list can not be empty");
+		LOG_ERR("select list can not be empty");
 		return ERROR_LEX_STMT;
 	}
 	else if (select_list->stmt_type() != Stmt::Expr) {
-		Log(LOG_ERR, "SelectPlan", "error stmt for select columns");
+		LOG_ERR("error stmt for select columns");
 		return ERROR_LEX_STMT;
 	}
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(select_list.get());
@@ -1805,7 +1804,7 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 {
 	u32 ret = SUCCESS;
 	if (table_list.size() == 0) {
-		Log(LOG_ERR, "SelectPlan", "from list must have more than one table");
+		LOG_ERR("from list must have more than one table");
 		ret = NO_TABLE_FOR_SELECT;
 	}
 	else if (table_list.size() == 1) {
@@ -1838,7 +1837,7 @@ u32 SelectPlan::make_join_plan(PhyOperator_s & op)
 			PhyOperator_s right_op;
 			u32 ret = make_table_scan(right_table, right_op);
 			if (ret != SUCCESS) {
-				Log(LOG_ERR, "SelectPlan","make table scan for table failed");
+				LOG_ERR("make table scan for table failed");
 				return ret;
 			}
 			double out_rows = 0;
@@ -1949,7 +1948,7 @@ u32 SelectPlan::make_group_pan(PhyOperator_s & op)
 		if (aggr_exprs.size() == 0) {
 			//����Ҫ�ۺ�����
 			if (having_filter) {
-				Log(LOG_ERR, "SelectPlan", "can not have having filter when there is no group operation");
+				LOG_ERR("can not have having filter when there is no group operation");
 				return HAVING_ERROR;
 			}
 			else {

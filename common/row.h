@@ -1,6 +1,7 @@
 ﻿#ifndef ROW_H
 #define ROW_H
 #include "type.h"
+#include "object.h"
 
 namespace CatDB {
 	namespace Common {
@@ -18,6 +19,12 @@ namespace CatDB {
 			int operator==(const ColumnDesc& other)const;
 			u32 get_data_type()const;
 			void set_data_type(u32 type);
+			KV_STRING(
+				K(table_id),
+				K(column_id),
+				K(data_type)
+			);
+
 		private:
 			u32 table_id;
 			u32 column_id;
@@ -34,6 +41,10 @@ namespace CatDB {
 			u32 set_column_desc(u32 idx, const ColumnDesc& c_desc);
 			u32 get_column_num() const;
 			u32 add_column_desc(const ColumnDesc& col_desc);
+			KV_STRING(
+				K(column_count),
+				K(column_desc)
+			);
 
 		private:
 			Vector<ColumnDesc> column_desc;
@@ -63,6 +74,13 @@ namespace CatDB {
 			u32 get_cell(u32 idx, Object_s& cell) const;
 			u32 set_cell(const ColumnDesc& c_desc, Object_s cell);
 			u32 set_cell(u32 idx, Object_s cell);
+			KV_STRING(
+				K(alias_table_id),
+				K(row_id),
+				K(row_desc),
+				K(cells)
+			);
+
 		private:
 			Vector<Object_s> cells;
 			RowDesc row_desc;

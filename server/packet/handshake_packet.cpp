@@ -34,7 +34,7 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 	int64_t start_pos = pos;
 	if (NULL == buffer || 0 >= len || pos < 0)
 	{
-		Log(LOG_ERR,"HandshakePacket", "invalid argument buffer=%p, length=%ld, pos=%ld",
+		LOG_ERR("invalid argument buffer=%p, length=%ld, pos=%ld",
 			buffer, len, pos);
 		ret = INVALID_ARGUMENT;
 	}
@@ -45,17 +45,17 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 
 		if (SUCCESS != (ret = Util::store_int1(buffer, len, protocol_version_, pos)))
 		{
-			Log(LOG_ERR,"HandshakePacket", "serialize packet protocol_version failed, buffer=%p, length=%ld,"
+			LOG_ERR("serialize packet protocol_version failed, buffer=%p, length=%ld,"
 				"protocol_version=%d, pos=%ld", buffer, len, protocol_version_, pos);
 		}
 		else if (SUCCESS != (ret = Util::store_obstr_zt(buffer, len, server_version_, pos)))
 		{
-			Log(LOG_ERR,"HandshakePacket", "serialize packet server_version failed, buffer=%p, length=%ld,"
+			LOG_ERR("serialize packet server_version failed, buffer=%p, length=%ld,"
 				"server_version length=%d, pos=%ld", buffer, len, server_version_.length(), pos);
 		}
 		else if (SUCCESS != (ret = Util::store_int4(buffer, len, thread_id_, pos)))
 		{
-			Log(LOG_ERR,"HandshakePacket", "serialize packet thread_id failed, buffer=%p, length=%ld,"
+			LOG_ERR("serialize packet thread_id failed, buffer=%p, length=%ld,"
 				"thread_id=%d, pos=%ld", buffer, len, thread_id_, pos);
 		}
 
@@ -70,7 +70,7 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 			}
 			else
 			{
-				Log(LOG_ERR,"HandshakePacket", "not enough buffer to serialize scramble_buff && filler, buffer=%p, len=%ld,"
+				LOG_ERR("not enough buffer to serialize scramble_buff && filler, buffer=%p, len=%ld,"
 					"scramble_buff&&filler length=%d,pos=%ld", buffer, len, SCRAMBLE_SIZE + 1, pos);
 				ret = ERR_UNEXPECTED;
 			}
@@ -80,22 +80,22 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 		{
 			/*if (SUCCESS != (ret = Util::store_int1(buffer, len, filler_, pos)))
 			{
-			Log(LOG_ERR,"HandshakePacket", "serialize packet filler_ failed, buffer=%p, length=%ld,"
+			LOG_ERR("serialize packet filler_ failed, buffer=%p, length=%ld,"
 			"server_capabilities=%c, pos=%ld", buffer, len, filler_, pos);
 			}
 			else*/ if (SUCCESS != (ret = Util::store_int2(buffer, len, server_capabilities_, pos)))
 			{
-				Log(LOG_ERR,"HandshakePacket", "serialize packet server_capabilities failed, buffer=%p, length=%ld,"
+				LOG_ERR("serialize packet server_capabilities failed, buffer=%p, length=%ld,"
 					"server_capabilities=%d, pos=%ld", buffer, len, server_capabilities_, pos);
 			}
 			else if (SUCCESS != (ret = Util::store_int1(buffer, len, server_language_, pos)))
 			{
-				Log(LOG_ERR,"HandshakePacket", "serialize packet server_language failed, buffer=%p, length=%ld,"
+				LOG_ERR("serialize packet server_language failed, buffer=%p, length=%ld,"
 					"server_language=%d, pos=%ld", buffer, len, server_language_, pos);
 			}
 			else if (SUCCESS != (ret = Util::store_int2(buffer, len, server_status_, pos)))
 			{
-				Log(LOG_ERR,"HandshakePacket", "serialize packet server_status failed, buffer=%p, length=%ld,"
+				LOG_ERR("serialize packet server_status failed, buffer=%p, length=%ld,"
 					"server_status=%d, pos=%ld", buffer, len, server_status_, pos);
 			}
 		}
@@ -109,7 +109,7 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 			}
 			else
 			{
-				Log(LOG_ERR,"HandshakePacket", "not enough buffer to serialize plugin, buffer=%p, len=%ld,"
+				LOG_ERR("not enough buffer to serialize plugin, buffer=%p, len=%ld,"
 					"scramble_buff length=%d,pos=%ld", buffer, len, PLUGIN_SIZE, pos);
 				ret = ERR_UNEXPECTED;
 			}
@@ -124,7 +124,7 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 			}
 			else
 			{
-				Log(LOG_ERR,"HandshakePacket", "not enough buffer to serialize plugin, buffer=%p, len=%ld,"
+				LOG_ERR("not enough buffer to serialize plugin, buffer=%p, len=%ld,"
 					"plugin2 length=%d,pos=%ld", buffer, len, PLUGIN2_SIZE, pos);
 				ret = ERR_UNEXPECTED;
 			}
@@ -139,7 +139,7 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 			}
 			else
 			{
-				Log(LOG_ERR,"HandshakePacket", "not enough buffer to serialize filler2, buffer=%p, len=%ld,"
+				LOG_ERR("not enough buffer to serialize filler2, buffer=%p, len=%ld,"
 					"terminated_ length=%c,pos=%ld", buffer, len, terminated_, pos);
 				ret = ERR_UNEXPECTED;
 			}
@@ -150,12 +150,12 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 		{
 			if (SUCCESS != (ret = Util::store_int3(buffer, len, pkt_len, start_pos)))
 			{
-				Log(LOG_ERR,"HandshakePacket", "serialize packet haader size failed, buffer=%p, length=%ld, value=%d, pos=%ld",
+				LOG_ERR("serialize packet haader size failed, buffer=%p, length=%ld, value=%d, pos=%ld",
 					buffer, len, pkt_len, start_pos);
 			}
 			else if (SUCCESS != (ret = Util::store_int1(buffer, len, 0, start_pos)))
 			{
-				Log(LOG_ERR,"HandshakePacket", "serialize packet haader seq failed, buffer=%p, length=%ld, value=%d, pos=%ld",
+				LOG_ERR("serialize packet haader seq failed, buffer=%p, length=%ld, value=%d, pos=%ld",
 					buffer, len, 1, start_pos);
 			}
 		}

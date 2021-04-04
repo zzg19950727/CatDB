@@ -35,19 +35,19 @@ Plan_s DeletePlan::make_delete_plan(const Stmt_s& lex_insert_stmt)
 u32 DeletePlan::execute()
 {
 	if (!root_operator) {
-		Log(LOG_ERR, "DeletePlan", "there is no plan for delete");
+		LOG_ERR("there is no plan for delete");
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
-	//·¢ËÍ¼Æ»®
+	//ï¿½ï¿½ï¿½Í¼Æ»ï¿½
 	if (is_explain) {
 		return explain_plan();
 	}
-	Log(LOG_TRACE, "DeletePlan", "start execute delete plan");
+	LOG_TRACE("start execute delete plan");
 	u32 ret;
 	ret = root_operator->open();
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "DeletePlan", "open delete plan failed");
+		LOG_ERR("open delete plan failed");
 		set_error_code(ret);
 		return ret;
 	}
@@ -57,21 +57,21 @@ u32 DeletePlan::execute()
 	while ((ret = root_operator->get_next_row(row)) == SUCCESS)
 	{
 		++affect_rows_;
-		Log(LOG_TRACE, "DeletePlan", "delete row %u success", row->get_row_id());
+		LOG_TRACE("delete row success", K(row));
 	}
 	u32 ret2 = root_operator->close();
 	if (ret != NO_MORE_ROWS) {
-		Log(LOG_ERR, "DeletePlan", "execute delete plan failed");
+		LOG_ERR("execute delete plan failed");
 		set_error_code(ret);
 		return ret;
 	}
 	else if (ret2 != SUCCESS) {
-		Log(LOG_ERR, "DeletePlan", "close plan failed");
+		LOG_ERR("close plan failed");
 		set_error_code(ret2);
 		return ret2;
 	}
 	else {
-		Log(LOG_TRACE, "DeletePlan", "execute delete plan success");
+		LOG_TRACE("execute delete plan success");
 		set_error_code(SUCCESS);
 		return SUCCESS;
 	}
@@ -96,25 +96,25 @@ u32 DeletePlan::optimizer()
 {
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Delete)
 	{
-		Log(LOG_ERR, "DeletePlan", "error lex stmt when build delete plan");
+		LOG_ERR("error lex stmt when build delete plan", K(lex_stmt));
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
-	Log(LOG_TRACE, "DeletePlan", "start build delete plan");
+	LOG_TRACE("start build delete plan");
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	DeleteStmt* lex = dynamic_cast<DeleteStmt*>(lex_stmt.get());
 	assert(lex->table);
 	is_explain = lex->is_explain;
-	//¹¹½¨ÎïÀíËã×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
 	alias_table_name = table->alias_name;
-	//½«where×Ó¾ä×ª»»Îªfilter
+	//ï¿½ï¿½whereï¿½Ó¾ï¿½×ªï¿½ï¿½Îªfilter
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "DeletePlan", "create filter from where stmt error:%s", err_string(ret));
+		LOG_ERR("create filter from where stmt error", K(lex->where_stmt));
 		set_error_code(ret);
 		return ret;
 	}
@@ -164,8 +164,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	{
 		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		if (!checker->have_column(database, table_name, column_stmt->column)) {
-			Log(LOG_ERR, "DeletePlan", "%s.%s do not have column %s",
-				database.c_str(), table_name.c_str(), column_stmt->column.c_str());
+			LOG_ERR("table do not have column", K(database), K(table_name), K(column_stmt));
 			return COLUMN_NOT_EXISTS;
 		}
 		ColumnDesc col_desc;
@@ -195,7 +194,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		}
 		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
 		bool is_correlated = !subplan->ref_parent_table_list.empty();
-		//Èç¹û×Ó²éÑ¯ÒýÓÃÁËµ±Ç°²éÑ¯µÄ±íµÄÁÐ£¬ÔòÍ¬ÑùÐèÒªÌí¼Óµ½µ±Ç°²éÑ¯µÄÒýÓÃÁÐÖÐ
+		//ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½Ç°ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (auto iter = subplan->parent_table_access_column.cbegin(); iter != subplan->parent_table_access_column.cend(); ++iter) {
 			if (iter->first != table) {
 				continue;
@@ -231,7 +230,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	}
 	case ExprStmt::Aggregate:
 	{
-		Log(LOG_ERR, "DeletePlan", "aggregate stmt in delete`s where stmt not support");
+		LOG_ERR("aggregate stmt in delete`s where stmt not support");
 		ret = ERROR_LEX_STMT;
 		break;
 	}
@@ -241,7 +240,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr;
 		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create unary expression`s first expression failed");
+			LOG_ERR("create unary expression`s first expression failed", K(unary_stmt->expr_stmt));
 			break;
 		}
 		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
@@ -254,12 +253,12 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr, second_expr;
 		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create binary expression`s first expression failed");
+			LOG_ERR("create binary expression`s first expression failed", K(binary_stmt->first_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create binary expression`s second expression failed");
+			LOG_ERR("create binary expression`s second expression failed", K(binary_stmt->second_expr_stmt));
 			break;
 		}
 		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
@@ -272,17 +271,17 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr, second_expr, third_expr;
 		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create ternary expression`s first expression failed");
+			LOG_ERR("create ternary expression`s first expression failed", K(ternary_stmt->first_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create ternary expression`s second expression failed");
+			LOG_ERR("create ternary expression`s second expression failed", K(ternary_stmt->second_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "DeletePlan", "create ternary expression`s third expression failed");
+			LOG_ERR("create ternary expression`s third expression failed", K(ternary_stmt->third_expr_stmt));
 			break;
 		}
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
@@ -290,7 +289,7 @@ u32 DeletePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	}
 	default:
-		Log(LOG_ERR, "DeletePlan", "unknown expr stmt in delete`s where stmt");
+		LOG_ERR("unknown expr stmt in delete`s where stmt", K(expr_stmt));
 		ret = ERROR_LEX_STMT;
 	}
 	return ret;

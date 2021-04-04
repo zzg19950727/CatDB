@@ -52,7 +52,7 @@ u32 CatDB::Sql::ScalarGroup::open()
 {
 	u32 ret = child->open();
 	if (ret != SUCCESS){
-		Log(LOG_ERR, "HashGroup", "open child operator error:%s", err_string(ret));
+		LOG_ERR("open child operator error", err_string(ret));
 		return ret;
 	}else{
 		return calc_aggregate();
@@ -73,7 +73,7 @@ u32 CatDB::Sql::ScalarGroup::reopen(const Row_s & row)
 {
 	u32 ret = child->reopen(row);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "HashGroup", "reopen child operator error:%s", err_string(ret));
+		LOG_ERR("reopen child operator error", err_string(ret));
 		return ret;
 	}else {
 		if (filter)

@@ -37,7 +37,7 @@ bool CMDPlan::send_plan_result() const
 {
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::DoCMD)
 	{
-		Log(LOG_ERR, "CreateDatabasePlan", "error lex stmt when build cmd plan");
+		LOG_ERR("error lex stmt when build cmd plan", K(lex_stmt));
 		return false;
 	}
 	bool ret = false;
@@ -72,7 +72,7 @@ u32 CMDPlan::execute()
 	u32 ret = SUCCESS;
     if (!lex_stmt || lex_stmt->stmt_type() != Stmt::DoCMD)
 	{
-		Log(LOG_ERR, "CreateDatabasePlan", "error lex stmt when build cmd plan");
+		LOG_ERR("error lex stmt when build cmd plan", K(lex_stmt));
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
@@ -131,7 +131,7 @@ u32 CMDPlan::get_stmt(CMDStmt *&stmt)
 {
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::DoCMD)
 	{
-		Log(LOG_ERR, "CreateDatabasePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(lex_stmt));
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
@@ -604,20 +604,19 @@ u32 CMDPlan::do_cmd_analyze()
 	CMDStmt *stmt = NULL;
 	String database;
 	String table;
-	double sample_size = 1;
 	ret = get_stmt(stmt);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;
 	}
-	ret = stmt->get_analyze_params(database, table, sample_size);
+	ret = stmt->get_analyze_params(database, table);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
-	ret = checker->analyze_table(database, table, 0.01);
+	ret = checker->analyze_table(database, table);
 	if (ret != SUCCESS) {
 		set_error_code(ret);
 		return ret;

@@ -22,7 +22,7 @@ int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0)
 	{
-		Log(LOG_ERR, "Socket", "Server create socket failed");
+		LOG_ERR("Server create socket failed", K(ip), K(port));
 		return -1;
 	}
 
@@ -33,13 +33,13 @@ int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
 	server_addr.sin_port = htons(port);
 	if (bind(fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
 	{
-		Log(LOG_ERR, "Socket", "Server bind address failed, %s:%d", ip, port);
+		LOG_ERR("Server bind address failed", K(ip), K(port));
 		return -2;
 	}
 
 	if (listen(fd, listen_n) < 0)
 	{
-		Log(LOG_ERR, "Socket", "Server listen failed");
+		LOG_ERR("Server listen failed", K(ip), K(port), K(listen_n));
 		return -3;
 	}
 	return fd;
@@ -51,7 +51,7 @@ int CatDB::Server::accept_connection(int fd)
 	struct sockaddr_in client_addr;
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &addrlen);
 
-	Log(LOG_TRACE, "Socket", "accept connection:%d", client_fd);
+	LOG_TRACE("accept connection", K(client_fd));
 	return client_fd;
 }
 
@@ -87,7 +87,8 @@ NetService::~NetService()
 void NetService::poll()
 {
 	static int id = 1;
-	Log(LOG_INFO, "NetService", "NetService start poll:%d", id++);
+	LOG_TRACE("NetService start poll", K(id));
+	++id;
 	while(1)
 	{
 		fd_set revent = read_events;
@@ -95,7 +96,7 @@ void NetService::poll()
 		int state = select(1024, &revent, &wevent, 0, 0);
 		if(state == -1)
 		{
-			Log(LOG_ERR, "NetService", "NetService poll error:%d", errno);
+			LOG_ERR("NetService poll error", K(errno));
 			break;
 		}
 		else if(state == 0)
@@ -122,15 +123,15 @@ void NetService::poll()
 			}
 		}
 	}
-	Log(LOG_INFO, "NetService", "NetService stop poll");
+	LOG_TRACE("NetService stop poll");
 }
 
 int NetService::register_io(int fd, Event e, CallbackFunc& f)
 {
-	Log(LOG_INFO, "NetService", "NetService register io fd:%d and Event:%d", fd, e);
+	LOG_TRACE("NetService register io", K(fd), K(u8(e)));
 	if(add_event(fd,e) < 0)
 	{
-		Log(LOG_ERR, "NetService", "NetService register io failed:%d",errno);
+		LOG_ERR("NetService register io failed", K(errno));
 		return -1;
 	}
 	
@@ -146,10 +147,10 @@ int NetService::register_io(int fd, Event e, CallbackFunc& f)
 
 int NetService::unregister_io(int fd, Event e)
 {
-	Log(LOG_INFO, "NetService", "NetService unregister io fd:%d and Event:%d", fd, e);
+	LOG_TRACE("NetService unregister io", K(fd), K(u8(e)));
 	if(remove_event(fd,e) < 0)
 	{
-		Log(LOG_ERR, "NetService", "NetService unregister io failed:%d",errno);
+		LOG_ERR("NetService unregister io failed", K(errno));
 		return -1;
 	}
 
@@ -170,7 +171,7 @@ void NetService::create_poll(int size)
 #ifdef _WIN32
 	WSADATA wsadata;
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0)
-		Log(LOG_INFO, "NetService", "NetService create epoll");
+		LOG_TRACE("NetService create epoll");
 #endif	//_WIN32
 }
 
@@ -230,6 +231,6 @@ void NetService::response_event(int fd, Event e)
 	}
 	else if(e != E_WRITE)
 	{
-		Log(LOG_WARN, "NetService", "NetService:unknow fd:%d and Event:%d",fd,e);
+		LOG_WARN("NetService:unknow fd", K(fd), K(u8(e)));
 	}
 }

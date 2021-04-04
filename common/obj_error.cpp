@@ -61,18 +61,18 @@ Object_s Error::copy()
 
 Object_s Error:: op_and (const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "error object do not support and operation");
+	LOG_ERR("error object do not support and operation", K(other));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Error:: op_or (const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "error object do not support or operation");
+	LOG_ERR("error object do not support or operation", K(other));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Error::op_not()
 {
-	Log(LOG_ERR, "Object", "error object do not support not operation");
+	LOG_ERR("error object do not support not operation");
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }

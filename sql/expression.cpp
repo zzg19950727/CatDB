@@ -54,7 +54,7 @@ Object_s Operation::calc(Object_s & obj)
 	case ExprStmt::OP_IS_NOT_NULL:
 		return do_is_not_null(obj);
 	default:
-		Log(LOG_ERR, "Operation", "wrong calc function called for opertion %u", type);
+		LOG_ERR("wrong calc function called for opertion", K(ExprStmt::op_string(type)));
 		return Error::make_object(WRONG_CALC_FOR_OP);
 	}
 }
@@ -113,7 +113,7 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
 	case ExprStmt::OP_NOT_LIKE:
 		return do_not_like(first_obj, second_obj);
 	default:
-		Log(LOG_ERR, "Operation", "wrong calc function called for opertion %u", type);
+		LOG_ERR("wrong calc function called for opertion", K(ExprStmt::op_string(type)));
 		return Error::make_object(WRONG_CALC_FOR_OP);
 	}
 }
@@ -127,7 +127,7 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj, Object_s &
 	case ExprStmt::OP_NOT_BETWEEN:
 		return do_not_between(first_obj, second_obj, third_obj);
 	default:
-		Log(LOG_ERR, "Operation", "wrong calc function called for opertion %u", type);
+		LOG_ERR("wrong calc function called for opertion", K(ExprStmt::op_string(type)));
 		return Error::make_object(WRONG_CALC_FOR_OP);
 	}
 }
@@ -494,21 +494,23 @@ void TernaryExpression::reset(const Row_s & row)
 	third_expr->reset(row);
 }
 
-AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op)
+AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op, bool is_distinct)
 	:expr(expr),
+	is_distinct(is_distinct),
 	op(op),
 	row_count(0)
 {
-	
+	hash_table.add_hash_column(expr);
+	hash_table.add_probe_column(expr);
 }
 
 AggregateExpression::~AggregateExpression()
 {
 }
 
-Expression_s AggregateExpression::make_aggregate_expression(const Expression_s& expr, AggrType op)
+Expression_s AggregateExpression::make_aggregate_expression(const Expression_s& expr, AggrType op, bool is_distinct)
 {
-	return Expression_s(new AggregateExpression(expr, op));
+	return Expression_s(new AggregateExpression(expr, op, is_distinct));
 }
 
 Object_s AggregateExpression::get_result(const Row_s &)
@@ -544,10 +546,18 @@ Expression::ExprType AggregateExpression::get_type() const
 void AggregateExpression::reset(const Row_s & row)
 {
 	expr->reset(row);
+	hash_table.clear();
 }
 
 u32 AggregateExpression::add_row(const Row_s & row)
 {
+	if (is_distinct && (op != AggrStmt::MIN || AggrStmt::MAX)) {
+		if (hash_table.probe(row) == SUCCESS){
+			return SUCCESS;
+		}else{
+			hash_table.build(row);
+		}
+	}
 	switch (op)
 	{
 	case AggrStmt::SUM:

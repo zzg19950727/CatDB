@@ -51,11 +51,11 @@ u32 SqlRewriter::rewrite_for_select(Expression_s& ret_expr)
 	}
 	subquery_plan = dynamic_cast<SelectPlan*>(subquery.get());
 	is_correlated = subquery_plan->is_correlated_query();
-	//JA×Ó²éÑ¯¸ÄÐ´
+	//JAï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´
 	if (is_correlated && subquery_plan->is_simple_scalar_group()) {
 		return rewrite_for_select_JA_semi(ret_expr);
 	}
-	//JÐÍ×Ó²éÑ¯¸ÄÐ´
+	//Jï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´
 	else if (is_correlated) {
 		if (op_type == ExprStmt::OP_IN || op_type == ExprStmt::OP_EXISTS) {
 			return rewrite_for_select_J_semi(ret_expr);
@@ -67,38 +67,38 @@ u32 SqlRewriter::rewrite_for_select(Expression_s& ret_expr)
 			return CAN_NOT_REWRITE;
 		}
 	}
-	//NÐÍIN¡¢NOT IN×Ó²éÑ¯¸ÄÐ´
+	//Nï¿½ï¿½INï¿½ï¿½NOT INï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´
 	else if (op_type == ExprStmt::OP_IN) {
 		return rewrite_for_select_N_semi(ret_expr);
 	}
 	else if (op_type == ExprStmt::OP_NOT_IN) {
 		return rewrite_for_select_N_anti(ret_expr);
 	}
-	//NÐÍEXISTS¡¢NOT EXISTS£¬AÐÍ×Ó²éÑ¯²»ÓÃ¸ÄÐ´£¬Ö±½Ó×÷Îª×Ó¼Æ»®Ö´ÐÐ
+	//Nï¿½ï¿½EXISTSï¿½ï¿½NOT EXISTSï¿½ï¿½Aï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½Ã¸ï¿½Ð´ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½Îªï¿½Ó¼Æ»ï¿½Ö´ï¿½ï¿½
 	else {
 		return CAN_NOT_REWRITE;
 	}
 }
 
 /*
- * Õë¶ÔIN²Ù×÷µÄ²»Ïà¹Ø×Ó²éÑ¯¸ÄÐ´£¬
- * Ö±½Ó°Ñ×Ó²éÑ¯×÷ÎªÁÙÊ±±í£¬Óë¸¸¼Æ»®Á¬½Ó
- * Á¬½ÓÌõ¼þÎªINµÄ±í´ïÊ½Óë×Ó²éÑ¯µÄselect listÏàµÈ
+ * ï¿½ï¿½ï¿½INï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´ï¿½ï¿½
+ * Ö±ï¿½Ó°ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Îªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ë¸¸ï¿½Æ»ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªINï¿½Ä±ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½ï¿½
  */
 u32 SqlRewriter::rewrite_for_select_N_semi(Expression_s& ret_expr)
 {
 	if (subquery_plan->select_list.size() != 1 
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs) {
-		Log(LOG_ERR, "SqlRewriter", "IN subquery not support multi column yet");
+		LOG_ERR("IN subquery not support multi column yet");
 		return ERROR_LEX_STMT;
 	}
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery_alias);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	subquery_plan->set_alias_table_id(table_id);
@@ -111,7 +111,7 @@ u32 SqlRewriter::rewrite_for_select_N_semi(Expression_s& ret_expr)
 	Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
 	ret_expr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_EQ);
 
-	//Îª×Ó²éÑ¯Éú³ÉÁÙÊ±±íID
+	//Îªï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
@@ -121,24 +121,24 @@ u32 SqlRewriter::rewrite_for_select_N_semi(Expression_s& ret_expr)
 	return SUCCESS;
 }
 /*
-* Õë¶ÔNOT IN²Ù×÷µÄ²»Ïà¹Ø×Ó²éÑ¯¸ÄÐ´£¬
-* Ö±½Ó°Ñ×Ó²éÑ¯×÷ÎªÁÙÊ±±í£¬Óë¸¸¼Æ»®Á¬½Ó
-* Á¬½ÓÌõ¼þÎªNOT INµÄ±í´ïÊ½Óë×Ó²éÑ¯µÄselect listÏàµÈ
+* ï¿½ï¿½ï¿½NOT INï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´ï¿½ï¿½
+* Ö±ï¿½Ó°ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Îªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ë¸¸ï¿½Æ»ï¿½ï¿½ï¿½ï¿½ï¿½
+* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªNOT INï¿½Ä±ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½ï¿½
 */
 u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
 { 
 	if (subquery_plan->select_list.size() != 1
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs) {
-		Log(LOG_ERR, "SqlRewriter", "NOT IN subquery not support multi column yet");
+		LOG_ERR("NOT IN subquery not support multi column yet");
 		return ERROR_LEX_STMT;
 	}
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery_alias);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	subquery_plan->set_alias_table_id(table_id);
@@ -148,14 +148,14 @@ u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	// a not in (selct b...)µÄanti joinÌõ¼þÊÇ
+	// a not in (selct b...)ï¿½ï¿½anti joinï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	// a is null or b is null or a=b
-	//Ä¿Ç°Ö»Ö§³ÖNESTED LOOP¸ÄÐ´Anti join
+	//Ä¿Ç°Ö»Ö§ï¿½ï¿½NESTED LOOPï¿½ï¿½Ð´Anti join
 	Expression_s rhs = ColumnExpression::make_column_expression(col_desc);
 	ret_expr = BinaryExpression::make_binary_expression(lhs, rhs, ExprStmt::OP_ANTI_EQ);
 	table->anti_cond = ret_expr;
 
-	//Îª×Ó²éÑ¯Éú³ÉÁÙÊ±±íID
+	//Îªï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	table->join_type = JoinPhyOperator::AntiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
@@ -165,29 +165,29 @@ u32 SqlRewriter::rewrite_for_select_N_anti(Expression_s& ret_expr)
 	return SUCCESS;
 }
 /*
-* Õë¶ÔIN¡¢EXISTS²Ù×÷µÄÏà¹Ø×Ó²éÑ¯¸ÄÐ´£¬
-* Ö±½Ó°Ñ×Ó²éÑ¯×÷ÎªÁÙÊ±±í£¬Óë¸¸¼Æ»®Á¬½Ó
-* Á¬½ÓÌõ¼þÎªINµÄ±í´ïÊ½Óë×Ó²éÑ¯µÄselect listÏàµÈ£¬ÒÔ¼°Ïà¹Ø×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+* ï¿½ï¿½ï¿½INï¿½ï¿½EXISTSï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´ï¿½ï¿½
+* Ö±ï¿½Ó°ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Îªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ë¸¸ï¿½Æ»ï¿½ï¿½ï¿½ï¿½ï¿½
+* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªINï¿½Ä±ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½È£ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 */
 u32 SqlRewriter::rewrite_for_select_J_semi(Expression_s& ret_expr)
 {
 	if (op_type == ExprStmt::OP_IN && (subquery_plan->select_list.size() != 1
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs )) {
-		Log(LOG_ERR, "SqlRewriter", "IN subquery not support multi column yet");
+		LOG_ERR("IN subquery not support multi column yet");
 		return ERROR_LEX_STMT;
 	}
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery_alias);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	subquery_plan->set_alias_table_id(table_id);
 
-	//½«Ïà¹ØÎ½´ÊÌáµ½¸¸²éÑ¯£¬Í¬Ê±ÐèÒªÖØÐ´×Ó²éÑ¯µÄselect listÓï¾ä¿é
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½áµ½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Í¬Ê±ï¿½ï¿½Òªï¿½ï¿½Ð´ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½ï¿½ï¿½
 	u32 ret = rewrite_select_list(table_id);
 	if (ret != SUCCESS) {
 		return ret;
@@ -208,7 +208,7 @@ u32 SqlRewriter::rewrite_for_select_J_semi(Expression_s& ret_expr)
 		ret_expr = BinaryExpression::make_binary_expression(ret_expr, eq, ExprStmt::OP_AND);
 	}
 
-	//Îª×Ó²éÑ¯Éú³ÉÁÙÊ±±íID
+	//Îªï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
@@ -218,24 +218,24 @@ u32 SqlRewriter::rewrite_for_select_J_semi(Expression_s& ret_expr)
 	return SUCCESS;
 }
 /*
-* Õë¶ÔNOT IN¡¢NOT EXISTS²Ù×÷µÄÏà¹Ø×Ó²éÑ¯¸ÄÐ´£¬
-* Ö±½Ó°Ñ×Ó²éÑ¯×÷ÎªÁÙÊ±±í£¬Óë¸¸¼Æ»®Á¬½Ó
-* Á¬½ÓÌõ¼þÎªNOT INµÄ±í´ïÊ½Óë×Ó²éÑ¯µÄselect listÏàµÈ£¬ÒÔ¼°Ïà¹Ø×Ó²éÑ¯µÄÏà¹ØÎ½´Ê
+* ï¿½ï¿½ï¿½NOT INï¿½ï¿½NOT EXISTSï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´ï¿½ï¿½
+* Ö±ï¿½Ó°ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Îªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ë¸¸ï¿½Æ»ï¿½ï¿½ï¿½ï¿½ï¿½
+* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªNOT INï¿½Ä±ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½È£ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 */
 u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 {
 	if (op_type == ExprStmt::OP_IN && (subquery_plan->select_list.size() != 1
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs)) {
-		Log(LOG_ERR, "SqlRewriter", "NOT IN subquery not support multi column yet");
+		LOG_ERR("NOT IN subquery not support multi column yet");
 		return ERROR_LEX_STMT;
 	}
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery_alias);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	subquery_plan->set_alias_table_id(table_id);
@@ -245,10 +245,10 @@ u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 	if (ret != SUCCESS) {
 		return ret;
 	}
-	// a not in (selct b...)µÄanti joinÌõ¼þÊÇ
+	// a not in (selct b...)ï¿½ï¿½anti joinï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	// a is null or b is null or a=b
-	//Ä¿Ç°Ö»Ö§³ÖNESTED LOOP¸ÄÐ´Anti join
-	//½«Ïà¹ØÎ½´ÊÌáµ½¸¸²éÑ¯£¬Í¬Ê±ÐèÒªÖØÐ´×Ó²éÑ¯µÄselect listÓï¾ä¿é
+	//Ä¿Ç°Ö»Ö§ï¿½ï¿½NESTED LOOPï¿½ï¿½Ð´Anti join
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½áµ½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Í¬Ê±ï¿½ï¿½Òªï¿½ï¿½Ð´ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½select listï¿½ï¿½ï¿½ï¿½
 	ret = rewrite_select_list(table_id);
 	if (ret != SUCCESS) {
 		return ret;
@@ -264,7 +264,7 @@ u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 		table->anti_cond = rhs;
 		ret_expr = BinaryExpression::make_binary_expression(rhs, ret_expr, ExprStmt::OP_AND);
 	}
-	//Îª×Ó²éÑ¯Éú³ÉÁÙÊ±±íID
+	//Îªï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	table->join_type = JoinPhyOperator::AntiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;
@@ -274,32 +274,32 @@ u32 SqlRewriter::rewrite_for_select_J_anti(Expression_s& ret_expr)
 	return SUCCESS;
 }
 
-//×¢ÒâcountµÄBUG²¢Ã»ÈÆ¿ª
+//×¢ï¿½ï¿½countï¿½ï¿½BUGï¿½ï¿½Ã»ï¿½Æ¿ï¿½
 u32 SqlRewriter::rewrite_for_select_JA_semi(Expression_s& ret_expr)
 {
 	if (subquery_plan->select_list.size() != 1
 		|| subquery_plan->select_list_name.size() != 1
 		|| !lhs) {
-		Log(LOG_ERR, "SqlRewriter", "JA subquery not support multi column yet");
+		LOG_ERR("JA subquery not support multi column yet");
 		return ERROR_LEX_STMT;
 	}
-	//¼ì²éËùÓÐµÄÏà¹ØÎ½´ÊÊÇ·ñ¶¼ÊÇÁÐÏàµÈÎ½´Ê
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½
 	for (u32 i = 0; i < subquery_plan->corrected_predicates.size(); ++i) {
 		if (!is_column_eq_expr(subquery_plan->corrected_predicates[i])) {
 			return CAN_NOT_REWRITE;
 		}
 	}
-	//¹¹½¨ÁÙÊ±±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	TableStmt* table = nullptr;
 	Stmt_s stmt = TableStmt::make_table_stmt(subquery_alias);
 	table = dynamic_cast<TableStmt*>(stmt.get());
 	table->is_tmp_table = true;
-	//Éú²úÁÙÊ±±íID
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	u32 table_id = checker->get_table_id(table->database, table->alias_name);
 	subquery_plan->set_alias_table_id(table_id);
 
-	//½«×Ó²éÑ¯µÄscalar group¸ÄÐ´³ÉÏà¹ØÎ½´ÊÒýÓÃÁÐµÄgroup by£¬ÔÙÊ¹ÓÃNÐÍ×Ó²éÑ¯¸ÄÐ´
+	//ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½scalar groupï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½group byï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Nï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½Ð´
 	u32 ret = rewrite_group_by_for_JA(table_id);
 	if (ret != SUCCESS) {
 		return ret;
@@ -318,7 +318,7 @@ u32 SqlRewriter::rewrite_for_select_JA_semi(Expression_s& ret_expr)
 	Expression_s eq = BinaryExpression::make_binary_expression(lhs, rhs, op_type);
 	ret_expr = BinaryExpression::make_binary_expression(ret_expr, eq, ExprStmt::OP_AND);
 
-	//Îª×Ó²éÑ¯Éú³ÉÁÙÊ±±íID
+	//Îªï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ID
 	table->join_type = JoinPhyOperator::SemiJoin;
 	table->subplan = subquery;
 	table->table_id = table_id;

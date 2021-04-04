@@ -16,6 +16,43 @@ Stmt::StmtType ExprStmt::stmt_type() const
 	return Stmt::Expr;
 }
 
+String ExprStmt::op_string(OperationType op_type)
+{
+	switch (op_type) {
+		case OP_INVALID: return String(VAR_NAME(OP_INVALID));
+		case OP_ADD: return String(VAR_NAME(OP_ADD));
+		case OP_SUB: return String(VAR_NAME(OP_SUB));
+		case OP_MUL: return String(VAR_NAME(OP_MUL));
+		case OP_DIV: return String(VAR_NAME(OP_DIV));
+		case OP_EQ: return String(VAR_NAME(OP_EQ));
+		case OP_ANTI_EQ: return String(VAR_NAME(OP_ANTI_EQ));
+		case OP_NE: return String(VAR_NAME(OP_NE));
+		case OP_GE: return String(VAR_NAME(OP_GE));
+		case OP_GT: return String(VAR_NAME(OP_GT));
+		case OP_LE: return String(VAR_NAME(OP_LE));
+		case OP_LT: return String(VAR_NAME(OP_LT));
+		case OP_BETWEEN: return String(VAR_NAME(OP_BETWEEN));
+		case OP_NOT_BETWEEN: return String(VAR_NAME(OP_NOT_BETWEEN));
+		case OP_IS_NULL: return String(VAR_NAME(OP_IS_NULL));
+		case OP_IS_NOT_NULL: return String(VAR_NAME(OP_IS_NOT_NULL));
+		case OP_IN: return String(VAR_NAME(OP_IN));
+		case OP_NOT_IN: return String(VAR_NAME(OP_NOT_IN));
+		case OP_EXISTS: return String(VAR_NAME(OP_EXISTS));
+		case OP_NOT_EXISTS: return String(VAR_NAME(OP_NOT_EXISTS));
+		case OP_AND: return String(VAR_NAME(OP_AND));
+		case OP_OR: return String(VAR_NAME(OP_OR));
+		case OP_NOT: return String(VAR_NAME(OP_NOT));
+		case OP_UNION: return String(VAR_NAME(OP_UNION));
+		case OP_UNION_ALL: return String(VAR_NAME(OP_UNION_ALL));
+		case OP_INTERSECT: return String(VAR_NAME(OP_INTERSECT));
+		case OP_EXCEPT: return String(VAR_NAME(OP_EXCEPT));
+		case OP_MINUS: return String(VAR_NAME(OP_MINUS));
+		case OP_LIKE: return String(VAR_NAME(OP_LIKE));
+		case OP_NOT_LIKE: return String(VAR_NAME(OP_NOT_LIKE));
+		defualt: return String("unknown");
+	}
+}
+
 ConstStmt::ConstStmt()
 {
 }
@@ -194,6 +231,21 @@ Stmt_s AggrStmt::make_aggr_stmt()
 
 String AggrStmt::to_string() const
 {
+	String func = aggr_func_name();
+	String distinct_str;
+	if (distinct) {
+		distinct_str = "DISTINCT ";
+	}
+	ExprStmt* expr = dynamic_cast<ExprStmt*>(aggr_expr.get());
+	String expr_str;
+	if (expr) {
+		expr_str = expr->to_string();
+	}
+	return func + "(" + distinct_str + expr_str + ")";
+}
+
+String AggrStmt::aggr_func_name()const
+{
 	String func;
 	switch (aggr_func)
 	{
@@ -212,17 +264,10 @@ String AggrStmt::to_string() const
 	case AggrStmt::MAX:
 		func = "MAX";
 		break;
+	default:
+		func = "unknown";
 	}
-	String distinct_str;
-	if (distinct) {
-		distinct_str = "DISTINCT ";
-	}
-	ExprStmt* expr = dynamic_cast<ExprStmt*>(aggr_expr.get());
-	String expr_str;
-	if (expr) {
-		expr_str = expr->to_string();
-	}
-	return func + "(" + distinct_str + expr_str + ")";
+	return func;
 }
 
 UnaryExprStmt::UnaryExprStmt()

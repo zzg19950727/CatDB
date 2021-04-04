@@ -71,7 +71,7 @@ u32 Delete::get_next_row(Row_s &row)
 	if (!filter) {
 		ret = table_space->delete_all_row();
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "Delete", "delete all rows error:%s", err_string(ret));
+			LOG_ERR("delete all rows error", err_string(ret));
 			return ret;
 		}else {
 			return NO_MORE_ROWS;
@@ -87,7 +87,7 @@ u32 Delete::get_next_row(Row_s &row)
 			return NO_MORE_ROWS;
 		}
 		else if (ret != SUCCESS){
-			Log(LOG_ERR, "Delete", "get next row error:%s", err_string(ret));
+			LOG_ERR("get next row error", err_string(ret));
 			return ret;
 		}else{
 			if (filter){

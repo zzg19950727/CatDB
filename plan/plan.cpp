@@ -26,12 +26,14 @@ Plan::Plan()
 Plan::~Plan()
 {
 }
-
+#include <iostream>
 Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 {
 	if (!lex_stmt) {
 		return Plan_s();
 	}
+	if (lex_stmt->is_explain)
+	std::cout<<K(lex_stmt)<<std::endl;
 	switch (lex_stmt->stmt_type())
 	{
 	case Stmt::Insert:

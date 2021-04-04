@@ -53,7 +53,7 @@ u32 CMDStmt::get_create_table_params(String &database, String &table, Vector<Pai
 {
     if (cmd_type != CMDStmt::CreateTable)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	if (params.create_table_params.table->stmt_type() != Stmt::Expr) {
@@ -107,7 +107,7 @@ u32 CMDStmt::get_drop_table_params(String &database, String &table)
 {
     if (cmd_type != CMDStmt::DropTable)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	if (params.drop_table_params.table->stmt_type() != Stmt::Expr) {
@@ -127,7 +127,7 @@ u32 CMDStmt::get_create_database_params(String &database)
 {
     if (cmd_type != CMDStmt::CreateDatabase)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	database = params.create_database_params.database;
@@ -138,7 +138,7 @@ u32 CMDStmt::get_drop_database_params(String &database)
 {
     if (cmd_type != CMDStmt::DropDatabase)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	database = params.drop_database_params.database;
@@ -149,7 +149,7 @@ u32 CMDStmt::get_show_tables_params(String &database)
 {
     if (cmd_type != CMDStmt::ShowTables)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	database = params.show_tables_params.database;
@@ -160,7 +160,7 @@ u32 CMDStmt::get_show_databases_params(bool &is_select_current_database)
 {
     if (cmd_type != CMDStmt::ShowDatabases)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	is_select_current_database = params.show_databases_params.is_select_current_database;
@@ -171,7 +171,7 @@ u32 CMDStmt::get_desc_table_params(String &database, String &table, bool &is_sho
 {
     if (cmd_type != CMDStmt::DescTable)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	if (params.desc_table_params.table->stmt_type() != Stmt::Expr) {
@@ -193,22 +193,38 @@ u32 CMDStmt::get_use_database_params(String &database)
 {
     if (cmd_type != CMDStmt::UseDatabase)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	database = params.use_database_params.database;
 	return SUCCESS;
 }
 
-u32 CMDStmt::get_analyze_params(String &database, String &table, double &sample_size)
+u32 CMDStmt::get_analyze_params(String &database, String &table)
 {
     if (cmd_type != CMDStmt::Analyze)
 	{
-		Log(LOG_ERR, "CreateTablePlan", "error lex stmt");
+		LOG_ERR("error lex stmt", K(this));
 		return ERROR_LEX_STMT;
 	}
 	database = params.analyze_params.database;
     table = params.analyze_params.table;
-    sample_size = params.analyze_params.sample_size;
 	return SUCCESS;
+}
+
+String CMDStmt::get_cmd_type()const
+{
+	switch(cmd_type) {
+		case NONE: return String(VAR_NAME(NONE));
+		case CreateTable: return String(VAR_NAME(CreateTable));
+		case DropTable: return String(VAR_NAME(DropTable));
+		case CreateDatabase: return String(VAR_NAME(CreateDatabase));
+		case DropDatabase: return String(VAR_NAME(DropDatabase));
+		case ShowTables: return String(VAR_NAME(ShowTables));
+		case ShowDatabases: return String(VAR_NAME(ShowDatabases));
+		case DescTable: return String(VAR_NAME(DescTable));
+		case UseDatabase: return String(VAR_NAME(UseDatabase));
+		case Analyze: return String(VAR_NAME(Analyze));
+		default: return String("unknown");
+	}
 }

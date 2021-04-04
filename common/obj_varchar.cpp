@@ -18,7 +18,6 @@ Varchar::Varchar(const RawData & data)
 	obj_type = data.type;
 	this->data = Buffer::make_buffer(obj_width + 1);
 	memcpy(this->data->buf, data.data, obj_width);
-	Log(LOG_TRACE, "Object", "make varchar object, value %s", this->data->buf);
 }
 
 Varchar::Varchar(const String & str)
@@ -89,7 +88,7 @@ Object_s Varchar::operator==(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_VARCHAR) {
-		Log(LOG_ERR, "Object", "varchar type can not compare %u", other->get_type());
+		LOG_ERR("varchar type can not compare", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -109,7 +108,7 @@ Object_s Varchar::operator>(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_VARCHAR) {
-		Log(LOG_ERR, "Object", "varchar type can not compare %u", other->get_type());
+		LOG_ERR("varchar type can not compare", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -132,7 +131,7 @@ Object_s Varchar::operator<(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_VARCHAR) {
-		Log(LOG_ERR, "Object", "varchar type can not compare %u", other->get_type());
+		LOG_ERR("varchar type can not compare", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -165,7 +164,7 @@ Object_s Varchar::between(const Object_s & left, const Object_s & right)
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_DATETIME || right->get_type() != T_DATETIME) {
-		Log(LOG_ERR, "Object", "datetime type can not comapre %u", left->get_type());
+		LOG_ERR("datetime type can not comapre", K(left), K(right));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -247,17 +246,17 @@ bool kmp(const char *s1, const char *s2, int& beg1, int& beg2, int end1, int end
 
 bool contain(const char* str1, const char* str2, int& beg1, int& beg2, int end1, int end2)
 {
-	//·ÖÆ¬Æ¥ÅäµÄÆðÊ¼Î»ÖÃ
+	//ï¿½ï¿½Æ¬Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼Î»ï¿½ï¿½
 	int pos1 = beg2;
 	while (pos1 <= end2 && str2[pos1] == '%') {
 		++pos1;
 	}
-	//·ÖÆ¬Æ¥ÅäµÄ½áÊøÎ»ÖÃ
+	//ï¿½ï¿½Æ¬Æ¥ï¿½ï¿½Ä½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	int pos2 = pos1;
 	while (pos2 <= end2 && str2[pos2] != '%') {
 		++pos2;
 	}
-	//Ã»ÓÐÖÐ¼äÆ¥Åä´®
+	//Ã»ï¿½ï¿½ï¿½Ð¼ï¿½Æ¥ï¿½ä´®
 	if (pos1 == pos2) {
 		return true;
 	}
@@ -301,7 +300,7 @@ Object_s Varchar::like(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_VARCHAR) {
-		Log(LOG_ERR, "Object", "varchar type can not compare %u", other->get_type());
+		LOG_ERR("varchar type can not compare", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {

@@ -37,7 +37,7 @@ u32 UpdatePlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
-	//·¢ËÍ¼Æ»®
+	//ï¿½ï¿½ï¿½Í¼Æ»ï¿½
 	if (is_explain) {
 		return explain_plan();
 	}
@@ -88,7 +88,7 @@ u32 UpdatePlan::optimizer()
 {
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Update)
 	{
-		Log(LOG_ERR, "UpdatePlan", "error lex stmt when build update plan");
+		LOG_ERR("error lex stmt when build update plan");
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
@@ -97,21 +97,21 @@ u32 UpdatePlan::optimizer()
 	UpdateStmt* lex = dynamic_cast<UpdateStmt*>(lex_stmt.get());
 	assert(lex->table);
 	is_explain = lex->is_explain;
-	//¹¹½¨ÎïÀíËã×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	table = dynamic_cast<TableStmt*>(lex->table.get());
 	database = table->database;
 	table_name = table->table_name;
 	alias_table_name = table->alias_name;
-	//½«where×Ó¾ä×ª»»Îªfilter
+	//ï¿½ï¿½whereï¿½Ó¾ï¿½×ªï¿½ï¿½Îªfilter
 	u32 ret = resolve_filter(lex->where_stmt, filter);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "UpdatePlan", "create filter from where stmt error:%s", err_string(ret));
+		LOG_ERR("create filter from where stmt error", K(ret));
 		set_error_code(ret);
 		return ret;
 	}
 	ret = resolve_update_row(lex->update_asgn_stmt, new_row);
 	if (ret != SUCCESS) {
-		Log(LOG_ERR, "UpdatePlan", "create update row from asign stmt error:%s", err_string(ret));
+		LOG_ERR("create update row from asign stmt error", K(ret));
 		set_error_code(ret);
 		return ret;
 	}
@@ -161,8 +161,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	{
 		ColumnStmt* column_stmt = dynamic_cast<ColumnStmt*>(expr_stmt);
 		if (!checker->have_column(database, table_name, column_stmt->column)) {
-			Log(LOG_ERR, "UpdatePlan", "%s.%s do not have column %s",
-				database.c_str(), table_name.c_str(), column_stmt->column.c_str());
+			LOG_ERR("table do not have column", K(database), K(table_name), K(column_stmt));
 			return COLUMN_NOT_EXISTS;
 		}
 		ColumnDesc col_desc;
@@ -192,7 +191,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		}
 		SelectPlan* subplan = dynamic_cast<SelectPlan*>(plan.get());
 		bool is_correlated = !subplan->ref_parent_table_list.empty();
-		//Èç¹û×Ó²éÑ¯ÒýÓÃÁËµ±Ç°²éÑ¯µÄ±íµÄÁÐ£¬ÔòÍ¬ÑùÐèÒªÌí¼Óµ½µ±Ç°²éÑ¯µÄÒýÓÃÁÐÖÐ
+		//ï¿½ï¿½ï¿½ï¿½Ó²ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½Ç°ï¿½ï¿½Ñ¯ï¿½Ä±ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (auto iter = subplan->parent_table_access_column.cbegin(); iter != subplan->parent_table_access_column.cend(); ++iter) {
 			if (iter->first != table) {
 				continue;
@@ -228,7 +227,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 	}
 	case ExprStmt::Aggregate:
 	{
-		Log(LOG_ERR, "UpdatePlan", "aggregate stmt in update`s where stmt not support");
+		LOG_ERR("aggregate stmt in update`s where stmt not support");
 		ret = ERROR_LEX_STMT;
 		break;
 	}
@@ -238,7 +237,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr;
 		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create unary expression`s first expression failed");
+			LOG_ERR("create unary expression`s first expression failed");
 			break;
 		}
 		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
@@ -251,12 +250,12 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr, second_expr;
 		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create binary expression`s first expression failed");
+			LOG_ERR("create binary expression`s first expression failed");
 			break;
 		}
 		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create binary expression`s second expression failed");
+			LOG_ERR("create binary expression`s second expression failed");
 			break;
 		}
 		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
@@ -269,17 +268,17 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
 		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create ternary expression`s first expression failed");
+			LOG_ERR("create ternary expression`s first expression failed");
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create ternary expression`s second expression failed");
+			LOG_ERR("create ternary expression`s second expression failed");
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create ternary expression`s third expression failed");
+			LOG_ERR("create ternary expression`s third expression failed");
 			break;
 		}
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
@@ -287,7 +286,7 @@ u32 UpdatePlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	}
 	default:
-		Log(LOG_ERR, "UpdatePlan", "unknown expr stmt in update`s where stmt");
+		LOG_ERR("unknown expr stmt in update`s where stmt");
 		ret = ERROR_LEX_STMT;
 	}
 	return ret;
@@ -311,7 +310,7 @@ u32 UpdatePlan::resolve_update_row(const Stmt_s& asgn_stmt, Row_s& row)
 		Object_s cell;
 		u32 ret = resolve_cell(list_stmt->stmt_list[i], col_desc, cell);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "create %uth column failed", i);
+			LOG_ERR("create column failed", K(i));
 			return ret;
 		}
 		row->get_row_desc().set_column_desc(i, col_desc);
@@ -323,22 +322,22 @@ u32 UpdatePlan::resolve_update_row(const Stmt_s& asgn_stmt, Row_s& row)
 u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Object_s& cell)
 {
 	if (asign_stmt->stmt_type() != Stmt::Expr) {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must be expression stmt");
+		LOG_ERR("update asign stmt must be expression stmt");
 		return ERROR_LEX_STMT;
 	}
 	ExprStmt* expr_stmt = dynamic_cast<ExprStmt*>(asign_stmt.get());
 	if (expr_stmt->expr_stmt_type() != ExprStmt::Binary) {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must be binary expression stmt");
+		LOG_ERR("update asign stmt must be binary expression stmt");
 		return ERROR_LEX_STMT;
 	}
 	BinaryExprStmt* binary_stmt = dynamic_cast<BinaryExprStmt*>(expr_stmt);
 	if (binary_stmt->op_type != ExprStmt::OP_EQ) {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must be equal expression stmt");
+		LOG_ERR("update asign stmt must be equal expression stmt");
 		return ERROR_LEX_STMT;
 	}
 	if (binary_stmt->first_expr_stmt->stmt_type() != Stmt::Expr
 		|| binary_stmt->second_expr_stmt->stmt_type() != Stmt::Expr) {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must be expression stmt");
+		LOG_ERR("update asign stmt must be expression stmt");
 		return ERROR_LEX_STMT;
 	}
 	ColumnStmt* column_stmt = nullptr;
@@ -352,7 +351,7 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 	else {
 		u32 ret = resolve_expr(binary_stmt->first_expr_stmt, const_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+			LOG_ERR("update asign stmt must have a column stmt and a const stmt");
 			return ERROR_LEX_STMT;
 		}
 	}/*
@@ -360,7 +359,7 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 		const_stmt = dynamic_cast<ConstStmt*>(first_expr);
 	}
 	else {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+		LOG_ERR("update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
 	}*/
 
@@ -370,7 +369,7 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 	else {
 		u32 ret = resolve_expr(binary_stmt->second_expr_stmt, const_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+			LOG_ERR("update asign stmt must have a column stmt and a const stmt");
 			return ERROR_LEX_STMT;
 		}
 	}/*
@@ -378,18 +377,17 @@ u32 UpdatePlan::resolve_cell(const Stmt_s& asign_stmt, ColumnDesc&col_desc, Obje
 		const_stmt = dynamic_cast<ConstStmt*>(second_expr);
 	}
 	else {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+		LOG_ERR("update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
 	}*/
 	if (!column_stmt || !const_expr) {
-		Log(LOG_ERR, "UpdatePlan", "update asign stmt must have a column stmt and a const stmt");
+		LOG_ERR("update asign stmt must have a column stmt and a const stmt");
 		return ERROR_LEX_STMT;
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	assert(checker);
 	if (!checker->have_column(database, table_name, column_stmt->column)) {
-		Log(LOG_ERR, "UpdatePlan", "%s.%s do not have column %s",
-			database.c_str(), table_name.c_str(), column_stmt->column.c_str());
+		LOG_ERR("table do not have column", K(database), K(table_name), K(column_stmt));
 		return COLUMN_NOT_EXISTS;
 	}
 	u32 ret = checker->get_column_desc(database, table_name, column_stmt->column, col_desc);

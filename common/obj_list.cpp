@@ -8,7 +8,6 @@ ObjList::ObjList()
 {
 	obj_width = 0;
 	obj_type = T_LIST;
-	Log(LOG_TRACE, "Object", "make list object");
 }
 
 Object_s ObjList::make_object()

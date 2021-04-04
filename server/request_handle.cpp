@@ -70,7 +70,7 @@ void RequestHandle::read_socket(int fd)
 	buffer_calloc(buffer, BLOCK_SIZE);
 		
 	len = net_read(fd, buffer.data, len);
-	Log(LOG_TRACE, "RequestHandle", "RequestHandle::read_socket fd %d recv %u bytes data",m_fd,len);
+	LOG_TRACE("RequestHandle::read_socket data", K(m_fd), K(len));
 	if (len < 0) {
 		close_connection();
 		buffer_free(buffer);
@@ -112,7 +112,7 @@ void RequestHandle::write_socket(int fd)
 		if(len > 0)
 		{
 			m_write_cache.read(tmp);
-			Log(LOG_TRACE, "RequestHandle", "RequestHandle::write_socket fd %d send %u bytes data",m_fd,len);
+			LOG_TRACE("RequestHandle::write_socket data", K(m_fd), K(len));
 		}
 		if(len != BLOCK_SIZE)
 			break;
@@ -121,7 +121,7 @@ void RequestHandle::write_socket(int fd)
 
 void RequestHandle::close_connection()
 {
-	Log(LOG_TRACE, "RequestHandle", "RequestHandle close connection:%d",m_fd);
+	LOG_TRACE("RequestHandle close connection", K(m_fd));
 	net_close(m_fd);
 	m_server_service.m_net_service.unregister_io(m_fd, NetService::E_RW);
 	m_server_service.close_connection(m_fd);
@@ -146,7 +146,7 @@ u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 	ret = packet.serialize(buff, size, pos);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "serialize packet failed packet is %p ret is %d", &packet, ret);
+		LOG_ERR("serialize packet failed", K(ret));
 	}
 	else
 	{
@@ -156,7 +156,7 @@ u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 		Util::store_int3(buff, size, pkt_len, len_pos);
 		if (!m_write_cache.write_package((const char*)buf->buf, pos))
 		{
-			Log(LOG_ERR, "RequestHandle", "RequestHandle write_cache full,drop response");
+			LOG_ERR("RequestHandle write_cache full,drop response");
 		}
 	}
 	return ret;
@@ -169,7 +169,7 @@ u32 RequestHandle::send_ok_packet()
 	ret = post_packet(okpacket, ++seq);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "failed to send ok packet to mysql client ret is %d", ret);
+		LOG_ERR("failed to send ok packet to mysql client", K(ret));
 	}
 	return ret;
 }
@@ -183,7 +183,7 @@ u32 RequestHandle::send_error_packet(u32 err_code, const String & msg)
 	ret = post_packet(epacket, ++seq);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "failed to send error packet to mysql client ret is %d", ret);
+		LOG_ERR("failed to send error packet to mysql client", K(ret));
 	}
 	return ret;
 }
@@ -201,37 +201,37 @@ u32 RequestHandle::send_result_set(const Plan_s& plan)
 	{
 		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
         	{
-                	Log(LOG_WARN, "RequestHandle", "process row packet failed ret is %d", ret);
+                	LOG_WARN("process row packet failed", K(ret));
         	}
         	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
         	{
-                	Log(LOG_WARN, "RequestHandle", "process row eof packet failed ret is %d", ret);
+                	LOG_WARN("process row eof packet failed", K(ret));
         	}
 		return ret;
 	}
 	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, plan)))
 	{
-		Log(LOG_WARN, "RequestHandle", "process resheasder packet failed ret is %d", ret);
+		LOG_WARN("process resheasder packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
 	{
-		Log(LOG_WARN, "RequestHandle", "process field packet failed ret is %d", ret);
+		LOG_WARN("process field packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
 	{
-		Log(LOG_WARN, "RequestHandle", "process field eof packet failed ret is %d", ret);
+		LOG_WARN("process field eof packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_row_packets(buf, buffer_pos, plan)))
 	{
-		Log(LOG_WARN, "RequestHandle", "process row packet failed ret is %d", ret);
+		LOG_WARN("process row packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
 	{
-		Log(LOG_WARN, "RequestHandle", "process row eof packet failed ret is %d", ret);
+		LOG_WARN("process row eof packet failed", K(ret));
 	}
 	if (SUCCESS == ret)
 	{
-		Log(LOG_INFO, "RequestHandle",  "send result set to client");
+		LOG_TRACE( "send result set to client");
 		
 	}
 	return ret;
@@ -251,7 +251,7 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 	ret = process_single_packet(buff, buff_pos, header);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "process resheader packet failed ret is %d", ret);
+		LOG_ERR("process resheader packet failed", K(ret));
 	}
 	return ret;
 }
@@ -301,7 +301,7 @@ u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_p
 	ret = process_single_packet(buff, buff_pos, eof);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "process eof packet failed ret is %d", ret);
+		LOG_ERR("process eof packet failed", K(ret));
 	}
 	return ret;
 }
@@ -352,7 +352,7 @@ u32 RequestHandle::do_not_support()
 	ret = post_packet(epacket, ++seq);
 	if (SUCCESS != ret)
 	{
-		Log(LOG_ERR, "RequestHandle", "failed to send error packet to mysql client ret is %d",ret);
+		LOG_ERR("failed to send error packet to mysql client", K(ret));
 	}
 	return ret;
 }
@@ -423,11 +423,11 @@ u32 RequestHandle::do_cmd_query(const String& query)
 
 void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len)
 {
-	Log(LOG_TRACE, "RequestHandle", "RequestHandle::worker_caller call func %s( 0x%p, %u)", func.c_str(),ptr.get(), len);
+	LOG_TRACE("RequestHandle::worker_caller call func", K(func), K(len));
 	
 	if(!m_write_cache.write_package(ptr.get(),len))
 	{
-		Log(LOG_ERR, "RequestHandle", "RequestHandle write_cache full,drop %s`s response", func.c_str());
+		LOG_ERR("RequestHandle write_cache full,drop response", K(func));
 	}
 }
 
@@ -437,7 +437,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
 	is_com_field_list = false;
-	Log(LOG_TRACE, "RequestHandle", "handle client command %u", command);
+	LOG_TRACE("handle client command", K(u32(command)));
 	switch (command)
 	{
 		case COM_INIT_DB:

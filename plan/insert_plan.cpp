@@ -36,7 +36,7 @@ u32 InsertPlan::execute()
 		set_error_code(PLAN_NOT_BUILD);
 		return PLAN_NOT_BUILD;
 	}
-	//·¢ËÍ¼Æ»®
+	//ï¿½ï¿½ï¿½Í¼Æ»ï¿½
 	if (is_explain) {
 		return explain_plan();
 	}
@@ -74,7 +74,7 @@ u32 InsertPlan::build_plan()
 {
 	if (!lex_stmt || lex_stmt->stmt_type() != Stmt::Insert)
 	{
-		Log(LOG_ERR, "InsertPlan", "error lex stmt when build insert plan");
+		LOG_ERR("error lex stmt when build insert plan", K(lex_stmt));
 		set_error_code(ERROR_LEX_STMT);
 		return ERROR_LEX_STMT;
 	}
@@ -84,12 +84,12 @@ u32 InsertPlan::build_plan()
 	assert(lex->table);
 	assert(lex->values);
 	is_explain = lex->is_explain;
-	//¹¹½¨ÎïÀíËã×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	TableStmt* table = dynamic_cast<TableStmt*>(lex->table.get());
 	const String& database = table->database;
 	const String& table_name = table->table_name;
 	root_operator = Insert::make_insert(database, table_name, table->alias_name);
-	//½«½âÎöµÄvalue×ª»»ÎªRow
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½value×ªï¿½ï¿½ÎªRow
 	assert(lex->values->stmt_type() == Stmt::Expr);
 	ExprStmt* expr = dynamic_cast<ExprStmt*>(lex->values.get());
 	assert(expr->expr_stmt_type() == ExprStmt::List);
@@ -103,14 +103,14 @@ u32 InsertPlan::build_plan()
 	for (u32 i = 0; i < list->stmt_list.size(); ++i){
 		u32 ret = check_column_value(list->stmt_list[i], row_desc);
 		if (ret) {
-			Log(LOG_ERR, "InsertPlan", "column value check failed in values:%u, column:%u", i, ret);
+			LOG_ERR("column value check failed", K(row_desc), K(list->stmt_list[i]));
 			set_error_code(ERROR_COLUMN_VALUE);
 			return ERROR_COLUMN_VALUE;
 		}
 		Row_s row;
 		ret = resolve_row(list->stmt_list[i], row_desc, row);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create row error:%s", err_string(ret));
+			LOG_ERR("create row error", K(row_desc), K(list->stmt_list[i]));
 			set_error_code(ret);
 			return ret;
 		}
@@ -184,7 +184,7 @@ u32 InsertPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr;
 		ret = resolve_expr(unary_stmt->expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create unary expression`s first expression failed");
+			LOG_ERR("create unary expression`s first expression failed", K(unary_stmt->expr_stmt));
 			break;
 		}
 		expr = UnaryExpression::make_unary_expression(first_expr, unary_stmt->op_type);
@@ -197,12 +197,12 @@ u32 InsertPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		Expression_s first_expr, second_expr;
 		ret = resolve_expr(binary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create binary expression`s first expression failed");
+			LOG_ERR("create binary expression`s first expression failed", K(binary_stmt->first_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(binary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create binary expression`s second expression failed");
+			LOG_ERR("create binary expression`s second expression failed", K(binary_stmt->second_expr_stmt));
 			break;
 		}
 		expr = BinaryExpression::make_binary_expression(first_expr, second_expr, binary_stmt->op_type);
@@ -215,17 +215,17 @@ u32 InsertPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		TernaryExprStmt* ternary_stmt = dynamic_cast<TernaryExprStmt*>(expr_stmt);
 		ret = resolve_expr(ternary_stmt->first_expr_stmt, first_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create ternary expression`s first expression failed");
+			LOG_ERR("create ternary expression`s first expression failed", K(ternary_stmt->first_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->second_expr_stmt, second_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create ternary expression`s second expression failed");
+			LOG_ERR("create ternary expression`s second expression failed", K(ternary_stmt->second_expr_stmt));
 			break;
 		}
 		ret = resolve_expr(ternary_stmt->third_expr_stmt, third_expr);
 		if (ret != SUCCESS) {
-			Log(LOG_ERR, "InsertPlan", "create ternary expression`s third expression failed");
+			LOG_ERR("create ternary expression`s third expression failed", K(ternary_stmt->third_expr_stmt));
 			break;
 		}
 		expr = TernaryExpression::make_ternary_expression(first_expr, second_expr, third_expr, ternary_stmt->op_type);
@@ -233,7 +233,7 @@ u32 InsertPlan::resolve_expr(const Stmt_s& stmt, Expression_s& expr)
 		break;
 	}
 	default:
-		Log(LOG_ERR, "InsertPlan", "unknown expr stmt in insert`s where stmt");
+		LOG_ERR("unknown expr stmt in insert`s where stmt", K(expr_stmt));
 		ret = ERROR_LEX_STMT;
 	}
 	return ret;

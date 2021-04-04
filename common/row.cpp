@@ -253,7 +253,7 @@ u32 Row::get_cell(const ColumnDesc & c_desc, Object_s & cell) const
 	if (ret != SUCCESS){
 		u32 table_id, column_id;
 		c_desc.get_tid_cid(table_id, column_id);
-		//Log(LOG_WARN, "Row", "column %u not found in row %u", column_id, row_id);
+		LOG_WARN("column not found in row", K(c_desc));
 		return ret;
 	}else{
 		cell = cells[idx];
@@ -264,7 +264,7 @@ u32 Row::get_cell(const ColumnDesc & c_desc, Object_s & cell) const
 u32 Row::get_cell(u32 idx, Object_s & cell) const
 {
 	if (idx >= row_desc.get_column_num()){
-		Log(LOG_WARN, "Row", "column %u not found in row %u", idx, row_id);
+		LOG_WARN("column not found in row", K(idx));
 		return ERR_COL_INDEX;
 	}else{
 		cell = cells[idx];

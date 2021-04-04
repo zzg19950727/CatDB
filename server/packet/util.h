@@ -490,7 +490,7 @@ namespace CatDB{
 					break;
 				default:
 					ret = ERR_UNEXPECTED;
-					Log(LOG_WARN,"Util", "unexpected mysql_type=%d", mysql_type);
+					LOG_WARN("unexpected mysql_type", K(u32(mysql_type)));
 					break;
 				} // end switch
 			}
@@ -528,7 +528,7 @@ namespace CatDB{
 				ob_type = T_NUMBER;
 				break;
 			default:
-				Log(LOG_WARN,"Util", "unsupport MySQL type %d", mysql_type);
+				LOG_WARN("unsupport MySQL type", K(u32(mysql_type)));
 				ret = OBJ_TYPE_ERROR;
 			}
 			return ret;

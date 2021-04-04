@@ -2,6 +2,7 @@
 #define OBJECT_H
 #include "my_decimal.h"
 #include "type.h"
+#include "log.h"
 
 #define T_NULL		0x80
 #define T_NULL_TYPE	0x00
@@ -51,6 +52,7 @@ namespace CatDB {
 			virtual u32 hash();
 			virtual String to_string()const;
 			virtual Object_s copy();
+			String type() const;
 
 			//要求实现的类型支持一下所有运算
 			//不支持的类型返回对应的错误对象
@@ -74,6 +76,9 @@ namespace CatDB {
 			virtual void increase();
 			//自身累加
 			virtual void accumulate(const Object_s& other);
+			virtual KV_STRING(
+						K(type()),
+						K(obj_width));
 
 		protected:
 			u16 obj_width;
@@ -98,6 +103,9 @@ namespace CatDB {
 			Object_s op_and (const Object_s& other) override;
 			Object_s op_or (const Object_s& other) override;
 			Object_s op_not()override;
+			KV_STRING(
+					K(type()),
+					K(err_code));
 
 		private:
 			u32 err_code;
@@ -124,6 +132,9 @@ namespace CatDB {
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
 			Object_s exists()override;
+			KV_STRING(
+					K(type()),
+					K(value));
 
 		private:
 			bool value;
@@ -158,6 +169,10 @@ namespace CatDB {
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void increase()override;
 			void accumulate(const Object_s& other)override;
+			KV_STRING(
+					K(type()), 
+					K(scale), 
+					K(to_string()));
 
 		private:
 			//double data;
@@ -191,6 +206,9 @@ namespace CatDB {
 			Object_s exists()override;
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void accumulate(const Object_s& other)override;
+			KV_STRING(
+					K(type()), 
+					K(to_string()));
 
 		private:
 			double data;
@@ -217,6 +235,9 @@ namespace CatDB {
 			Object_s exists()override;
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			Object_s like(const Object_s& other)override;
+			KV_STRING(
+				K(type()),
+				K(to_string()));
 
 		private:
 			Buffer_s data;
@@ -238,6 +259,9 @@ namespace CatDB {
 			Object_s in(const Object_s& other)override;
 			Object_s not_in(const Object_s& other)override;
 			Object_s exists()override;
+			KV_STRING(
+					K(type()),
+					K(list));
 
 		private:
 			Vector<Object_s> list;

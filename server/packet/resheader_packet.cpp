@@ -21,7 +21,7 @@ int ResheaderPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 
 	if (NULL == buffer || len <= 0 || pos < 0)
 	{
-		Log(LOG_ERR,"ResheaderPacket", "invalid argument buffer=%p, len=%ld, pos=%ld",
+		LOG_ERR("invalid argument buffer=%p, len=%ld, pos=%ld",
 			buffer, len, pos);
 		ret = INVALID_ARGUMENT;
 	}
@@ -29,7 +29,7 @@ int ResheaderPacket::serialize(char* buffer, int64_t len, int64_t& pos)
 	{
 		if (SUCCESS != (ret = Util::store_length(buffer, len, field_count_, pos)))
 		{
-			Log(LOG_ERR, "ResheaderPacket", "serialize field_count failed, buffer=%p, len=%ld, field_count=%lu, pos=%ld, ret=%d",
+			LOG_ERR("serialize field_count failed, buffer=%p, len=%ld, field_count=%lu, pos=%ld, ret=%d",
 				buffer, len, field_count_, pos, ret);
 		}
 	}

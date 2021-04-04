@@ -14,10 +14,7 @@ u16 RawData::size() const
 }
 
 RawData * RawData::make_row_data(void * ptr)
-{/*
- RawData* rd = reinterpret_cast<RawData*>(ptr);
- rd->data = reinterpret_cast<u8*>(rd) + sizeof(RawData);
- return rd;*/
+{
 	return reinterpret_cast<RawData*>(ptr);
 }
 
@@ -84,6 +81,21 @@ String Object::to_string() const
 	return String();
 }
 
+String Object::type() const
+{
+	switch(obj_type) {
+		case T_BOOL: return String(VAR_NAME(T_BOOL));
+		case T_NUMBER: return String(VAR_NAME(T_NUMBER));
+		case T_DATETIME: return String(VAR_NAME(T_DATETIME));
+		case T_VARCHAR: return String(VAR_NAME(T_VARCHAR));
+		case T_MAX_TYPE: return String(VAR_NAME(T_MAX_TYPE));
+		case T_LIST: return String(VAR_NAME(T_LIST));
+		case T_QUERY_RESULT: return String(VAR_NAME(T_QUERY_RESULT));
+		case T_ERROR_RESULT: return String(VAR_NAME(T_ERROR_RESULT));
+		default: return String("unknown");
+	}
+}
+
 Object_s Object::copy()
 {
 	return Error::make_object(ERR_EXPR_TYPE);
@@ -91,61 +103,61 @@ Object_s Object::copy()
 
 Object_s Object::operator+(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support add operation", obj_type);
+	LOG_ERR("object do not support add operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator-(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support sub operation", obj_type);
+	LOG_ERR("object do not support sub operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator*(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support mul operation", obj_type);
+	LOG_ERR("object do not support mul operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator/(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support div operation", obj_type);
+	LOG_ERR("object do not support div operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator==(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support equal operation", obj_type);
+	LOG_ERR("object do not support equal operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator>(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support greater operation", obj_type);
+	LOG_ERR("object do not support greater operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::operator<(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support less operation", obj_type);
+	LOG_ERR("object do not support less operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::between(const Object_s & left, const Object_s & right)
 {
-	Log(LOG_ERR, "Object", "object %u do not support between operation", obj_type);
+	LOG_ERR("object do not support between operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::in(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support in operation", obj_type);
+	LOG_ERR("object do not support in operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::not_in(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support not in operation", obj_type);
+	LOG_ERR("object do not support not in operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
@@ -165,7 +177,7 @@ Object_s Object:: op_or (const Object_s & other)
 
 Object_s Object::exists()
 {
-	Log(LOG_ERR, "Object", "object %u do not support exists operation", obj_type);
+	LOG_ERR("object do not support exists operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
@@ -180,24 +192,24 @@ Object_s Object::op_not()
 
 Object_s Object::op_minus()
 {
-	Log(LOG_ERR, "Object", "object %u do not support minus operation", obj_type);
+	LOG_ERR("object do not support minus operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Object::like(const Object_s & other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support like operation", obj_type);
+	LOG_ERR("object do not support like operation", K(type()));
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 void Object::increase()
 {
-	Log(LOG_ERR, "Object", "object %u do not support increase operation", obj_type);
+	LOG_ERR("object do not support increase operation", K(type()));
 }
 
 void Object::accumulate(const Object_s& other)
 {
-	Log(LOG_ERR, "Object", "object %u do not support accumulate operation", obj_type);
+	LOG_ERR("object do not support accumulate operation", K(type()));
 }
 
 u8 CatDB::Common::string_to_type(const String & str)

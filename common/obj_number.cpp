@@ -32,7 +32,6 @@ Number::Number(const RawData & data)
 	memcpy(&frac, ptr, sizeof(frac));
 	ptr += sizeof(frac);
 	this->data = my_decimal(ptr, intg+frac, frac);
-	Log(LOG_TRACE, "Object", "make number object, value %s", this->data.to_string(0).c_str());
 }
 
 Object_s Number::make_object(double value, int scale)
@@ -125,7 +124,7 @@ Object_s Number::operator+(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not add %u", other->get_type());
+		LOG_ERR("number type can not add", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -142,7 +141,7 @@ Object_s Number::operator-(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not sub %u", other->get_type());
+		LOG_ERR("number type can not sub", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -159,7 +158,7 @@ Object_s Number::operator*(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not mul %u", other->get_type());
+		LOG_ERR("number type can not mul", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -176,13 +175,13 @@ Object_s Number::operator/(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not compare %u", other->get_type());
+		LOG_ERR("number type can not compare", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
 		if (rhs->data.is_zero()) {
-			Log(LOG_ERR, "Object", "divisor can not be zero");
+			LOG_ERR("divisor can not be zero");
 			return Error::make_object(DEVISOR_IS_ZERO);
 		}
 		else {
@@ -199,7 +198,7 @@ Object_s Number::operator==(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not comapre %u", other->get_type());
+		LOG_ERR("number type can not comapre", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -214,7 +213,7 @@ Object_s Number::operator>(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not comapre %u", other->get_type());
+		LOG_ERR("number type can not comapre", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -229,7 +228,7 @@ Object_s Number::operator<(const Object_s & other)
 		return Object::make_null_object();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not comapre %u", other->get_type());
+		LOG_ERR("number type can not comapre", K(other));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -266,7 +265,7 @@ Object_s Number::between(const Object_s & left, const Object_s & right)
 		return Object::make_null_object();
 	}
 	else if (left->get_type() != T_NUMBER || right->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not comapre %u", left->get_type());
+		LOG_ERR("number type can not comapre", K(left), K(right));
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
@@ -289,7 +288,7 @@ void Number::accumulate(const Object_s& other)
 		set_null();
 	}
 	else if (other->get_type() != T_NUMBER) {
-		Log(LOG_ERR, "Object", "number type can not accumulate with %u", other->get_type());
+		LOG_ERR("number type can not accumulate with", K(other));
 	}
 	else {
 		Number* rhs = dynamic_cast<Number*>((other.get()));
