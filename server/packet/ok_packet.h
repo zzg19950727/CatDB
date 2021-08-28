@@ -34,7 +34,7 @@ namespace CatDB
 
 			//int32_t get_encode_size() const;
 
-			int set_message(String& message);
+			int set_message(const String& message);
 
 			inline void set_affected_rows(uint64_t row)
 			{

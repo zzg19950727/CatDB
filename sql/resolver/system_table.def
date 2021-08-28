@@ -1,0 +1,34 @@
+#ifndef SYSTEM_TABLE_DEF
+#define SYSTEM_TABLE_DEF
+
+#include "type.h"
+
+const u32 SYSTEM_DB_ID =        0x1;
+const String SYSTEM_DB_NAME =   "system";
+const u32 SYS_DB_ID =           0x00100001;
+const String SYS_DB_NAME =      "sys_databases";
+const Vector<Pair<String, String>> SYS_DB_DEF = {
+    {"id", "number"},
+    {"name", "varchar"}
+};
+const u32 SYS_TABLE_ID =        0x00100002;
+const String SYS_TABLE_NAME =   "sys_tables";
+const Vector<Pair<String, String>> SYS_TABLE_DEF = {
+    {"db_id", "number"},
+    {"id","number"},
+    {"name", "varchar"}
+};
+const u32 SYS_COLUMN_ID =       0x00100003;
+const String SYS_COLUMN_NAME =  "sys_columns";
+const Vector<Pair<String, String>> SYS_COLUMN_DEF = {
+    {"table_id", "number"},
+    {"id", "number"},
+    {"name", "varchar"},
+    {"type","varchar"}
+};
+
+#define FULL_SYSTEM_DB_NAME         String(SYSTEM_DB_NAME) + "." + String(SYS_DB_NAME)
+#define FULL_SYSTEM_TABLE_NAME      String(SYSTEM_DB_NAME) + "." + String(SYS_TABLE_NAME)
+#define FULL_SYSTEM_COLUMN_NAME     String(SYSTEM_DB_NAME) + "." + String(SYS_COLUMN_NAME)
+
+#endif //SYSTEM_TABLE_DEF

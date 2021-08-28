@@ -6,15 +6,14 @@
 using namespace CatDB::Common;
 
 QueryResult::QueryResult()
-	:err_code(SUCCESS)
 {
 	obj_width = 0;
 	obj_type = T_QUERY_RESULT;
 }
 
-Object_s QueryResult::make_query_result()
+QueryResult_s QueryResult::make_query_result()
 {
-	return Object_s(new QueryResult());
+	return QueryResult_s(new QueryResult());
 }
 
 u32 QueryResult::size() const
@@ -22,9 +21,10 @@ u32 QueryResult::size() const
 	return list.size();
 }
 
-void QueryResult::add_row(const Row_s & row)
+u32 QueryResult::add_row(const Row_s & row)
 {
-	list.push_back(row);
+	list.push_back(Row::deep_copy(row));
+	return SUCCESS;
 }
 
 u32 QueryResult::get_row(u32 idx, Row_s & row)
@@ -36,17 +36,6 @@ u32 QueryResult::get_row(u32 idx, Row_s & row)
 		row = list[idx];
 		return SUCCESS;
 	}
-}
-
-u32 QueryResult::set_error_code(u32 code)
-{
-	err_code = code;
-	return SUCCESS;
-}
-
-u32 QueryResult::get_error_code() const
-{
-	return err_code;
 }
 
 u32 QueryResult::cast_to_simple_object(Object_s & obj)
@@ -72,7 +61,7 @@ bool QueryResult::is_fixed_length()
 
 bool QueryResult::bool_value()
 {
-	return err_code == SUCCESS;
+	return !list.empty();
 }
 
 u32 QueryResult::hash()
@@ -82,7 +71,7 @@ u32 QueryResult::hash()
 
 String QueryResult::to_string() const
 {
-	return String(err_string(err_code));
+	return String("");
 }
 
 Object_s QueryResult::in(const Object_s & other)
@@ -144,11 +133,7 @@ Object_s QueryResult::exists()
 {
 	if (is_null()) {
 		return Object::make_null_object();
-	}
-	else if (err_code != SUCCESS) {
-		return Error::make_object(err_code);
-	}
-	else {
+	} else {
 		return Bool::make_object(!list.empty());
 	}
 }
@@ -157,15 +142,15 @@ u32  QueryResult::init_title_for_explain(Row_s & result_title)
 {
 	RowDesc row_desc(5);
 	result_title = Row::make_row(row_desc);
-	Object_s label = Varchar::make_object("Id");
+	Object_s label = Varchar::make_object("ID");
 	result_title->set_cell(0, label);
-	label = Varchar::make_object("Operation");
+	label = Varchar::make_object("OPERATOR");
 	result_title->set_cell(1, label);
-	label = Varchar::make_object("TableName");
+	label = Varchar::make_object("NAME");
 	result_title->set_cell(2, label);
-	label = Varchar::make_object("Rows");
+	label = Varchar::make_object("ROW COUNT");
 	result_title->set_cell(3, label);
-	label = Varchar::make_object("Time");
+	label = Varchar::make_object("COST");
 	result_title->set_cell(4, label);
 	return SUCCESS;
 }

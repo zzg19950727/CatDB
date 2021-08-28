@@ -1,0 +1,88 @@
+create database test;
+show databases;
+drop database test;
+show databases;
+create database test;
+use test;
+
+create table t1(c1 TINYINT,
+                c2 SMALLINT,
+                c3 MEDIUMINT,
+                c4 INT,
+                c5 BIGINT,
+                c6 DECIMAL,
+                c7 NUMERIC,
+                c8 BOOL,
+                c9 FLOAT,
+                c10 REAL,
+                c11 DOUBLE,
+                c12 CHAR,
+                c13 BINARY,
+                c14 VARCHAR,
+                c15 VARBINARY,
+                c16 TIMESTAMP,
+                c17 DATETIME,
+                c18 DATE,
+                c19 TIME);
+
+create table t2(c1 TINYINT,
+                c2 SMALLINT,
+                c3 MEDIUMINT,
+                c4 INT,
+                c5 BIGINT,
+                c6 DECIMAL(4),
+                c7 NUMERIC(7,4),
+                c8 BOOL,
+                c9 FLOAT(9),
+                c10 REAL,
+                c11 DOUBLE(8,2),
+                c12 CHAR(9),
+                c13 BINARY(12),
+                c14 VARCHAR(11),
+                c15 VARBINARY,
+                c16 TIMESTAMP,
+                c17 DATETIME,
+                c18 DATE,
+                c19 TIME);
+
+create table t3(c1 TINYINT,
+                c2 SMALLINT,
+                c3 MEDIUMINT,
+                c4 INT,
+                c5 BIGINT,
+                c6 DECIMAL,
+                c7 NUMERIC,
+                c8 BOOL,
+                c9 FLOAT(6),
+                c10 REAL,
+                c11 DOUBLE,
+                c12 CHAR(100),
+                c13 BINARY(120),
+                c14 VARCHAR,
+                c15 VARBINARY(240),
+                c16 TIMESTAMP,
+                c17 DATETIME,
+                c18 DATE,
+                c19 TIME (2));
+
+show tables;
+desc t1;
+desc t2;
+desc t3;
+
+insert into t1 values(1,2,3,4,5,6,7,8,9,10,11,
+                    "12","13","14","15",
+                    "2020-8-1","2020-8-2","2020-8-3","2020-8-4");
+insert into t1 select * from t1;
+insert into t1 select * from t1;
+insert into t1 select * from t1;
+select * from t1;
+
+insert into t2 select * from t1;
+select * from t2;
+
+insert into t3 select * from t1;
+select * from t3;
+
+update t1 set c1 = rowid;
+select * from t1;

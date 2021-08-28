@@ -15,6 +15,34 @@ typedef int socklen_t;
 #include <sys/select.h>
 #include <unistd.h>
 #endif	//_WIN32
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+ 
+#include <signal.h>
+#include <unistd.h>
+#include <atomic>
+
+static std::atomic_bool poll_state;
+
+void sig_term_handler(int signum, siginfo_t *info, void *ptr)
+{
+	poll_state.store(false);
+}
+ 
+void catch_sigterm()
+{
+    static struct sigaction _sigact;
+ 
+    memset(&_sigact, 0, sizeof(_sigact));
+    _sigact.sa_sigaction = sig_term_handler;
+    _sigact.sa_flags = SA_SIGINFO;
+ 
+    sigaction(SIGTERM, &_sigact, NULL);
+	sigaction(SIGINT, &_sigact, NULL);
+}
+
 using namespace CatDB::Server;
 
 int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
@@ -42,6 +70,7 @@ int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
 		LOG_ERR("Server listen failed", K(ip), K(port), K(listen_n));
 		return -3;
 	}
+	LOG_ERR("Succeed to start server", K(ip), K(port), K(listen_n));
 	return fd;
 }
 
@@ -68,12 +97,15 @@ int CatDB::Server::net_write(int fd, char* buf, size_t len)
 void CatDB::Server::net_close(int fd)
 {
 	close(fd);
+	LOG_ERR("Succeed to stop server");
 }
 
 NetService::NetService(int size)
 {
 	FD_ZERO(&read_events);
 	FD_ZERO(&write_events);
+	poll_state.store(true);
+	catch_sigterm();
 	create_poll(size);
 }
 
@@ -89,7 +121,7 @@ void NetService::poll()
 	static int id = 1;
 	LOG_TRACE("NetService start poll", K(id));
 	++id;
-	while(1)
+	while(poll_state.load())
 	{
 		fd_set revent = read_events;
 		fd_set wevent = write_events;

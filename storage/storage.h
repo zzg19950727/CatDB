@@ -24,7 +24,7 @@ namespace CatDB {
 			u32 get_table_id()const;
 			void reset_all_page();
 		private:
-			//±£Ö¤pageÓÐÐòÎö¹¹
+			//ï¿½ï¿½Ö¤pageï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			List<Page_s> pages_copy;
 			HashMap<u32, Page_s>  pages;
 			String data_dir;

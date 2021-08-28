@@ -25,8 +25,6 @@ TableSpace_s TableSpace::make_table_space(const String& table_name, const String
 	TableSpace* table_space = new TableSpace;
 	table_space->database = database;
 	table_space->table_name = table_name;
-	table_space->alias_table_name = table_name;
-	table_space->alias_table_id = table_space->get_table_id();
 	if (sample_size > 0.99) {
 		table_space->page_skip_size = 0;
 	} else {
@@ -114,28 +112,17 @@ u32 TableSpace::insert_row(const Row_s & row)
 
 u32 TableSpace::update_row(const Row_s & row)
 {
+	u32 ret = SUCCESS;
 	u32 row_id = row->get_row_id();
 	Page_s page;
-	u32 ret = get_page_from_row_id(row_id, page);
-	if (ret == SUCCESS){
-		Row_s old_row = row;
-		ret = page->update_row(row_id, old_row);
-		if (ret == ROW_DATA_TOO_LONG) {
-			ret = insert_row(old_row);
-			if (ret != SUCCESS) {
-				return ret;
-			}
-			else {
-				return delete_row(row_id);
-			}
-		}
-		else {
-			return ret;
-		}
-	}else{
-		LOG_ERR("can not get row `s page", K(row_id), err_string(ret));
-		return ret;
+	CHECK(get_page_from_row_id(row_id, page));
+	Row_s old_row = row;
+	ret = page->update_row(row_id, old_row);
+	if (ret == ROW_DATA_TOO_LONG) {
+		CHECK(insert_row(old_row));
+		CHECK(delete_row(row_id));
 	}
+	return ret;
 }
 
 u32 TableSpace::delete_row(u32 row_id)
@@ -161,16 +148,6 @@ u32 TableSpace::delete_all_row()
 	else {
 		return SUCCESS;
 	}
-}
-
-void TableSpace::set_alias_table_name(const String & alias_name)
-{
-	alias_table_name = alias_name;
-}
-
-String TableSpace::get_alias_table_name()
-{
-	return alias_table_name;
 }
 
 u64 TableSpace::table_space_size(const String & database, const String & table_name)
@@ -255,7 +232,7 @@ u32 TableSpace::read_page(u32 page_offset, Page_s& page)
 		LOG_TRACE("page not in table space", K(page_offset));
 		return END_OF_TABLE_SPACE;
 	}
-	page = Page::make_page(io, get_table_id(), page_offset, 0, 0, page_offset);
+	page = Page::make_page(io, ref_table_id, page_offset, 0, 0, page_offset);
 	
 	ret = io->read_page(page);
 	if (ret != SUCCESS) {
@@ -281,7 +258,7 @@ u32 TableSpace::create_page(u32 page_offset, Page_s& page)
 		page_pre = page_offset - 1;
 	page_next = page_offset + 1;
 	u32 beg_row_id = get_beg_row_id_from_page_offset(page_offset);
-	page = Page::make_page(io, get_table_id(), page_offset, page_pre, page_next, beg_row_id);
+	page = Page::make_page(io, ref_table_id, page_offset, page_pre, page_next, beg_row_id);
 	pages[page_offset] = page;
 	page->open();
 	return SUCCESS;
@@ -318,12 +295,6 @@ u32 TableSpace::get_last_page(Page_s& page)
 			page = iter->second;
 		return SUCCESS;
 	}
-}
-
-u32 TableSpace::get_table_id() const
-{
-	Hash<String> hash;
-	return hash(database + "." + table_name);
 }
 
 void TableSpace::reset_all_page()

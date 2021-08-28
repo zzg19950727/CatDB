@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include <queue>
+#include "log.h"
 template<typename Callback, typename F, typename... ARG>
 struct is_correct_callback
 {
@@ -124,14 +125,14 @@ public:
 	}
 	~ThreadPool()
 	{
-		quit();
+		
 	}
 
 	template<typename Callback, typename F, typename... ARG>
 	typename std::enable_if<is_correct_callback<Callback, F, ARG&&...>::value, void>::type
 		append_task(Callback& callback, F& f, ARG&&... args)
 	{
-		if (!m_exit)
+		if (!m_exit.load())
 		{
 			m_tasks.append_task(callback, f, std::forward<ARG>(args)...);
 			m_condition.notify_one();
@@ -140,7 +141,7 @@ public:
 
 	void append_task(Task_type& task)
 	{
-		if (!m_exit)
+		if (!m_exit.load())
 		{
 			m_tasks.append_task(task);
 			m_condition.notify_one();
@@ -151,28 +152,11 @@ public:
 	{
 		m_tasks.clear();
 		m_exit.store(true);
-
-		while (m_running.load() != 0)
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		for (unsigned int i = 0; i < m_workers.size(); ++i)
-			m_condition.notify_one();
-		for (unsigned int i = 0; i < m_workers.size(); ++i)
-			m_workers[i].join();
-	}
-
-	void wait_for_job_finish()
-	{
-		m_exit.store(true);
-		while (m_running.load() != 0)
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		for (unsigned int i = 0; i < m_workers.size(); ++i)
-			m_condition.notify_one();
-		for (unsigned int i = 0; i < m_workers.size(); ++i)
-			m_workers[i].join();
+		while (m_stop_count.load() != m_workers.size()) {
+			m_condition.notify_all();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+		LOG_TRACE("exit pool");
 	}
 
 private:
@@ -181,25 +165,30 @@ private:
 		for (;;)
 		{
 			Task_type task = m_tasks.take_task();
-			if (!task && !m_exit)
+			if (!task && !m_exit.load())
 			{
 				m_condition.wait();
 				continue;
 			}
-			else if (!task && m_exit)
+			else if (!task && m_exit.load())
 			{
 				break;
 			}
-			++m_running;
-			task();
-			--m_running;
+			else
+			{
+				++m_running;
+				task();
+				--m_running;
+			}
 		}
+		++m_stop_count;
 	}
 	std::vector<std::thread> m_workers;
 	Condition m_condition;
 	TaskQueue m_tasks;
-	std::atomic<bool> m_exit;
-	std::atomic<int> m_running;
+	std::atomic_bool m_exit;
+	std::atomic_int64_t m_running;
+	std::atomic_int64_t m_stop_count;
 };
 
 #endif	//THREAD_POOL_H

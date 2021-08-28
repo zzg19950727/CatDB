@@ -18,6 +18,17 @@ Object_s Bool::make_object(bool value)
 	return Object_s(object);
 }
 
+Object_s Bool::make_object(const String& value)
+{
+	bool b_value = false;
+	if (!value.empty()) {
+		b_value = true;
+	}
+	Bool* object = new Bool();
+	object->set_value(b_value);
+	return Object_s(object);
+}
+
 u32 Bool::serialization(u8 *& buffer)
 {
 	RawData* rdata = RawData::make_row_data(buffer);
@@ -76,7 +87,7 @@ Object_s Bool::operator+(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value | rhs->value);
 	}
 }
@@ -91,7 +102,7 @@ Object_s Bool::operator-(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value ^ rhs->value);
 	}
 }
@@ -106,7 +117,7 @@ Object_s Bool::operator*(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value & rhs->value);
 	}
 }
@@ -121,7 +132,7 @@ Object_s Bool::operator/(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value & rhs->value);
 	}
 }
@@ -136,7 +147,7 @@ Object_s Bool::operator==(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value == rhs->value);
 	}
 }
@@ -151,7 +162,7 @@ Object_s Bool::operator>(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value > rhs->value);
 	}
 }
@@ -166,7 +177,7 @@ Object_s Bool::operator<(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Bool* rhs = dynamic_cast<Bool*>((other.get()));
+		Bool_s rhs = other;
 		return Bool::make_object(value < rhs->value);
 	}
 }

@@ -13,7 +13,9 @@ namespace CatDB {
 		public:
 			ColumnDesc();
 			void set_tid(u32 table_id);
+			u32 get_tid() const {return table_id;}
 			void set_cid(u32 column_id);
+			u32 get_cid() const {return column_id;}
 			void set_tid_cid(u32 table_id, u32 column_id);
 			void get_tid_cid(u32& table_id, u32& column_id)const;
 			int operator==(const ColumnDesc& other)const;
@@ -59,23 +61,19 @@ namespace CatDB {
 		public:
 			~Row();
 			static Row_s make_row(const RowDesc &row_desc);
-			static Row_s join_row(const Row_s& left_row, const Row_s& right_row);
-			static Row_s left_outer_join_row(const Row_s& left_row, const RowDesc& right_row_desc);
-			static Row_s right_outer_join_row(const RowDesc& left_row_desc, const Row_s& right_row);
+			static Row_s deep_copy(const Row_s &other);
 			//深拷贝
 			void assign(const Row &other);
 			void set_row_id(u32 row_id);
 			u32 get_row_id()const;
-			void set_alias_table_id(u32 table_id);
-			u32 get_alias_table_id()const;
 			RowDesc& get_row_desc();
 			void set_row_desc(const RowDesc &row_desc);
 			virtual u32 get_cell(const ColumnDesc& c_desc, Object_s& cell) const;
 			u32 get_cell(u32 idx, Object_s& cell) const;
 			u32 set_cell(const ColumnDesc& c_desc, Object_s cell);
 			u32 set_cell(u32 idx, Object_s cell);
+			bool equal(const Row_s& other) const;
 			KV_STRING(
-				K(alias_table_id),
 				K(row_id),
 				K(row_desc),
 				K(cells)
@@ -85,7 +83,6 @@ namespace CatDB {
 			Vector<Object_s> cells;
 			RowDesc row_desc;
 			u32 row_id;
-			u32 alias_table_id;
 
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Row)

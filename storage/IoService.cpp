@@ -187,7 +187,7 @@ u64 IoService::get_file_size(const String & table_file)
 
 u32 IoService::make_dir(const String & dir)
 {
-	String cmd = "mkdir " + dir;
+	String cmd = "mkdir -p " + dir;
 	int ret = system(cmd.c_str());
 	return SUCCESS;
 }

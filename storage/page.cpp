@@ -327,12 +327,12 @@ bool Page::have_free_space_insert(const Row_s & row)
 }
 
 //如果调用者没有说明投影列，则所有列信息修复行描述
-u32 Page::fix_row_desc(RawRecord* record, Row_s & row)const
+u32 Page::fix_row_desc(RawRecord* record, Row_s & row, u32 table_id)const
 {
 	RowDesc desc(record->column_count);
 	for (u32 i = 0; i < record->column_count; ++i){
 		ColumnDesc col_desc;
-		col_desc.set_tid_cid(file_header_->table_id, i);
+		col_desc.set_tid_cid(table_id, i);
 		desc.set_column_desc(i, col_desc);
 	}
 	row = Row::make_row(desc);
@@ -343,11 +343,6 @@ u32 Page::deserialize_row(RowInfo * row_info, Row_s & row)const
 {
 	//定位目标记录
 	RawRecord* record = RawRecord::make_raw_record(records_space_ + row_info->offset);
-	//如果行没有任何列描述，默认为投影所有列
-	if (!row){
-		LOG_TRACE("project row with no row_desc and then project all column", K(row_info));
-		fix_row_desc(record, row);
-	}
 	const RowDesc& desc = row->get_row_desc();
 	//反序列化所需的列
 	u32 table_id, column_id;
@@ -360,6 +355,8 @@ u32 Page::deserialize_row(RowInfo * row_info, Row_s & row)const
 				RawData* data = RawData::make_row_data(reinterpret_cast<u8*>(record) + record->column_offset[column_id]);
 				//构建列数据对象
 				row->set_cell(i, Object::make_object(*data));
+			} else if (column_id == ROWID_COLUMN_ID) {
+				row->set_cell(i, Number::make_object(row_info->row_id, -1));
 			}
 		}else{
 			LOG_ERR("row desc error when project row", K(row_info));
@@ -368,7 +365,6 @@ u32 Page::deserialize_row(RowInfo * row_info, Row_s & row)const
 	}
 	u32 id = row_info->row_id;
 	row->set_row_id(id);
-	LOG_TRACE("project row success", K(row));
 	return SUCCESS;
 }
 
@@ -376,27 +372,21 @@ u32 Page::update_none_fix_row(u32 row_id, Row_s & row)
 {
 	Row_s old_row;
 	u32 ret = SUCCESS;
-
 	RowInfo* info = nullptr;
-	ret = search_row(row_id, info);
-	if (ret != SUCCESS) {
-		LOG_ERR("row not found when update row", K(row_id));
-		return ret;
-	}
-	ret = deserialize_row(info, old_row);
-	if (ret != SUCCESS) {
-		LOG_ERR("row not found when update row", K(row_id));
-		return ret;
-	}
+	CHECK(search_row(row_id, info));
+	RawRecord* record = RawRecord::make_raw_record(records_space_ + info->offset);
+	RowDesc &desc = row->get_row_desc();
+	ColumnDesc col_desc;
+	MY_ASSERT(desc.get_column_num() > 0);
+	CHECK(desc.get_column_desc(0, col_desc));
+	u32 table_id = col_desc.get_tid();
+	fix_row_desc(record, old_row, table_id);
+	CHECK(deserialize_row(info, old_row));
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i) {
 		ColumnDesc col_desc;
 		row->get_row_desc().get_column_desc(i, col_desc);
 		u32 idx;
-		ret = old_row->get_row_desc().get_column_idx(col_desc, idx);
-		if (ret != SUCCESS) {
-			LOG_ERR("column not found when update row", K(i));
-			break;
-		}
+		CHECK(old_row->get_row_desc().get_column_idx(col_desc, idx));
 		Object_s cell;
 		row->get_cell(i, cell);
 		old_row->set_cell(idx, cell);

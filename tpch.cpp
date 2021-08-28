@@ -2,20 +2,9 @@
 #include "type.h"
 #include <fstream>
 #include <iostream>
-#include "query_result.h"
-#include "sql_driver.h"
-#include "expr_stmt.h"
-#include "object.h"
+#include "sql_engine.h"
 #include "error.h"
-#include "plan.h"
-#include "row.h"
-using namespace CatDB::Common;
 using namespace CatDB::Sql;
-using CatDB::Parser::ExprStmt;
-using CatDB::Parser::AggrStmt;
-using CatDB::SqlDriver;
-
-
 
 void splite(const String& line, char c, Vector<String>& list)
 {
@@ -33,36 +22,9 @@ void splite(const String& line, char c, Vector<String>& list)
 
 bool execute_sql(const String& query)
 {
-	Plan_s plan;
-	SqlDriver parser;
-	int ret = parser.parse_sql(query);
-
-	if (parser.is_sys_error()) {
-		//std::cout << parser.sys_error() << std::endl;
-		return false;
-	}
-	else if (parser.is_syntax_error()) {
-		//std::cout << parser.syntax_error() << std::endl;
-		return false;
-	}
-	else {
-		plan = Plan::make_plan(parser.parse_result());
-		u32 ret = plan->build_plan();
-		if (ret != SUCCESS) {
-			Object_s result = plan->get_result();
-			if (result)
-				std::cout << "build plan failed:" << result->to_string() << std::endl;
-			return false;
-		}
-		ret = plan->execute();
-		if (ret != SUCCESS) {
-			Object_s result = plan->get_result();
-			if (result)
-				std::cout << "execute plan failed:" << result->to_string() << std::endl;
-			return false;
-		}
-		return true;
-	}
+	QueryCtx query_ctx;
+	ResultSet_s result_set;
+	return SqlEngine::handle_inner_sql(query, query_ctx, result_set) == SUCCESS;
 }
 
 void create_table()

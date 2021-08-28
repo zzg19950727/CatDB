@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include <memory>
 #include <functional>
 #include <sstream>
 #include <string>
-#include <memory>
 #include <chrono>
 #include <vector>
 #include <queue>
@@ -14,6 +14,12 @@
 #include <map>
 #include <cstring>
 #include <cassert>
+#include "shared_ptr.hpp"
+#include "sql_define.h"
+
+template<typename T>
+using shared_ptr = CatDB::Share::shared_ptr<T>;
+
 #define DECLARE(class_name)	\
 class class_name;\
 typedef shared_ptr<class_name> class_name##_s;
@@ -29,9 +35,9 @@ typedef double	f64;
 typedef unsigned long long u64;
 typedef std::string String;
 typedef std::chrono::system_clock Clock;
+#define INVALID_ID  0
+#define ROWID_COLUMN_ID 2048
 
-template<typename T>
-using shared_ptr = std::shared_ptr<T>;
 template<typename T1, typename T2>
 using HashMap = std::map<T1, T2>;
 template<typename T1, typename T2>
@@ -48,4 +54,21 @@ template<typename T>
 using Queue = std::queue<T>;
 template<typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
+
+template<typename T, typename U>
+void append(Vector<T> & lhs, Vector<U> &rhs)
+{
+    for (u32 i = 0; i < rhs.size(); ++i) {
+        lhs.push_back(rhs.at(i));
+    }
+}
+
+template<typename T, typename U>
+void append(Vector<shared_ptr<T>> & lhs, Vector<shared_ptr<U>> &rhs)
+{
+    for (u32 i = 0; i < rhs.size(); ++i) {
+        lhs.push_back(rhs.at(i));
+    }
+}
+
 #endif	//TYPE_H

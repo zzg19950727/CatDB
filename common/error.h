@@ -54,7 +54,35 @@
 #define ERR_UNEXPECTED			0x33
 #define INVALID_ARGUMENT		0x34
 #define INVALID_CMD_TYPE        0x35
-#define MAX_ERROR_CODE			0x36
+#define IS_ALL_COLUMN_STMT	    0x36
+#define MARK_ROW                0x37
+#define NO_MORE_MEMORY          0x38
+#define MAX_ERROR_CODE			0x39
+
 #include "type.h"
+#include "log.h"
 const char* err_string(u32 err_code);
+
+#define SUCC(code)   ((code) == SUCCESS)
+#define FAIL(code)   ((code) != SUCCESS)
+#define CHECK(function) ret=function; \
+                        if (FAIL(ret)) { \
+                            LOG_ERR("catch error code", K(ret));\
+                            return ret;\
+                        }
+
+bool is_false();
+
+template<typename T, typename ...ARGS>
+bool is_false(const T &value, ARGS... args)
+{
+    return !value || is_false(args...);
+}
+
+#define MY_ASSERT(...) do { if (is_false(__VA_ARGS__)) { \
+                            ret = ERR_UNEXPECTED;\
+                            LOG_ERR("param check failed", K(ret));\
+                            return ret;\
+                        } } while(0);
+
 #endif	//ERROR_H

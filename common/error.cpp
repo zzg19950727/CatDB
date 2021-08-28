@@ -100,7 +100,30 @@ const char * err_string(u32 err_code)
 			return "cast data error";
 		case CAN_NOT_REWRITE:
 			return "can not rewrite sql";
+		case UNKNOWN_PAGE_BUFFER:
+			return "unknown page buffer";
+		case SIZE_OVERFLOW:
+			return "size overflow";
+		case OBJ_TYPE_ERROR:
+			return "object type error";
+		case ERR_UNEXPECTED:
+			return "error unexpect";
+		case INVALID_ARGUMENT:
+			return "invalid argument";
+		case INVALID_CMD_TYPE:
+			return "invalid cmd type";
+		case IS_ALL_COLUMN_STMT	:
+			return "is all column stmt";
+		case MARK_ROW:
+			return "mark row";
+		case NO_MORE_MEMORY:
+			return "no more memory";
 		default:
-			return "";
+			return "error";
 	}
+}
+
+bool is_false()
+{
+    return false;
 }

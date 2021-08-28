@@ -1,6 +1,6 @@
 #include "request_handle.h"
 #include "query_result.h"
-#include "sql_driver.h"
+#include "sql_engine.h"
 #include "resheader_packet.h"
 #include "field_packet.h"
 #include "error_packet.h"
@@ -11,7 +11,6 @@
 #include "global.h"
 #include "server.h"
 #include "error.h"
-#include "plan.h"
 #include "util.h"
 #include "../tpch.h"
 #include "row.h"
@@ -19,23 +18,21 @@
 #define BLOCK_SIZE	2048
 
 using namespace CatDB::Server;
-using namespace CatDB;
 using namespace CatDB::Sql;
-using CatDB::SqlDriver;
-static bool is_com_field_list = false;
+using namespace CatDB::Common;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
 	m_read_cache(service.config().cache_size()),
 	m_write_cache(service.config().cache_size()),
-	m_server_service(service),
-	cur_database("test")
+	m_server_service(service)
 {
 	NetService::CallbackFunc func = std::bind(&RequestHandle::notify_socket,this, std::placeholders::_1, std::placeholders::_2);
 	if(m_server_service.m_net_service.register_io(m_fd, NetService::E_RW, func) < 0)
 	{
 		close_connection();
 	}
+	query_ctx.cur_database = "test";
 }
 
 RequestHandle::~RequestHandle()
@@ -52,7 +49,7 @@ void RequestHandle::set_delete_handle(std::shared_ptr<RequestHandle>& self)
 void RequestHandle::set_login_info(const Loginer::LoginInfo & info)
 {
 	login_info = info;
-	cur_database = info.db_name_;
+	query_ctx.cur_database = info.db_name_;
 }
 
 void RequestHandle::notify_socket(int fd, NetService::Event e)
@@ -188,7 +185,7 @@ u32 RequestHandle::send_error_packet(u32 err_code, const String & msg)
 	return ret;
 }
 
-u32 RequestHandle::send_result_set(const Plan_s& plan)
+u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
 	int64_t buffer_length = 0;
@@ -199,33 +196,33 @@ u32 RequestHandle::send_result_set(const Plan_s& plan)
 	buffer_length = MAX_PACKET_LENGTH;
 	if (is_com_field_list)
 	{
-		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
-        	{
-                	LOG_WARN("process row packet failed", K(ret));
-        	}
-        	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
-        	{
-                	LOG_WARN("process row eof packet failed", K(ret));
-        	}
+		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
+		{
+				LOG_WARN("process row packet failed", K(ret));
+		}
+		else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
+		{
+				LOG_WARN("process row eof packet failed", K(ret));
+		}
 		return ret;
 	}
-	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, plan)))
+	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
 	{
 		LOG_WARN("process resheasder packet failed", K(ret));
 	}
-	else if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, plan)))
+	else if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
 	{
 		LOG_WARN("process field packet failed", K(ret));
 	}
-	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
+	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 	{
 		LOG_WARN("process field eof packet failed", K(ret));
 	}
-	else if (SUCCESS != (ret = process_row_packets(buf, buffer_pos, plan)))
+	else if (SUCCESS != (ret = process_row_packets(buf, buffer_pos, result_set)))
 	{
 		LOG_WARN("process row packet failed", K(ret));
 	}
-	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, plan)))
+	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 	{
 		LOG_WARN("process row eof packet failed", K(ret));
 	}
@@ -237,16 +234,11 @@ u32 RequestHandle::send_result_set(const Plan_s& plan)
 	return ret;
 }
 
-u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s& plan)
+u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
 	ResheaderPacket header;
-	if (plan->get_result_title()) {
-		header.set_field_count(plan->get_result_title()->get_row_desc().get_column_num());
-	}
-	else {
-		header.set_field_count(0);
-	}
+	header.set_field_count(result_set->get_column_num());
 	header.set_seq(static_cast<uint8_t>(seq+1));
 	ret = process_single_packet(buff, buff_pos, header);
 	if (SUCCESS != ret)
@@ -256,42 +248,19 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 	return ret;
 }
 
-u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
-	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
-	u32 row_size = 0;
-	Row_s row;
-	if (query_result) {
-		row_size = query_result->size();
-	}
-	if(row_size){
-		query_result->get_row(0, row);
-	}
-	u32 column_count = 0;
-	if (plan->get_result_title()) {
-		column_count = plan->get_result_title()->get_row_desc().get_column_num();
-	}
-	for (u32 i = 0; i < column_count; ++i){
-		Object_s cell;
-		plan->get_result_title()->get_cell(i, cell);
-		FieldPacket packet(cell->to_string());
-		if (row) {
-			row->get_cell(i, cell);
-			if (cell->is_null()) {
-				packet.set_type(T_NULL);
-			}
-			else {
-				packet.set_type(cell->get_type());
-			}
-		}
+	for (u32 i = 0; i < result_set->get_column_num(); ++i){
+		FieldPacket packet(result_set->get_result_title(i));
+		packet.set_type(result_set->get_result_type(i));
 		packet.set_seq(seq + 1);
 		process_single_packet(buff, buff_pos, packet);
 	}
 	return ret;
 }
 
-u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
 	EofPacket eof;
@@ -306,14 +275,11 @@ u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_p
 	return ret;
 }
 
-u32 RequestHandle::process_row_packets(Common::Buffer_s & buff, int64_t & buff_pos, const Plan_s & plan)
+u32 RequestHandle::process_row_packets(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
-	Common::QueryResult* query_result = dynamic_cast<Common::QueryResult*>(plan->get_result().get());
-	u32 row_size = 0;
-	if (query_result) {
-		row_size = query_result->size();
-	}
+	QueryResult_s query_result = result_set->get_query_result();
+	u32 row_size = query_result->size();
 	for (u32 i = 0; i < row_size; ++i)
 	{
 		Row_s row;
@@ -359,66 +325,40 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
-	SqlDriver parser;
-	Plan_s plan;
+	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
+	u32 ret = engine->handle_query();
+	if (FAIL(ret)) {
+		String err_msg = engine->get_error_msg();
+		if (err_msg.empty()) {
+			err_msg = err_string(ret);
+		}
+		return send_error_packet(ERR_UNEXPECTED, err_msg);
+	}
+	ResultSet_s result_set = engine->get_query_result();
+	MY_ASSERT(result_set);
+	if (result_set->need_send_result()) {
+		String explain_info = result_set->get_explain_info();
+		if (!explain_info.empty()) {
+			return send_explain_info(explain_info);
+		} else {
+			return send_result_set(result_set);
+		}
+	} else {
+		return send_ok_packet();
+	}
+}
 
-	parser.set_global_database(cur_database);
-	int ret = parser.parse_sql(query);
-	//Îª±£Ö¤¿Í»§¶Ë¼æÈÝ£¬²»Ö§³ÖµÄSQLÓï·¨·µ»ØOK°ü
-	if (parser.is_sys_error()) {
-		return send_ok_packet();
-		//return send_error_packet(ERR_UNEXPECTED, parser.sys_error());
+u32 RequestHandle::send_explain_info(String& explain_info)
+{
+	int ret = SUCCESS;
+	OKPacket okpacket;
+	okpacket.set_message(explain_info);
+	ret = post_packet(okpacket, ++seq);
+	if (SUCCESS != ret)
+	{
+		LOG_ERR("failed to send ok packet to mysql client", K(ret));
 	}
-	else if (parser.is_syntax_error()) {
-		//return send_ok_packet();
-		return send_error_packet(ERR_UNEXPECTED, parser.syntax_error());
-	}
-	else if (!parser.parse_result()) {
-		return send_ok_packet();
-	}
-	else{
-		plan = Plan::make_plan(parser.parse_result());
-		plan->set_thd(m_self);
-		u32 ret = plan->optimizer();
-		if (ret != SUCCESS) {
-			Object_s result = plan->get_result();
-			if (result) {
-				return send_error_packet(ERR_UNEXPECTED, result->to_string());
-			}
-			else {
-				return send_error_packet(ERR_UNEXPECTED, "unknown error");
-			}
-		}
-		ret = plan->build_plan();
-		if (ret != SUCCESS) {
-			Object_s result = plan->get_result();
-			if (result) {
-				return send_error_packet(ERR_UNEXPECTED, result->to_string());
-			}
-			else {
-				return send_error_packet(ERR_UNEXPECTED, "unknown error");
-			}
-		}
-		ret = plan->execute();
-		if (ret != SUCCESS) {
-			Object_s result = plan->get_result();
-			if (result) {
-				return send_error_packet(ERR_UNEXPECTED, result->to_string());
-			}
-			else {
-				return send_error_packet(ERR_UNEXPECTED, "unknown error");
-			}
-		}
-		else {
-			if (plan->send_plan_result()) {
-				return send_result_set(plan);
-			}
-			else {
-				return send_ok_packet();
-			}
-			
-		}
-	}
+	return ret;
 }
 
 void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len)
@@ -473,6 +413,8 @@ void RequestHandle::handle_request(char* buf, size_t len)
 					{send_ok_packet();return;}
 			else if (query.find("load tpch data") != String::npos)
 					{load_tpch_data();return;}
+			else if (query.find("version_comment") != String::npos)
+					{send_ok_packet();return;}
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
 			break;

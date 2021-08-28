@@ -84,14 +84,14 @@ u32 PageManager::get_last_page(Page_s& page)
 {
 	u32 offset = 0;
 	u32 ret = io->end_offset(offset);
-	//�ձ�
+	
 	if (ret == EMPTY_TABLE_SPACE) {
-		//�ڴ���Ҳû������ҳ
+		
 		if (pages.empty()) {
 			create_page(offset, page);
 			return SUCCESS;
 		}
-		else {//�����ڴ������һҳ
+		else {
 			auto iter = pages.end();
 			--iter;
 			page = iter->second;
@@ -99,14 +99,14 @@ u32 PageManager::get_last_page(Page_s& page)
 		}
 	}
 	else {
-		//��ȡ���̵����һҳ
+		
 		u32 ret = get_page_from_offset(offset, page);
 		if (ret != SUCCESS) {
 			return ret;
 		}
 		auto iter = pages.end();
 		--iter;
-		//�ڴ����һҳ�ڴ������һҳ֮��
+		
 		if (iter->first > offset)
 			page = iter->second;
 		return SUCCESS;

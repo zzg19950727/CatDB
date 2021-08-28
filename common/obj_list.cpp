@@ -17,7 +17,6 @@ Object_s ObjList::make_object()
 
 void ObjList::add_object(const Object_s & obj)
 {
-	assert(obj);
 	list.push_back(obj);
 }
 

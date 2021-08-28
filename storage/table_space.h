@@ -30,8 +30,7 @@ namespace CatDB {
 			u32 update_row(const Row_s& row);
 			u32 delete_row(u32 row_id);
 			u32 delete_all_row();
-			void set_alias_table_name(const String& alias_name);
-			String get_alias_table_name();
+			void set_ref_table_id(u32 table_id) {ref_table_id = table_id;}
 
 			static u64 table_space_size(const String& database, const String& table_name);
 			static u32 delete_table(const String& database, const String& table_name);
@@ -45,7 +44,6 @@ namespace CatDB {
 			u32 read_page(u32 page_offset, Page_s& page);
 			u32 create_page(u32 page_offset, Page_s& page);
 			u32 get_last_page(Page_s& page);
-			u32 get_table_id()const;
 			void reset_all_page();
 			static String table_path(const String & database, const String & table);
 			static String database_path(const String & database);
@@ -60,11 +58,10 @@ namespace CatDB {
 			HashMap<u32, Page_s>  pages;
 			String database;
 			String table_name;
-			String alias_table_name;
 			IoService_s io;
 			u32 cur_page_offset;
-			u32 alias_table_id;
 			u32 page_skip_size;
+			u32 ref_table_id;
 		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)

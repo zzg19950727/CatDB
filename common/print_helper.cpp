@@ -12,13 +12,21 @@ TO_STRING_DEFINE(u32);
 TO_STRING_DEFINE(int);
 TO_STRING_DEFINE(u64);
 TO_STRING_DEFINE(f64);
-TO_STRING_DEFINE(String);
 TO_STRING_DEFINE(long);
 TO_STRING_DEFINE(unsigned long);
 
 String to_kv_string(const u8& value)
 {
     return to_kv_string(u16(value));
+}
+
+String to_kv_string(const String& value)
+{
+    if (value.empty()) {
+        return " ";
+    } else {
+        return value;
+    }
 }
 
 String to_kv_string(const char *str)

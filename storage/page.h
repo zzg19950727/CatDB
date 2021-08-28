@@ -116,7 +116,7 @@ namespace CatDB {
 
 		private:
 			Page(const Buffer_s& buffer, IoService_s& io_service);
-			u32 fix_row_desc(RawRecord* record, Row_s& row)const;
+			u32 fix_row_desc(RawRecord* record, Row_s& row, u32 table_id)const;
 			u32 deserialize_row(RowInfo* row_info, Row_s& row)const;
 			u32 update_none_fix_row(u32 row_id, Row_s& row);
 			u32 serialize_row(const Row_s& row, u32& store_len);

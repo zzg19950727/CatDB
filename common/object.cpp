@@ -83,7 +83,7 @@ String Object::to_string() const
 
 String Object::type() const
 {
-	switch(obj_type) {
+	switch(obj_type & (~T_NULL)) {
 		case T_BOOL: return String(VAR_NAME(T_BOOL));
 		case T_NUMBER: return String(VAR_NAME(T_NUMBER));
 		case T_DATETIME: return String(VAR_NAME(T_DATETIME));
@@ -99,6 +99,11 @@ String Object::type() const
 Object_s Object::copy()
 {
 	return Error::make_object(ERR_EXPR_TYPE);
+}
+
+double Object::value() const
+{
+	return 0;
 }
 
 Object_s Object::operator+(const Object_s & other)
@@ -253,7 +258,6 @@ u32 CatDB::Common::cast_to(u8 type, Object_s & obj)
 			return CAST_DATA_ERROR;
 		}
 		else {
-			obj->set_null();
 			return SUCCESS;
 		}
 	}

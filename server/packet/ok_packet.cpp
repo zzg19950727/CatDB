@@ -23,7 +23,7 @@ OKPacket::~OKPacket()
 	str_buf_.clear();
 }
 
-int OKPacket::set_message(String& message)
+int OKPacket::set_message(const String& message)
 {
 	str_buf_ = message;
 	message_ = message;

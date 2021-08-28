@@ -4,9 +4,12 @@
 #include "type.h"
 #define VAR_NAME(var)   #var
 #define K(arg) String(VAR_NAME(arg)) + ":" + ::to_kv_string(arg)
-#define EXPAND_KV_STRING(...) __VA_ARGS__
-#define SUBPROCESS_KV_STRING(X,...) X + "," + 
+#define V(arg) ::to_kv_string(arg)
+#define N(arg) String(VAR_NAME(arg))
+#define KV(arg1, arg2) N(arg1) + ":" + V(arg2)
 #define KV_STRING(...) String \
+to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
+#define VIRTUAL_KV_STRING(...) virtual String \
 to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
 
 String to_kv_string(const char& value);
@@ -39,7 +42,7 @@ String to_kv_string(T* value)
 }
 
 template<typename T>
-String to_kv_string(const std::shared_ptr<T>& value)
+String to_kv_string(const shared_ptr<T>& value)
 {
    if (value) {
         return value->to_kv_string();
@@ -49,13 +52,32 @@ String to_kv_string(const std::shared_ptr<T>& value)
 }
 
 template<typename T>
-String to_kv_string(const std::vector<T>& value)
+String to_kv_string(const Vector<T>& value)
 {
     String str = "[";
    for (u32 i = 0; i < value.size(); ++i) {
        str += ::to_kv_string(value[i]) + ",";
    }
-   str[str.length() - 1] = ']';
+   if (str.length() > 1) {
+       str[str.length() - 1] = ']';
+   } else {
+       str += "]";
+   }
+   return str;
+}
+
+template<typename T, typename U>
+String to_kv_string(const UnorderedHashMap<T, U>& value)
+{
+    String str = "[";
+   for (auto iter = value.cbegin(); iter != value.cend(); ++iter) {
+       str += "{ key:" + ::to_kv_string(iter->first) + ", value:" + ::to_kv_string(iter->second) + "},";
+   }
+   if (str.length() > 1) {
+       str[str.length() - 1] = ']';
+   } else {
+       str += "]";
+   }
    return str;
 }
 

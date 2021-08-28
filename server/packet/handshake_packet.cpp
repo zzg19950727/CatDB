@@ -8,7 +8,7 @@ using namespace CatDB::Server;
 HandshakePacket::HandshakePacket()
 {
 	protocol_version_ = 10;//Protocol::HandshakeV10
-	server_version_ = "5.6.0";
+	server_version_ = "CatDB 1.0";
 	thread_id_ = 0;
 	memset(scramble_buff_, 'a', 8);
 	filler_ = 0;

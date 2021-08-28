@@ -98,8 +98,7 @@ String Number::to_string() const
 		str = data.to_string(1);
 		auto pos = str.find('.');
 		if (pos != String::npos) {
-			for (u32 i = pos; i < str.size(); ++i)
-				str[i] = 0;
+			str = String(str, 0, pos);
 		}
 	}
 	else {
@@ -128,7 +127,7 @@ Object_s Number::operator+(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		my_decimal res;
 		my_decimal::my_decimal_add(res, data, rhs->data);
 		return Number::make_object(res.to_string(0));
@@ -145,7 +144,7 @@ Object_s Number::operator-(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		my_decimal res;
 		my_decimal::my_decimal_sub(res, data, rhs->data);
 		return Number::make_object(res.to_string(0));
@@ -162,7 +161,7 @@ Object_s Number::operator*(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		my_decimal res;
 		my_decimal::my_decimal_mul(res, data, rhs->data);
 		return Number::make_object(res.to_string(0));
@@ -179,7 +178,7 @@ Object_s Number::operator/(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		if (rhs->data.is_zero()) {
 			LOG_ERR("divisor can not be zero");
 			return Error::make_object(DEVISOR_IS_ZERO);
@@ -202,7 +201,7 @@ Object_s Number::operator==(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		return Bool::make_object(data.cmp(rhs->data) == 0);
 	}
 }
@@ -217,7 +216,7 @@ Object_s Number::operator>(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		return Bool::make_object(data.cmp(rhs->data) > 0);
 	}
 }
@@ -232,7 +231,7 @@ Object_s Number::operator<(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		return Bool::make_object(data.cmp(rhs->data) < 0);
 	}
 }
@@ -269,8 +268,8 @@ Object_s Number::between(const Object_s & left, const Object_s & right)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Number* lhs = dynamic_cast<Number*>((left.get()));
-		Number* rhs = dynamic_cast<Number*>((right.get()));
+		Number_s lhs = left;
+		Number_s rhs = right;
 		return Bool::make_object( data.cmp(lhs->data) >= 0 && data.cmp(rhs->data) <= 0);
 	}
 }
@@ -291,7 +290,7 @@ void Number::accumulate(const Object_s& other)
 		LOG_ERR("number type can not accumulate with", K(other));
 	}
 	else {
-		Number* rhs = dynamic_cast<Number*>((other.get()));
+		Number_s rhs = other;
 		my_decimal::my_decimal_add(data, data, rhs->data);
 	}
 }

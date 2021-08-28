@@ -20,6 +20,13 @@ namespace CatDB {
 		DECLARE(Buffer);
 		DECLARE(Object);
 		DECLARE(RawData);
+		DECLARE(Error);
+		DECLARE(Bool);
+		DECLARE(Number);
+		DECLARE(DateTime);
+		DECLARE(Varchar);
+		DECLARE(ObjList);
+
 		//对象序列化后的结构
 		class RawData
 		{
@@ -51,8 +58,10 @@ namespace CatDB {
 			virtual bool bool_value() = 0;
 			virtual u32 hash();
 			virtual String to_string()const;
+			virtual double value() const;
 			virtual Object_s copy();
 			String type() const;
+			operator bool () { return bool_value(); }
 
 			//要求实现的类型支持一下所有运算
 			//不支持的类型返回对应的错误对象
@@ -77,7 +86,7 @@ namespace CatDB {
 			//自身累加
 			virtual void accumulate(const Object_s& other);
 			virtual KV_STRING(
-						K(type()),
+						KV(obj_type,type()),
 						K(obj_width));
 
 		protected:
@@ -104,7 +113,7 @@ namespace CatDB {
 			Object_s op_or (const Object_s& other) override;
 			Object_s op_not()override;
 			KV_STRING(
-					K(type()),
+					KV(obj_type,type()),
 					K(err_code));
 
 		private:
@@ -116,6 +125,7 @@ namespace CatDB {
 		public:
 			Bool();
 			static Object_s make_object(bool value);
+			static Object_s make_object(const String& value);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
 			bool bool_value() override;
@@ -133,7 +143,7 @@ namespace CatDB {
 			Object_s operator<(const Object_s& other) override;
 			Object_s exists()override;
 			KV_STRING(
-					K(type()),
+					KV(obj_type,type()),
 					K(value));
 
 		private:
@@ -170,9 +180,9 @@ namespace CatDB {
 			void increase()override;
 			void accumulate(const Object_s& other)override;
 			KV_STRING(
-					K(type()), 
+					KV(obj_type, type()), 
 					K(scale), 
-					K(to_string()));
+					KV(data, to_string()));
 
 		private:
 			//double data;
@@ -207,8 +217,8 @@ namespace CatDB {
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void accumulate(const Object_s& other)override;
 			KV_STRING(
-					K(type()), 
-					K(to_string()));
+					KV(obj_type,type()), 
+					KV(data, to_string()));
 
 		private:
 			double data;
@@ -236,8 +246,8 @@ namespace CatDB {
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			Object_s like(const Object_s& other)override;
 			KV_STRING(
-				K(type()),
-				K(to_string()));
+				KV(obj_type,type()),
+				KV(data, to_string()));
 
 		private:
 			Buffer_s data;
@@ -260,7 +270,7 @@ namespace CatDB {
 			Object_s not_in(const Object_s& other)override;
 			Object_s exists()override;
 			KV_STRING(
-					K(type()),
+					KV(obj_type,type()),
 					K(list));
 
 		private:

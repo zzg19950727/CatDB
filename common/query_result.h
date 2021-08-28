@@ -5,17 +5,16 @@
 namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
+		DECLARE(QueryResult)
 
 		class QueryResult : public Object
 		{
 		public:
 			QueryResult();
-			static Object_s make_query_result();
+			static QueryResult_s make_query_result();
 			u32 size()const;
-			void add_row(const Row_s& row);
+			u32 add_row(const Row_s& row);
 			u32 get_row(u32 idx, Row_s& row);
-			u32 set_error_code(u32 code);
-			u32 get_error_code()const;
 			u32 cast_to_simple_object(Object_s& obj);
 
 			u32 serialization(u8*& buffer) override;
@@ -32,13 +31,11 @@ namespace CatDB {
 			u32 add_operation_info(u32 depth, const String& operator_name,
 				const String& table_name, double rows, u32 times);
 			KV_STRING(
-				K(err_code),
 				K(list)
 			);
 
 		private:
 			Vector<Row_s> list;
-			u32 err_code;
 		};
 	}
 }

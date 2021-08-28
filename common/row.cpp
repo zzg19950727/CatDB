@@ -122,92 +122,11 @@ Row_s Row::make_row(const RowDesc &row_desc)
 	return Row_s(row);
 }
 
-Row_s Row::join_row(const Row_s & left_row, const Row_s & right_row)
+Row_s Row::deep_copy(const Row_s &other)
 {
-	const RowDesc& left_desc = left_row->get_row_desc();
-	const RowDesc& right_desc = right_row->get_row_desc();
-	u32 left_column_count = left_desc.get_column_num();
-	u32 right_column_count = right_desc.get_column_num();
-	RowDesc desc( left_column_count + right_column_count );
-	for (u32 i = 0; i < left_column_count; ++i){
-		ColumnDesc col_desc;
-		left_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(i, col_desc);
-	}
-	for (u32 i = 0; i < right_column_count; ++i){
-		ColumnDesc col_desc;
-		right_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(left_column_count + i, col_desc);
-	}
-	Row* row = new Row(desc);
-	for (u32 i = 0; i < left_column_count; ++i){
-		Object_s cell;
-		left_row->get_cell(i, cell);
-		row->set_cell(i, cell);
-	}
-	for (u32 i = 0; i < right_column_count; ++i){
-		Object_s cell;
-		right_row->get_cell(i, cell);
-		row->set_cell(left_column_count + i, cell);
-	}
-	return Row_s(row);
-}
-
-Row_s Row::left_outer_join_row(const Row_s & left_row, const RowDesc & right_desc)
-{
-	const RowDesc& left_desc = left_row->get_row_desc();
-	u32 left_column_count = left_desc.get_column_num();
-	u32 right_column_count = right_desc.get_column_num();
-	RowDesc desc(left_column_count + right_column_count);
-	for (u32 i = 0; i < left_column_count; ++i) {
-		ColumnDesc col_desc;
-		left_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(i, col_desc);
-	}
-	for (u32 i = 0; i < right_column_count; ++i) {
-		ColumnDesc col_desc;
-		right_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(left_column_count + i, col_desc);
-	}
-	Row* row = new Row(desc);
-	for (u32 i = 0; i < left_column_count; ++i) {
-		Object_s cell;
-		left_row->get_cell(i, cell);
-		row->set_cell(i, cell);
-	}
-	for (u32 i = 0; i < right_column_count; ++i) {
-		Object_s cell = Object::make_null_object();
-		row->set_cell(left_column_count + i, cell);
-	}
-	return Row_s(row);
-}
-
-Row_s Row::right_outer_join_row(const RowDesc & left_desc, const Row_s & right_row)
-{
-	const RowDesc& right_desc = right_row->get_row_desc();
-	u32 left_column_count = left_desc.get_column_num();
-	u32 right_column_count = right_desc.get_column_num();
-	RowDesc desc(left_column_count + right_column_count);
-	for (u32 i = 0; i < left_column_count; ++i) {
-		ColumnDesc col_desc;
-		left_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(i, col_desc);
-	}
-	for (u32 i = 0; i < right_column_count; ++i) {
-		ColumnDesc col_desc;
-		right_desc.get_column_desc(i, col_desc);
-		desc.set_column_desc(left_column_count + i, col_desc);
-	}
-	Row* row = new Row(desc);
-	for (u32 i = 0; i < left_column_count; ++i) {
-		Object_s cell = Object::make_null_object();
-		row->set_cell(i, cell);
-	}
-	for (u32 i = 0; i < right_column_count; ++i) {
-		Object_s cell;
-		right_row->get_cell(i, cell);
-		row->set_cell(left_column_count + i, cell);
-	}
+	Row* row = new Row(other->row_desc);
+	row->row_id = other->row_id;
+	row->cells = other->cells;
 	return Row_s(row);
 }
 
@@ -224,16 +143,6 @@ void Row::set_row_id(u32 id)
 u32 Row::get_row_id() const
 {
 	return row_id;
-}
-
-void Row::set_alias_table_id(u32 table_id)
-{
-	alias_table_id = table_id;
-}
-
-u32 Row::get_alias_table_id() const
-{
-	return alias_table_id;
 }
 
 RowDesc & Row::get_row_desc()
@@ -276,7 +185,7 @@ u32 Row::set_cell(const ColumnDesc & c_desc, Object_s cell)
 {
 	u32 idx;
 	u32 ret = row_desc.get_column_idx(c_desc, idx);
-	if (ret != SUCCESS || cell == nullptr){
+	if (ret != SUCCESS || !cell){
 		return ret;
 	}else{
 		cells[idx] = cell;
@@ -321,4 +230,18 @@ u32 RowAgent::get_cell(const ColumnDesc & c_desc, Object_s & cell) const
 		}
 	}
 	return ERR_COL_DESC;
+}
+
+bool Row::equal(const Row_s& other) const
+{
+	if ( cells.size() != other->cells.size()) {
+		return false;
+	}
+	for (u32 i = 0; i < cells.size(); ++i) {
+		Object_s result = cells[i]->operator==(other->cells[i]);
+		if (!result->bool_value()) {
+			return false;
+		}
+	}
+	return true;
 }

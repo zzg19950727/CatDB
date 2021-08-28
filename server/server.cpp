@@ -1,4 +1,6 @@
 #include "request_handle.h"
+#include "schema_guard.h"
+#include "statis_manager.h"
 #include "table_space.h"
 #include "loginer.h"
 #include "server.h"
@@ -7,6 +9,7 @@
 
 using namespace CatDB::Server;
 using namespace CatDB::Storage;
+using namespace CatDB::Parser;
 
 ServerService::ServerService(const String& config)
 	:m_config(config.c_str()),
@@ -27,11 +30,14 @@ ServerService::ServerService(const String& config)
 
 ServerService::~ServerService()
 {
-	close_connection();
 }
 
 int ServerService::run()
 {
+	SchemaGuard_s schema_guard = SchemaGuard::make_schema_guard();
+	schema_guard->init_guard();
+	StatisManager_s manager = StatisManager::make_statis_manager();
+	//manager->init_statis_cache();
 	m_fd = start_listen(m_config.ip().c_str(), m_config.port(), m_config.max_client_count());
 	if (m_fd > 0)
 	{
@@ -94,6 +100,7 @@ void ServerService::close_connection()
 	LOG_TRACE("stop ServerService success");
 	net_close(m_fd);
 	m_fd = -1;
+	m_workers.quit();
 }
 
 NetService& ServerService::net_service()

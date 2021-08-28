@@ -142,7 +142,7 @@ Object_s DateTime::operator+(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		return DateTime::make_object(data + rhs->data);
 	}
 }
@@ -157,7 +157,7 @@ Object_s DateTime::operator-(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		if (data < rhs->data) {
 			LOG_WARN("uncorrect datetime after sub");
 			return DateTime::make_object(0);
@@ -178,7 +178,7 @@ Object_s DateTime::operator==(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		return Bool::make_object(data == rhs->data);
 	}
 }
@@ -193,7 +193,7 @@ Object_s DateTime::operator>(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		return Bool::make_object(data > rhs->data);
 	}
 }
@@ -208,7 +208,7 @@ Object_s DateTime::operator<(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		return Bool::make_object(data < rhs->data);
 	}
 }
@@ -233,8 +233,8 @@ Object_s DateTime::between(const Object_s & left, const Object_s & right)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		DateTime* lhs = dynamic_cast<DateTime*>((left.get()));
-		DateTime* rhs = dynamic_cast<DateTime*>((right.get()));
+		DateTime_s lhs = left;
+		DateTime_s rhs = right;
 		return Bool::make_object(data <= rhs->data && data >= lhs->data);
 	}
 }
@@ -248,7 +248,7 @@ void DateTime::accumulate(const Object_s & other)
 		LOG_ERR("datetime type can not accumulate with ", K(other));
 	}
 	else {
-		DateTime* rhs = dynamic_cast<DateTime*>((other.get()));
+		DateTime_s rhs = other;
 		data += rhs->data;
 	}
 }

@@ -15,12 +15,12 @@ namespace CatDB {
 			ServerService(const String& config);
 			~ServerService();
 			int run();
+			void close_connection();
 
 		private:
 			void new_connection(int fd, NetService::Event e);
 			void do_login(int fd);
 			void close_connection(int fd);
-			void close_connection();
 
 			NetService& net_service();
 			ThreadPool& workers();

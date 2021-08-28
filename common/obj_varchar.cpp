@@ -92,7 +92,7 @@ Object_s Varchar::operator==(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
+		Varchar_s rhs = other;
 		if (data->length != rhs->data->length) {
 			return Bool::make_object(false);
 		}
@@ -112,7 +112,7 @@ Object_s Varchar::operator>(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
+		Varchar_s rhs = other;
 		if (data->length > rhs->data->length) {
 			return Bool::make_object(memcmp(data->buf, rhs->data->buf, rhs->data->length) >= 0);
 		}
@@ -135,7 +135,7 @@ Object_s Varchar::operator<(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
+		Varchar_s rhs = other;
 		if (data->length > rhs->data->length) {
 			return Bool::make_object(memcmp(data->buf, rhs->data->buf, rhs->data->length) < 0);
 		}
@@ -246,17 +246,17 @@ bool kmp(const char *s1, const char *s2, int& beg1, int& beg2, int end1, int end
 
 bool contain(const char* str1, const char* str2, int& beg1, int& beg2, int end1, int end2)
 {
-	//��Ƭƥ�����ʼλ��
+	
 	int pos1 = beg2;
 	while (pos1 <= end2 && str2[pos1] == '%') {
 		++pos1;
 	}
-	//��Ƭƥ��Ľ���λ��
+	
 	int pos2 = pos1;
 	while (pos2 <= end2 && str2[pos2] != '%') {
 		++pos2;
 	}
-	//û���м�ƥ�䴮
+	
 	if (pos1 == pos2) {
 		return true;
 	}
@@ -304,7 +304,7 @@ Object_s Varchar::like(const Object_s & other)
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	else {
-		Varchar* rhs = dynamic_cast<Varchar*>((other.get()));
+		Varchar_s rhs = other;
 		return Bool::make_object(string_like((char*)data->buf, (char*)rhs->data->buf));
 	}
 }
