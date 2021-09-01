@@ -12,6 +12,7 @@
 #include "dml_resolver.h"
 #include "code_generator.h"
 #include "expr_generator.h"
+#include "transformer.h"
 #include "plan_info.h"
 #include "object.h"
 #include "error.h"
@@ -20,6 +21,7 @@
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Optimizer;
+using namespace CatDB::Transform;
 using namespace CatDB::Sql;
 using CatDB::SqlDriver;
 
@@ -163,10 +165,19 @@ u32 SqlEngine::handle_inner_sql(const String &query, QueryCtx &query_ctx, Result
 u32 SqlEngine::handle_subplan(PhyOperator_s root, Object_s &result)
 {
     u32 ret = SUCCESS;
-    QueryCtx query_ctx;
-    SqlEngine engine("", query_ctx);
-    CHECK(engine.execute_plan(root));
-    ResultSet_s result_set = engine.get_query_result();
+    QueryResult_s query_result = QueryResult::make_query_result();
+    CHECK(root->open());
+    Row_s row;
+    while ((ret = root->get_next_row(row)) == SUCCESS) {
+        query_result->add_row(row);
+    }
+    if (ret == NO_MORE_ROWS) {
+        ret = SUCCESS;
+    } else {
+        return ret;
+    }
+    CHECK(root->close());
+    result = query_result;
     return ret;
 }
 
@@ -193,9 +204,9 @@ u32 SqlEngine::handle_query()
         lex_stmt = parser.parse_result();
         if (lex_stmt->stmt_type() !=  Stmt::DoCMD) {
             CHECK(DMLResolver::resolve_stmt(lex_stmt, query_ctx, resolve_ctx));
-            CHECK(lex_stmt->formalize());
-            //LOG_ERR("resolve stmt:", K(lex_stmt));
-            //TODO:transformer
+            Transformer transformer;
+            DMLStmt_s dml_stmt = lex_stmt;
+            CHECK(transformer.transform(dml_stmt));
         }
 		plan = Plan::make_plan(lex_stmt);
 		MY_ASSERT(plan);

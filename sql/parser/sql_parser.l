@@ -92,9 +92,11 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "parallel"		{ return CatDB::SqlParser::make_PARALLEL(loc); }
 "right"			{ return CatDB::SqlParser::make_RIGHT(loc); }
 "rowid"			{ return CatDB::SqlParser::make_ROWID(loc); }
+"sample"		{ return CatDB::SqlParser::make_SAMPLE(loc); }
 "select"		{ return CatDB::SqlParser::make_SELECT(loc); }
 "set"			{ return CatDB::SqlParser::make_SET(loc); }
 "show"			{ return CatDB::SqlParser::make_SHOW(loc); }
+"size"			{ return CatDB::SqlParser::make_SIZE(loc); }
 "statis"		{ return CatDB::SqlParser::make_STATIS(loc); }
 "status"		{ return CatDB::SqlParser::make_STATUS(loc); }
 "table"			{ return CatDB::SqlParser::make_TABLE(loc); }
@@ -116,6 +118,10 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "varbinary"		{ return CatDB::SqlParser::make_VARBINARY(loc); }
 "timestamp"		{ return CatDB::SqlParser::make_TIMESTAMP_SYM(loc); }
 "time"			{ return CatDB::SqlParser::make_TIME(loc); }
+"case"			{ return CatDB::SqlParser::make_CASE(loc); }
+"when"			{ return CatDB::SqlParser::make_WHEN(loc); }
+"then"			{ return CatDB::SqlParser::make_THEN(loc); }
+"else"			{ return CatDB::SqlParser::make_ELSE(loc); }
 
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }

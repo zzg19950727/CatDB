@@ -45,7 +45,7 @@ if(${old_lex_file} IS_NEWER_THAN ${new_lex_file} OR ${old_yacc_file} IS_NEWER_TH
 			COMMAND flex 
 				-o ${CMAKE_CURRENT_SOURCE_DIR}/sql_scanner.cpp 
 				${CMAKE_CURRENT_SOURCE_DIR}/sql_parser.l 
-			COMMAND bison 
+			COMMAND bison -v --debug 
 				-o ${CMAKE_CURRENT_SOURCE_DIR}/sql_parser.cpp 
 				${CMAKE_CURRENT_SOURCE_DIR}/sql_parser.y
 			DEPENDS sql_parser.l sql_parser.y

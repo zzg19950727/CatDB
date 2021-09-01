@@ -325,6 +325,7 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
+	query_ctx.reset();
 	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {

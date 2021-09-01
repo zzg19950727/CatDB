@@ -314,6 +314,7 @@ u32 SubQueryStmt::formalize()
 		table_ids.add_members(params[i]->table_ids);
 		add_flags(params[i]->get_flags());
 	}
+	CHECK(query_stmt->formalize());
 	return ret;
 }
 

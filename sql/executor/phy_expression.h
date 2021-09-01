@@ -17,6 +17,7 @@ namespace CatDB {
 		DECLARE(Expression);
 		DECLARE(SetExpression);
 		DECLARE(AggregateExpression);
+		DECLARE(ExecParamExpression);
 		DECLARE(OpExpression);
 		DECLARE(SubplanExpression);
 
@@ -199,12 +200,11 @@ namespace CatDB {
 			static Expression_s make_subplan_expression(PhyOperator_s& subplan);
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
-			void reset(const Row_s& row);
 			
 		public:
 			Object_s result;
 			PhyOperator_s subplan;
-			Vector<Expression_s> exec_params;
+			Vector<ExecParamExpression_s> exec_params;
 		};
 	}
 }

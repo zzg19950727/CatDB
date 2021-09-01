@@ -35,7 +35,6 @@ void LogUpdate::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     info.op = "UPDATE";
     info.name = table_item->alias_name;
     info.expr_info += "assignment:";
-    LOG_ERR("zzg:", K(assign_exprs));
     print_exprs(assign_exprs, info.expr_info);
     plan_info.push_back(info);
     child()->print_plan(depth + 1, plan_info);

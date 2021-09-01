@@ -2,7 +2,6 @@
 #define DML_STMT_H
 #include "bit_set.h"
 #include "stmt.h"
-#include "error.h"
 
 namespace CatDB {
 	namespace Parser {
@@ -31,6 +30,7 @@ namespace CatDB {
 			u32 collect_special_exprs(ExprStmt_s& expr);
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs);
 
+		public:
 			virtual KV_STRING(
 				K(is_explain),
 				K(from_stmts),

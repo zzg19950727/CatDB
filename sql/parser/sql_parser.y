@@ -249,9 +249,11 @@
 %token PARALLEL
 %token RIGHT
 %token ROWID
+%token SAMPLE
 %token SELECT
 %token SET
 %token SHOW
+%token SIZE
 %token STATIS
 %token STATUS
 %token TABLE
@@ -274,22 +276,27 @@
 %token TIMESTAMP_SYM
 %token DATE
 %token TIME
+%token CASE
+%token WHEN
+%token THEN
+%token ELSE
 %token END 0
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>		select_with_parens simple_select set_select sub_set_select
 %type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt
-%type<ExprStmt_s>	projection expr simple_expr arith_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor
+%type<ExprStmt_s>	projection expr simple_expr arith_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
 %type<OrderStmt_s>	order_by
 %type<LimitStmt_s>	opt_select_limit
 %type<TableStmt_s>	table_factor sub_table_factor
 %type<bool>			opt_distinct opt_asc_desc  distinct_or_all
 %type<int>			limit_expr data_type
+%type<double>		opt_sample_size
 %type<std::string>	op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number
 %type<Vector<TableStmt_s>>	from_list 
 %type<BasicTableStmt_s> 	relation_factor
 %type<Vector<OrderStmt_s>>	opt_order_by order_by_list
-%type<Vector<ExprStmt_s>>	select_expr_list opt_groupby expr_list opt_where opt_having insert_value_list update_asgn_list
+%type<Vector<ExprStmt_s>>	select_expr_list opt_groupby expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list
 %type<ColumnDefineStmt_s>	column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
 %start sql_stmt
@@ -700,6 +707,10 @@ expr:
 		//构建not in表达式
 		make_binary_stmt($$, $1, $4, OP_NOT_IN);
     }
+  | case_when_expr
+  {
+	  $$ = $1;
+  }
   ;
 
 in_expr:
@@ -937,6 +948,38 @@ distinct_or_all:
 		$$ = true;
     }
   ;
+
+case_when_expr:
+	CASE expr when_then_list ELSE expr END
+	{
+		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
+		$$->params.push_back($2);
+		append($$->params, $3);
+		$$->params.push_back($5);
+	}
+	| CASE when_then_list ELSE expr END
+	{
+		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
+		append($$->params, $2);
+		$$->params.push_back($4);
+	}
+	;
+
+when_then_list:
+	WHEN expr THEN expr
+	{
+		$$ = Vector<ExprStmt_s>();
+		$$.push_back($2);
+		$$.push_back($4);
+	}
+	| when_then_list WHEN expr THEN expr
+	{
+		$$ = $1;
+		$$.push_back($3);
+		$$.push_back($5);
+	}
+	;
+
 /**************************************************************
  *
  *	insert dml define
@@ -993,15 +1036,14 @@ insert_value:
  *
  **************************************************************/
  update_stmt:
-    UPDATE relation_factor opt_alias SET update_asgn_list opt_where
+    UPDATE relation_factor SET update_asgn_list opt_where
     {
 		UpdateStmt_s update_stmt = UpdateStmt::make_update_stmt();
 		check(update_stmt);
 		update_stmt->table = $2;
-		$2->set_alias_name($3);
 		update_stmt->from_stmts.push_back($2);
-		update_stmt->update_assign_stmt = $5;
-		update_stmt->where_stmt = $6;
+		update_stmt->update_assign_stmt = $4;
+		update_stmt->where_stmt = $5;
 		$$ = update_stmt;
     }
 	| UPDATE relation_factor SET update_asgn_list FROM from_list opt_where
@@ -1336,32 +1378,42 @@ op_from_database:
  *
  **************************************************************/
  analyze_stmt:
-    ANALYZE TABLE database_name "." relation_name
+    ANALYZE TABLE database_name "." relation_name opt_sample_size
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = $3;
 		cmd_stmt->params.analyze_params.table = $5;
+		cmd_stmt->params.analyze_params.sample_size = $6;
 		$$ = cmd_stmt;
     }
-  | ANALYZE TABLE database_name "." "*"
+  | ANALYZE TABLE database_name "." "*" opt_sample_size
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = $3;
 		cmd_stmt->params.analyze_params.table = "*";
+		cmd_stmt->params.analyze_params.sample_size = $6;
 		$$ = cmd_stmt;
     }
-  | ANALYZE TABLE "*" "." "*"
+  | ANALYZE TABLE "*" "." "*" opt_sample_size
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = "*";
 		cmd_stmt->params.analyze_params.table = "*";
+		cmd_stmt->params.analyze_params.sample_size = $6;
 		$$ = cmd_stmt;
     }
   ;
   
+opt_sample_size:
+	/*empty*/	{	$$ = 0.1; }
+	| SAMPLE SIZE number
+	{
+		$$ = std::stod($3);
+	}
+
  /**************************************************************
  *
  *	name define

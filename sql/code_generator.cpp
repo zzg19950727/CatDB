@@ -335,8 +335,9 @@ u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOp
     MY_ASSERT(log_op->childs.size()-1 == subquery_evaluate_op->subqueries.size());
     ctx.subplan_map.clear();
     for (u32 i = 1; i < log_op->childs.size(); ++i) {
-        SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i];
-        ctx.subplan_map[subquery] = log_op->childs[i];
+        SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i-1];
+        ctx.subplan_map[ctx.key(subquery)] = log_op->childs[i];
+        
     }
     log_op = log_op->childs[0];
 	return ret;

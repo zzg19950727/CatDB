@@ -639,6 +639,9 @@ Object_s SubplanExpression::get_result(const Row_s & row)
 	if (result && exec_params.empty()) {
 		return result;
 	} else {
+		for (u32 i = 0; i < exec_params.size(); ++i) {
+			exec_params[i]->set_value(row);
+		}
 		u32 ret = SqlEngine::handle_subplan(subplan, result);
 		if (ret != SUCCESS) {
 			result = Error::make_object(ret);

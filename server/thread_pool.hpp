@@ -187,8 +187,8 @@ private:
 	Condition m_condition;
 	TaskQueue m_tasks;
 	std::atomic_bool m_exit;
-	std::atomic_int64_t m_running;
-	std::atomic_int64_t m_stop_count;
+	std::atomic<int> m_running;
+	std::atomic<int> m_stop_count;
 };
 
 #endif	//THREAD_POOL_H
