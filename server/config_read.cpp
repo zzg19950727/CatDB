@@ -28,7 +28,7 @@ bool parse_key_value(const String& str, String& key, String& value)
 		++i;
 	//parse key
 	for (; i < str.size(); ++i) {
-		if (str[i] == ' ')
+		if (str[i] == ' ' || str[i] == '=')
 			break;
 		else
 			key += str[i];

@@ -10,6 +10,8 @@
 *.vcxproj.filters
 test1
 test2
+CatDB
+log.txt
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

@@ -97,10 +97,10 @@ void ServerService::close_connection(int fd)
 
 void ServerService::close_connection()
 {
-	LOG_TRACE("stop ServerService success");
 	net_close(m_fd);
 	m_fd = -1;
 	m_workers.quit();
+	LOG_ERR("stop ServerService success");
 }
 
 NetService& ServerService::net_service()

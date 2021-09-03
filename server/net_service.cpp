@@ -79,7 +79,6 @@ int CatDB::Server::accept_connection(int fd)
 	socklen_t addrlen = sizeof(struct sockaddr);
 	struct sockaddr_in client_addr;
 	int client_fd = accept(fd, (struct sockaddr*)&client_addr, &addrlen);
-
 	LOG_TRACE("accept connection", K(client_fd));
 	return client_fd;
 }
@@ -97,7 +96,6 @@ int CatDB::Server::net_write(int fd, char* buf, size_t len)
 void CatDB::Server::net_close(int fd)
 {
 	close(fd);
-	LOG_ERR("Succeed to stop server");
 }
 
 NetService::NetService(int size)
