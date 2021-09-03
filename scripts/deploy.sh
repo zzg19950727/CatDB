@@ -59,6 +59,9 @@ init_server() {
     mkdir -p $RECYCLE_DIR
     mkdir -p $DATA_DIR"/system"
     touch $LOG_FILE
+    start_server
+    sleep 1
+    echo "source init_sys_table.sql" | mysql -h $IP -P $PORT
     echo "succeed to init CatDB"
 }
 
@@ -100,7 +103,6 @@ elif [ "$1" == "init" ]
 then
     read_conf
     init_server
-    start_server
 elif [ "$1" == "start" ]
 then
     read_conf
@@ -109,6 +111,7 @@ elif [ "$1" == "restart" ]
 then
     read_conf
     stop_server
+    sleep 2
     start_server
 elif [ "$1" == "stop" ]
 then
