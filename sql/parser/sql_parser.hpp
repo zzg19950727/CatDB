@@ -349,6 +349,7 @@ namespace CatDB {
       // use_stmt
       // desc_stmt
       // analyze_stmt
+      // set_var_stmt
       char dummy6[sizeof(Stmt_s)];
 
       // table_factor
@@ -1294,9 +1295,9 @@ namespace CatDB {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 919,     ///< Last index in yytable_.
-      yynnts_ = 71,  ///< Number of nonterminal symbols.
-      yyfinal_ = 67, ///< Termination state number.
+      yylast_ = 879,     ///< Last index in yytable_.
+      yynnts_ = 72,  ///< Number of nonterminal symbols.
+      yyfinal_ = 70, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 109  ///< Number of tokens.
@@ -1388,7 +1389,7 @@ namespace CatDB {
   {
       switch (other.type_get ())
     {
-      case 170: // relation_factor
+      case 171: // relation_factor
         value.copy< BasicTableStmt_s > (other.value);
         break;
 
@@ -1438,6 +1439,7 @@ namespace CatDB {
       case 166: // use_stmt
       case 167: // desc_stmt
       case 168: // analyze_stmt
+      case 170: // set_var_stmt
         value.copy< Stmt_s > (other.value);
         break;
 
@@ -1491,15 +1493,15 @@ namespace CatDB {
       case 34: // TIMESTAMP
       case 132: // opt_alias
       case 165: // op_from_database
-      case 171: // database_name
-      case 172: // relation_name
-      case 173: // column_name
-      case 174: // function_name
-      case 175: // column_label
-      case 176: // ident
-      case 177: // datetime
-      case 178: // string
-      case 179: // number
+      case 172: // database_name
+      case 173: // relation_name
+      case 174: // column_name
+      case 175: // function_name
+      case 176: // column_label
+      case 177: // ident
+      case 178: // datetime
+      case 179: // string
+      case 180: // number
         value.copy< std::string > (other.value);
         break;
 
@@ -1520,7 +1522,7 @@ namespace CatDB {
     (void) v;
       switch (this->type_get ())
     {
-      case 170: // relation_factor
+      case 171: // relation_factor
         value.copy< BasicTableStmt_s > (v);
         break;
 
@@ -1570,6 +1572,7 @@ namespace CatDB {
       case 166: // use_stmt
       case 167: // desc_stmt
       case 168: // analyze_stmt
+      case 170: // set_var_stmt
         value.copy< Stmt_s > (v);
         break;
 
@@ -1623,15 +1626,15 @@ namespace CatDB {
       case 34: // TIMESTAMP
       case 132: // opt_alias
       case 165: // op_from_database
-      case 171: // database_name
-      case 172: // relation_name
-      case 173: // column_name
-      case 174: // function_name
-      case 175: // column_label
-      case 176: // ident
-      case 177: // datetime
-      case 178: // string
-      case 179: // number
+      case 172: // database_name
+      case 173: // relation_name
+      case 174: // column_name
+      case 175: // function_name
+      case 176: // column_label
+      case 177: // ident
+      case 178: // datetime
+      case 179: // string
+      case 180: // number
         value.copy< std::string > (v);
         break;
 
@@ -1781,7 +1784,7 @@ namespace CatDB {
     // Type destructor.
     switch (yytype)
     {
-      case 170: // relation_factor
+      case 171: // relation_factor
         value.template destroy< BasicTableStmt_s > ();
         break;
 
@@ -1831,6 +1834,7 @@ namespace CatDB {
       case 166: // use_stmt
       case 167: // desc_stmt
       case 168: // analyze_stmt
+      case 170: // set_var_stmt
         value.template destroy< Stmt_s > ();
         break;
 
@@ -1884,15 +1888,15 @@ namespace CatDB {
       case 34: // TIMESTAMP
       case 132: // opt_alias
       case 165: // op_from_database
-      case 171: // database_name
-      case 172: // relation_name
-      case 173: // column_name
-      case 174: // function_name
-      case 175: // column_label
-      case 176: // ident
-      case 177: // datetime
-      case 178: // string
-      case 179: // number
+      case 172: // database_name
+      case 173: // relation_name
+      case 174: // column_name
+      case 175: // function_name
+      case 176: // column_label
+      case 177: // ident
+      case 178: // datetime
+      case 179: // string
+      case 180: // number
         value.template destroy< std::string > ();
         break;
 
@@ -1919,7 +1923,7 @@ namespace CatDB {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 170: // relation_factor
+      case 171: // relation_factor
         value.move< BasicTableStmt_s > (s.value);
         break;
 
@@ -1969,6 +1973,7 @@ namespace CatDB {
       case 166: // use_stmt
       case 167: // desc_stmt
       case 168: // analyze_stmt
+      case 170: // set_var_stmt
         value.move< Stmt_s > (s.value);
         break;
 
@@ -2022,15 +2027,15 @@ namespace CatDB {
       case 34: // TIMESTAMP
       case 132: // opt_alias
       case 165: // op_from_database
-      case 171: // database_name
-      case 172: // relation_name
-      case 173: // column_name
-      case 174: // function_name
-      case 175: // column_label
-      case 176: // ident
-      case 177: // datetime
-      case 178: // string
-      case 179: // number
+      case 172: // database_name
+      case 173: // relation_name
+      case 174: // column_name
+      case 175: // function_name
+      case 176: // column_label
+      case 177: // ident
+      case 178: // datetime
+      case 179: // string
+      case 180: // number
         value.move< std::string > (s.value);
         break;
 
@@ -2743,7 +2748,7 @@ namespace CatDB {
 
 #line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:377
 } // CatDB
-#line 2747 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
+#line 2752 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
 
 
 

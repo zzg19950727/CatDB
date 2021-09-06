@@ -8,6 +8,7 @@
 #include "log.h"
 
 static int LOG_SET = LOG_LEVEL_TRACE;
+static String LOG_MODULE = "";
 class LogStream
 {
 public:
@@ -81,7 +82,8 @@ String get_module_name(const char* function)
 void LogStream::print_msg(int log_level, const char* file, int line, const char* function, const String& msg)
 {
 	String module = get_module_name(function);
-	if (log_level > LOG_SET || module == "Common")
+	if (log_level > LOG_SET || 
+		LOG_MODULE.find(module) == LOG_MODULE.npos)
 		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	*os << "[" << put_time(t) <<"] ";
@@ -103,6 +105,11 @@ void CatDB::Common::set_log_file(const char* file)
 void CatDB::Common::set_debug_level(int level)
 {
 	LOG_SET = level;
+}
+
+void CatDB::Common::set_debug_module(const String &module)
+{
+	LOG_MODULE = module;
 }
 
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)

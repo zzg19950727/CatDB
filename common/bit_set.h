@@ -16,6 +16,7 @@ public:
     bool is_equal(const BitSet& other) const;
     bool is_subset(const BitSet& other) const;
     bool is_superset(const BitSet& other) const;
+    bool overlap(const BitSet& other) const;
     void to_list(Vector<u32> &members) const;
     void intersect(const BitSet& lhs, const BitSet& rhs);
     void operator=(const BitSet &other) {data = other.data;}

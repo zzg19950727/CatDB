@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
+using namespace CatDB::Server;
+
 DateTime::MilliSeconds DateTime::NanoToMilli(const NanoSeconds& nano)
 {
 	return std::chrono::duration_cast<MilliSeconds, Rep, std::nano>(nano);

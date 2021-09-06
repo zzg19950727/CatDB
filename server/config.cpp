@@ -91,11 +91,8 @@ int ServerServiceConfig::log_level()const
 	return level;
 }
 
-int ServerServiceConfig::sample_level() const
+String ServerServiceConfig::log_module() const
 {
-	String level = m_config.value("sample_level");
-	if(level.empty())
-		return 1;
-	else
-		return std::stoi(level);
+	String module = m_config.value("log_module");
+	return module;
 }

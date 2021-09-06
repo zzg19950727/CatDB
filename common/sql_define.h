@@ -51,6 +51,14 @@ enum JoinType {Inner = 0,
 			   RightSemi, 
 			   LeftAnti, 
 			   RightAnti};
+static JoinType ReverseJoinType[] = {Inner,
+			   RightOuter,
+			   LeftOuter, 
+			   FullOuter,
+			   RightSemi,  
+			   LeftSemi, 
+			   RightAnti,
+			   LeftAnti};
 static const char* JoinTypeString[] = {
 				"Inner",
 				"LeftOuter",

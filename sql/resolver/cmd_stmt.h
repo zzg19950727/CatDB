@@ -53,7 +53,8 @@ namespace CatDB {
 				ShowDatabases,
 				DescTable,
 				UseDatabase,
-				Analyze
+				Analyze,
+                SetVar
 			};
 			~CMDStmt();
 			StmtType stmt_type()const;
@@ -67,6 +68,7 @@ namespace CatDB {
             u32 get_desc_table_params(String &database, String &table, bool &is_show_table_statis, bool &is_show_column_statis);
             u32 get_use_database_params(String &database);
             u32 get_analyze_params(String &database, String &table, double &sample_size);
+            u32 get_set_var_params(String &var_name, String &var_value);
             String get_cmd_type()const;
             u32 formalize();
 		public:
@@ -144,6 +146,15 @@ namespace CatDB {
                         K(sample_size)
                     );
                 } analyze_params;
+                //for set_var
+                struct {
+                    String var_name;
+			        String var_value;
+                    KV_STRING(
+                        K(var_name),
+                        K(var_value)
+                    );
+                } set_var_params;
                 CMDParams() { }
                 ~CMDParams() { }
                 KV_STRING(

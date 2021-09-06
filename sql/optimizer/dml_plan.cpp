@@ -5,6 +5,7 @@
 #include "dml_plan.h"
 #include "dml_stmt.h"
 #include "expr_utils.h"
+#include "join_property.def"
 #include "error.h"
 #include "log.h"
 
@@ -30,22 +31,422 @@ u32 DMLPlan::build_plan()
     return ret;
 }
 
-u32 DMLPlan::pushdown_quals()
+u32 DMLPlan::generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 
+                                         Vector<ExprStmt_s> &conds,
+										 Vector<ConflictDetector_s> &detectors)
 {
-    return SUCCESS;
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> join_conditions;
+    Vector<ConflictDetector_s> outer_join_detectors;
+    Vector<ConflictDetector_s> inner_join_detectors;
+    //下推过滤条件
+    for (u32 i = 0; i < conds.size(); ++i) {
+        bool is_join_condition = true;
+        for (u32 j = 0; j < tables.size(); ++j) {
+            if (conds[i]->table_ids.is_subset(tables[i]->table_ids)) {
+                is_join_condition = false;
+                tables[i]->table_filter.push_back(conds[i]);
+                if (!conds[i]->table_ids.is_empty()) {
+                    break;
+                } else {
+                    //常量条件下推到所有基表
+                }
+            }
+        }
+        if (is_join_condition) {
+            join_conditions.push_back(conds[i]);
+        }
+    }
+    //为每个joined table生成detector
+    for (u32 i = 0; i < tables.size(); ++i) {
+        if (tables[i]->is_joined_table()) {
+            CHECK(generate_outer_join_detecotrs(tables[i], outer_join_detectors));
+        }
+    }
+    //inner join的detector
+    CHECK(generate_inner_join_detectors(join_conditions, 
+                                        outer_join_detectors, 
+                                        inner_join_detectors));
+    append(detectors, outer_join_detectors);
+    append(detectors, inner_join_detectors);
+    CHECK(generate_cross_product_detector(tables, inner_join_detectors));
+    return ret;
+}
+
+u32 DMLPlan::generate_cross_product_detector(Vector<TableStmt_s> &tables, 
+											 Vector<ConflictDetector_s> &detectors)
+{
+    u32 ret = SUCCESS;
+    ConflictDetector_s detector = ConflictDetector::make_conflict_detector();
+    for (u32 i = 0; i < tables.size(); ++i) {
+        detector->L_DS.add_members(tables[i]->table_ids);
+        detector->R_DS.add_members(tables[i]->table_ids);
+        detector->cross_product_rules.push_back(tables[i]->table_ids);
+    }
+    detector->is_symmetric = true;
+    detector->is_degenerate = true;
+    detector->join_info.join_type = Inner;
+    detectors.push_back(detector);
+    return ret;
+}
+
+u32 DMLPlan::flatten_table_items(Vector<TableStmt_s> &tables, Vector<ExprStmt_s> &conds)
+{
+    u32 ret = SUCCESS;
+    Vector<TableStmt_s> flatten_tables;
+    for (u32 i = 0; i < tables.size(); ++i) {
+        CHECK(flatten_table_items(tables[i], flatten_tables, conds));
+    }
+    tables = flatten_tables;
+    return ret;
+}
+
+u32 DMLPlan::flatten_table_items(const TableStmt_s &table, 
+                                Vector<TableStmt_s> &tables, 
+                                Vector<ExprStmt_s> &conds)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(table);
+    if (table->is_joined_table()) {
+        JoinedTableStmt_s joined_table = table;
+        if (Inner == joined_table->join_type) {
+            append(conds, joined_table->join_condition);
+            append(conds, joined_table->table_filter);
+            CHECK(flatten_table_items(joined_table->left_table, tables, conds));
+            CHECK(flatten_table_items(joined_table->right_table, tables, conds));
+        } else {
+            tables.push_back(table);
+        }
+    } else {
+        tables.push_back(table);
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_outer_join_detecotrs(TableStmt_s &table, 
+                                           Vector<ConflictDetector_s> &detectors)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(table, table->is_joined_table());
+    JoinedTableStmt_s joined_table = table;
+    if (Inner == joined_table->join_type) {
+        Vector<ExprStmt_s> conds;
+        Vector<TableStmt_s> flatten_tables;
+        //抚平inner join
+        CHECK(flatten_table_items(table, flatten_tables, conds));
+        CHECK(generate_conflict_detecotrs(flatten_tables, conds, detectors));
+    } else {
+        Vector<ConflictDetector_s> left_detectors;
+        Vector<ConflictDetector_s> right_detectors;
+        ConflictDetector_s detector;
+        CHECK(change_right_join_to_left(joined_table));
+        CHECK(pushdown_outer_join_filter(joined_table));
+        CHECK(pushdown_on_condition(joined_table));
+        if (joined_table->left_table->is_joined_table()) {
+            CHECK(generate_outer_join_detecotrs(joined_table->left_table, left_detectors));
+        }
+        if (joined_table->right_table->is_joined_table()) {
+            CHECK(generate_outer_join_detecotrs(joined_table->right_table, right_detectors));
+        }
+        CHECK(inner_generate_outer_join_detectors(joined_table, detector));
+        CHECK(generate_conflict_rules(detector, true, left_detectors));
+        CHECK(generate_conflict_rules(detector, false, right_detectors));
+        if (detector->is_symmetric) {
+            CHECK(generate_conflict_rules(detector, false, left_detectors));
+            CHECK(generate_conflict_rules(detector, true, right_detectors));
+        }
+        detectors.push_back(detector);
+        append(detectors, left_detectors);
+        append(detectors, right_detectors);
+    }
+    return ret;
+}
+
+u32 DMLPlan::change_right_join_to_left(JoinedTableStmt_s &joined_table)
+{
+    u32 ret = SUCCESS;
+    if (RightOuter == joined_table->join_type || 
+        RightAnti == joined_table->join_type || 
+        RightSemi == joined_table->join_type) {
+        TableStmt_s left = joined_table->right_table;
+        joined_table->right_table = joined_table->left_table;
+        joined_table->left_table = left;
+        joined_table->join_type = ReverseJoinType[joined_table->join_type];
+    }
+    return ret;
+}
+
+u32 DMLPlan::pushdown_outer_join_filter(JoinedTableStmt_s &joined_table)
+{
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> new_filters;
+    for (u32 i = 0; i < joined_table->table_filter.size(); ++i) {
+        ExprStmt_s &expr = joined_table->table_filter[i];
+        if (LeftOuter == joined_table->join_type ||
+            LeftSemi == joined_table->join_type ||
+            LeftAnti == joined_table->join_type) {
+            if (expr->table_ids.is_subset(joined_table->left_table->table_ids)) {
+                joined_table->left_table->table_filter.push_back(expr);
+            } else {
+                new_filters.push_back(expr);
+            }
+        } else if (RightOuter == joined_table->join_type || 
+                   RightAnti == joined_table->join_type || 
+                   RightSemi == joined_table->join_type) {
+            if (expr->table_ids.is_subset(joined_table->right_table->table_ids)) {
+                joined_table->right_table->table_filter.push_back(expr);
+            } else {
+                new_filters.push_back(expr);
+            }         
+        } else {
+            new_filters.push_back(expr);
+        }
+    }
+    joined_table->table_filter = new_filters;
+    return ret;
+}
+
+u32 DMLPlan::pushdown_on_condition(JoinedTableStmt_s &joined_table)
+{
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> new_condition;
+    for (u32 i = 0; i < joined_table->join_condition.size(); ++i) {
+        ExprStmt_s &expr = joined_table->join_condition[i];
+        if (LeftOuter == joined_table->join_type ||
+            LeftSemi == joined_table->join_type ||
+            LeftAnti == joined_table->join_type) {
+            if (expr->table_ids.is_subset(joined_table->right_table->table_ids)) {
+                joined_table->right_table->table_filter.push_back(expr);
+            } else {
+                new_condition.push_back(expr);
+            }
+        } else if (RightOuter == joined_table->join_type || 
+                   RightAnti == joined_table->join_type || 
+                   RightSemi == joined_table->join_type) {
+            if (expr->table_ids.is_subset(joined_table->left_table->table_ids)) {
+                joined_table->left_table->table_filter.push_back(expr);
+            } else {
+                new_condition.push_back(expr);
+            }         
+        } else {
+            new_condition.push_back(expr);
+        }
+    }
+    joined_table->join_condition = new_condition;
+    return ret;
+}
+
+u32 DMLPlan::inner_generate_outer_join_detectors(JoinedTableStmt_s &joined_table, 
+                                                 ConflictDetector_s &detector)
+{
+    u32 ret = SUCCESS;
+    detector = ConflictDetector::make_conflict_detector();
+    detector->join_info.join_type = joined_table->join_type;
+    append(detector->join_info.outer_join_filter, joined_table->table_filter);
+    for (u32 i = 0; i < joined_table->table_filter.size(); ++i) {
+        ExprStmt_s &cond = joined_table->table_filter[i];
+        detector->table_set.add_members(cond->table_ids);
+    }
+    for (u32 i = 0; i < joined_table->join_condition.size(); ++i) {
+        ExprStmt_s &cond = joined_table->join_condition[i];
+        CHECK(add_join_condition(cond, detector->join_info));
+        detector->table_set.add_members(cond->table_ids);
+    }
+    detector->L_DS.add_members(joined_table->left_table->table_ids);
+    detector->R_DS.add_members(joined_table->right_table->table_ids);
+    detector->L_TES.intersect(detector->L_DS, detector->table_set);
+    detector->R_TES.intersect(detector->R_DS, detector->table_set);
+    if (detector->L_TES.is_empty() || detector->R_TES.is_empty()) {
+        detector->is_degenerate = true;
+    } else {
+        detector->is_degenerate = false;
+    }
+    detector->is_symmetric = CommProperty[joined_table->join_type];
+    return ret;
+}
+
+u32 DMLPlan::generate_inner_join_detectors(Vector<ExprStmt_s> &join_conditions, 
+                                        Vector<ConflictDetector_s> &outer_join_detectors, 
+                                        Vector<ConflictDetector_s> &inner_join_detector)
+{
+    u32 ret = SUCCESS;
+    ConflictDetector_s detector;
+    //连接条件分组
+    for (u32 i = 0; i < join_conditions.size(); ++i) {
+        bool find = false;
+        for (u32 j = 0; j < inner_join_detector.size(); ++j) {
+            if (inner_join_detector[j]->table_set.is_equal(join_conditions[i]->table_ids)) {
+                find = true;
+                detector = inner_join_detector[j];
+                break;
+            }
+        }
+        if (find && detector) {
+            CHECK(add_join_condition(join_conditions[i], detector->join_info));
+        } else {
+            detector = ConflictDetector::make_conflict_detector();
+            CHECK(add_join_condition(join_conditions[i], detector->join_info));
+            detector->table_set = join_conditions[i]->table_ids;
+            inner_join_detector.push_back(detector);
+        }
+    }
+    //生成笛卡尔积冲突规则
+
+    //生成冲突规则
+    for (u32 i = 0; i < inner_join_detector.size(); ++i) {
+        CHECK(inner_generate_inner_join_detectors(inner_join_detector[i]));
+        CHECK(generate_conflict_rules(inner_join_detector[i], true, outer_join_detectors));
+        CHECK(generate_conflict_rules(inner_join_detector[i], false, outer_join_detectors));
+    }
+    return ret;
+}
+
+u32 DMLPlan::inner_generate_inner_join_detectors(ConflictDetector_s &detector)
+{
+    u32 ret = SUCCESS;
+    detector->join_info.join_type = Inner;
+    detector->L_DS.add_members(detector->table_set);
+    detector->R_DS.add_members(detector->table_set);
+    detector->L_TES.add_members(detector->table_set);
+    detector->R_TES.add_members(detector->table_set);
+    detector->is_degenerate = false;
+    detector->is_symmetric = CommProperty[Inner];
+    return ret;
+}
+
+u32 DMLPlan::add_join_condition(const ExprStmt_s& cond, JoinInfo &info)
+{
+    u32 ret = SUCCESS;
+    if (cond->has_flag(IS_OP_EXPR)) {
+        const OpExprStmt_s op_expr = cond;
+        if (OP_EQ == op_expr->op_type) {
+            info.equal_join_condition.push_back(cond);
+        } else {
+            info.other_join_condition.push_back(cond);
+        }
+    } else {
+        info.other_join_condition.push_back(cond);
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_conflict_rules(ConflictDetector_s &detector, 
+                                    bool is_left_child, 
+                                    Vector<ConflictDetector_s> &child_detectors)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < child_detectors.size(); ++i) {
+        CHECK(generate_conflict_rules(detector, is_left_child, child_detectors[i]));
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_conflict_rules(ConflictDetector_s &detector, 
+                                    bool is_left_child, 
+                                    const ConflictDetector_s &child_detector)
+{
+    u32 ret = SUCCESS;
+    if (is_left_child) {
+        JoinType r_type = detector->join_info.join_type;
+        JoinType l_type = child_detector->join_info.join_type;
+        if (!AssocProperty[l_type][r_type]) {
+            BitSet common_ids;
+            common_ids.intersect(child_detector->L_DS, child_detector->table_set);
+            if (common_ids.is_empty()) {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->R_DS, 
+                                        child_detector->L_DS));
+            } else {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->R_DS, 
+                                        common_ids));
+            }
+        }
+        if (!L_AssComProperty[l_type][r_type]) {
+            BitSet common_ids;
+            common_ids.intersect(child_detector->R_DS, child_detector->table_set);
+            if (common_ids.is_empty()) {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->L_DS, 
+                                        child_detector->R_DS));
+            } else {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->L_DS, 
+                                        common_ids));
+            }
+        }
+    } else {
+        JoinType l_type = detector->join_info.join_type;
+        JoinType r_type = child_detector->join_info.join_type;
+        if (!AssocProperty[l_type][r_type]) {
+            BitSet common_ids;
+            common_ids.intersect(child_detector->R_DS, child_detector->table_set);
+            if (common_ids.is_empty()) {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->L_DS, 
+                                        child_detector->R_DS));
+            } else {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->L_DS, 
+                                        common_ids));
+            }
+        }
+        if (!R_AssComProperty[l_type][r_type]) {
+            BitSet common_ids;
+            common_ids.intersect(child_detector->L_DS, child_detector->table_set);
+            if (common_ids.is_empty()) {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->R_DS, 
+                                        child_detector->L_DS));
+            } else {
+                CHECK(add_conflict_rule(detector->conflict_rules, 
+                                        child_detector->R_DS, 
+                                        common_ids));
+            }
+        }
+    }
+    return ret;
+}
+
+u32 DMLPlan::add_conflict_rule(Vector<ConflictRule> &conflict_rules, 
+                            const BitSet& condition, 
+                            const BitSet &constraint)
+{
+    u32 ret = SUCCESS;
+    bool find_condition = false;
+    bool find_constraint = false;
+    for (u32 i = 0; i < conflict_rules.size(); ++i) {
+        ConflictRule &rule = conflict_rules[i];
+        if (rule.condition.is_equal(condition)) {
+            find_condition = true;
+            rule.constraint.add_members(constraint);
+            break;
+        } else if (rule.constraint.is_equal(constraint)) {
+            find_constraint = true;
+            rule.condition.add_members(condition);
+            break;
+        }
+    }
+    if (!find_condition && !find_constraint) {
+        ConflictRule rule;
+        rule.condition = condition;
+        rule.constraint = constraint;
+        conflict_rules.push_back(rule);
+    }
+    return ret;
 }
 
 u32 DMLPlan::generate_join_operator(LogicalOperator_s &left,
                                 LogicalOperator_s &right,
-                                JoinType join_type,
-                                Vector<ExprStmt_s> &join_condition,
+                                JoinInfo &join_info,
                                 LogJoin::JoinAlgo join_algo,
                                 LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
-    LogJoin_s join = LogJoin::make_join(left, right, join_type, join_algo);
+    LogJoin_s join = LogJoin::make_join(left, right, join_info.join_type, join_algo);
     join->set_query_ctx(query_ctx);
-    join->other_join_condition = join_condition;
+    join->equal_join_condition = join_info.equal_join_condition;
+    join->other_join_condition = join_info.other_join_condition;
     op = join;
     return ret;
 }
@@ -55,12 +456,14 @@ u32 DMLPlan::generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt,
     u32 ret = SUCCESS;
     MY_ASSERT(table_stmt != NULL);
     LogicalOperator_s left_op, right_op;
+    JoinInfo join_info;
+    join_info.join_type = table_stmt->join_type;
+    join_info.other_join_condition = table_stmt->join_condition;
     CHECK(generate_join_order_with_table_item(table_stmt->left_table, left_op));
     CHECK(generate_join_order_with_table_item(table_stmt->right_table, right_op));
     CHECK(generate_join_operator(left_op, 
                                  right_op,
-                                 table_stmt->join_type,
-                                 table_stmt->join_condition,
+                                 join_info,
                                  LogJoin::NL_JOIN,
                                  op));
     return ret;
@@ -105,6 +508,7 @@ u32 DMLPlan::generate_join_order_with_table_item(TableStmt_s& table_stmt, Logica
         LOG_ERR("unknow table type", K(table_stmt));
         ret = ERROR_LEX_STMT;
     }
+    op->filters = table_stmt->table_filter;
     return ret;
 }
 
@@ -113,23 +517,232 @@ u32 DMLPlan::generate_join_order()
     u32 ret = SUCCESS;
     MY_ASSERT(lex_stmt, lex_stmt->stmt_type() !=  Stmt::DoCMD)
     DMLStmt_s stmt = lex_stmt;
-    Vector<ExprStmt_s> dummy_join_condition;
-    for (u32 i = 0; i < stmt->from_stmts.size(); ++i) {
-        LogicalOperator_s op;
-        CHECK(generate_join_order_with_table_item(stmt->from_stmts[i], op));
-        if (!root_operator) {
-            root_operator = op;
-        } else {
-            CHECK(generate_join_operator(root_operator,
-                                        op,
-                                        Inner,
-                                        dummy_join_condition,
-                                        LogJoin::NL_JOIN,
-                                        root_operator));
+    Vector<TableStmt_s> base_tables;
+    CHECK(generate_conflict_detecotrs(stmt->from_stmts, 
+                                      stmt->where_stmt, 
+                                      conflict_detectors));
+    CHECK(stmt->get_table_items(base_tables));
+    CHECK(generate_base_plan(base_tables));
+    CHECK(generate_join_order_with_DP());
+    return ret;
+}
+
+u32 DMLPlan::generate_base_plan(Vector<TableStmt_s> &base_tables)
+{
+    u32 ret = SUCCESS;
+    Vector<LogicalOperator_s> base_plans;
+    LogicalOperator_s op;
+    for (u32 i = 0; i < base_tables.size(); ++i) {
+        CHECK(generate_join_order_with_table_item(base_tables[i], op));
+        op->table_ids.add_members(base_tables[i]->table_ids);
+        base_plans.push_back(op);
+    }
+    join_orders.clear();
+    join_orders.push_back(base_plans);
+    return ret;
+}
+
+u32 DMLPlan::generate_join_order_with_DP()
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(1 == join_orders.size());
+    u32 join_levels = join_orders[0].size();
+    for (u32 level = 1; level < join_levels; ++level) {
+        for (u32 left_level = 0; left_level < (level+1) / 2; ++left_level) {
+            u32 right_level = level - 1 - left_level;
+            CHECK(generate_join_order_with_DP(left_level, right_level));
         }
     }
-    if (root_operator) {
-        root_operator->filters = stmt->where_stmt;
+    return ret;
+}
+
+u32 DMLPlan::generate_join_order_with_DP(u32 left_level, u32 right_level)
+{
+    u32 ret = SUCCESS;
+    LogicalOperator_s join_op;
+    Vector<LogicalOperator_s> join_plans;
+    MY_ASSERT(left_level < join_orders.size(), right_level < join_orders.size());
+    for (u32 i = 0; i < join_orders[left_level].size(); ++i) {
+        for (u32 j = 0; j < join_orders[right_level].size(); ++j) {
+            JoinInfo join_info;
+            bool is_legal = false;
+            LogicalOperator_s &left_tree = join_orders[left_level][i];
+            LogicalOperator_s &right_tree = join_orders[right_level][j];
+            if (left_tree->table_ids.overlap(right_tree->table_ids)) {
+                break;
+            }
+            CHECK(choose_join_info(left_tree, right_tree, join_info, is_legal));
+            if (!is_legal) {
+                LOG_TRACE("join order is not legal", K(left_tree->table_ids), K(right_tree->table_ids));
+                break;
+            }
+            CHECK(generate_join_plan(left_tree, right_tree, join_info, join_op));
+            join_plans.push_back(join_op);
+            LOG_TRACE("generate join plan for", K(left_tree->table_ids), K(right_tree->table_ids), K(join_info));
+        }
+    }
+    join_orders.push_back(join_plans);
+    return ret;
+}
+
+u32 DMLPlan::choose_join_info(LogicalOperator_s &left_tree, 
+							  LogicalOperator_s &right_tree, 
+                              JoinInfo &join_info,
+                              bool &is_legal)
+{
+    u32 ret = SUCCESS;
+    Vector<ConflictDetector_s> join_infos;
+    for (u32 i = 0; i < conflict_detectors.size(); ++i) {
+        bool is_legal = false;
+        CHECK(is_join_legal(left_tree->table_ids, 
+                            right_tree->table_ids, 
+                            conflict_detectors[i], 
+                            is_legal));
+        if (is_legal) {
+            join_infos.push_back(conflict_detectors[i]);
+        }
+    }
+    if (join_infos.empty()) {
+        is_legal = false;
+    } else {
+        is_legal = true;
+        CHECK(merge_join_infos(left_tree->table_ids, 
+                               right_tree->table_ids, 
+                               join_infos, 
+                               join_info));
+    }
+    return ret;
+}
+
+u32 DMLPlan::is_join_legal(const BitSet &left_tables, 
+                            const BitSet &right_tables, 
+                            const ConflictDetector_s &detector, 
+                            bool &is_legal)
+{
+    u32 ret = SUCCESS;
+    is_legal = false;
+    if (detector->is_degenerate) {
+        if (left_tables.overlap(detector->L_DS) && 
+            right_tables.overlap(detector->R_DS)) {
+            is_legal = true;
+        } else if (detector->is_symmetric &&
+                   left_tables.overlap(detector->R_DS) && 
+                   right_tables.overlap(detector->L_DS)) {
+            is_legal = true;
+        }
+    } else {
+        if (left_tables.is_superset(detector->L_TES) && 
+            right_tables.is_superset(detector->R_TES)) {
+            is_legal = true;
+        } else if (detector->is_symmetric &&
+                   left_tables.is_superset(detector->R_TES) && 
+                   right_tables.is_superset(detector->L_TES)) {
+            is_legal = true;
+        }
+    }
+    if (!is_legal) {
+        return ret;
+    }
+    BitSet table_set;
+    table_set.add_members(left_tables);
+    table_set.add_members(right_tables);
+    for (u32 i = 0; is_legal && i < detector->conflict_rules.size(); ++i) {
+        const ConflictRule& rule = detector->conflict_rules[i];
+        if (table_set.overlap(rule.condition)) {
+            is_legal = rule.constraint.is_subset(table_set);
+        }
+    }
+    if (!is_legal) {
+        return ret;
+    }
+    for (u32 i = 0; is_legal && i < detector->cross_product_rules.size(); ++i) {
+        is_legal = !table_set.is_subset(detector->cross_product_rules[i]);
+    }
+    return ret;
+}
+
+u32 DMLPlan::merge_join_infos(const BitSet &left_tables, 
+							  const BitSet &right_tables, 
+                              Vector<ConflictDetector_s> &join_infos, 
+                              JoinInfo &join_info)
+{
+    u32 ret = SUCCESS;
+    join_info.join_type = Inner;
+    for (u32 i = 0; i < join_infos.size(); ++i) {
+        JoinInfo &info = join_infos[i]->join_info;
+        if (Inner == info.join_type) {
+            append(join_info.outer_join_filter, info.equal_join_condition);
+            append(join_info.outer_join_filter, info.other_join_condition);
+            append(join_info.outer_join_filter, info.outer_join_filter);
+        } else if (Inner == join_info.join_type) {
+            append(join_info.equal_join_condition, info.equal_join_condition);
+            append(join_info.other_join_condition, info.other_join_condition);
+            append(join_info.outer_join_filter, info.outer_join_filter);
+            join_info.join_type = info.join_type;
+        } else {
+            ret = ERR_UNEXPECTED;
+            LOG_WARN("unexpect join infos", K(join_infos), K(ret));
+        }
+    }
+    Vector<ExprStmt_s> join_conds;
+    if (Inner == join_info.join_type) {
+        append(join_conds, join_info.outer_join_filter);
+        join_info.outer_join_filter.clear();
+    } else {
+        append(join_conds, join_info.equal_join_condition);
+        append(join_conds, join_info.other_join_condition);
+        join_info.equal_join_condition.clear();
+        join_info.other_join_condition.clear();
+    }
+    for (u32 i = 0; i < join_conds.size(); ++i) {
+        ExprStmt_s &cond = join_conds[i];
+        bool is_eq_join_cond = false;
+        if (cond->has_flag(IS_OP_EXPR)) {
+            const OpExprStmt_s op_expr = cond;
+            if (OP_EQ == op_expr->op_type &&
+                2 == op_expr->params.size()) {
+                const ExprStmt_s &l_expr = op_expr->params[0];
+                const ExprStmt_s &r_expr = op_expr->params[1];
+                if (l_expr->table_ids.is_subset(left_tables) &&
+                    !l_expr->table_ids.is_empty() &&
+                    r_expr->table_ids.is_subset(right_tables) &&
+                    !r_expr->table_ids.is_empty()) {
+                    is_eq_join_cond = true;
+                } else if (r_expr->table_ids.is_subset(left_tables) &&
+                            !r_expr->table_ids.is_empty() &&
+                            l_expr->table_ids.is_subset(right_tables) &&
+                            !l_expr->table_ids.is_empty()) {
+                    is_eq_join_cond = true;
+                }
+            }
+        }
+        if (is_eq_join_cond) {
+            join_info.equal_join_condition.push_back(cond);
+        } else {
+            join_info.other_join_condition.push_back(cond);
+        }
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree, 
+                                LogicalOperator_s &right_tree, 
+                                JoinInfo &join_info,
+                                LogicalOperator_s &join_plan)
+{
+    u32 ret = SUCCESS;
+    if (join_info.equal_join_condition.empty()) {
+        CHECK(generate_join_operator(left_tree, 
+                                     right_tree, 
+                                     join_info, 
+                                     LogJoin::NL_JOIN, 
+                                     join_plan));
+    } else {
+        CHECK(generate_join_operator(left_tree, 
+                                     right_tree, 
+                                     join_info, 
+                                     LogJoin::HASH_JOIN, 
+                                     join_plan));
     }
     return ret;
 }

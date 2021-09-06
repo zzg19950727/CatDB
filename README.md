@@ -13,9 +13,11 @@ SQL引擎支持基本的insert、delete、update、select，支持多层嵌套�
 
 下载源码：git clone https://github.com/zzg19950727/CatDB.git
 
-编译：./build.sh
+编译：./build.sh [ debug | release ]
 
 cd script
+
+配置数据库：catdb.conf
 
 初始化：./deploy.sh init
 

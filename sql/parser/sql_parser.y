@@ -284,7 +284,7 @@
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>		select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt
+%type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt
 %type<ExprStmt_s>	projection expr simple_expr arith_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
 %type<OrderStmt_s>	order_by
 %type<LimitStmt_s>	opt_select_limit
@@ -332,6 +332,7 @@ cmd_stmt:
 	| desc_stmt			{ $$ = $1; }
 	| use_stmt			{ $$ = $1; }
 	| analyze_stmt		{ $$ = $1; }
+	| set_var_stmt		{ $$ = $1; }
 	;
 
 select_stmt:
@@ -1412,6 +1413,16 @@ opt_sample_size:
 	| SAMPLE SIZE number
 	{
 		$$ = std::stod($3);
+	}
+
+set_var_stmt:
+	SET ident CMP_EQ string
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::SetVar);
+		check(cmd_stmt);
+		cmd_stmt->params.set_var_params.var_name = $2;
+		cmd_stmt->params.set_var_params.var_value = $4;
+		$$ = cmd_stmt;
 	}
 
  /**************************************************************

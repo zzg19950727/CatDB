@@ -17,7 +17,10 @@ namespace CatDB {
             void set_sample_size(double size) { sample_size = size; }
             double get_sample_size() const { return sample_size; }
             void reset_sample_size() { sample_size = 1.0; }
+            void set_error_msg(const String& msg) { err_msg = msg; }
+            String get_error_msg() const { return err_msg; }
             String cur_database;
+            String err_msg;
             u32 cur_table_id;
             double sample_size;
         };

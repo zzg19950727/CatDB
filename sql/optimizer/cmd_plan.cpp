@@ -67,6 +67,9 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 		case CMDStmt::Analyze:
 			CHECK(do_cmd_analyze());
 			break;
+		case CMDStmt::SetVar:
+			CHECK(do_set_var());
+			break;
         default:
 			ret = INVALID_CMD_TYPE;
     }
@@ -335,5 +338,40 @@ u32 CMDPlan::do_cmd_analyze()
 	StatisManager_s manager = StatisManager::make_statis_manager();
 	MY_ASSERT(manager);
 	CHECK(manager->analyze_table(database, table, sample_size));
+	return ret;
+}
+
+u32 CMDPlan::do_set_var()
+{
+	u32 ret = SUCCESS;
+	CMDStmt_s stmt = lex_stmt;
+	String var_name;
+	String var_value;
+	
+	CHECK(stmt->get_set_var_params(var_name, var_value));
+	if (var_name == "log_level") {
+		int level = LOG_LEVEL_ERR;
+		if (var_value == "trace") {
+			level = LOG_LEVEL_TRACE;
+		} else if (var_value == "warning") {
+			level = LOG_LEVEL_WARN;
+		} else if (var_value == "error") {
+			level = LOG_LEVEL_ERR;
+		} else {
+			ret = ERR_UNEXPECTED;
+			String msg = "unknown log level " + var_value;
+			MY_ASSERT(query_ctx);
+			query_ctx->set_error_msg(msg);
+			return ret;
+		}
+		set_debug_level(level);
+	} else if (var_name == "log_module") {
+		set_debug_module(var_value);
+	} else {
+		ret = ERR_UNEXPECTED;
+		String msg = "unknown variable " + var_name;
+		MY_ASSERT(query_ctx);
+		query_ctx->set_error_msg(msg);
+	}
 	return ret;
 }

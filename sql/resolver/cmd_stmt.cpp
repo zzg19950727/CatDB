@@ -152,6 +152,15 @@ u32 CMDStmt::get_analyze_params(String &database, String &table, double &sample_
 	return ret;
 }
 
+u32 CMDStmt::get_set_var_params(String &var_name, String &var_value)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(cmd_type == CMDStmt::SetVar);
+	var_name = params.set_var_params.var_name;
+    var_value = params.set_var_params.var_value;
+	return ret;
+}
+
 String CMDStmt::get_cmd_type()const
 {
 	switch(cmd_type) {
@@ -165,6 +174,7 @@ String CMDStmt::get_cmd_type()const
 		case DescTable: return String(VAR_NAME(DescTable));
 		case UseDatabase: return String(VAR_NAME(UseDatabase));
 		case Analyze: return String(VAR_NAME(Analyze));
+		case SetVar: return String(VAR_NAME(SetVar));
 		default: return String("UNKNOWN");
 	}
 }

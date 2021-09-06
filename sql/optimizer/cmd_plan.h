@@ -39,6 +39,7 @@ namespace CatDB {
 			u32 show_column_statis(const String &database, const String &table, ResultSet_s &query_result);
             u32 do_cmd_use_database();
             u32 do_cmd_analyze();
+			u32 do_set_var();
 		};
 	}
 }

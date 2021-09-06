@@ -113,6 +113,17 @@ bool BitSet::is_superset(const BitSet& other) const
     return superset;
 }
 
+bool BitSet::overlap(const BitSet& other) const
+{
+    u32 i = 0;
+    bool overlap = true;
+    while (!overlap && i < data.size() && i < other.data.size()) {
+        overlap = 0 != (other.data[i] & data[i]);
+        ++i;
+    }
+    return overlap;
+}
+
 void BitSet::to_list(Vector<u32> &members) const
 {
     u32 i = 0;

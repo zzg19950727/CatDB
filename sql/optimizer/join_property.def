@@ -1,0 +1,283 @@
+static bool CommProperty[] = {
+    true,       //Inner
+    false,      //LeftOuter
+    false,      //RightOuter
+    true,       //FullOuter
+    false,      //LeftSemi
+    false,      //RightSemi
+    false,      //LeftAnti
+    false       //RightAnti
+};
+
+static bool AssocProperty[][8] = {
+    //INNER
+    {
+        true,       //Inner
+        true,       //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        true,       //LeftSemi
+        false,      //RightSemi
+        true,       //LeftAnti
+        false       //RightAnti
+    },
+    //LeftOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter,TODO: reject conds
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //FullOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter,TODO: reject conds
+        false,      //RightOuter
+        false,      //FullOuter,TODO: reject conds
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftSemi
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightSemi
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftAnti
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightAnti
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    }
+};
+
+static bool L_AssComProperty[][8] = {
+    //INNER
+    {
+        true,       //Inner
+        true,       //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        true,       //LeftSemi
+        false,      //RightSemi
+        true,       //LeftAnti
+        false       //RightAnti
+    },
+    //LeftOuter
+    {
+        true,       //Inner
+        true,       //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter,TODO: reject conds
+        true,       //LeftSemi
+        false,      //RightSemi
+        true,       //LeftAnti
+        false       //RightAnti
+    },
+    //RightOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //FullOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter,TODO: reject conds
+        false,      //RightOuter
+        false,      //FullOuter,TODO: reject conds
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftSemi
+    {
+        true,       //Inner
+        true,       //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        true,       //LeftSemi
+        false,      //RightSemi
+        true,       //LeftAnti
+        false       //RightAnti
+    },
+    //RightSemi
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftAnti
+    {
+        true,       //Inner
+        true,       //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        true,       //LeftSemi
+        false,      //RightSemi
+        true,       //LeftAnti
+        false       //RightAnti
+    },
+    //RightAnti
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    }
+};
+
+static bool R_AssComProperty[][8] = {
+    //INNER
+    {
+        true,       //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //FullOuter
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter,TODO: reject conds
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftSemi
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightSemi
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //LeftAnti
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    },
+    //RightAnti
+    {
+        false,      //Inner
+        false,      //LeftOuter
+        false,      //RightOuter
+        false,      //FullOuter
+        false,      //LeftSemi
+        false,      //RightSemi
+        false,      //LeftAnti
+        false       //RightAnti
+    }
+};

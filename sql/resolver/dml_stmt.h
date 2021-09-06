@@ -23,6 +23,7 @@ namespace CatDB {
 			u32 get_stmt_exprs(Vector<ExprStmt_s> &exprs);
 			u32 collect_special_exprs();
 			u32 get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns);
+			u32 get_table_items(Vector<TableStmt_s> &tables);
 			Vector<ExprStmt_s> &get_column_exprs() { return column_exprs; }
 			Vector<SubQueryStmt_s> &get_subquery_exprs() { return subquery_exprs; }
 

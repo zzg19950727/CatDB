@@ -331,7 +331,10 @@ u32 RequestHandle::do_cmd_query(const String& query)
 	if (FAIL(ret)) {
 		String err_msg = engine->get_error_msg();
 		if (err_msg.empty()) {
-			err_msg = err_string(ret);
+			err_msg = query_ctx.get_error_msg();
+			if (err_msg.empty()) {
+				err_msg = err_string(ret);
+			}
 		}
 		return send_error_packet(ERR_UNEXPECTED, err_msg);
 	}

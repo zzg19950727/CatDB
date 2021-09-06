@@ -26,6 +26,7 @@ ServerService::ServerService(const String& config)
 		CatDB::Common::set_log_file(log_path.c_str());
 	}
 	CatDB::Common::set_debug_level(m_config.log_level());
+	CatDB::Common::set_debug_module(m_config.log_module());
 }
 
 ServerService::~ServerService()

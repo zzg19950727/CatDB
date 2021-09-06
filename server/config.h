@@ -16,9 +16,9 @@ namespace CatDB {
 			String recycle_dir()const;
 			String log_file_path()const;
 			int log_level()const;
-			int sample_level()const;
 			int cache_size()const;
 			int thread_pool_size()const;
+			String log_module() const;
 		private:
 			Config m_config;
 		};

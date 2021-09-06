@@ -77,6 +77,20 @@ u32 DMLStmt::collect_special_exprs(ExprStmt_s& expr)
     return ret;
 }
 
+u32 DMLStmt::get_table_items(Vector<TableStmt_s> &tables)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < from_stmts.size(); ++i) {
+        if (!from_stmts[i]->is_joined_table()) {
+            tables.push_back(from_stmts[i]);
+        } else {
+            JoinedTableStmt_s joined_table = from_stmts[i];
+            CHECK(joined_table->get_table_items(tables));
+        }
+    }
+    return ret;
+}
+
 u32 DMLStmt::get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns)
 {
     u32 ret = SUCCESS;

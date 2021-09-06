@@ -44,9 +44,9 @@ namespace CatDB {
 		};
 		DECLARE(ConflictDetector);
 		struct ConflictDetector {
-			JoinInfo join_info;
 			Vector<ConflictRule> conflict_rules;
-			Vector<ConflictRule> cross_product_rules;
+			Vector<BitSet> cross_product_rules;
+			JoinInfo join_info;
 			BitSet table_set;
 			BitSet L_TES;
 			BitSet R_TES;
@@ -57,7 +57,6 @@ namespace CatDB {
 			KV_STRING(
 				K(join_info),
 				K(conflict_rules),
-				K(cross_product_rules),
 				K(table_set),
 				K(L_TES),
 				K(R_TES),
@@ -66,7 +65,8 @@ namespace CatDB {
 				K(is_degenerate),
 				K(is_symmetric)
 			);
-			static ConflictDetector_s make_conflict_detector();
+			static ConflictDetector_s make_conflict_detector()
+			{ return ConflictDetector_s(new ConflictDetector); }
 		};
 
 		class DMLPlan : public Plan
@@ -77,11 +77,40 @@ namespace CatDB {
 			~DMLPlan();
 			virtual u32 build_plan();
 			virtual PlanType type()const = 0;
-			u32 pushdown_quals();
+			u32 generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 
+											Vector<ExprStmt_s> &conds,
+											Vector<ConflictDetector_s> &detectors);
+			u32 generate_cross_product_detector(Vector<TableStmt_s> &tables, 
+												Vector<ConflictDetector_s> &detectors);
+			u32 flatten_table_items(Vector<TableStmt_s> &tables, 
+									Vector<ExprStmt_s> &conds);
+			u32 flatten_table_items(const TableStmt_s &table, 
+									Vector<TableStmt_s> &tables, 
+									Vector<ExprStmt_s> &conds);
+			u32 generate_outer_join_detecotrs(TableStmt_s &table, 
+                                  			  Vector<ConflictDetector_s> &detectors);
+			u32 change_right_join_to_left(JoinedTableStmt_s &joined_table);
+			u32 pushdown_outer_join_filter(JoinedTableStmt_s &joined_table);
+			u32 pushdown_on_condition(JoinedTableStmt_s &joined_table);
+			u32 inner_generate_outer_join_detectors(JoinedTableStmt_s &joined_table, 
+													ConflictDetector_s &detector);
+			u32 generate_inner_join_detectors(Vector<ExprStmt_s> &join_conditions, 
+											Vector<ConflictDetector_s> &outer_join_detectors, 
+											Vector<ConflictDetector_s> &inner_join_detector);
+			u32 inner_generate_inner_join_detectors(ConflictDetector_s &detector);
+			u32 add_join_condition(const ExprStmt_s& cond, JoinInfo &info);
+			u32 generate_conflict_rules(ConflictDetector_s &detector, 
+										bool is_left_child, 
+										Vector<ConflictDetector_s> &child_detectors);
+			u32 generate_conflict_rules(ConflictDetector_s &detector, 
+										bool is_left_child, 
+										const ConflictDetector_s &child_detectors);
+			u32 add_conflict_rule(Vector<ConflictRule> &conflict_rules, 
+								const BitSet& condition, 
+								const BitSet &constraint);
 			u32 generate_join_operator(LogicalOperator_s &left,
 									LogicalOperator_s &right,
-									JoinType join_type,
-									Vector<ExprStmt_s> &join_condition,
+									JoinInfo &join_info,
 									LogJoin::JoinAlgo join_algo,
 									LogicalOperator_s &op);
 			u32 generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt, LogicalOperator_s &op);
@@ -89,6 +118,25 @@ namespace CatDB {
 			u32 generate_join_order_with_view_table(ViewTableStmt_s table_stmt, LogicalOperator_s &op);
 			u32 generate_join_order_with_table_item(TableStmt_s& table_stmt, LogicalOperator_s &op);
 			u32 generate_join_order();
+			u32 generate_base_plan(Vector<TableStmt_s> &base_tables);
+			u32 generate_join_order_with_DP();
+			u32 generate_join_order_with_DP(u32 left_level, u32 right_level);
+			u32 choose_join_info(LogicalOperator_s &left_tree, 
+								 LogicalOperator_s &right_tree, 
+								 JoinInfo &join_info,
+								 bool &is_legal);
+			u32 is_join_legal(const BitSet &left_tables, 
+							  const BitSet &right_tables, 
+							  const ConflictDetector_s &detector, 
+							  bool &is_legal);
+			u32 merge_join_infos(const BitSet &left_tables, 
+							  	 const BitSet &right_tables, 
+							  	 Vector<ConflictDetector_s> &join_infos, 
+                     			 JoinInfo &join_info);
+			u32 generate_join_plan(LogicalOperator_s &left_tree, 
+								   LogicalOperator_s &right_tree, 
+								   JoinInfo &join_info,
+								   LogicalOperator_s &join_plan);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);
 			virtual u32 generate_plan_tree() = 0;
 			u32 set_table_access_columns(LogicalOperator_s &op);
