@@ -6,7 +6,7 @@ namespace CatDB {
     namespace Common {
 		DECLARE(QueryResult);
 	}
-	namespace Parser {
+	namespace Optimizer {
         DECLARE(ColumnStatis);
         DECLARE(TableStatis);
         DECLARE(StatisManager);
@@ -63,6 +63,7 @@ namespace CatDB {
             u32 analyze_table(const String& database, const String& table, double sample_size=0.1);
 			double get_table_row_count(u32 tid);
             double get_avg_row_size(u32 tid);
+            double get_table_block_count(u32 tid);
 			double get_column_ndv(u32 tid, u32 cid);
 			double get_column_max_value(u32 tid, u32 cid);
 			double get_column_min_value(u32 tid, u32 cid);

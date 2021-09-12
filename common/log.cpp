@@ -83,7 +83,8 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 {
 	String module = get_module_name(function);
 	if (log_level > LOG_SET || 
-		LOG_MODULE.find(module) == LOG_MODULE.npos)
+		(LOG_MODULE.find(module) == LOG_MODULE.npos &&
+		LOG_MODULE != "ALL"))
 		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	*os << "[" << put_time(t) <<"] ";

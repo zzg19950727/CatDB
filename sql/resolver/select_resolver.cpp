@@ -158,6 +158,16 @@ u32 SelectResolver::resolve_order_exprs(Vector<ExprStmt_s> &order_exprs)
     u32 ret = SUCCESS;
     for (u32 i = 0; i < select_stmt->order_exprs.size(); ++i) {
         CHECK(resolve_expr(select_stmt->order_exprs[i]->order_expr, resolve_ctx));
+        if (ExprStmt::Const == select_stmt->order_exprs[i]->order_expr->expr_type()) {
+            ConstStmt_s const_expr = select_stmt->order_exprs[i]->order_expr;
+            if (T_NUMBER == const_expr->value->get_type()) {
+                Number_s num = const_expr->value;
+                int pos = num->value();
+                if (pos >= 0 && pos < select_stmt->select_expr_list.size()) {
+                    select_stmt->order_exprs[i]->order_expr = select_stmt->select_expr_list[pos];
+                }
+            }
+        }
         order_exprs.push_back(select_stmt->order_exprs[i]->order_expr);
     }
     return ret;

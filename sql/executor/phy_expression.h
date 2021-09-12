@@ -34,6 +34,7 @@ namespace CatDB {
 			Object_s calc(Object_s& obj);
 			Object_s calc(Object_s& first_obj, Object_s& second_obj);
 			Object_s calc(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
+			Object_s calcN(Vector<Object_s> &params);
 		private:
 			Object_s do_add(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_sub(Object_s& first_obj, Object_s& second_obj);
@@ -61,6 +62,7 @@ namespace CatDB {
 			Object_s do_like(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_not_like(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_cast(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_case_when(Vector<Object_s> &params);
 
 		private:
 			OperationType type;

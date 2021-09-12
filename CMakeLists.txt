@@ -28,6 +28,7 @@ add_subdirectory(common)
 add_subdirectory(storage)
 add_subdirectory(sql)
 add_subdirectory(server)
+add_subdirectory(tools/random_test)
 
 add_executable(CatDB ${SrcFiles})
 target_link_libraries(CatDB common storage sql server ${PLATFORM_LIBS})

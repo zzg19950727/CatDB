@@ -1,0 +1,18 @@
+#ifndef UPDATE_GENERATOR_H
+#define UPDATE_GENERATOR_H
+#include "dml_generator.h"
+
+class UpdateGenerator : public DMLGenerator {
+public:
+    UpdateGenerator(Config &conf);
+    ~UpdateGenerator() {}
+    void generate_query(string &query);
+private:
+    void generate_set_value();
+    void to_string(string &query);
+private:
+    string update_table;
+    string set_value;
+};
+
+#endif //UPDATE_GENERATOR_H

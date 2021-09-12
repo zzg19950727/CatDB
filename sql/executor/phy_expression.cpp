@@ -131,6 +131,42 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj, Object_s &
 	}
 }
 
+Object_s Operation::calcN(Vector<Object_s> &params)
+{
+	switch (type)
+	{
+	case OP_CASE_WHEN:
+		return do_case_when(params);
+	default:
+		LOG_ERR("wrong calc function called for opertion");
+		return Error::make_object(WRONG_CALC_FOR_OP);
+	}
+}
+
+Object_s Operation::do_case_when(Vector<Object_s> &params)
+{
+	if (params.size() & 1) {
+		//calc case when expr1 then res1 else resN end
+		for (u32 i = 0; i < params.size() / 2; i += 2) {
+			if (params[i]->bool_value()) {
+				return params[i+1];
+			}
+		}
+		return params[params.size()-1];
+	} else if (params.size() > 1) {
+		//calc case cond when expr1 then res1 else resN end
+		Object_s &cond = params[0];
+		for (u32 i = 1; i < params.size() / 2; i += 2) {
+			if (params[i]->operator==(cond)->bool_value()) {
+				return params[i+1];
+			}
+		}
+		return params[params.size()-1];
+	} else {
+		return Error::make_object(WRONG_CALC_FOR_OP);
+	}
+}
+
 Object_s Operation::do_add(Object_s & first_obj, Object_s & second_obj)
 {
 	return first_obj->operator+(second_obj);
@@ -446,15 +482,38 @@ Object_s OpExpression::get_result(const Row_s & row)
 	for (u32 i = 0; i < param_exprs.size(); ++i) {
 		param_result.push_back(param_exprs[i]->get_result(row));
 	}
-	if (param_exprs.size() == 1) {
+	switch (op.get_type())
+	{
+	case OP_MINUS:
+	case OP_NOT:
+	case OP_EXISTS:
+	case OP_NOT_EXISTS:
+	case OP_IS_NULL:
+	case OP_IS_NOT_NULL:
 		return op.calc(param_result[0]);
-	} else if (param_exprs.size() == 2) {
+	case OP_ADD:
+	case OP_SUB:
+	case OP_MUL:
+	case OP_DIV:
+	case OP_EQ:
+	case OP_NE:
+	case OP_GT:
+	case OP_GE:
+	case OP_LT:
+	case OP_LE:
+	case OP_IN:
+	case OP_NOT_IN:
+	case OP_AND:
+	case OP_OR:
+	case OP_LIKE:
+	case OP_NOT_LIKE:
+	case OP_CAST:
 		return op.calc(param_result[0], param_result[1]);
-	} else if (param_exprs.size() == 3) {
+	case OP_BETWEEN:
+	case OP_NOT_BETWEEN:
 		return op.calc(param_result[0], param_result[1], param_result[2]);
-	} else {
-		LOG_ERR("wrong calc function called for opertion");
-		return Error::make_object(WRONG_CALC_FOR_OP);
+	case OP_CASE_WHEN:
+		return op.calcN(param_result);
 	}
 }
 

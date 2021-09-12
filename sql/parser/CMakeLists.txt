@@ -13,20 +13,18 @@ set(old_yacc_file "${CMAKE_CURRENT_SOURCE_DIR}/sql_parser.y")
 
 if(NOT EXISTS ${new_lex_file})
     execute_process(COMMAND cp ${old_lex_file} ${new_lex_file})
-	set(force_build true)
-    message(" lex file copied.")
+    set(force_build true)
 endif()
 
 if(NOT EXISTS ${new_yacc_file})
     execute_process(COMMAND cp ${old_yacc_file} ${new_yacc_file})
-	set(force_build true)
-    message(" yacc copied.")
+    set(force_build true)
 endif()
 
 if(${force_build} OR ${old_lex_file} IS_NEWER_THAN ${new_lex_file} OR ${old_yacc_file} IS_NEWER_THAN ${new_yacc_file})
-    execute_process(COMMAND cp ${old_lex_file} ${new_lex_file})
+    	execute_process(COMMAND cp ${old_lex_file} ${new_lex_file})
 	execute_process(COMMAND cp ${old_yacc_file} ${new_yacc_file})
-    message("lex or yacc file changed")
+        message("-- Generate lex or yacc source file")
 	IF (WIN32)
 			execute_process(
 			COMMAND flex 

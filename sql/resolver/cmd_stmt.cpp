@@ -78,7 +78,7 @@ u32 CMDStmt::get_create_table_params(String &database, String &table, Vector<Pai
 	return ret;
 }
 
-u32 CMDStmt::get_drop_table_params(String &database, String &table)
+u32 CMDStmt::get_drop_table_params(String &database, String &table, bool &ignore_not_exists)
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(cmd_type == CMDStmt::DropTable,
@@ -86,6 +86,7 @@ u32 CMDStmt::get_drop_table_params(String &database, String &table)
 	BasicTableStmt_s &table_stmt = params.drop_table_params.table;
 	database = table_stmt->database;
 	table = table_stmt->table_name;
+	ignore_not_exists = params.drop_table_params.ignore_not_exists;
 	return ret;
 }
 
@@ -97,11 +98,12 @@ u32 CMDStmt::get_create_database_params(String &database)
 	return ret;
 }
 
-u32 CMDStmt::get_drop_database_params(String &database)
+u32 CMDStmt::get_drop_database_params(String &database, bool &ignore_not_exists)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(cmd_type == CMDStmt::DropDatabase);
 	database = params.drop_database_params.database;
+	ignore_not_exists = params.drop_database_params.ignore_not_exists;
 	return ret;
 }
 

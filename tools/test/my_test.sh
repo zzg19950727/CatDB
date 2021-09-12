@@ -1,12 +1,14 @@
+#!/bin/bash
 IP="127.0.0.1"
-PORT=12345
+PORT=1234
 
 CASE_COUNT=0
 CASE_INDEX=0
 CASES=()
+TYPE="all"
 
 print_usage() {
-	echo "my_test [option]"
+	echo "my_test IP PORT [option]"
 	echo "option:"
 	echo "	all"
 	echo "	suite=suite_name,suite_name,..."
@@ -20,17 +22,18 @@ run_test() {
 		return 0
 	fi
 	parse_test_type $1
-	if [ $? == 1 ]
+	if [ "$TYPE" == "all" ]
 	then
 		get_all_suite
-	elif [ $? == 2 ]
+	elif [ "$TYPE" == "testset" ]
 	then
 		get_testset_list $1
-	elif [ $? == 3 ]
+	elif [ "$TYPE" == "suite" ]
 	then
 		get_suite_list $1
 	else
-		return 0
+		echo "unknown case type ""$1"
+		exit
 	fi
 	CASE_COUNT=${#CASES[@]}
 	echo "[======] "`date`
@@ -46,18 +49,22 @@ parse_test_type() {
 	then
 		if [ "$1" == "all" ]
 		then
+			TYPE="all"
 			return 1
 		fi
 		type=`echo $1 | awk -F '=' '{print $1}'`
 		if [ "$type" == "testset" ]
 		then
+			TYPE="testset"
 			return 2
 		elif [ "$type" == "suite" ]
 		then
+			TYPE="suite"
 			return 3
 		fi
+	else
+		return 0
 	fi
-	return 0
 }
 
 get_all_suite() {
@@ -148,4 +155,15 @@ check_case() {
 	fi
 }
 
-run_test $1
+main() {
+	if [ $# != 3 ]
+	then
+		print_usage
+		exit
+	fi
+	IP=$1
+	PORT=$2
+	run_test $3
+}
+
+main $@

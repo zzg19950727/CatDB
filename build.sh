@@ -19,6 +19,7 @@ print_usage() {
 if [ $# != 1 ]
 then
     print_usage
+    exit
 elif [ "$1" == "debug" ]
 then
     build_debug
@@ -27,4 +28,5 @@ then
     build_release
 else
     print_usage
+    exit
 fi

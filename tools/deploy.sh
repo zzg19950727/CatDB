@@ -1,6 +1,7 @@
-RELEASE_BINARY_PATH=`pwd`"/../build_release/CatDB"
-DEBUG_BINARY_PATH=`pwd`"/../build_debug/CatDB"
-BINARY_PATH=$RELEASE_BINARY_PATH
+#!/bin/bash
+BUILD_PATH=`pwd`"/../build_"
+CATDB_PATH=""
+GENERATOR_PATH=""
 CONF_FILE="catdb.conf"
 DATA_DIR="."
 RECYCLE_DIR="."
@@ -10,23 +11,28 @@ PORT="1234"
 PID=""
 
 print_usage() {
-    echo "./deploy.sh [init | start | restart | stop | sql | build]"
-    echo "      init    : 初始化并启动数据库"
-    echo "      start   : 启动数据库"
-    echo "      restart : 重启数据库"
-    echo "      stop    : 停止数据库"
-    echo "      sql     : 启动数据库客户端"
-    echo "      build [debug | release]   : 重新编译server"
+    echo "Usage: ./deploy.sh [option]"
+    echo "Options:"
+    echo "      init                        init and start database service"
+    echo "      start                       start database service"
+    echo "      restart                     restart database service"
+    echo "      stop                        stop database service"
+    echo "      sql                         connect to database with mysql clinet"
+    echo "      build                       rebuild server"
+    echo "      random_test                 generate random test case"
+    echo "      test                        run test"
 
 }
 
 get_CatDB() {
-    if [ -f "$RELEASE_BINARY_PATH" ]
-    then 
-        BINARY_PATH=$RELEASE_BINARY_PATH
-    elif [ -f "$DEBUG_BINARY_PATH" ]
+    if [ $# != 1 ]
     then
-        BINARY_PATH=$DEBUG_BINARY_PATH
+        exit
+    fi
+    CATDB_PATH="$BUILD_PATH""$1""/CatDB"
+    if [ -f "$CATDB_PATH" ]
+    then 
+        GENERATOR_PATH="$BUILD_PATH""$1""/tools/random_test/SqlGenerator"
     else
         echo "CatDB not build"
     fi
@@ -101,19 +107,27 @@ start_server() {
     check_dir $RECYCLE_DIR
     check_dir $DATA_DIR"/system"
     check_file $LOG_FILE
-    get_CatDB
-    cp $BINARY_PATH .
+    check_file "./CatDB"
     nohup ./CatDB > log.txt 2>&1 &
-    echo "succeed to start CatDB"
+    sleep 1
+    find_pid
+    if [ $? != 0 ]
+    then
+        echo "succeed to start CatDB"
+    else
+        echo "failed to start CatDB"
+    fi
 }
 
 stop_server() {
     find_pid
-    if [ $? != 0 ]
+    if [ $? == 0 ]
     then
+        echo "CatDB not start"
+    else
         echo $PID | xargs kill
+        echo "succeed to stop CatDB"
     fi
-    echo "succeed to stop CatDB"
 }
 
 run_client() {
@@ -133,16 +147,54 @@ run_client() {
 }
 
 build_server() {
-    if [ "$1" == "debug" -o "$1" == "release" ]
+    CUR_PATH=`pwd`
+    cd ../
+    ./build.sh $@
+    get_CatDB $@
+    cp $CATDB_PATH $CUR_PATH
+    cp $GENERATOR_PATH $CUR_PATH
+}
+
+print_random_test_usage() {
+    echo "random_test [option] suite case_name"
+    echo "      Options:"
+    echo "              select      generate select query"
+    echo "              insert      generate insert query"
+    echo "              update      generate update query"
+    echo "              delete      generate delete query"
+}
+
+random_test() {
+    if [ $# != 3 ]
     then
-        cd ../
-        ./build.sh $1
+        print_random_test_usage
+        exit
+    elif [ "$1" == "select" -o "$1" == "insert" -o "$1" == "update" -o "$1" == "delete" ]
+    then
+        if [ -f "./SqlGenerator" ]
+        then
+            mkdir -p test/suite/$2/t
+            mkdir -p test/suite/$2/r
+            ./SqlGenerator $1 2 4 10 20 test/suite/$2/t/$3.test
+        else
+            echo "SqlGenerator not build"
+        fi
     else
-        echo "./deploy.sh build [debug | release]"
+        print_random_test_usage
+        exit
     fi
 }
 
-if [ $# == 1 ]
+run_test() {
+    cd test
+    ./my_test.sh $IP $PORT $@
+}
+
+watching_log() {
+    tailf $LOG_FILE
+}
+
+if [ $# != 0 ]
 then
     if [ "$1" == "init" ]
     then
@@ -165,14 +217,20 @@ then
     then
         read_conf
         run_client
-    else
-        print_usage
-    fi
-elif [ $# == 2 ]
-then
-    if [ "$1" == "build" ]
+    elif [ "$1" == "log" ]
+    then
+        read_conf
+        watching_log
+    elif [ "$1" == "build" ]
     then
         build_server $2
+    elif [ "$1" == "random_test" ]
+    then
+        random_test $2 $3 $4
+    elif [ "$1" == "test" ]
+    then
+        read_conf
+        run_test $2
     else
         print_usage
     fi

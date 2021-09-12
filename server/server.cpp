@@ -10,6 +10,7 @@
 using namespace CatDB::Server;
 using namespace CatDB::Storage;
 using namespace CatDB::Parser;
+using namespace CatDB::Optimizer;
 
 ServerService::ServerService(const String& config)
 	:m_config(config.c_str()),
@@ -38,7 +39,7 @@ int ServerService::run()
 	SchemaGuard_s schema_guard = SchemaGuard::make_schema_guard();
 	schema_guard->init_guard();
 	StatisManager_s manager = StatisManager::make_statis_manager();
-	//manager->init_statis_cache();
+	manager->init_statis_cache();
 	m_fd = start_listen(m_config.ip().c_str(), m_config.port(), m_config.max_client_count());
 	if (m_fd > 0)
 	{

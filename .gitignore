@@ -8,9 +8,11 @@
 *.sln.docstates
 *.vcxproj
 *.vcxproj.filters
+*.reject
 test1
 test2
 CatDB
+SqlGenerator
 log.txt
 sql/parser/sql_parser.output
 sql/parser/sql_parser.cpp

@@ -235,6 +235,7 @@
 %token FULL
 %token GROUP
 %token HAVING
+%token IF
 %token INDEX
 %token INNER
 %token INSERT
@@ -280,6 +281,7 @@
 %token WHEN
 %token THEN
 %token ELSE
+%token END_SYM
 %token END 0
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
@@ -289,7 +291,7 @@
 %type<OrderStmt_s>	order_by
 %type<LimitStmt_s>	opt_select_limit
 %type<TableStmt_s>	table_factor sub_table_factor
-%type<bool>			opt_distinct opt_asc_desc  distinct_or_all
+%type<bool>			opt_distinct opt_asc_desc  distinct_or_all opt_if_exists
 %type<int>			limit_expr data_type
 %type<double>		opt_sample_size
 %type<std::string>	op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number
@@ -708,6 +710,15 @@ expr:
 		//构建not in表达式
 		make_binary_stmt($$, $1, $4, OP_NOT_IN);
     }
+  | EXISTS query_ref_expr
+    {
+    	make_unary_stmt($$, $2, OP_EXISTS);
+    }
+  | NOT EXISTS query_ref_expr
+    {
+		//构建not一元表达式
+		make_unary_stmt($$, $3, OP_NOT_EXISTS);
+    }
   | case_when_expr
   {
 	  $$ = $1;
@@ -796,15 +807,6 @@ simple_expr:
   | query_ref_expr %prec UMINUS
     {
     	$$ = $1;
-    }
-  | EXISTS query_ref_expr
-    {
-    	make_unary_stmt($$, $2, OP_EXISTS);
-    }
-  | NOT EXISTS query_ref_expr
-    {
-		//构建not一元表达式
-		make_unary_stmt($$, $3, OP_NOT_EXISTS);
     }
   ;
 
@@ -951,14 +953,14 @@ distinct_or_all:
   ;
 
 case_when_expr:
-	CASE expr when_then_list ELSE expr END
+	CASE expr when_then_list ELSE expr END_SYM
 	{
 		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
 		$$->params.push_back($2);
 		append($$->params, $3);
 		$$->params.push_back($5);
 	}
-	| CASE when_then_list ELSE expr END
+	| CASE when_then_list ELSE expr END_SYM
 	{
 		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
 		append($$->params, $2);
@@ -1255,21 +1257,27 @@ opt_char_length:
  *
  **************************************************************/
  drop_stmt:
-    DROP TABLE table_factor
+    DROP TABLE opt_if_exists table_factor
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropTable);
 		check(cmd_stmt);
-		cmd_stmt->params.drop_table_params.table = $3;
+		cmd_stmt->params.drop_table_params.ignore_not_exists = $3;
+		cmd_stmt->params.drop_table_params.table = $4;
 		$$ = cmd_stmt;
     }
-	| DROP DATABASE database_name
+	| DROP DATABASE opt_if_exists database_name
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropDatabase);
 		check(cmd_stmt);
-		cmd_stmt->params.drop_database_params.database = $3;
+		cmd_stmt->params.drop_database_params.ignore_not_exists = $3;
+		cmd_stmt->params.drop_database_params.database = $4;
 		$$ = cmd_stmt;
 	}
   ;
+
+opt_if_exists:
+	/*empty*/	{ $$ = false; }
+	| IF EXISTS { $$ = true; }
 
 /**************************************************************
  *

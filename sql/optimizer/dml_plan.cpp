@@ -517,13 +517,31 @@ u32 DMLPlan::generate_join_order()
     u32 ret = SUCCESS;
     MY_ASSERT(lex_stmt, lex_stmt->stmt_type() !=  Stmt::DoCMD)
     DMLStmt_s stmt = lex_stmt;
-    Vector<TableStmt_s> base_tables;
+    /*Vector<TableStmt_s> base_tables;
     CHECK(generate_conflict_detecotrs(stmt->from_stmts, 
                                       stmt->where_stmt, 
                                       conflict_detectors));
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
-    CHECK(generate_join_order_with_DP());
+    CHECK(generate_join_order_with_DP());*/
+    JoinInfo join_info;
+    join_info.join_type = Inner;
+    for (u32 i = 0; i < stmt->from_stmts.size(); ++i) {
+        LogicalOperator_s op;
+        CHECK(generate_join_order_with_table_item(stmt->from_stmts[i], op));
+        if (!root_operator) {
+            root_operator = op;
+        } else {
+            CHECK(generate_join_operator(root_operator,
+                                        op,
+                                        join_info,
+                                        LogJoin::NL_JOIN,
+                                        root_operator));
+        }
+    }
+    if (root_operator) {
+        root_operator->filters = stmt->where_stmt;
+    }
     return ret;
 }
 

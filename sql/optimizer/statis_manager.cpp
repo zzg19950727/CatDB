@@ -5,11 +5,13 @@
 #include "query_result.h"
 #include "query_ctx.h"
 #include "object.h"
+#include "page.h"
 #include "error.h"
 #include "row.h"
 
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
+using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
@@ -62,6 +64,16 @@ double StatisManager::get_avg_row_size(u32 tid)
         return 100;
     } else {
         return iter->second->space_size / iter->second->row_count;
+    }
+}
+
+double StatisManager::get_table_block_count(u32 tid)
+{
+    auto iter = all_table_statis.find(tid);
+    if (iter == all_table_statis.end()) {
+        return 100;
+    } else {
+        return iter->second->space_size / PAGE_SIZE;
     }
 }
 

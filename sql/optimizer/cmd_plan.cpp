@@ -108,10 +108,19 @@ u32 CMDPlan::do_cmd_drop_table()
 	CMDStmt_s stmt = lex_stmt;
 	String database;
 	String table;
+	bool ignore_not_exists = false;
 	
-	CHECK(stmt->get_drop_table_params(database, table));
+	CHECK(stmt->get_drop_table_params(database, table, ignore_not_exists));
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
+	TableInfo_s info;
+	ret = guard->find_table_info(database, table, info);
+	if (FAIL(ret) && ignore_not_exists) {
+		ret = SUCCESS;
+		return ret;
+	} else if (FAIL(ret)) {
+		return ret;
+	}
 	CHECK(TableSpace::delete_table(database, table));
 	CHECK(guard->del_table(database, table));
 	return ret;
@@ -136,10 +145,19 @@ u32 CMDPlan::do_cmd_drop_database()
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
 	String database;
+	bool ignore_not_exists = false;
 	
-	CHECK(stmt->get_drop_database_params(database));
+	CHECK(stmt->get_drop_database_params(database, ignore_not_exists));
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
+	DatabaseInfo_s info;
+	ret = guard->find_database_info(database, info);
+	if (FAIL(ret) && ignore_not_exists) {
+		ret = SUCCESS;
+		return ret;
+	} else if (FAIL(ret)) {
+		return ret;
+	}
 	CHECK(guard->del_database(database));
 	CHECK(TableSpace::delete_database(database));
 	return ret;
