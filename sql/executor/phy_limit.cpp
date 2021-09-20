@@ -37,7 +37,7 @@ u32 CatDB::Sql::PhyLimit::reset()
 
 u32 CatDB::Sql::PhyLimit::inner_get_next_row(Row_s & row)
 {
-	if ( cur_offset > offset && cur_offset - offset >= size){
+	if ( cur_offset >= offset && cur_offset - offset >= size){
 		return NO_MORE_ROWS;
 	}
 	while (child->get_next_row(row) == SUCCESS){

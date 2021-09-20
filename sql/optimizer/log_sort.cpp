@@ -29,25 +29,27 @@ void LogSort::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
 {
     PlanInfo info;
     print_basic_info(depth, info);
-    info.expr_info += "sort keys:";
+    info.expr_info += "sort keys(";
     for (u32 i = 0; i < sort_keys.size(); ++i) {
         if (0 == i) {
-            info.expr_info += sort_keys[i]->order_expr->to_string();
+            info.expr_info += "[" + sort_keys[i]->order_expr->to_string();
         } else {
-            info.expr_info += "," + sort_keys[i]->order_expr->to_string();
+            info.expr_info += ", [" + sort_keys[i]->order_expr->to_string();
         }
         if (sort_keys[i]->asc) {
-            info.expr_info += " ASC";
+            info.expr_info += " ASC]";
         } else {
-            info.expr_info += " DESC";
+            info.expr_info += " DESC]";
         }
     }
+	info.expr_info += ")";
     if (top_n == 0) {
         info.op = "SORT";
     } else {
         info.op = "TOP_N SORT";
-        info.expr_info += "top_n:" + std::to_string(top_n) + "\n";
+        info.expr_info += ", top_n(" + std::to_string(top_n) + ")";
     }
+	info.expr_info += "\n";
     plan_info.push_back(info);
     child()->print_plan(depth + 1, plan_info);
 }

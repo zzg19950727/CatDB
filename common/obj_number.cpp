@@ -202,6 +202,7 @@ Object_s Number::operator==(const Object_s & other)
 	}
 	else {
 		Number_s rhs = other;
+		int x = data.cmp(rhs->data);
 		return Bool::make_object(data.cmp(rhs->data) == 0);
 	}
 }

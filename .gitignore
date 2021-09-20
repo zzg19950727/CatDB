@@ -9,6 +9,7 @@
 *.vcxproj
 *.vcxproj.filters
 *.reject
+*.swp
 test1
 test2
 CatDB

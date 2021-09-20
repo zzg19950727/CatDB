@@ -114,7 +114,7 @@ namespace CatDB {
                 } show_tables_params;  
                 //for show databases
                 struct {
-                    bool is_select_current_database;
+                    bool is_select_current_database = false;
                     KV_STRING(
                         K(is_select_current_database)
                     );
@@ -122,8 +122,8 @@ namespace CatDB {
                 //for desc table
                 struct {
                     BasicTableStmt_s table;
-                    bool is_show_table_statis;
-                    bool is_show_column_statis;
+                    bool is_show_table_statis = false;
+                    bool is_show_column_statis = false;
                     KV_STRING(
                         K(table),
                         K(is_show_table_statis),

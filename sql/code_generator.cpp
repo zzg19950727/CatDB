@@ -169,6 +169,10 @@ u32 CodeGenerator::generate_group_by_op(ExprGenerateCtx &ctx, LogGroupBy_s log_o
     Vector<Expression_s> rt_aggr_items;
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->group_by_exprs, rt_group_exprs));
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->agg_items, rt_aggr_items));
+    MY_ASSERT(log_op->agg_items.size() == rt_aggr_items.size());
+    for (u32 i = 0; i < log_op->agg_items.size(); ++i) {
+        ctx.access_expr_map[log_op->agg_items[i]] = rt_aggr_items[i];
+    }
     phy_op = PhyHashGroup::make_hash_group(ctx.child_ops[0], 
                                            rt_group_exprs, 
                                            rt_aggr_items);
@@ -268,6 +272,10 @@ u32 CodeGenerator::generate_scalar_group_by_op(ExprGenerateCtx &ctx, LogScalarGr
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
     Vector<Expression_s> rt_aggr_items;
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->agg_items, rt_aggr_items));
+    MY_ASSERT(log_op->agg_items.size() == rt_aggr_items.size());
+    for (u32 i = 0; i < log_op->agg_items.size(); ++i) {
+        ctx.access_expr_map[log_op->agg_items[i]] = rt_aggr_items[i];
+    }
     phy_op = PhyScalarGroup::make_scalar_group(ctx.child_ops[0],
                                                rt_aggr_items);
 	return ret;

@@ -24,7 +24,7 @@ void LogScalarGroupBy::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     PlanInfo info;
     print_basic_info(depth, info);
     info.op = "SCALAR GROUP BY";
-    info.expr_info += "aggr_exprs:";
+    info.expr_info += "aggr_exprs";
     print_exprs(agg_items, info.expr_info);
     plan_info.push_back(info);
     child()->print_plan(depth + 1, plan_info);

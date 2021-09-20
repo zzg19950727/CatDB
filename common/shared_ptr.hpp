@@ -82,16 +82,14 @@ namespace CatDB {
             if (NULL != pn)
             {
                 --(*pn);
-                if (0 == *pn && true)
+                if (0 == *pn)
                 {
                     if (NULL != p) {
                         delete p;
                     }
                     delete pn;
-                    pn = NULL;
                 }
-            } else if (NULL != p) {
-                //SHARED_ASSERT(pn);
+                pn = NULL;
             }
         }
 
@@ -187,7 +185,7 @@ namespace CatDB {
         // reference counter operations :
         operator bool() const throw() // never throws
         {
-            return (0 < pn.use_count());
+            return px;
         }
         bool unique(void)  const throw() // never throws
         {

@@ -1,5 +1,6 @@
 #include "dml_stmt.h"
 #include "expr_stmt.h"
+#include "expr_utils.h"
 
 using namespace CatDB::Parser;
 
@@ -96,7 +97,9 @@ u32 DMLStmt::get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns)
     u32 ret = SUCCESS;
     for (u32 i = 0; i < column_exprs.size(); ++i) {
         if (column_exprs[i]->table_ids.has_member(table_id)) {
-            columns.push_back(column_exprs[i]);
+			if (!ExprUtils::find_equal_expr(columns, column_exprs[i])) {
+            	columns.push_back(column_exprs[i]);
+			}
         }
     }
     return ret;

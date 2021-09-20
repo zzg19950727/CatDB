@@ -51,3 +51,17 @@ u32 ExprUtils::get_column_exprs(ExprStmt_s& expr, u32 table_id, Vector<ColumnStm
     }
     return ret;
 }
+
+bool ExprUtils::find_equal_expr(const Vector<ExprStmt_s> &exprs, const ExprStmt_s& expr, u32 *index)
+{
+	bool find = false;
+	for (u32 i = 0; !find && i < exprs.size(); ++i) {
+		if (exprs[i]->same_as(expr)) {
+			find = true;
+			if (index != nullptr) {
+				*index = i;
+			}
+		}
+	}
+	return find;
+}

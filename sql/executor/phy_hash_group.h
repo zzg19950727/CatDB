@@ -47,6 +47,7 @@ namespace CatDB {
 			Row_s first_group_row;
 			//当没有输入的时候需要输出一行结果
 			bool is_build_hash_table;
+			bool start_new_group;
 		};
 
 	}

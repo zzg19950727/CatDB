@@ -41,6 +41,7 @@ namespace CatDB {
             }
             static u32 get_column_exprs(Vector<ExprStmt_s> &exprs, u32 table_id, Vector<ColumnStmt_s> &columns);
             static u32 get_column_exprs(ExprStmt_s& expr, u32 table_id, Vector<ColumnStmt_s> &columns);
+			static bool find_equal_expr(const Vector<ExprStmt_s> &exprs, const ExprStmt_s& expr, u32 *index = nullptr);
         };
     }
 }

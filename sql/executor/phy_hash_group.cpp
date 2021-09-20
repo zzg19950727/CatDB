@@ -8,7 +8,8 @@ using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
 PhyHashGroup::PhyHashGroup(PhyOperator_s & child)
-	:SingleChildPhyOperator(child)
+	:SingleChildPhyOperator(child),
+	start_new_group(false)
 {
 	reset();
 }
@@ -43,6 +44,7 @@ u32 PhyHashGroup::reset()
 {
 	reset_agg_func();
 	is_build_hash_table = false;
+	start_new_group = false;
 	first_group_row.reset();
 	hash_table.clear();
 	return child->reset();
@@ -58,15 +60,29 @@ u32 PhyHashGroup::inner_get_next_row(Row_s & row)
 		}
 	}
 	reset_agg_func();
+	if (start_new_group) {
+		if (!first_group_row) {
+			return ERR_UNEXPECTED;
+		} else {
+			add_row_to_agg_func(first_group_row);
+			start_new_group = false;
+		}
+	}
 	while ((ret = hash_table.get_next_row(row)) == SUCCESS) {
 		//是否是同一group
-		add_row_to_agg_func(row);
 		if (!first_group_row) {
 			first_group_row = row;
-		} else if (!this->euqal(first_group_row, row)){
-			first_group_row = row;
+		} else if (!this->euqal(first_group_row, row)) {
+			first_group_row.swap(row);
+			start_new_group = true;
 			return SUCCESS;
 		}
+		add_row_to_agg_func(row);
+	}
+	if (ret == NO_MORE_ROWS && first_group_row) {
+		first_group_row.swap(row);
+		first_group_row.reset();
+		ret = SUCCESS;
 	}
 	return ret;
 }

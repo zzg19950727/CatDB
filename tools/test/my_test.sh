@@ -1,9 +1,10 @@
-#!/bin/bash
 IP="127.0.0.1"
 PORT=1234
 
 CASE_COUNT=0
 CASE_INDEX=0
+PASS_COUNT=0
+FAIL_COUNT=0
 CASES=()
 TYPE="all"
 
@@ -36,12 +37,21 @@ run_test() {
 		exit
 	fi
 	CASE_COUNT=${#CASES[@]}
-	echo "[======] "`date`
+	echo "[======] Running $CASE_COUNT tests"
+	echo "[------] "`date`
 	for case in ${CASES[@]}
         do
                 test_one_case $case
         done	
-	echo "[======] "`date`
+	echo "[------] $CASE_COUNT tests done "`date`
+	if [ $PASS_COUNT -gt 0 ]
+	then
+		echo -e "\033[32m[ PASS ]\033[0m $PASS_COUNT tests"
+	fi
+	if [ $FAIL_COUNT -gt 0 ]
+        then
+                echo -e "\033[31m[ FAIL ]\033[0m $FAIL_COUNT tests"
+        fi
 }
 
 parse_test_type() {
@@ -52,7 +62,7 @@ parse_test_type() {
 			TYPE="all"
 			return 1
 		fi
-		type=`echo $1 | awk -F '=' '{print $1}'`
+		type=`echo "$1" | awk -F '=' '{print $1}'`
 		if [ "$type" == "testset" ]
 		then
 			TYPE="testset"
@@ -77,64 +87,99 @@ get_all_suite() {
 }
 
 get_all_case() {
-    	if [ $# != 1 ]
-    	then
-                return 0
-        fi
-        all_case=`ls suite/$1/t/`
-        cases=($all_case)
-        index=0
-        for case in ${cases[@]}
-        do
-                cases[$index]="$1""."`echo $case | awk -F '.' '{print $1}'`
-                ((index=index+1))
-        done
-	CASES=(${CASES[@]}  ${cases[@]})
+	if [ $# != 1 ]
+	then
+			return 0
+	fi
+	for file in `ls suite/$1/t/ | sed 's/.test//g'`
+	do
+		CASES[${#CASES[*]}]="$1.$file"
+	done
 }
 
 get_testset_list() {
 	OLD_IFS="$IFS"
 	IFS=","
-	cases=(`echo $1 | awk -F '=' '{print $2}'`)
-	CASES=(${CASES[@]}  ${cases[@]})
+	new_cases=(`echo "$1" | awk -F '=' '{print $2}'`)
+	CASES=(${CASES[@]}  ${new_cases[@]})
 	IFS="$OLD_IFS"
 }
 
 get_suite_list() {
         OLD_IFS="$IFS"
         IFS=","
-        suites=(`echo $1 | awk -F '=' '{print $2}'`)
+        suites=(`echo "$1" | awk -F '=' '{print $2}'`)
+	IFS="$OLD_IFS"
 	for suite in ${suites[@]}
         do
                 get_all_case $suite
         done
-        IFS="$OLD_IFS"
 }
 
+PASS=0
 test_one_case() {
 	if [ $# != 1 ]
 	then
 		return 0
 	fi
-	case_name=`echo $1 | awk -F '.' '{print $2}'`
-	suite_name=`echo $1 | awk -F '.' '{print $1}'`
+	case_name=`echo "$1" | awk -F '.' '{print $2}'`
+	suite_name=`echo "$1" | awk -F '.' '{print $1}'`
 	((CASE_INDEX=CASE_INDEX+1))
-	echo "[ RUN  ] ""$1"".""$2"" [""$CASE_INDEX""/""$CASE_COUNT""] "
+	echo "[ RUN  ] $1 [ $CASE_INDEX / $CASE_COUNT ]"
 	test_file="suite/"$suite_name"/t/"$case_name".test"
 	result_file="suite/"$suite_name"/r/"$case_name".result"
 	reject_file="suite/"$suite_name"/r/"$case_name".reject"
-	echo "source "$test_file"" | mysql -h127.0.0.1 -P12345 -c -vvv 1> $reject_file 2> $reject_file
-	sed -i 's/(.* sec)//g' $reject_file
+	start_time=`date +%s`
+	echo "source "$test_file"" | mysql -h $IP -P $PORT -c -vvv 1> $reject_file 2> $reject_file
+	format_result $reject_file
+	format_result $reject_file
 	check_case $result_file $reject_file
-	if [ $? == 1 ]
+	end_time=`date +%s`
+	CUR_PATH=`pwd`
+	if [ $PASS == 1 ]
 	then
-		echo "[ PASS ]"
+		((PASS_COUNT=PASS_COUNT+1))
+		time=`echo $start_time $end_time | awk '{print $2-$1}'`
+		echo -e "\033[32m[ PASS ]\033[0m cost $time s"
 	else
-		echo "[ FAIL ] ""$reject_file"" ""$result_file"
+		((FAIL_COUNT=FAIL_COUNT+1))
+		echo -e "\033[31m[ FAIL ]\033[0m vimdiff ""$CUR_PATH/$reject_file"" ""$CUR_PATH/$result_file"
 	fi
 }
 
+format_result() {
+	if [ $# != 1 ]
+	then
+		return 0
+	fi
+	sed -i 's/(.*sec)//g' $1
+	new_line=0
+	tmp_file="tmp.txt"
+	echo "" > $tmp_file
+	while read line
+	do
+		if [ "$line" == "" ]
+		then
+			if [ $new_line == 0 ]
+			then
+				new_line=1
+			else
+				continue
+			fi
+		else
+			new_line=0
+		fi
+		is_remove=`echo "$line" | grep -E "Query OK.*|INSERT INTO.*VALUES.*|^--------------$"`
+		if [ "$is_remove" == "" ]
+		then
+			echo "$line" >> $tmp_file
+		fi
+	done < $1
+	mv $tmp_file $1
+}
+
 check_case() {
+	PASS=0
 	if [ $# != 2 ]
 	then
 		return 0
@@ -149,8 +194,10 @@ check_case() {
 	rm -f tmp.txt tmp2.txt
 	if [ "$result" == "" ]
 	then
+		PASS=1
 		return 1
 	else
+		PASS=0
 		return 0
 	fi
 }

@@ -7,11 +7,13 @@ struct Config {
     vector<string> columns;
     int alias_table_id = 1;
     int max_table_count = 1;
+	int min_table_count = 1;
     int max_query_count = 1;
     int max_expr_length = 5;
     int query_count = 0;
+	bool use_simple_expr = false;
     bool can_use_set = false;
-    bool can_use_distinct = false;
+    bool can_use_distinct = true;
     bool can_use_view = false;
     bool can_use_joined_table = false;
     bool can_use_group_by = false;
@@ -19,6 +21,9 @@ struct Config {
     bool can_use_order_by = false;
     bool can_use_limit = false;
     bool can_use_subquery = false;
+    bool can_use_where = false;
+	bool use_scalar_group_by = false;
+	bool is_single_output = false;
 };
 
 struct ParentParam {
@@ -38,6 +43,7 @@ public:
     void generate_arith_expr(string &expr);
     void generate_aggr_expr(string &expr);
     void generate_on_condition(string expr, const vector<string> &joined_tables);
+    void set_can_use_aggr(bool use) { can_use_aggr = use; }
 private:
     void generate_other_query(string &query);
     void generate_simple_expr(string &expr);
@@ -61,6 +67,7 @@ private:
     double length;
     bool is_on_condition;
     bool in_aggr;
+    bool can_use_aggr;
 };
 
 #endif //EXPR_GENERATOR_H

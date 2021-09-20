@@ -4,7 +4,8 @@
 ExprGenerator::ExprGenerator(Config &conf)
     :conf(conf),
     is_on_condition(false),
-    in_aggr(false)
+    in_aggr(false),
+    can_use_aggr(false)
 {
 
 }
@@ -76,45 +77,39 @@ void ExprGenerator::ExprGenerator::generate_other_query(string &query)
     }
     query = "(" + query + ")";
 }
-#include <iostream>
+
 void ExprGenerator::generate_arith_expr(string &expr)
 {
-    //std::cout << "arith:" << length << " " << conf.max_expr_length << std::endl;
     static vector<string> op = {" + ", " - ",
                                 " * ", " / "};
     string l_expr, r_expr;
     int type = std::rand() % 2;
-    if (0 == type || length >= conf.max_expr_length) {
-        generate_simple_expr(l_expr);
-        length += l_expr.length();
-    } else {
-        //std::cout << "arith in:" << length << " " << conf.max_expr_length << std::endl;
-        generate_arith_expr(l_expr);
-    }
-    type = std::rand() % 2;
-    if (0 == type || length >= conf.max_expr_length) {
-        generate_simple_expr(r_expr);
-        length += r_expr.length();
-    } else {
-        //std::cout << "arith in:" << length << " " << conf.max_expr_length << std::endl;
-        generate_arith_expr(r_expr);
-    }
-    expr = l_expr + random_list(op) + r_expr;
-    type = std::rand() % 2;
-    if (0 == type) {
-        expr = "(" + expr + ")";
-    }
+	if (0 == type || conf.use_simple_expr || length >= conf.max_expr_length) {
+		generate_simple_expr(expr);
+		length += expr.length();
+	} else {
+		generate_arith_expr(l_expr);
+		generate_arith_expr(r_expr);
+		expr = l_expr + random_list(op) + r_expr;
+    	type = std::rand() % 2;
+    	if (0 == type) {
+        	expr = "(" + expr + ")";
+    	}
+	}
 }
 
 void ExprGenerator::generate_simple_expr(string &expr)
 {
     int type = std::rand() % 4;
+    if (conf.use_simple_expr) {
+		type = 0;
+	}
     if (0 == type) {
         generate_column_expr(expr);
     } else if (1 == type) {
         generate_const_expr(expr);
     } else if (2 == type) {
-        if (in_aggr || group_by_exprs.empty()) {
+        if (in_aggr || group_by_exprs.empty() || !can_use_aggr) {
             generate_column_expr(expr);
         } else {
             generate_aggr_expr(expr);
@@ -131,8 +126,8 @@ void ExprGenerator::generate_simple_expr(string &expr)
 void ExprGenerator::generate_column_expr(string &expr)
 {
     int type = std::rand() % (parent_params.size()+1);
-    if (type >= parent_params.size()) {
-        if (!group_by_exprs.empty()) {
+    if (type >= parent_params.size() || parent_params.empty()) {
+        if (!group_by_exprs.empty() && !in_aggr) {
             expr = random_list(group_by_exprs);
         } else if (is_on_condition) {
             expr = random_list(joined_tables) + "." + random_list(conf.columns);
@@ -141,7 +136,7 @@ void ExprGenerator::generate_column_expr(string &expr)
         }
     } else {
         ParentParam &param = parent_params[type];
-        if (!param.group_by_exprs.empty()) {
+        if (!param.group_by_exprs.empty() && !in_aggr) {
             expr = random_list(param.group_by_exprs);
         } else {
             expr = random_list(param.tables) + "." + random_list(conf.columns);
@@ -151,7 +146,7 @@ void ExprGenerator::generate_column_expr(string &expr)
 
 void ExprGenerator::generate_const_expr(string &expr)
 {
-    int type = std::rand() %3;
+    int type = 0;//std::rand() %3;
     if (0 == type) {
         expr = random_number();
     } else if (1 == type) {
@@ -180,21 +175,18 @@ void ExprGenerator::generate_query_ref_expr(string &expr)
 
 void ExprGenerator::generate_logical_expr(string &expr)
 {
-    //std::cout << "log:" << length << " " << conf.max_expr_length << std::endl;
     static vector<string> op = {" AND ", " OR "};
     string l_expr, r_expr;
     int type = std::rand() % 2;
     if (0 == type || length >= conf.max_expr_length) {
         generate_cmp_expr(l_expr);
     } else {
-        //std::cout << "log in:" << length << " " << conf.max_expr_length << std::endl;
         generate_logical_expr(l_expr);
     }
     type = std::rand() % 2;
     if (0 == type || length >= conf.max_expr_length) {
         generate_cmp_expr(r_expr);
     } else {
-        //std::cout << "log in:" << length << " " << conf.max_expr_length << std::endl;
         generate_logical_expr(r_expr);
     }
     expr = l_expr + random_list(op) + r_expr;

@@ -22,22 +22,24 @@ void SelectGenerator::generate_query(string &query)
 
 void SelectGenerator::generate_group_by()
 {
-    if (!conf.can_use_group_by) {
+    if (!conf.can_use_group_by || conf.use_scalar_group_by) {
         return;
     }
     int type = std::rand() % 2;
     if (1 == type) {
         int count = (std::rand() % 5) + 1;
         group_by = "GROUP BY ";
+        vector<string> exprs;
         for (int i = 0; i < count; ++i) {
             string expr;
             expr_generator.generate_arith_expr(expr);
-            group_by_exprs.push_back(expr);
+            exprs.push_back(expr);
             group_by += expr;
             if (i < count - 1) {
                 group_by += ", ";
             }
         }
+        group_by_exprs = exprs;
         expr_generator.add_group_by_exprs(group_by_exprs);
     }
 }
@@ -50,7 +52,9 @@ void SelectGenerator::generate_having()
     int type = std::rand() % 2;
     if (1 == type) {
         string expr;
+        expr_generator.set_can_use_aggr(true);
         expr_generator.generate_expr(expr);
+        expr_generator.set_can_use_aggr(false);
         having = "HAVING " + expr;
     }
 }
@@ -68,28 +72,33 @@ void SelectGenerator::generate_distinct()
 
 void SelectGenerator::generate_select_list()
 {
-    string expr;
+    select_list = "";
     int type = std::rand() % 2;
-    if (is_single_output) {
-        expr_generator.generate_arith_expr(expr);
-        select_list = expr + " AS ref0";
-    } else if (group_by_exprs.empty() && 0 == type && conf.can_use_group_by) {
+	int count = 1;
+	if (!is_single_output) {
+		count = conf.columns.size();
+	}
+    if (conf.use_scalar_group_by) {
         //scalar
-        for (int i = 0; i < conf.columns.size(); ++i) {
+        for (int i = 0; i < count; ++i) {
+	        string expr;
             expr_generator.generate_aggr_expr(expr);
-            select_list = expr + " AS " + conf.columns[i];
-            if (i < conf.columns.size() - 1) {
+            select_list += expr + " AS " + conf.columns[i];
+            if (i < count - 1) {
                 select_list += ", ";
             }
         }
     } else {
-        for (int i = 0; i < conf.columns.size(); ++i) {
+        expr_generator.set_can_use_aggr(true);
+        for (int i = 0; i < count; ++i) {
+	        string expr;
             expr_generator.generate_arith_expr(expr);
-            select_list = expr + " AS " + conf.columns[i];
-            if (i < conf.columns.size() - 1) {
+            select_list += expr + " AS " + conf.columns[i];
+            if (i < count - 1) {
                 select_list += ", ";
             }
         }
+        expr_generator.set_can_use_aggr(false);
     }
 }
 
@@ -99,7 +108,11 @@ void SelectGenerator::generate_order_by()
         return ;
     }
     order_by = "ORDER BY ";
-    for (int i = 1; i <= conf.columns.size(); ++i) {
+	int count = 1;
+	if (!is_single_output) {
+		count = conf.columns.size();
+	}
+    for (int i = 1; i <= count; ++i) {
         order_by += std::to_string(i);
         int type = std::rand() % 2;
         if (1 == type) {
@@ -107,7 +120,7 @@ void SelectGenerator::generate_order_by()
         } else {
             order_by += " DESC ";
         }
-        if (i < conf.columns.size()) {
+        if (i < count) {
             order_by += ",";
         }
     }
@@ -120,9 +133,9 @@ void SelectGenerator::generate_limit()
     }
     int type = std::rand() % 3;
     if (1 == type) {
-        limit = "LIMIT " + std::to_string(std::rand()%100);
+        limit = "LIMIT " + std::to_string(std::rand()%10);
     } else if (2 == type) {
-        limit = "LIMIT " + std::to_string(std::rand()%100) + ", " + std::to_string(std::rand()%100);
+        limit = "LIMIT " + std::to_string(std::rand()%10) + ", " + std::to_string(std::rand()%10);
     }
 }
 

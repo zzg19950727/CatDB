@@ -26,10 +26,14 @@ u32 ExprGenerator::generate_expr(ExprGenerateCtx &ctx,
                                  Expression_s &rt_expr)
 {
     u32 ret = SUCCESS;
-    auto iter = ctx.access_expr_map.find(expr);
-    if (iter != ctx.access_expr_map.end()) {
-        rt_expr = ctx.access_expr_map[expr];
-    } else {
+	bool find = false;
+	for (auto iter = ctx.access_expr_map.begin(); !find && iter != ctx.access_expr_map.end(); ++iter) {
+		if (iter->first->same_as(expr)) {
+			find = true;
+			rt_expr = iter->second;
+		}
+	}
+    if (!find) {
         CHECK(inner_generate_expr(ctx, expr, rt_expr));
     }
     return ret;
@@ -119,7 +123,6 @@ u32 ExprGenerator::generate_subquery_expr(ExprGenerateCtx &ctx,
     u32 ret = SUCCESS;
     MY_ASSERT(expr);
     auto iter = ctx.subplan_map.find(ctx.key(expr));
-    LOG_ERR("zzg:", K(expr));
     MY_ASSERT(iter != ctx.subplan_map.end());
     Vector<ExecParamExpression_s> rt_exec_params;
     CHECK(generate_exec_params(ctx, expr->exec_params, rt_exec_params));

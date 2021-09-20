@@ -22,7 +22,7 @@ void LogTableScan::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     print_basic_info(depth, info);
     info.op = "TABLE SCAN";
     info.name = table_item->alias_name;
-    info.expr_info += "access:";
+    info.expr_info += "access";
     print_exprs(access_exprs, info.expr_info);
     plan_info.push_back(info);
 }

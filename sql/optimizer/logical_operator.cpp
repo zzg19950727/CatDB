@@ -74,7 +74,7 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
     u32 ret = SUCCESS;
     MY_ASSERT(expr_consume);
     can_be = false;
-    if (ExprUtils::find_item(expr_produce, expr_consume)) {
+    if (ExprUtils::find_equal_expr(expr_produce, expr_consume)) {
         can_be = true;
     } else if (expr_consume->has_flag(IS_CONST)) {
         can_be = true;
@@ -82,7 +82,11 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
         can_be = true;
     } else if (expr_consume->has_flag(IS_SET_EXPR)) {
         can_be = true;
-    } else if (expr_consume->get_params().size() > 0) {
+    } else if (expr_consume->has_flag(IS_AGG) && 
+			   type() != LOG_SCALAR_GROUP && 
+			   type() != LOG_GROUP_BY) {
+		can_be = false;
+	} else if (expr_consume->get_params().size() > 0) {
         can_be = true;
         for (u32 i = 0; i < expr_consume->get_params().size() && can_be; ++i) {
             CHECK(expr_can_be_consumed(expr_consume->get_params()[i], 
@@ -106,7 +110,7 @@ u32 LogicalOperator::produce_more_expr(Vector<ExprStmt_s>& expr_consume,
         CHECK(expr_can_be_consumed(expr_consume[i], 
                                    expr_produce, 
                                    can_be));
-        if (can_be && !ExprUtils::find_item(expr_output, expr_consume[i])) {
+        if (can_be && !ExprUtils::find_equal_expr(expr_output, expr_consume[i])) {
             if (!expr_consume[i]->has_flag(IS_CONST)) {
                 expr_output.push_back(expr_consume[i]);
             }
@@ -125,8 +129,8 @@ u32 LogicalOperator::find_expr_will_use(ExprStmt_s& expr_consume,
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr_consume);
-    if (ExprUtils::find_item(expr_produce, expr_consume)) {
-        if (!ExprUtils::find_item(expr_output, expr_consume)) {
+    if (ExprUtils::find_equal_expr(expr_produce, expr_consume)) {
+        if (!ExprUtils::find_equal_expr(expr_output, expr_consume)) {
             expr_output.push_back(expr_consume);
         }
     } else if (expr_consume->get_params().size() > 0) {
@@ -166,7 +170,7 @@ void LogicalOperator::print_basic_info(u32 depth, PlanInfo& info, const String &
     info.rows = std::to_string(int(output_rows));
     info.cost = std::to_string(int(cost));
     if (!output_exprs.empty()) {
-        info.expr_info += "output expr:";
+        info.expr_info += "output expr";
         if (type.empty()) {
             print_exprs(output_exprs, info.expr_info);
         } else {
@@ -174,35 +178,35 @@ void LogicalOperator::print_basic_info(u32 depth, PlanInfo& info, const String &
         }
     }
     if (!filters.empty()) {
-        info.expr_info += "filters:";
+        info.expr_info += "filters";
         print_exprs(filters, info.expr_info);
     }
 }
 
 void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, String &out)
 {
-    out += "[";
+    out += "(";
     for (u32 i = 0; i < exprs.size(); ++i) {
         if (0 == i) {
-            out += exprs[i]->to_string();
+            out += "[" + exprs[i]->to_string() + "]";
         } else {
-            out += "," + exprs[i]->to_string();
+            out += ", [" + exprs[i]->to_string() + "]";
         }
     }
-    out += "]\n ";
+    out += ")\n ";
 }
 
 void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, const String& type, String &out)
 {
-    out += "[";
+    out += "(";
     for (u32 i = 0; i < exprs.size(); ++i) {
         if (0 == i) {
-            out += type + "(" + exprs[i]->to_string() + ")";
+            out += "[" + type + "(" + exprs[i]->to_string() + ")]";
         } else {
-            out += "," + type + "(" + exprs[i]->to_string() + ")";
+            out += ", [" + type + "(" + exprs[i]->to_string() + ")]";
         }
     }
-    out += "]\n ";
+    out += ")\n ";
 }
 
 void LogicalOperator::print_expr(ExprStmt_s &expr, String &out)

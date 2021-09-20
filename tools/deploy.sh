@@ -3,8 +3,8 @@ BUILD_PATH=`pwd`"/../build_"
 CATDB_PATH=""
 GENERATOR_PATH=""
 CONF_FILE="catdb.conf"
-DATA_DIR="."
-RECYCLE_DIR="."
+DATA_DIR="test"
+RECYCLE_DIR="test"
 LOG_FILE="catdb.log"
 IP="127.0.0.1"
 PORT="1234"
@@ -76,12 +76,12 @@ check_dir() {
 }
 
 find_pid() {
-    N=`ps -aux | grep -c CatDB`
-    if [ $N != 2 ]
+    N=`ps -aux | grep -c ./CatDB`
+    if [ $N -lt 2 ]
     then
         return 0
     fi
-    PID=`ps -aux | grep CatDB | awk -F ' ' '{print $2}' | awk 'NR==1'`
+    PID=`ps -aux | grep ./CatDB | awk -F ' ' '{print $2}' | awk 'NR==1'`
     return 1
 }
 
@@ -125,7 +125,8 @@ stop_server() {
     then
         echo "CatDB not start"
     else
-        echo $PID | xargs kill
+        #echo $PID | xargs kill
+		killall CatDB
         echo "succeed to stop CatDB"
     fi
 }
@@ -153,35 +154,28 @@ build_server() {
     get_CatDB $@
     cp $CATDB_PATH $CUR_PATH
     cp $GENERATOR_PATH $CUR_PATH
+	cd $CUR_PATH
 }
 
 print_random_test_usage() {
-    echo "random_test [option] suite case_name"
-    echo "      Options:"
-    echo "              select      generate select query"
-    echo "              insert      generate insert query"
-    echo "              update      generate update query"
-    echo "              delete      generate delete query"
+    echo "random_test suite case_name"
 }
 
 random_test() {
-    if [ $# != 3 ]
+    if [ $# != 2 ]
     then
         print_random_test_usage
         exit
-    elif [ "$1" == "select" -o "$1" == "insert" -o "$1" == "update" -o "$1" == "delete" ]
+    elif [ ! -f "./SqlGenerator" ]
     then
-        if [ -f "./SqlGenerator" ]
-        then
-            mkdir -p test/suite/$2/t
-            mkdir -p test/suite/$2/r
-            ./SqlGenerator $1 2 4 10 20 test/suite/$2/t/$3.test
-        else
-            echo "SqlGenerator not build"
-        fi
+	print_random_test_usage
+	exit
     else
-        print_random_test_usage
-        exit
+			out_file="test/suite/$1/t/$2.test"
+			config_file="random_test.conf"
+            mkdir -p test/suite/$1/t
+            mkdir -p test/suite/$1/r
+            ./SqlGenerator $config_file $out_file
     fi
 }
 
@@ -208,7 +202,9 @@ then
     then
         read_conf
         stop_server
-        sleep 2
+        sleep 1
+		build_server "debug"
+		sleep 1
         start_server
     elif [ "$1" == "stop" ]
     then
@@ -226,7 +222,7 @@ then
         build_server $2
     elif [ "$1" == "random_test" ]
     then
-        random_test $2 $3 $4
+        random_test $2 $3
     elif [ "$1" == "test" ]
     then
         read_conf

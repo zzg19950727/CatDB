@@ -109,7 +109,7 @@ bool ConstStmt::same_as(const ExprStmt_s& other)
 		return false;
 	}
 	ConstStmt_s const_stmt = other;
-	return value == const_stmt->value;
+	return value->operator==(const_stmt->value);
 }
 
 u32 ConstStmt::formalize()
@@ -725,6 +725,7 @@ String OpExprStmt::to_string()const
 				ret += params[params.size() - 1]->to_string();
 				ret += " END";
 			}
+			break;
 		defualt: 
 			ret += "UNKNOWN";
 			break;

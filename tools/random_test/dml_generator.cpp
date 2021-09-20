@@ -45,7 +45,7 @@ void DMLGenerator::generate_from_list()
         from_list += ", ";
     }
     from_list += generate_table_item();
-    if (1 == type) {
+    if (1 == type || tables.size() < conf.min_table_count) {
         generate_from_list();
     }
 }
@@ -120,7 +120,7 @@ string DMLGenerator::generate_joined_table(vector<string> *list)
 void DMLGenerator::generate_where()
 {
     int type = std::rand() % 2;
-    if (1 == type) {
+    if (1 == type && conf.can_use_where) {
         string expr;
         expr_generator.generate_expr(expr);
         where = "WHERE " + expr;

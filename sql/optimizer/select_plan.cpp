@@ -129,10 +129,10 @@ u32 SelectPlan::generate_order_by(bool &need_limit)
 	SelectStmt_s stmt = lex_stmt;
 	if (stmt->limit_stmt) {
 		top_n = stmt->limit_stmt->limit_offset + stmt->limit_stmt->limit_size;
-		if (top_n == 0) {
+		if (stmt->limit_stmt->limit_size == 0) {
 			need_sort = false;
 		}
-		if (stmt->limit_stmt->limit_offset == 0) {
+		if (stmt->limit_stmt->limit_offset == 0 && stmt->limit_stmt->limit_size != 0) {
 			need_limit = false;
 		}
 	}

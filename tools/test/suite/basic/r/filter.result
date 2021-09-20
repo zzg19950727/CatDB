@@ -1,0 +1,533 @@
+
+
+DROP DATABASE IF EXISTS RANDOM_TEST
+
+CREATE DATABASE RANDOM_TEST
+
+DROP TABLE IF EXISTS T1
+
+CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+
+SELECT * FROM T1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 6    | 5    | 1    | 4    |
+| 5    | 9    | 4    | 9    |
+| 2    | 5    | 3    | 9    |
+| 6    | 1    | 8    | 4    |
+| 7    | 2    | 7    | 0    |
+| 0    | 3    | 5    | 6    |
+| 7    | 0    | 0    | 5    |
+| 8    | 8    | 5    | 3    |
+| 3    | 7    | 9    | 0    |
+| 4    | 0    | 6    | 3    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c1], [t1.c1], [t1.c3])
+access([t1.c3], [t1.c1])
+
+SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 1    | 6    | 6    | 1    |
+| 4    | 5    | 5    | 4    |
+| 3    | 2    | 2    | 3    |
+| 8    | 6    | 6    | 8    |
+| 7    | 7    | 7    | 7    |
+| 5    | 0    | 0    | 5    |
+| 0    | 7    | 7    | 0    |
+| 5    | 8    | 8    | 5    |
+| 9    | 3    | 3    | 9    |
+| 6    | 4    | 4    | 6    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C1 OR T1.C4 > T1.C3)
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c2], [t1.c4], [t1.c1], [t1.c1])
+filters([t1.c1=t1.c1 OR t1.c4>t1.c3])
+access([t1.c1], [t1.c4], [t1.c3], [t1.c2])
+
+SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C1 OR T1.C4 > T1.C3)
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 5    | 4    | 6    | 6    |
+| 9    | 9    | 5    | 5    |
+| 5    | 9    | 2    | 2    |
+| 1    | 4    | 6    | 6    |
+| 2    | 0    | 7    | 7    |
+| 3    | 6    | 0    | 0    |
+| 0    | 5    | 7    | 7    |
+| 8    | 3    | 8    | 8    |
+| 7    | 0    | 3    | 3    |
+| 0    | 3    | 4    | 4    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c1], [t1.c3], [t1.c4])
+filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
+access([t1.c1], [t1.c3], [t1.c4])
+
+SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 3    | 2    | 3    | 9    |
+| 8    | 6    | 8    | 4    |
+| 7    | 7    | 7    | 0    |
+| 5    | 0    | 5    | 6    |
+| 9    | 3    | 9    | 0    |
+| 6    | 4    | 6    | 3    |
++------+------+------+------+
+6 rows in set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c1], [t1.c1], [t1.c1])
+filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
+access([t1.c1], [t1.c3])
+
+SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 2    | 2    | 2    | 2    |
+| 6    | 6    | 6    | 6    |
+| 7    | 7    | 7    | 7    |
+| 0    | 0    | 0    | 0    |
+| 3    | 3    | 3    | 3    |
+| 4    | 4    | 4    | 4    |
++------+------+------+------+
+6 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c4], [t1.c4], [t1.c2])
+filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
+access([t1.c1], [t1.c3], [t1.c4], [t1.c2])
+
+SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 9    | 9    | 9    | 5    |
+| 4    | 4    | 4    | 1    |
+| 0    | 0    | 0    | 2    |
+| 6    | 6    | 6    | 3    |
+| 0    | 0    | 0    | 7    |
+| 3    | 3    | 3    | 0    |
++------+------+------+------+
+6 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 IS NULL
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c1], [t1.c3], [t1.c4])
+filters([t1.c4 IS NULL])
+access([t1.c4], [t1.c1], [t1.c3])
+
+SELECT  T1.C4 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 IS NULL
+
+Empty set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C4 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE CASE WHEN CASE T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C2 THEN T1.C2 WHEN T1.C1 THEN T1.C1 ELSE T1.C4 END THEN T1.C4 = T1.C3 WHEN T1.C1 BETWEEN T1.C2 AND T1.C3 THEN T1.C1 IS NULL WHEN T1.C1 = T1.C2 THEN T1.C1 LIKE T1.C4 WHEN T1.C3 NOT BETWEEN T1.C1 AND T1.C2 THEN T1.C3 NOT BETWEEN T1.C1 AND T1.C1 ELSE CASE WHEN T1.C4 NOT LIKE T1.C1 THEN T1.C4 = T1.C2 WHEN T1.C2 < T1.C2 THEN CASE WHEN T1.C3 <= T1.C3 THEN CASE T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C4 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C1 THEN T1.C3 WHEN T1.C4 THEN T1.C2 ELSE T1.C2 END WHEN T1.C1 NOT BETWEEN T1.C3 AND T1.C4 THEN T1.C3 NOT LIKE T1.C3 WHEN T1.C3 BETWEEN T1.C3 AND T1.C2 THEN T1.C4 < T1.C4 WHEN CASE WHEN T1.C4 NOT BETWEEN T1.C1 AND T1.C2 THEN T1.C4 IS NOT NULL WHEN T1.C2 IS NOT NULL THEN CASE T1.C4 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C2 WHEN T1.C4 THEN T1.C1 ELSE T1.C1 END WHEN T1.C3 < T1.C1 THEN T1.C2 IS NULL WHEN T1.C4 NOT LIKE T1.C2 THEN T1.C4 IS NOT NULL WHEN T1.C3 BETWEEN T1.C3 AND T1.C3 THEN CASE WHEN T1.C1 NOT LIKE T1.C4 THEN CASE T1.C1 WHEN T1.C4 THEN T1.C4 WHEN T1.C4 THEN T1.C2 WHEN T1.C2 THEN T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C2 END WHEN CASE T1.C4 WHEN T1.C1 THEN T1.C4 WHEN T1.C4 THEN T1.C2 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C2 WHEN T1.C2 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C4 THEN T1.C2 ELSE T1.C2 END THEN T1.C2 > T1.C4 ELSE T1.C2 > T1.C2 END WHEN T1.C1 > T1.C3 THEN CASE WHEN T1.C3 LIKE T1.C4 THEN T1.C1 <= T1.C4 WHEN CASE T1.C1 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END THEN T1.C1 > T1.C2 ELSE T1.C2 IS NULL END WHEN T1.C4 != T1.C3 THEN T1.C3 BETWEEN T1.C1 AND T1.C3 WHEN T1.C2 < T1.C1 THEN T1.C4 LIKE T1.C4 WHEN T1.C1 >= T1.C4 THEN T1.C4 NOT BETWEEN T1.C1 AND T1.C4 ELSE T1.C1 >= T1.C2 END THEN T1.C4 NOT BETWEEN T1.C4 AND T1.C1 WHEN T1.C4 IS NOT NULL THEN CASE T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C2 WHEN T1.C4 THEN T1.C1 ELSE T1.C1 END WHEN T1.C4 >= T1.C2 THEN CASE WHEN T1.C3 BETWEEN T1.C2 AND T1.C3 THEN T1.C4 = T1.C2 WHEN T1.C4 LIKE T1.C1 THEN CASE T1.C2 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C4 WHEN T1.C4 THEN T1.C1 WHEN T1.C4 THEN T1.C2 WHEN T1.C4 THEN T1.C4 WHEN T1.C3 THEN T1.C4 ELSE T1.C2 END WHEN T1.C2 IS NULL THEN T1.C3 NOT LIKE T1.C1 WHEN T1.C4 > T1.C4 THEN T1.C1 IS NULL WHEN T1.C1 >= T1.C2 THEN T1.C3 IS NULL WHEN T1.C3 = T1.C2 THEN T1.C3 NOT BETWEEN T1.C2 AND T1.C4 WHEN T1.C2 IS NULL THEN T1.C2 IS NOT NULL ELSE T1.C2 > T1.C3 END ELSE T1.C3 = T1.C2 END WHEN T1.C4 NOT BETWEEN T1.C4 AND T1.C4 THEN T1.C1 NOT BETWEEN T1.C3 AND T1.C1 WHEN T1.C2 NOT BETWEEN T1.C3 AND T1.C4 THEN T1.C1 > T1.C2 WHEN T1.C2 = T1.C1 THEN T1.C4 >= T1.C2 WHEN T1.C3 NOT LIKE T1.C1 THEN T1.C2 IS NULL WHEN T1.C3 IS NULL THEN T1.C3 BETWEEN T1.C4 AND T1.C1 WHEN CASE T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C4 THEN T1.C4 ELSE T1.C3 END THEN CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C4 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C4 WHEN T1.C1 THEN T1.C4 WHEN T1.C4 THEN T1.C1 ELSE T1.C4 END ELSE T1.C3 <= T1.C4 END END
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c4], [t1.c2], [t1.c4])
+filters([CASE WHEN CASE t1.c1 WHEN t1.c1 THEN t1.c1 WHEN t1.c2 THEN t1.c2 ELSE t1.c4 END THEN t1.c4=t1.c3WHEN t1.c1 BETWEEN t1.c2 AND t1.c3 THEN t1.c1 IS NULL ELSE CASE WHEN t1.c4 NOT LIKE t1.c1 THEN t1.c4=t1.c2WHEN t1.c2<t1.c2 THEN CASE WHEN t1.c3<=t1.c3 THEN CASE t1.c2 WHEN t1.c4 THEN t1.c3 WHEN t1.c3 THEN t1.c4 WHEN t1.c1 THEN t1.c1 WHEN t1.c1 THEN t1.c1 ELSE t1.c2 ENDWHEN t1.c1 NOT BETWEEN t1.c3 AND t1.c4 THEN t1.c3 NOT LIKE t1.c3WHEN t1.c3 BETWEEN t1.c3 AND t1.c2 THEN t1.c4<t1.c4 ELSE t1.c3=t1.c2 ENDWHEN t1.c4 NOT BETWEEN t1.c4 AND t1.c4 THEN t1.c1 NOT BETWEEN t1.c3 AND t1.c1WHEN t1.c2 NOT BETWEEN t1.c3 AND t1.c4 THEN t1.c1>t1.c2 ELSE t1.c3<=t1.c4 END END])
+access([t1.c1], [t1.c2], [t1.c4], [t1.c3])
+
+SELECT  T1.C1 AS C1, T1.C4 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE CASE WHEN CASE T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C2 THEN T1.C2 WHEN T1.C1 THEN T1.C1 ELSE T1.C4 END THEN T1.C4 = T1.C3 WHEN T1.C1 BETWEEN T1.C2 AND T1.C3 THEN T1.C1 IS NULL WHEN T1.C1 = T1.C2 THEN T1.C1 LIKE T1.C4 WHEN T1.C3 NOT BETWEEN T1.C1 AND T1.C2 THEN T1.C3 NOT BETWEEN T1.C1 AND T1.C1 ELSE CASE WHEN T1.C4 NOT LIKE T1.C1 THEN T1.C4 = T1.C2 WHEN T1.C2 < T1.C2 THEN CASE WHEN T1.C3 <= T1.C3 THEN CASE T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C4 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C1 THEN T1.C3 WHEN T1.C4 THEN T1.C2 ELSE T1.C2 END WHEN T1.C1 NOT BETWEEN T1.C3 AND T1.C4 THEN T1.C3 NOT LIKE T1.C3 WHEN T1.C3 BETWEEN T1.C3 AND T1.C2 THEN T1.C4 < T1.C4 WHEN CASE WHEN T1.C4 NOT BETWEEN T1.C1 AND T1.C2 THEN T1.C4 IS NOT NULL WHEN T1.C2 IS NOT NULL THEN CASE T1.C4 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C2 WHEN T1.C4 THEN T1.C1 ELSE T1.C1 END WHEN T1.C3 < T1.C1 THEN T1.C2 IS NULL WHEN T1.C4 NOT LIKE T1.C2 THEN T1.C4 IS NOT NULL WHEN T1.C3 BETWEEN T1.C3 AND T1.C3 THEN CASE WHEN T1.C1 NOT LIKE T1.C4 THEN CASE T1.C1 WHEN T1.C4 THEN T1.C4 WHEN T1.C4 THEN T1.C2 WHEN T1.C2 THEN T1.C1 WHEN T1.C1 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C2 END WHEN CASE T1.C4 WHEN T1.C1 THEN T1.C4 WHEN T1.C4 THEN T1.C2 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C2 WHEN T1.C2 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C4 THEN T1.C2 ELSE T1.C2 END THEN T1.C2 > T1.C4 ELSE T1.C2 > T1.C2 END WHEN T1.C1 > T1.C3 THEN CASE WHEN T1.C3 LIKE T1.C4 THEN T1.C1 <= T1.C4 WHEN CASE T1.C1 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END THEN T1.C1 > T1.C2 ELSE T1.C2 IS NULL END WHEN T1.C4 != T1.C3 THEN T1.C3 BETWEEN T1.C1 AND T1.C3 WHEN T1.C2 < T1.C1 THEN T1.C4 LIKE T1.C4 WHEN T1.C1 >= T1.C4 THEN T1.C4 NOT BETWEEN T1.C1 AND T1.C4 ELSE T1.C1 >= T1.C2 END THEN T1.C4 NOT BETWEEN T1.C4 AND T1.C1 WHEN T1.C4 IS NOT NULL THEN CASE T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C1 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C2 WHEN T1.C4 THEN T1.C1 ELSE T1.C1 END WHEN T1.C4 >= T1.C2 THEN CASE WHEN T1.C3 BETWEEN T1.C2 AND T1.C3 THEN T1.C4 = T1.C2 WHEN T1.C4 LIKE T1.C1 THEN CASE T1.C2 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C4 THEN T1.C4 WHEN T1.C4 THEN T1.C1 WHEN T1.C4 THEN T1.C2 WHEN T1.C4 THEN T1.C4 WHEN T1.C3 THEN T1.C4 ELSE T1.C2 END WHEN T1.C2 IS NULL THEN T1.C3 NOT LIKE T1.C1 WHEN T1.C4 > T1.C4 THEN T1.C1 IS NULL WHEN T1.C1 >= T1.C2 THEN T1.C3 IS NULL WHEN T1.C3 = T1.C2 THEN T1.C3 NOT BETWEEN T1.C2 AND T1.C4 WHEN T1.C2 IS NULL THEN T1.C2 IS NOT NULL ELSE T1.C2 > T1.C3 END ELSE T1.C3 = T1.C2 END WHEN T1.C4 NOT BETWEEN T1.C4 AND T1.C4 THEN T1.C1 NOT BETWEEN T1.C3 AND T1.C1 WHEN T1.C2 NOT BETWEEN T1.C3 AND T1.C4 THEN T1.C1 > T1.C2 WHEN T1.C2 = T1.C1 THEN T1.C4 >= T1.C2 WHEN T1.C3 NOT LIKE T1.C1 THEN T1.C2 IS NULL WHEN T1.C3 IS NULL THEN T1.C3 BETWEEN T1.C4 AND T1.C1 WHEN CASE T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C1 THEN T1.C3 WHEN T1.C1 THEN T1.C1 WHEN T1.C4 THEN T1.C4 ELSE T1.C3 END THEN CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C4 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C4 WHEN T1.C1 THEN T1.C4 WHEN T1.C4 THEN T1.C1 ELSE T1.C4 END ELSE T1.C3 <= T1.C4 END END
+
+Empty set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 = T1.C1 AND T1.C2 NOT LIKE T1.C4 AND CASE T1.C1 WHEN T1.C2 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C4 THEN T1.C3 ELSE T1.C4 END
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c2], [t1.c4], [t1.c4])
+filters([t1.c4=t1.c1], [t1.c2 NOT LIKE t1.c4], [CASE t1.c1 WHEN t1.c2 THEN t1.c2 WHEN t1.c1 THEN t1.c2 WHEN t1.c1 THEN t1.c2 ELSE t1.c4 END])
+access([t1.c4], [t1.c1], [t1.c2], [t1.c3])
+
+SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 = T1.C1 AND T1.C2 NOT LIKE T1.C4 AND CASE T1.C1 WHEN T1.C2 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C3 WHEN T1.C4 THEN T1.C3 ELSE T1.C4 END
+
+Empty set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C3 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c3], [t1.c2], [t1.c3])
+filters([t1.c3 IS NULL], [CASE t1.c1 WHEN t1.c3 THEN t1.c1 WHEN t1.c2 THEN t1.c3 WHEN t1.c3 THEN t1.c3 ELSE t1.c4 END], [CASE t1.c2 WHEN t1.c1 THEN t1.c4 WHEN t1.c2 THEN t1.c4 WHEN t1.c3 THEN t1.c2 ELSE t1.c1 END])
+access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C3 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Empty set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c3], [t1.c3], [t1.c2])
+filters([t1.c3 IS NULL], [CASE t1.c1 WHEN t1.c3 THEN t1.c1 WHEN t1.c2 THEN t1.c3 WHEN t1.c3 THEN t1.c3 ELSE t1.c4 END], [CASE t1.c2 WHEN t1.c1 THEN t1.c4 WHEN t1.c2 THEN t1.c4 WHEN t1.c3 THEN t1.c2 ELSE t1.c1 END])
+access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Empty set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c4], [t1.c4], [t1.c2])
+filters([t1.c3 IS NULL], [CASE t1.c1 WHEN t1.c3 THEN t1.c1 WHEN t1.c2 THEN t1.c3 WHEN t1.c3 THEN t1.c3 ELSE t1.c4 END], [CASE t1.c2 WHEN t1.c1 THEN t1.c4 WHEN t1.c2 THEN t1.c4 WHEN t1.c3 THEN t1.c2 ELSE t1.c1 END])
+access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+SELECT  T1.C1 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE (T1.C3 IS NULL AND CASE T1.C1 WHEN T1.C3 THEN T1.C1 WHEN T1.C2 THEN T1.C3 WHEN T1.C3 THEN T1.C3 WHEN T1.C4 THEN T1.C1 WHEN T1.C3 THEN T1.C2 ELSE T1.C4 END) AND CASE T1.C2 WHEN T1.C1 THEN T1.C4 WHEN T1.C2 THEN T1.C4 WHEN T1.C3 THEN T1.C2 WHEN T1.C1 THEN T1.C2 WHEN T1.C4 THEN T1.C2 ELSE T1.C1 END
+
+Empty set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c1], [t1.c2], [t1.c4])
+filters([t1.c3 IS NOT NULL])
+access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 6    | 6    | 5    | 4    |
+| 5    | 5    | 9    | 9    |
+| 2    | 2    | 5    | 9    |
+| 6    | 6    | 1    | 4    |
+| 7    | 7    | 2    | 0    |
+| 0    | 0    | 3    | 6    |
+| 7    | 7    | 0    | 5    |
+| 8    | 8    | 8    | 3    |
+| 3    | 3    | 7    | 0    |
+| 4    | 4    | 0    | 3    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c4], [t1.c1], [t1.c1])
+filters([t1.c3 IS NOT NULL])
+access([t1.c3], [t1.c4], [t1.c1])
+
+SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 1    | 4    | 6    | 6    |
+| 4    | 9    | 5    | 5    |
+| 3    | 9    | 2    | 2    |
+| 8    | 4    | 6    | 6    |
+| 7    | 0    | 7    | 7    |
+| 5    | 6    | 0    | 0    |
+| 0    | 5    | 7    | 7    |
+| 5    | 3    | 8    | 8    |
+| 9    | 0    | 3    | 3    |
+| 6    | 3    | 4    | 4    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c3], [t1.c1], [t1.c1])
+filters([t1.c4!=t1.c1])
+access([t1.c4], [t1.c1], [t1.c3])
+
+SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 4    | 1    | 6    | 6    |
+| 9    | 4    | 5    | 5    |
+| 9    | 3    | 2    | 2    |
+| 4    | 8    | 6    | 6    |
+| 0    | 7    | 7    | 7    |
+| 6    | 5    | 0    | 0    |
+| 5    | 0    | 7    | 7    |
+| 3    | 5    | 8    | 8    |
+| 0    | 9    | 3    | 3    |
+| 3    | 6    | 4    | 4    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c2], [t1.c3], [t1.c1])
+filters([t1.c4!=t1.c1])
+access([t1.c4], [t1.c1], [t1.c2], [t1.c3])
+
+SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 4    | 5    | 1    | 6    |
+| 9    | 9    | 4    | 5    |
+| 9    | 5    | 3    | 2    |
+| 4    | 1    | 8    | 6    |
+| 0    | 2    | 7    | 7    |
+| 6    | 3    | 5    | 0    |
+| 5    | 0    | 0    | 7    |
+| 3    | 8    | 5    | 8    |
+| 0    | 7    | 9    | 3    |
+| 3    | 0    | 6    | 4    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C4 AND T1.C4 <= T1.C2 OR T1.C4 IS NULL OR T1.C3 <= T1.C4)
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c2], [t1.c3], [t1.c4])
+filters([t1.c1=t1.c4 AND t1.c4<=t1.c2 OR t1.c4 IS NULL OR t1.c3<=t1.c4])
+access([t1.c1], [t1.c4], [t1.c2], [t1.c3])
+
+SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C4 AND T1.C4 <= T1.C2 OR T1.C4 IS NULL OR T1.C3 <= T1.C4)
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 1    | 5    | 1    | 4    |
+| 4    | 9    | 4    | 9    |
+| 3    | 5    | 3    | 9    |
+| 5    | 3    | 5    | 6    |
+| 0    | 0    | 0    | 5    |
++------+------+------+------+
+5 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c3], [t1.c2], [t1.c4])
+filters([t1.c3>=t1.c3])
+access([t1.c3], [t1.c4], [t1.c2])
+
+SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 4    | 1    | 5    | 4    |
+| 9    | 4    | 9    | 9    |
+| 9    | 3    | 5    | 9    |
+| 4    | 8    | 1    | 4    |
+| 0    | 7    | 2    | 0    |
+| 6    | 5    | 3    | 6    |
+| 5    | 0    | 0    | 5    |
+| 3    | 5    | 8    | 3    |
+| 0    | 9    | 7    | 0    |
+| 3    | 6    | 0    | 3    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c1], [t1.c1], [t1.c2], [t1.c4])
+filters([t1.c3>=t1.c3])
+access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 6    | 6    | 5    | 4    |
+| 5    | 5    | 9    | 9    |
+| 2    | 2    | 5    | 9    |
+| 6    | 6    | 1    | 4    |
+| 7    | 7    | 2    | 0    |
+| 0    | 0    | 3    | 6    |
+| 7    | 7    | 0    | 5    |
+| 8    | 8    | 8    | 3    |
+| 3    | 3    | 7    | 0    |
+| 4    | 4    | 0    | 3    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c4], [t1.c2], [t1.c4], [t1.c4])
+filters([t1.c3>=t1.c3])
+access([t1.c3], [t1.c4], [t1.c2])
+
+SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 4    | 5    | 4    | 4    |
+| 9    | 9    | 9    | 9    |
+| 9    | 5    | 9    | 9    |
+| 4    | 1    | 4    | 4    |
+| 0    | 2    | 0    | 0    |
+| 6    | 3    | 6    | 6    |
+| 5    | 0    | 5    | 5    |
+| 3    | 8    | 3    | 3    |
+| 0    | 7    | 0    | 0    |
+| 3    | 0    | 3    | 3    |
++------+------+------+------+
+10 rows in set
+
+EXPLAIN SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C4 LIKE T1.C3
+
+Query Plan:
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 0         | 0    |
++-------------------------------------------+
+Outputs & filters:
+0 - output expr([t1.c3], [t1.c2], [t1.c4], [t1.c2])
+filters([t1.c4 LIKE t1.c3])
+access([t1.c4], [t1.c3], [t1.c2])
+
+SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C4 LIKE T1.C3
+
+Empty set
+
+Bye

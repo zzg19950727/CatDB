@@ -19,6 +19,7 @@ void SchemaGenerator::generate_schema(std::ofstream &out)
             generate_table_data(table_name, column_tpye, table_data);
             out << table_data << "\n";
         }
+	out << "SELECT * FROM " << table_name << ";\n";
         conf.tables.push_back(table_name);
     }
     for (int i = 1; i <= column_count; ++i) {
@@ -33,7 +34,7 @@ void SchemaGenerator::generate_table(string &table_name, vector<string> &column_
     table_define = "DROP TABLE IF EXISTS " + table_name + ";\n";
     table_define += "CREATE TABLE " + table_name + "(";
     for (int i = 1; i <= column_count; ++i) {
-        string type = random_list(types);
+        string type = "NUMERIC";random_list(types);
         table_define += "C" + std::to_string(i) + " " + type;
         if (i < column_count) {
             table_define += ", ";
@@ -52,7 +53,7 @@ void SchemaGenerator::generate_table_data(string &table_name, vector<string> &co
         } else if (column_tpye[i] == "DATETIME") {
             table_data += random_time();
         } else {
-            table_data += random_number();
+            table_data += random_number(max_row_count);
         }
         if (i < column_tpye.size() - 1) {
             table_data += ", ";

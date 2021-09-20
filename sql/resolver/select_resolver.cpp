@@ -163,8 +163,8 @@ u32 SelectResolver::resolve_order_exprs(Vector<ExprStmt_s> &order_exprs)
             if (T_NUMBER == const_expr->value->get_type()) {
                 Number_s num = const_expr->value;
                 int pos = num->value();
-                if (pos >= 0 && pos < select_stmt->select_expr_list.size()) {
-                    select_stmt->order_exprs[i]->order_expr = select_stmt->select_expr_list[pos];
+                if (pos >= 1 && pos <= select_stmt->select_expr_list.size()) {
+                    select_stmt->order_exprs[i]->order_expr = select_stmt->select_expr_list[pos-1];
                 }
             }
         }

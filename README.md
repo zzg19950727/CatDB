@@ -15,7 +15,7 @@ SQL引擎支持基本的insert、delete、update、select，支持多层嵌套�
 
 编译：./build.sh [ debug | release ]
 
-cd script
+cd tools
 
 配置数据库：catdb.conf
 
@@ -24,6 +24,8 @@ cd script
 使用前确保已经安装mysql客户端
 
 登陆：./deploy.sh sql
+
+测试: ./deploy.sh test all
 
 enjoy it!!!
 

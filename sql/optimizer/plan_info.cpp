@@ -94,7 +94,7 @@ void PlanInfo::print_plan_info(Vector<PlanInfo> &plan_infos, String &explain_inf
                 plan_infos[0].rows.length() +
                 SEPARATOR.length() +
                 plan_infos[0].cost.length();
-    explain_info += "QUERY PLAN:" + NEW_LINE;
+    explain_info += "Query Plan:" + NEW_LINE;
     explain_info += BEGIN_TABLE + n_string(LINE, size) + END_TABLE + NEW_LINE;
     explain_info += BEGIN_LINE +
                     plan_infos[0].id + SEPARATOR +
@@ -112,10 +112,10 @@ void PlanInfo::print_plan_info(Vector<PlanInfo> &plan_infos, String &explain_inf
                     plan_infos[i].cost + END_LINE + NEW_LINE;
     }
     explain_info += BEGIN_TABLE + n_string(LINE, size) + END_TABLE + NEW_LINE;
-    explain_info += "OUTPUT EXPR:" + NEW_LINE;
+    explain_info += "Outputs & filters:" + NEW_LINE;
     for (u32 i = 1; i < plan_infos.size(); ++i) {
         if (!plan_infos[i].expr_info.empty()) {
-            explain_info += plan_infos[i].expr_info + NEW_LINE;
+            explain_info += plan_infos[i].expr_info;
         }
     }
 }

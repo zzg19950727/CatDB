@@ -54,6 +54,7 @@ u32 CatDB::Sql::PhyScalarGroup::inner_get_next_row(Row_s & row)
 		row = Row::deep_copy(row);
 		add_row_to_agg_func(row);
 	}
+	is_start = true;
 	if (NO_MORE_ROWS == ret) {
 		return SUCCESS;
 	} else {
