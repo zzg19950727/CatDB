@@ -8,11 +8,13 @@ namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
 		DECLARE(Object);
+		DECLARE(QueryResult);
 	}
 	namespace Sql {
 		using Common::ColumnDesc;
 		using Common::Row_s;
 		using Common::Object_s;
+		using Common::QueryResult_s;
 		DECLARE(PhyOperator);
 		DECLARE(Expression);
 		DECLARE(SetExpression);
@@ -202,11 +204,13 @@ namespace CatDB {
 			static Expression_s make_subplan_expression(PhyOperator_s& subplan);
 			Object_s get_result(const Row_s& row);
 			ExprType get_type()const;
+			u32 evaluate_subplan(QueryResult_s &query_result);
 			
 		public:
 			Object_s result;
 			PhyOperator_s subplan;
 			Vector<ExecParamExpression_s> exec_params;
+			bool output_one_row;
 		};
 	}
 }

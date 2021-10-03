@@ -1,5 +1,7 @@
 #include "log_update.h"
 #include "expr_stmt.h"
+#include "opt_est_info.h"
+#include "opt_est_cost.h"
 
 using namespace CatDB::Optimizer;
 
@@ -19,7 +21,27 @@ LogicalOperator_s LogUpdate::make_update(LogicalOperator_s &child,
     return LogicalOperator_s(update);
 }
 
-u32  LogUpdate::allocate_expr_pre()
+u32 LogUpdate::est_row_count()
+{
+    u32 ret = SUCCESS;
+    output_rows = child()->get_output_rows();
+    return ret;
+}
+
+u32 LogUpdate::est_cost()
+{
+    u32 ret = SUCCESS;
+    TableEstInfo_s table_statis;
+    CHECK(est_info->get_table_statis(table_item->table_id, table_statis));
+    double op_cost = EstCostUtil::cost_update(table_statis->table_rows, 
+                                              table_statis->block_count, 
+                                              output_rows);
+    cost = op_cost;
+    cost += child()->get_cost();
+    return ret;
+}
+
+u32 LogUpdate::allocate_expr_pre()
 {
     u32 ret = SUCCESS;
     append(expr_ctx.expr_consume, value_exprs);
@@ -34,8 +56,7 @@ void LogUpdate::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     print_basic_info(depth, info);
     info.op = "UPDATE";
     info.name = table_item->alias_name;
-    info.expr_info += "assignment:";
-    print_exprs(assign_exprs, info.expr_info);
+    print_exprs(assign_exprs, "assignment", info);
     plan_info.push_back(info);
     child()->print_plan(depth + 1, plan_info);
 }

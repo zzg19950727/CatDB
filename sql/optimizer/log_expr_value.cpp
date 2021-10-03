@@ -1,4 +1,5 @@
 #include "log_expr_value.h"
+#include "opt_est_cost.h"
 #include "expr_stmt.h"
 #include "object.h"
 
@@ -10,6 +11,20 @@ LogicalOperator_s LogExprValue::make_expr_value(Vector<Vector<ExprStmt_s>> &valu
     LogExprValue *expr_value = new LogExprValue();
     expr_value->values = values;
     return LogicalOperator_s(expr_value);
+}
+
+u32 LogExprValue::est_row_count()
+{
+    u32 ret = SUCCESS;
+    output_rows = values.size();
+    return ret;
+}
+
+u32 LogExprValue::est_cost()
+{
+    u32 ret = SUCCESS;
+    cost = EstCostUtil::cost_expr_value(output_rows);
+    return ret;
 }
 
 u32  LogExprValue::allocate_expr_pre()

@@ -61,7 +61,8 @@ u32 SelectPlan::generate_set_plan_tree()
 	root_operator = LogSet::make_set_op(left_op,
 										right_op,
 										stmt->set_op);
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
 	CHECK(generate_subplan());
 	append(root_operator->output_exprs, stmt->select_expr_list);
 	return ret;
@@ -99,7 +100,8 @@ u32 SelectPlan::generate_group_by()
 	u32 ret = SUCCESS;
 	SelectStmt_s stmt = lex_stmt;
 	root_operator = LogGroupBy::make_group_by(root_operator, stmt->group_exprs, stmt->get_aggr_exprs());
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
 	return ret;
 }
 
@@ -108,7 +110,8 @@ u32 SelectPlan::generate_scalar_group_by()
 	u32 ret = SUCCESS;
 	SelectStmt_s stmt = lex_stmt;
 	root_operator = LogScalarGroupBy::make_scalar_group_by(root_operator, stmt->get_aggr_exprs());
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
 	return ret;
 }
 
@@ -116,7 +119,11 @@ u32 SelectPlan::generate_distinct()
 {
 	u32 ret = SUCCESS;
 	root_operator = LogDistinct::make_distinct(root_operator);
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	SelectStmt_s stmt = lex_stmt;
+	LogDistinct_s distinct_op = root_operator;
+	distinct_op->set_distinct_exprs(stmt->select_expr_list);
+	CHECK(root_operator->compute_property());
 	return ret;
 }
 
@@ -138,7 +145,8 @@ u32 SelectPlan::generate_order_by(bool &need_limit)
 	}
 	if (need_sort) {
 		root_operator = LogSort::make_sort(root_operator, stmt->order_exprs, top_n);
-		root_operator->set_query_ctx(query_ctx);
+		root_operator->init(query_ctx, est_info);
+		CHECK(root_operator->compute_property());
 	}
 	return ret;
 }
@@ -150,6 +158,7 @@ u32 SelectPlan::generate_limit()
 	root_operator = LogLimit::make_limit(root_operator,
 										 stmt->limit_stmt->limit_offset,
 										 stmt->limit_stmt->limit_size);
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
 	return ret;
 }

@@ -242,24 +242,7 @@ u32 CatDB::Common::cast_to(u8 type, Object_s & obj)
 		return SUCCESS;
 	}
 	else if (obj->is_null()) {
-		switch (type)
-		{
-		case T_NUMBER:
-			obj = Object_s(new Number(0));
-			break;
-		case T_DATETIME:
-			obj = Object_s(new DateTime(0));
-			break;
-		case T_VARCHAR:
-			obj = Object_s(new Varchar(""));
-			break;
-		}
-		if (!obj) {
-			return CAST_DATA_ERROR;
-		}
-		else {
-			return SUCCESS;
-		}
+		return SUCCESS;
 	}
 	else if (obj->get_type() == T_VARCHAR && type == T_DATETIME) {
 		obj = DateTime::make_object(obj->to_string());

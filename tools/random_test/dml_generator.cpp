@@ -99,13 +99,28 @@ string DMLGenerator::generate_view_table(vector<string> *list)
 string DMLGenerator::generate_joined_table(vector<string> *list)
 {
     static vector<string> join_type = {" INNER JOIN ",
-                                 " LEFT JOIN ",
-                                 " RIGHT JOIN ",
-                                 " FULL JOIN "};
+                                        " LEFT JOIN ",
+                                        " RIGHT JOIN ",
+                                        " FULL JOIN "};
     vector<string> joined_tables;
     string table = generate_table_item(&joined_tables) +
-           random_list(join_type) + 
-           generate_table_item(&joined_tables);
+           random_list(join_type);
+    int type = std::rand() % 3;
+    if (0 == type) {
+        table += generate_basic_table(&joined_tables);
+    } else if (1 == type) {
+        if (conf.can_use_view && conf.query_count < conf.max_query_count) {
+            table += generate_view_table(&joined_tables);
+        } else {
+            table += generate_basic_table(&joined_tables);
+        }
+    } else {
+        if (conf.can_use_joined_table && tables.size() < conf.max_table_count) {
+            table += "(" + generate_joined_table(&joined_tables) + ")";
+        } else {
+            table += generate_basic_table(&joined_tables);
+        }
+    }
     string on_condition;
     expr_generator.generate_on_condition(on_condition, joined_tables);
     table += " ON " + on_condition;

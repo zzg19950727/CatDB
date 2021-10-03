@@ -45,7 +45,7 @@ void ExprGenerator::generate_expr(string &expr)
     }
 }
 
-void ExprGenerator::generate_on_condition(string expr, const vector<string> &joined_tables)
+void ExprGenerator::generate_on_condition(string &expr, const vector<string> &joined_tables)
 {
     this->joined_tables = joined_tables;
     is_on_condition = true;
@@ -83,19 +83,21 @@ void ExprGenerator::generate_arith_expr(string &expr)
     static vector<string> op = {" + ", " - ",
                                 " * ", " / "};
     string l_expr, r_expr;
-    int type = std::rand() % 2;
+    int type = std::rand() % 3;
 	if (0 == type || conf.use_simple_expr || length >= conf.max_expr_length) {
 		generate_simple_expr(expr);
 		length += expr.length();
-	} else {
+	} else if (1 == type) {
 		generate_arith_expr(l_expr);
 		generate_arith_expr(r_expr);
 		expr = l_expr + random_list(op) + r_expr;
-    	type = std::rand() % 2;
-    	if (0 == type) {
-        	expr = "(" + expr + ")";
-    	}
-	}
+	} else {
+        generate_case_when_expr(expr);
+    }
+    type = std::rand() % 2;
+    if (0 == type) {
+        expr = "(" + expr + ")";
+    }
 }
 
 void ExprGenerator::generate_simple_expr(string &expr)
@@ -198,7 +200,7 @@ void ExprGenerator::generate_logical_expr(string &expr)
 
 void ExprGenerator::generate_cmp_expr(string &expr)
 {
-    int type = std::rand() % 6;
+    int type = std::rand() % 5;
     if (0 == type) {
         generate_gt_expr(expr);
     } else if (1 == type) {
@@ -211,14 +213,12 @@ void ExprGenerator::generate_cmp_expr(string &expr)
         } else {
             generate_in_expr(expr);
         }
-    } else if (4 == type) {
+    } else {
         if (!conf.can_use_subquery || conf.query_count >= conf.max_query_count) {
             generate_gt_expr(expr);
         } else {
             generate_exists_expr(expr);
         }
-    } else {
-        generate_case_when_expr(expr);
     }
 }
 
@@ -272,8 +272,11 @@ void ExprGenerator::generate_exists_expr(string &expr)
 void ExprGenerator::generate_case_when_expr(string &expr)
 {
     int type = std::rand() % 2;
+    int n = (std::rand() % 10) + 1;
+    if (length >= conf.max_expr_length) {
+        n = 1;
+    }
     if (0 == type) {
-        int n = (std::rand() % 10) + 1;
         string cond;
         generate_arith_expr(cond);
         expr = "CASE " + cond;
@@ -286,7 +289,6 @@ void ExprGenerator::generate_case_when_expr(string &expr)
         generate_arith_expr(cond);
         expr += " ELSE " + cond + " END";
     } else {
-        int n = (std::rand() % 10) + 1;
         string cond;
         expr = "CASE";
         for (int i = 0; i < n; ++i) {

@@ -36,7 +36,8 @@ namespace CatDB {
 				UPDATE,
 				DELETE,
 				EXPR_VALUE,
-				DUAL_TABLE
+				DUAL_TABLE,
+				SUBQUERY_EVALUATE
 			};
 			PhyOperator();
 			virtual ~PhyOperator();
@@ -110,6 +111,17 @@ namespace CatDB {
 			Object_s outer_const_value;
 		private:
 			JoinPhyOperator() = delete;
+		};
+
+		class MultiChildPhyOperator :public PhyOperator
+		{
+		public:
+			MultiChildPhyOperator();
+			virtual ~MultiChildPhyOperator();
+			void add_child(const PhyOperator_s &child);
+			void add_children(const Vector<PhyOperator_s> &children);
+		protected:
+			Vector<PhyOperator_s> children;
 		};
 	}
 }

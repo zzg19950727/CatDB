@@ -96,6 +96,7 @@ namespace CatDB {
             u32 find_table_info(const String& db_name, const String& table_name, TableInfo_s &table_info);
             u32 find_table_info(u32 table_id, TableInfo_s &table_info);
             u32 find_column_info(u32 table_id, const String& column_name, ColumnInfo_s &column_info);
+            u32 find_column_info(u32 table_id, u32 column_id, ColumnInfo_s &column_info);
             u32 find_database_info(const String& db_name, DatabaseInfo_s &db_info);
             u32 get_all_database(Vector<String> &databases);
             u32 get_all_table(const String& db_name, Vector<String> &tables);

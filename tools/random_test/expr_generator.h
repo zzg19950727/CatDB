@@ -1,6 +1,7 @@
 #ifndef EXPR_GENERATOR_H
 #define EXPR_GENERATOR_H
 #include "random.h"
+#include <iostream>
 
 struct Config {
     vector<string> tables;
@@ -42,7 +43,7 @@ public:
     void generate_expr(string &expr);
     void generate_arith_expr(string &expr);
     void generate_aggr_expr(string &expr);
-    void generate_on_condition(string expr, const vector<string> &joined_tables);
+    void generate_on_condition(string &expr, const vector<string> &joined_tables);
     void set_can_use_aggr(bool use) { can_use_aggr = use; }
 private:
     void generate_other_query(string &query);

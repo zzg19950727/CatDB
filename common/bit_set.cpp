@@ -116,9 +116,9 @@ bool BitSet::is_superset(const BitSet& other) const
 bool BitSet::overlap(const BitSet& other) const
 {
     u32 i = 0;
-    bool overlap = true;
+    bool overlap = false;
     while (!overlap && i < data.size() && i < other.data.size()) {
-        overlap = 0 != (other.data[i] & data[i]);
+        overlap = (other.data[i] & data[i]);
         ++i;
     }
     return overlap;

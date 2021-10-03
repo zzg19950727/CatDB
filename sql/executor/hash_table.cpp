@@ -91,7 +91,7 @@ u32 HashTable::probe_all_rows(const Row_s & row, Queue<Row_s>& out_rows, bool ig
 	for (auto iter = bucket.begin(); iter != bucket.end(); ++iter) {
 		if (ignore_mark && iter->second) {
 			continue;
-		} else if (filter_row(iter->first, row)) {
+		} else if (!filter_row(iter->first, row)) {
 			continue;
 		} else if (equal(iter->first, row)) {
 			out_rows.push(iter->first);
@@ -113,7 +113,7 @@ u32 HashTable::probe_all_rows(const Row_s & row, bool ignore_mark)
 	for (auto iter = bucket.begin(); iter != bucket.end(); ++iter) {
 		if (ignore_mark && iter->second) {
 			continue;
-		} else if (filter_row(iter->first, row)) {
+		} else if (!filter_row(iter->first, row)) {
 			continue;
 		} else if (equal(iter->first, row)) {
 			is_empty = false;

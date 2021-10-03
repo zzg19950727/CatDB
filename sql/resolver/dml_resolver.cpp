@@ -114,7 +114,6 @@ u32 DMLResolver::resolve_table_item(TableStmt_s& table)
     } else if (table->is_view_table()) {
         CHECK(resolve_view_table_item(table));
     } else {
-        err_msg = "unknown table type";
         LOG_ERR("unknow table type", K(table));
         ret = ERROR_LEX_STMT;
     }
@@ -126,7 +125,8 @@ u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
     u32 ret = SUCCESS;
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
-        err_msg = table_stmt->alias_name + " exists";
+        String err_msg = "table " + table_stmt->alias_name + " exists";
+        query_ctx.set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else if (table_stmt->is_dual) {
@@ -169,7 +169,8 @@ u32 DMLResolver::resolve_view_table_item(ViewTableStmt_s table_stmt)
     u32 ret = SUCCESS;
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
-        err_msg = table_stmt->alias_name + " exists";
+        String err_msg = "table " + table_stmt->alias_name + " exists";
+        query_ctx.set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else {
@@ -288,6 +289,20 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
             } else if (FAIL(ret)) {
                 return ret;
             }
+        }
+        OpExprStmt_s op_expr = expr_stmt;
+        if (OP_EXISTS == op_expr->op_type || OP_NOT_EXISTS == op_expr->op_type) {
+            MY_ASSERT(expr_stmt->params.size() == 1);
+            ExprStmt_s param_expr = expr_stmt->params[0];
+            MY_ASSERT(ExprStmt::SubQuery == param_expr->expr_type());
+            SubQueryStmt_s subquery = param_expr;
+            subquery->output_one_row = false;
+        } else if (OP_IN == op_expr->op_type || OP_NOT_IN == op_expr->op_type) {
+            MY_ASSERT(expr_stmt->params.size() == 2);
+            ExprStmt_s param_expr = expr_stmt->params[1];
+            MY_ASSERT(ExprStmt::SubQuery == param_expr->expr_type());
+            SubQueryStmt_s subquery = param_expr;
+            subquery->output_one_row = false;
         }
 		break;
 	}

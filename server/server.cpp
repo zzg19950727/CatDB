@@ -67,7 +67,7 @@ void ServerService::new_connection(int fd, NetService::Event e)
 	{
 		if(m_clients >= m_config.max_client_count())
 		{
-			LOG_WARN("ServerService::new_connection too much clients,rejuect", K(m_clients));
+			LOG_ERR("ServerService::new_connection too much clients,rejuect", K(m_clients));
 			net_close(client_fd);
 			return;
 		}
@@ -87,7 +87,7 @@ void ServerService::do_login(int fd)
 		LOG_TRACE("new client login", K(fd));
 	}
 	else {
-		LOG_WARN("login failed");
+		LOG_ERR("login failed");
 	}
 }
 
@@ -102,7 +102,7 @@ void ServerService::close_connection()
 	net_close(m_fd);
 	m_fd = -1;
 	m_workers.quit();
-	LOG_ERR("stop ServerService success");
+	LOG_INFO("stop ServerService success");
 }
 
 NetService& ServerService::net_service()

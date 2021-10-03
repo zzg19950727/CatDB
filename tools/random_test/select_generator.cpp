@@ -154,6 +154,7 @@ void SelectGenerator::to_string(string &query)
 
 void SetGenerator::generate_query(string &query)
 {
+    ++conf.query_count;
     static vector<string> set_ops = {"UNION ALL",
                                      "UNION",
                                      "INTERSECT",

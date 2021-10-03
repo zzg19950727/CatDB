@@ -21,13 +21,11 @@ namespace CatDB {
         using Optimizer::LogicalOperator_s;
 
         struct ExprGenerateCtx {
-            template<typename T>
-            u32 key(const shared_ptr<T> &obj)
-            { return (u64)obj.get(); }
             HashMap<ExprStmt_s, Expression_s> exec_param_map;
-            HashMap<u32, LogicalOperator_s> subplan_map;
+            HashMap<ExprStmt_s, LogicalOperator_s> subplan_map;
             HashMap<ExprStmt_s, Expression_s> access_expr_map;
             Vector<PhyOperator_s> child_ops;
+            Vector<PhyOperator_s> phy_subplans;
         };
 
         class ExprGenerator {

@@ -189,7 +189,8 @@ Object_s Operation::do_div(Object_s & first_obj, Object_s & second_obj)
 
 Object_s Operation::do_equal(Object_s & first_obj, Object_s & second_obj)
 {
-	return first_obj->operator==(second_obj);
+	Object_s res = first_obj->operator==(second_obj);
+	return res;
 }
 
 Object_s Operation::do_anti_equal(Object_s & first_obj, Object_s & second_obj)
@@ -361,8 +362,9 @@ Object_s ConstExpression::get_result(const Row_s & row)
 {
 	if (const_object)
 		return const_object;
-	else
+	else {
 		return Error::make_object(INVALID_OBJECT);
+	}
 }
 
 Expression::ExprType ConstExpression::get_type() const
@@ -610,7 +612,6 @@ u32 AggregateExpression::sum(const Row_s & row)
 	if (value->get_type() == T_ERROR_RESULT)
 		return EXPR_CALC_ERR;
 	else if (value->is_null()) {
-		result = value->copy();
 		return SUCCESS;
 	} else if (!result){
 		result = value->copy();
@@ -650,7 +651,6 @@ u32 AggregateExpression::max(const Row_s & row)
 	if (value->get_type() == T_ERROR_RESULT)
 		return EXPR_CALC_ERR;
 	else if (value->is_null()) {
-		result = value;
 		return SUCCESS;
 	}
 	if (!result){
@@ -669,7 +669,6 @@ u32 AggregateExpression::min(const Row_s & row)
 	if (value->get_type() == T_ERROR_RESULT)
 		return EXPR_CALC_ERR;
 	else if (value->is_null()) {
-		result = value;
 		return SUCCESS;
 	}
 	if (!result){
@@ -683,7 +682,8 @@ u32 AggregateExpression::min(const Row_s & row)
 }
 
 SubplanExpression::SubplanExpression(PhyOperator_s& subplan)
-	:subplan(subplan)
+	:subplan(subplan),
+	output_one_row(true)
 {
 }
 
@@ -701,9 +701,27 @@ Object_s SubplanExpression::get_result(const Row_s & row)
 		for (u32 i = 0; i < exec_params.size(); ++i) {
 			exec_params[i]->set_value(row);
 		}
-		u32 ret = SqlEngine::handle_subplan(subplan, result);
+		QueryResult_s query_result;
+		u32 ret = evaluate_subplan(query_result);
 		if (ret != SUCCESS) {
 			result = Error::make_object(ret);
+		} else if (0 == query_result->size() && output_one_row) {
+			result = Bool::make_null_object();
+		} else if (1 == query_result->size() && output_one_row) {
+			Row_s new_row;
+			query_result->get_row(0, new_row);
+			if (new_row->get_row_desc().get_column_num() == 1) {
+				new_row->get_cell(0, result);
+			} else {
+				ObjList_s list = ObjList::make_object();
+				for (u32 i = 0; i < new_row->get_row_desc().get_column_num(); ++i) {
+					new_row->get_cell(i, result);
+					list->add_object(result);
+				}
+				result = list;
+			}
+		} else {
+			result = query_result;
 		}
 		return result;
 	}
@@ -712,4 +730,25 @@ Object_s SubplanExpression::get_result(const Row_s & row)
 Expression::ExprType SubplanExpression::get_type() const
 {
 	return Expression::Subplan;
+}
+
+u32 SubplanExpression::evaluate_subplan(QueryResult_s &query_result)
+{
+	u32 ret = SUCCESS;
+	CHECK(subplan->reset());
+	Row_s row;
+	u32 row_count = 0;
+	query_result = QueryResult::make_query_result();
+	while ((ret = subplan->get_next_row(row)) == SUCCESS) {
+		query_result->add_row(row);
+		++row_count;
+		if (output_one_row && row_count > 1) {
+			ret = MORE_THAN_ONE_ROW;
+			break;
+		}
+	}
+	if (ret == NO_MORE_ROWS) {
+		ret = SUCCESS;
+	}
+	return ret;
 }

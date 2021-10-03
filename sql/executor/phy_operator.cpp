@@ -124,3 +124,22 @@ u32 JoinPhyOperator::make_join_row(const Row_s &left_row, const Row_s &right_row
 	row = RowAgent::make_agent_row(left_row, right_row);
 	return SUCCESS;
 }
+
+MultiChildPhyOperator::MultiChildPhyOperator()
+	:PhyOperator()
+{
+}
+
+MultiChildPhyOperator::~MultiChildPhyOperator()
+{
+}
+
+void MultiChildPhyOperator::add_child(const PhyOperator_s &child) 
+{ 
+	children.push_back(child); 
+}
+
+void MultiChildPhyOperator::add_children(const Vector<PhyOperator_s> &children) 
+{ 
+	append(this->children, children); 
+}

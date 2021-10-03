@@ -22,28 +22,35 @@ Plan::~Plan()
 {
 }
 
-Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
+Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx *ctx)
 {
 	if (!lex_stmt) {
 		return Plan_s();
 	}
+	Plan_s plan = Plan_s();
 	switch (lex_stmt->stmt_type())
 	{
 	case Stmt::Insert:
-		return InsertPlan::make_insert_plan(lex_stmt);
+		plan = InsertPlan::make_insert_plan(lex_stmt);
+		break;
 	case Stmt::Delete:
-		return DeletePlan::make_delete_plan(lex_stmt);
+		plan = DeletePlan::make_delete_plan(lex_stmt);
+		break;
 	case Stmt::Update:
-		return UpdatePlan::make_update_plan(lex_stmt);
+		plan = UpdatePlan::make_update_plan(lex_stmt);
+		break;
 	case Stmt::Select:
-		return SelectPlan::make_select_plan(lex_stmt);
+		plan = SelectPlan::make_select_plan(lex_stmt);
+		break;
 	case Stmt::SetOperation:
-		return SelectPlan::make_select_plan(lex_stmt);
+		plan = SelectPlan::make_select_plan(lex_stmt);
+		break;
 	case Stmt::DoCMD:
-		return CMDPlan::make_cmd_plan(lex_stmt);
-	default:
-		return Plan_s();
+		plan = CMDPlan::make_cmd_plan(lex_stmt);
+		break;
 	}
+	plan->query_ctx = ctx;
+	return plan;
 }
 
 void Plan::set_lex_stmt(const Stmt_s & stmt)

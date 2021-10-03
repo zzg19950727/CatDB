@@ -73,6 +73,9 @@ namespace CatDB {
             ~CodeGenerator() {}
             static u32 generate_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& log_root, PhyOperator_s &phy_root);
         protected:
+            static u32 generate_phy_plan_pre(ExprGenerateCtx &ctx, LogicalOperator_s& log_root);
+            static u32 generate_child_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& log_root);
+            static u32 generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_s& log_root, PhyOperator_s &phy_root);
             static u32 generate_delete_op(ExprGenerateCtx &ctx, LogDelete_s log_op, PhyOperator_s &phy_op);
             static u32 generate_distinct_op(ExprGenerateCtx &ctx, LogDistinct_s log_op, PhyOperator_s &phy_op);
             static u32 generate_dual_table_op(ExprGenerateCtx &ctx, LogDualTable_s log_op, PhyOperator_s &phy_op);
@@ -88,6 +91,7 @@ namespace CatDB {
             static u32 generate_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
             static u32 generate_normal_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
             static u32 generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
+            static u32 generate_subquery_evaluate_op_pre(ExprGenerateCtx &ctx, LogicalOperator_s &log_op);
             static u32 generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOperator_s &log_op, PhyOperator_s &phy_op);
             static u32 generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s log_op, PhyOperator_s &phy_op);
             static u32 generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, PhyOperator_s &phy_op);

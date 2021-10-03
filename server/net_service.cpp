@@ -261,6 +261,6 @@ void NetService::response_event(int fd, Event e)
 	}
 	else if(e != E_WRITE)
 	{
-		LOG_WARN("NetService:unknow fd", K(fd), K(u8(e)));
+		LOG_ERR("NetService:unknow fd", K(fd), K(u8(e)));
 	}
 }

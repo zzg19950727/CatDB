@@ -30,10 +30,9 @@ namespace CatDB {
 			
 		public:
 			virtual ~Plan();
-			static Plan_s make_plan(const Stmt_s& lex_stmt);
+			static Plan_s make_plan(const Stmt_s& lex_stmt, QueryCtx *ctx);
 			void set_lex_stmt(const Stmt_s& stmt);
 			Stmt_s get_lex_stmt()const;
-			void set_query_ctx(QueryCtx *ctx) {query_ctx = ctx;}
 			virtual u32 build_plan() = 0;
 			virtual PlanType type() const = 0;
 			virtual u32 generate_plan_tree(){return 0;}

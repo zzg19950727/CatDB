@@ -56,7 +56,7 @@ template<typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
 
 template<typename T, typename U>
-void append(Vector<T> & lhs, Vector<U> &rhs)
+void append(Vector<T> & lhs, const Vector<U> &rhs)
 {
     for (u32 i = 0; i < rhs.size(); ++i) {
         lhs.push_back(rhs.at(i));
@@ -64,7 +64,7 @@ void append(Vector<T> & lhs, Vector<U> &rhs)
 }
 
 template<typename T, typename U>
-void append(Vector<shared_ptr<T>> & lhs, Vector<shared_ptr<U>> &rhs)
+void append(Vector<shared_ptr<T>> & lhs, const Vector<shared_ptr<U>> &rhs)
 {
     for (u32 i = 0; i < rhs.size(); ++i) {
         lhs.push_back(rhs.at(i));

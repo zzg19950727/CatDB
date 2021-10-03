@@ -42,8 +42,9 @@ void PlanInfo::formalize_plan_info(Vector<PlanInfo> &plan_infos)
         PlanInfo &info = temp[i];
         info.id = std::to_string(i);
         info.op = n_string(" ", info.depth) + info.op;
-        if (!info.expr_info.empty()) {
-            info.expr_info = info.id + " - " + info.expr_info;
+        if (!info.expr_infos.empty()) {
+            info.expr_info = info.id + " - ";
+            formalize_expr_info(info.expr_info, info.expr_infos);
         }
         if (info.id.length() > id_max_len) {
             id_max_len = info.id.length();
@@ -70,6 +71,25 @@ void PlanInfo::formalize_plan_info(Vector<PlanInfo> &plan_infos)
         uppercase(info.name);
         info.rows += n_string(" ", rows_max_len - info.rows.length());
         info.cost += n_string(" ", cost_max_len - info.cost.length());
+    }
+}
+
+void PlanInfo::formalize_expr_info(String &info_str, const Vector<ExprInfo> &expr_infos)
+{
+    for (u32 i = 0; i < expr_infos.size(); ++i) {
+        const ExprInfo &info = expr_infos[i];
+        if (i > 0) {
+            info_str += "    ";
+        }
+        info_str += info.title + "(";
+        for (u32 j = 0; j < info.exprs.size(); ++j) {
+            if (0 == j) {
+                info_str += "[" + info.exprs[j] + "]";
+            } else {
+                info_str += ", [" + info.exprs[j] + "]";
+            }
+        }
+        info_str += ")\n";
     }
 }
 

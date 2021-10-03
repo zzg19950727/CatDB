@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
     conf.max_table_count = file_config.int_value("max_table_count_in_one_stmt");
 	conf.min_table_count = file_config.int_value("min_table_count_in_one_stmt");
-    conf.max_query_count = file_config.int_value("max_query_count");
+    conf.max_query_count = file_config.int_value("max_stmt_count");
     conf.max_expr_length = file_config.int_value("max_expr_length");
 	conf.use_simple_expr = file_config.int_value("use_simple_expr");;
     conf.can_use_set = file_config.int_value("can_use_set");
@@ -57,8 +57,15 @@ int main(int argc, char* argv[])
     
     string query;
     for (int i = 0; i < query_count; ++i) {
+        conf.query_count = 0;
+        conf.alias_table_id = 1;
         if ("select" == type) {
-            SelectGenerator *sel_generator = new SelectGenerator(conf);
+            SelectGenerator *sel_generator = NULL;
+            if (conf.can_use_set) {
+                sel_generator = new SetGenerator(conf);
+            } else {
+                sel_generator = new SelectGenerator(conf);
+            }
             if (conf.is_single_output) {	
                 sel_generator->set_is_single();
             }

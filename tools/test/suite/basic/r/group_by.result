@@ -29,16 +29,16 @@ SELECT * FROM T1
 EXPLAIN SELECT  T1.C4 AS C1, ((T1.C4 + T1.C4 * T1.C3) - 23 + 80) AS C2, 47 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T1   | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 148565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c4], [t1.c4+t1.c4*t1.c3-23+80], [47], [t1.c4])
-sort keys([t1.c4 ASC], [t1.c4+t1.c4*t1.c3-23+80 DESC], [47 DESC], [t1.c4 ASC])
-1 - output expr([t1.c4], [t1.c4+t1.c4*t1.c3-23+80])
+0 - output([t1.c4], [t1.c4+t1.c4*t1.c3-23+80], [47], [t1.c4])
+sort_keys([t1.c4 ASC], [t1.c4+t1.c4*t1.c3-23+80 DESC], [47 DESC], [t1.c4 ASC])
+1 - output([t1.c4], [t1.c4+t1.c4*t1.c3-23+80])
 access([t1.c4], [t1.c3])
 
 SELECT  T1.C4 AS C1, ((T1.C4 + T1.C4 * T1.C3) - 23 + 80) AS C2, 47 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
@@ -62,20 +62,20 @@ SELECT  T1.C4 AS C1, ((T1.C4 + T1.C4 * T1.C3) - 23 + 80) AS C2, 47 AS C3, T1.C4 
 EXPLAIN SELECT  COUNT(DISTINCT T2.C1) AS C1, 3 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T2  GROUP BY T2.C2, ((T2.C3 - T2.C2) * T2.C3), T2.C3  ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T2   | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 184565 |
+| 1  |  GROUP BY    |      | 100000    | 46410  |
+| 2  |   TABLE SCAN | T2   | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([COUNT(DISTINCT t2.c1)], [3], [t2.c3], [t2.c2])
-sort keys([COUNT(DISTINCT t2.c1) DESC], [3 DESC], [t2.c3 DESC], [t2.c2 DESC])
-1 - output expr([COUNT(DISTINCT t2.c1)], [t2.c3], [t2.c2])
+0 - output([COUNT(DISTINCT t2.c1)], [3], [t2.c3], [t2.c2])
+sort_keys([COUNT(DISTINCT t2.c1) DESC], [3 DESC], [t2.c3 DESC], [t2.c2 DESC])
+1 - output([COUNT(DISTINCT t2.c1)], [t2.c3], [t2.c2])
 group_by_exprs([t2.c2], [t2.c3-t2.c2*t2.c3], [t2.c3])
 aggr_exprs([COUNT(DISTINCT t2.c1)], [COUNT(DISTINCT t2.c1)])
-2 - output expr([t2.c2], [t2.c3-t2.c2*t2.c3], [t2.c3], [t2.c1])
+2 - output([t2.c2], [t2.c3-t2.c2*t2.c3], [t2.c3], [t2.c1])
 access([t2.c1], [t2.c3], [t2.c2])
 
 SELECT  COUNT(DISTINCT T2.C1) AS C1, 3 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T2  GROUP BY T2.C2, ((T2.C3 - T2.C2) * T2.C3), T2.C3  ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
@@ -99,16 +99,16 @@ SELECT  COUNT(DISTINCT T2.C1) AS C1, 3 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T
 EXPLAIN SELECT  T3.C1 AS C1, (42 / T3.C1 / T3.C2) AS C2, T3.C4 AS C3, T3.C2 AS C4 FROM T1 T3    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T3   | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T3   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t3.c1], [42/t3.c1/t3.c2], [t3.c4], [t3.c2])
-sort keys([t3.c1 ASC], [42/t3.c1/t3.c2 DESC], [t3.c4 ASC], [t3.c2 DESC])
-1 - output expr([t3.c1], [42/t3.c1/t3.c2], [t3.c4], [t3.c2])
+0 - output([t3.c1], [42/t3.c1/t3.c2], [t3.c4], [t3.c2])
+sort_keys([t3.c1 ASC], [42/t3.c1/t3.c2 DESC], [t3.c4 ASC], [t3.c2 DESC])
+1 - output([t3.c1], [42/t3.c1/t3.c2], [t3.c4], [t3.c2])
 access([t3.c1], [t3.c2], [t3.c4])
 
 SELECT  T3.C1 AS C1, (42 / T3.C1 / T3.C2) AS C2, T3.C4 AS C3, T3.C2 AS C4 FROM T1 T3    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
@@ -132,20 +132,20 @@ SELECT  T3.C1 AS C1, (42 / T3.C1 / T3.C2) AS C2, T3.C4 AS C3, T3.C2 AS C4 FROM T
 EXPLAIN SELECT  T4.C2 AS C1, 69 AS C2, MAX(DISTINCT T4.C4) AS C3, 6 AS C4 FROM T1 T4  GROUP BY T4.C1, 44, 63 + T4.C1 / T4.C3, T4.C2, T4.C4  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T4   | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 201565 |
+| 1  |  GROUP BY    |      | 100000    | 63410  |
+| 2  |   TABLE SCAN | T4   | 100000    | 20410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([t4.c2], [69], [MAX(DISTINCT t4.c4)], [6])
-sort keys([t4.c2 DESC], [69 ASC], [MAX(DISTINCT t4.c4) ASC], [6 ASC])
-1 - output expr([t4.c2], [MAX(DISTINCT t4.c4)])
+0 - output([t4.c2], [69], [MAX(DISTINCT t4.c4)], [6])
+sort_keys([t4.c2 DESC], [69 ASC], [MAX(DISTINCT t4.c4) ASC], [6 ASC])
+1 - output([t4.c2], [MAX(DISTINCT t4.c4)])
 group_by_exprs([t4.c1], [44], [63+t4.c1/t4.c3], [t4.c2], [t4.c4])
 aggr_exprs([MAX(DISTINCT t4.c4)], [MAX(DISTINCT t4.c4)])
-2 - output expr([t4.c1], [63+t4.c1/t4.c3], [t4.c2], [t4.c4])
+2 - output([t4.c1], [63+t4.c1/t4.c3], [t4.c2], [t4.c4])
 access([t4.c2], [t4.c4], [t4.c1], [t4.c3])
 
 SELECT  T4.C2 AS C1, 69 AS C2, MAX(DISTINCT T4.C4) AS C3, 6 AS C4 FROM T1 T4  GROUP BY T4.C1, 44, 63 + T4.C1 / T4.C3, T4.C2, T4.C4  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
@@ -169,20 +169,20 @@ SELECT  T4.C2 AS C1, 69 AS C2, MAX(DISTINCT T4.C4) AS C3, 6 AS C4 FROM T1 T4  GR
 EXPLAIN SELECT  69 AS C1, COUNT(DISTINCT T5.C1) AS C2, (T5.C3 * T5.C4) AS C3, T5.C3 AS C4 FROM T1 T5  GROUP BY (T5.C3 * T5.C4), 69, T5.C3  ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T5   | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 184565 |
+| 1  |  GROUP BY    |      | 100000    | 46410  |
+| 2  |   TABLE SCAN | T5   | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([69], [COUNT(DISTINCT t5.c1)], [t5.c3*t5.c4], [t5.c3])
-sort keys([69 ASC], [COUNT(DISTINCT t5.c1) DESC], [t5.c3*t5.c4 ASC], [t5.c3 DESC])
-1 - output expr([COUNT(DISTINCT t5.c1)], [t5.c3*t5.c4], [t5.c3])
+0 - output([69], [COUNT(DISTINCT t5.c1)], [t5.c3*t5.c4], [t5.c3])
+sort_keys([69 ASC], [COUNT(DISTINCT t5.c1) DESC], [t5.c3*t5.c4 ASC], [t5.c3 DESC])
+1 - output([COUNT(DISTINCT t5.c1)], [t5.c3*t5.c4], [t5.c3])
 group_by_exprs([t5.c3*t5.c4], [69], [t5.c3])
 aggr_exprs([COUNT(DISTINCT t5.c1)], [COUNT(DISTINCT t5.c1)])
-2 - output expr([t5.c3*t5.c4], [t5.c3], [t5.c1])
+2 - output([t5.c3*t5.c4], [t5.c3], [t5.c1])
 access([t5.c1], [t5.c3], [t5.c4])
 
 SELECT  69 AS C1, COUNT(DISTINCT T5.C1) AS C2, (T5.C3 * T5.C4) AS C3, T5.C3 AS C4 FROM T1 T5  GROUP BY (T5.C3 * T5.C4), 69, T5.C3  ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
@@ -206,16 +206,16 @@ SELECT  69 AS C1, COUNT(DISTINCT T5.C1) AS C2, (T5.C3 * T5.C4) AS C3, T5.C3 AS C
 EXPLAIN SELECT  45 AS C1, (T6.C3 * (((87 / 31) * T6.C2 - 33) + T6.C1) + T6.C2) AS C2, T6.C3 AS C3, T6.C2 AS C4 FROM T1 T6    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T6   | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T6   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([45], [t6.c3*87/31*t6.c2-33+t6.c1+t6.c2], [t6.c3], [t6.c2])
-sort keys([45 DESC], [t6.c3*87/31*t6.c2-33+t6.c1+t6.c2 DESC], [t6.c3 ASC], [t6.c2 ASC])
-1 - output expr([t6.c3], [t6.c2])
+0 - output([45], [t6.c3*87/31*t6.c2-33+t6.c1+t6.c2], [t6.c3], [t6.c2])
+sort_keys([45 DESC], [t6.c3*87/31*t6.c2-33+t6.c1+t6.c2 DESC], [t6.c3 ASC], [t6.c2 ASC])
+1 - output([t6.c3], [t6.c2])
 access([t6.c3], [t6.c2], [t6.c1])
 
 SELECT  45 AS C1, (T6.C3 * (((87 / 31) * T6.C2 - 33) + T6.C1) + T6.C2) AS C2, T6.C3 AS C3, T6.C2 AS C4 FROM T1 T6    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC
@@ -239,19 +239,19 @@ SELECT  45 AS C1, (T6.C3 * (((87 / 31) * T6.C2 - 33) + T6.C1) + T6.C2) AS C2, T6
 EXPLAIN SELECT  (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1) AS C1, 36 AS C2, 36 AS C3, 22 AS C4 FROM T1 T7  GROUP BY 36, (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1)  ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T7   | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 171565 |
+| 1  |  GROUP BY    |      | 100000    | 33410  |
+| 2  |   TABLE SCAN | T7   | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1], [36], [36], [22])
-sort keys([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1 DESC], [36 DESC], [36 ASC], [22 DESC])
-1 - output expr([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
+0 - output([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1], [36], [36], [22])
+sort_keys([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1 DESC], [36 DESC], [36 ASC], [22 DESC])
+1 - output([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
 group_by_exprs([36], [58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
-2 - output expr([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
+2 - output([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
 access([t7.c4], [t7.c1], [t7.c2])
 
 SELECT  (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1) AS C1, 36 AS C2, 36 AS C3, 22 AS C4 FROM T1 T7  GROUP BY 36, (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1)  ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC
@@ -272,20 +272,20 @@ SELECT  (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2
 EXPLAIN SELECT  (T8.C2 / 19) AS C1, T8.C2 AS C2, AVG(17) AS C3, 80 AS C4 FROM T1 T8  GROUP BY T8.C2  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T8   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 39054 |
+| 1  |  GROUP BY    |      | 1000      | 38225 |
+| 2  |   TABLE SCAN | T8   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t8.c2/19], [t8.c2], [AVG(17)], [80])
-sort keys([t8.c2/19 ASC], [t8.c2 ASC], [AVG(17) DESC], [80 ASC])
-1 - output expr([t8.c2/19], [t8.c2], [AVG(17)])
+0 - output([t8.c2/19], [t8.c2], [AVG(17)], [80])
+sort_keys([t8.c2/19 ASC], [t8.c2 ASC], [AVG(17) DESC], [80 ASC])
+1 - output([t8.c2/19], [t8.c2], [AVG(17)])
 group_by_exprs([t8.c2])
 aggr_exprs([AVG(17)], [AVG(17)])
-2 - output expr([t8.c2], [t8.c2/19])
+2 - output([t8.c2], [t8.c2/19])
 access([t8.c2])
 
 SELECT  (T8.C2 / 19) AS C1, T8.C2 AS C2, AVG(17) AS C3, 80 AS C4 FROM T1 T8  GROUP BY T8.C2  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
@@ -306,20 +306,20 @@ SELECT  (T8.C2 / 19) AS C1, T8.C2 AS C2, AVG(17) AS C3, 80 AS C4 FROM T1 T8  GRO
 EXPLAIN SELECT  94 AS C1, 40 AS C2, MIN(48) AS C3, MIN(DISTINCT 92) AS C4 FROM T1 T9  GROUP BY T9.C4, (57 - T9.C1) * T9.C4, T9.C1  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T9   | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 186565 |
+| 1  |  GROUP BY    |      | 100000    | 48410  |
+| 2  |   TABLE SCAN | T9   | 100000    | 10410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([94], [40], [MIN(48)], [MIN(DISTINCT 92)])
-sort keys([94 ASC], [40 DESC], [MIN(48) DESC], [MIN(DISTINCT 92) ASC])
-1 - output expr([MIN(48)], [MIN(DISTINCT 92)])
+0 - output([94], [40], [MIN(48)], [MIN(DISTINCT 92)])
+sort_keys([94 ASC], [40 DESC], [MIN(48) DESC], [MIN(DISTINCT 92) ASC])
+1 - output([MIN(48)], [MIN(DISTINCT 92)])
 group_by_exprs([t9.c4], [57-t9.c1*t9.c4], [t9.c1])
 aggr_exprs([MIN(48)], [MIN(DISTINCT 92)], [MIN(48)], [MIN(DISTINCT 92)])
-2 - output expr([t9.c4], [57-t9.c1*t9.c4], [t9.c1])
+2 - output([t9.c4], [57-t9.c1*t9.c4], [t9.c1])
 access([t9.c4], [t9.c1])
 
 SELECT  94 AS C1, 40 AS C2, MIN(48) AS C3, MIN(DISTINCT 92) AS C4 FROM T1 T9  GROUP BY T9.C4, (57 - T9.C1) * T9.C4, T9.C1  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
@@ -343,16 +343,16 @@ SELECT  94 AS C1, 40 AS C2, MIN(48) AS C3, MIN(DISTINCT 92) AS C4 FROM T1 T9  GR
 EXPLAIN SELECT  (T10.C4 - T10.C3) AS C1, 70 AS C2, T10.C1 AS C3, T10.C3 AS C4 FROM T1 T10    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T10  | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T10  | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t10.c4-t10.c3], [70], [t10.c1], [t10.c3])
-sort keys([t10.c4-t10.c3 ASC], [70 ASC], [t10.c1 ASC], [t10.c3 DESC])
-1 - output expr([t10.c4-t10.c3], [t10.c1], [t10.c3])
+0 - output([t10.c4-t10.c3], [70], [t10.c1], [t10.c3])
+sort_keys([t10.c4-t10.c3 ASC], [70 ASC], [t10.c1 ASC], [t10.c3 DESC])
+1 - output([t10.c4-t10.c3], [t10.c1], [t10.c3])
 access([t10.c4], [t10.c3], [t10.c1])
 
 SELECT  (T10.C4 - T10.C3) AS C1, 70 AS C2, T10.C1 AS C3, T10.C3 AS C4 FROM T1 T10    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
@@ -376,16 +376,16 @@ SELECT  (T10.C4 - T10.C3) AS C1, 70 AS C2, T10.C1 AS C3, T10.C3 AS C4 FROM T1 T1
 EXPLAIN SELECT  (T11.C3 / T11.C2) AS C1, T11.C4 AS C2, T11.C3 AS C3, T11.C4 AS C4 FROM T1 T11    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T11  | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T11  | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t11.c3/t11.c2], [t11.c4], [t11.c3], [t11.c4])
-sort keys([t11.c3/t11.c2 ASC], [t11.c4 ASC], [t11.c3 DESC], [t11.c4 DESC])
-1 - output expr([t11.c3/t11.c2], [t11.c4], [t11.c3])
+0 - output([t11.c3/t11.c2], [t11.c4], [t11.c3], [t11.c4])
+sort_keys([t11.c3/t11.c2 ASC], [t11.c4 ASC], [t11.c3 DESC], [t11.c4 DESC])
+1 - output([t11.c3/t11.c2], [t11.c4], [t11.c3])
 access([t11.c3], [t11.c2], [t11.c4])
 
 SELECT  (T11.C3 / T11.C2) AS C1, T11.C4 AS C2, T11.C3 AS C3, T11.C4 AS C4 FROM T1 T11    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
@@ -409,20 +409,20 @@ SELECT  (T11.C3 / T11.C2) AS C1, T11.C4 AS C2, T11.C3 AS C3, T11.C4 AS C4 FROM T
 EXPLAIN SELECT  T12.C3 AS C1, T12.C3 AS C2, COUNT(DISTINCT T12.C1) AS C3, 79 AS C4 FROM T1 T12  GROUP BY T12.C2 / T12.C4, 47, T12.C3, T12.C1, T12.C3  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T12  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 201565 |
+| 1  |  GROUP BY    |      | 100000    | 63410  |
+| 2  |   TABLE SCAN | T12  | 100000    | 20410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([t12.c3], [t12.c3], [COUNT(DISTINCT t12.c1)], [79])
-sort keys([t12.c3 ASC], [t12.c3 ASC], [COUNT(DISTINCT t12.c1) DESC], [79 DESC])
-1 - output expr([t12.c3], [COUNT(DISTINCT t12.c1)])
+0 - output([t12.c3], [t12.c3], [COUNT(DISTINCT t12.c1)], [79])
+sort_keys([t12.c3 ASC], [t12.c3 ASC], [COUNT(DISTINCT t12.c1) DESC], [79 DESC])
+1 - output([t12.c3], [COUNT(DISTINCT t12.c1)])
 group_by_exprs([t12.c2/t12.c4], [47], [t12.c3], [t12.c1], [t12.c3])
 aggr_exprs([COUNT(DISTINCT t12.c1)], [COUNT(DISTINCT t12.c1)])
-2 - output expr([t12.c2/t12.c4], [t12.c3], [t12.c1])
+2 - output([t12.c2/t12.c4], [t12.c3], [t12.c1])
 access([t12.c3], [t12.c1], [t12.c2], [t12.c4])
 
 SELECT  T12.C3 AS C1, T12.C3 AS C2, COUNT(DISTINCT T12.C1) AS C3, 79 AS C4 FROM T1 T12  GROUP BY T12.C2 / T12.C4, 47, T12.C3, T12.C1, T12.C3  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
@@ -446,19 +446,19 @@ SELECT  T12.C3 AS C1, T12.C3 AS C2, COUNT(DISTINCT T12.C1) AS C3, 79 AS C4 FROM 
 EXPLAIN SELECT  60 AS C1, 88 AS C2, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C3, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C4 FROM T1 T13  GROUP BY (((T13.C2 - T13.C3) - T13.C3) - T13.C3), T13.C4  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T13  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 171565 |
+| 1  |  GROUP BY    |      | 100000    | 33410  |
+| 2  |   TABLE SCAN | T13  | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([60], [88], [t13.c2-t13.c3-t13.c3-t13.c3], [t13.c2-t13.c3-t13.c3-t13.c3])
-sort keys([60 ASC], [88 DESC], [t13.c2-t13.c3-t13.c3-t13.c3 DESC], [t13.c2-t13.c3-t13.c3-t13.c3 ASC])
-1 - output expr([t13.c2-t13.c3-t13.c3-t13.c3])
+0 - output([60], [88], [t13.c2-t13.c3-t13.c3-t13.c3], [t13.c2-t13.c3-t13.c3-t13.c3])
+sort_keys([60 ASC], [88 DESC], [t13.c2-t13.c3-t13.c3-t13.c3 DESC], [t13.c2-t13.c3-t13.c3-t13.c3 ASC])
+1 - output([t13.c2-t13.c3-t13.c3-t13.c3])
 group_by_exprs([t13.c2-t13.c3-t13.c3-t13.c3], [t13.c4])
-2 - output expr([t13.c2-t13.c3-t13.c3-t13.c3], [t13.c4])
+2 - output([t13.c2-t13.c3-t13.c3-t13.c3], [t13.c4])
 access([t13.c2], [t13.c3], [t13.c4])
 
 SELECT  60 AS C1, 88 AS C2, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C3, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C4 FROM T1 T13  GROUP BY (((T13.C2 - T13.C3) - T13.C3) - T13.C3), T13.C4  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
@@ -482,20 +482,20 @@ SELECT  60 AS C1, 88 AS C2, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C3, (((T1
 EXPLAIN SELECT  AVG(DISTINCT 6) AS C1, AVG(DISTINCT T14.C2) AS C2, (T14.C3 / T14.C1) AS C3, T14.C1 AS C4 FROM T1 T14  GROUP BY T14.C1, (T14.C3 / T14.C1), 15, 81, T14.C1  ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T14  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 203565 |
+| 1  |  GROUP BY    |      | 100000    | 65410  |
+| 2  |   TABLE SCAN | T14  | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [t14.c3/t14.c1], [t14.c1])
-sort keys([AVG(DISTINCT 6) DESC], [AVG(DISTINCT t14.c2) ASC], [t14.c3/t14.c1 DESC], [t14.c1 ASC])
-1 - output expr([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [t14.c3/t14.c1], [t14.c1])
+0 - output([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [t14.c3/t14.c1], [t14.c1])
+sort_keys([AVG(DISTINCT 6) DESC], [AVG(DISTINCT t14.c2) ASC], [t14.c3/t14.c1 DESC], [t14.c1 ASC])
+1 - output([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [t14.c3/t14.c1], [t14.c1])
 group_by_exprs([t14.c1], [t14.c3/t14.c1], [15], [81], [t14.c1])
 aggr_exprs([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)])
-2 - output expr([t14.c1], [t14.c3/t14.c1], [t14.c2])
+2 - output([t14.c1], [t14.c3/t14.c1], [t14.c2])
 access([t14.c2], [t14.c3], [t14.c1])
 
 SELECT  AVG(DISTINCT 6) AS C1, AVG(DISTINCT T14.C2) AS C2, (T14.C3 / T14.C1) AS C3, T14.C1 AS C4 FROM T1 T14  GROUP BY T14.C1, (T14.C3 / T14.C1), 15, 81, T14.C1  ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
@@ -517,16 +517,16 @@ SELECT  AVG(DISTINCT 6) AS C1, AVG(DISTINCT T14.C2) AS C2, (T14.C3 / T14.C1) AS 
 EXPLAIN SELECT  (T15.C1 + T15.C3) AS C1, T15.C3 AS C2, T15.C1 AS C3, T15.C1 AS C4 FROM T1 T15    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T15  | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 148565 |
+| 1  |  TABLE SCAN | T15  | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t15.c1+t15.c3], [t15.c3], [t15.c1], [t15.c1])
-sort keys([t15.c1+t15.c3 ASC], [t15.c3 DESC], [t15.c1 DESC], [t15.c1 DESC])
-1 - output expr([t15.c1+t15.c3], [t15.c3], [t15.c1])
+0 - output([t15.c1+t15.c3], [t15.c3], [t15.c1], [t15.c1])
+sort_keys([t15.c1+t15.c3 ASC], [t15.c3 DESC], [t15.c1 DESC], [t15.c1 DESC])
+1 - output([t15.c1+t15.c3], [t15.c3], [t15.c1])
 access([t15.c1], [t15.c3])
 
 SELECT  (T15.C1 + T15.C3) AS C1, T15.C3 AS C2, T15.C1 AS C3, T15.C1 AS C4 FROM T1 T15    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
@@ -550,19 +550,19 @@ SELECT  (T15.C1 + T15.C3) AS C1, T15.C3 AS C2, T15.C1 AS C3, T15.C1 AS C4 FROM T
 EXPLAIN SELECT  69 AS C1, 69 AS C2, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1) AS C3, 69 AS C4 FROM T1 T16  GROUP BY 69, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1), T16.C3, 97  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T16  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 183565 |
+| 1  |  GROUP BY    |      | 100000    | 45410  |
+| 2  |   TABLE SCAN | T16  | 100000    | 15410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([69], [69], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [69])
-sort keys([69 DESC], [69 ASC], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1 ASC], [69 DESC])
-1 - output expr([t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1])
+0 - output([69], [69], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [69])
+sort_keys([69 DESC], [69 ASC], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1 ASC], [69 DESC])
+1 - output([t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1])
 group_by_exprs([69], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [t16.c3], [97])
-2 - output expr([t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [t16.c3])
+2 - output([t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [t16.c3])
 access([t16.c3], [t16.c4], [t16.c1])
 
 SELECT  69 AS C1, 69 AS C2, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1) AS C3, 69 AS C4 FROM T1 T16  GROUP BY 69, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1), T16.C3, 97  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC
@@ -586,16 +586,16 @@ SELECT  69 AS C1, 69 AS C2, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1
 EXPLAIN SELECT  T17.C2 * T17.C2 AS C1, T17.C2 AS C2, T17.C1 AS C3, T17.C2 AS C4 FROM T1 T17    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T17  | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 148565 |
+| 1  |  TABLE SCAN | T17  | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t17.c2*t17.c2], [t17.c2], [t17.c1], [t17.c2])
-sort keys([t17.c2*t17.c2 DESC], [t17.c2 ASC], [t17.c1 DESC], [t17.c2 ASC])
-1 - output expr([t17.c2*t17.c2], [t17.c2], [t17.c1])
+0 - output([t17.c2*t17.c2], [t17.c2], [t17.c1], [t17.c2])
+sort_keys([t17.c2*t17.c2 DESC], [t17.c2 ASC], [t17.c1 DESC], [t17.c2 ASC])
+1 - output([t17.c2*t17.c2], [t17.c2], [t17.c1])
 access([t17.c2], [t17.c1])
 
 SELECT  T17.C2 * T17.C2 AS C1, T17.C2 AS C2, T17.C1 AS C3, T17.C2 AS C4 FROM T1 T17    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
@@ -619,20 +619,20 @@ SELECT  T17.C2 * T17.C2 AS C1, T17.C2 AS C2, T17.C1 AS C3, T17.C2 AS C4 FROM T1 
 EXPLAIN SELECT  MIN(T18.C3) AS C1, AVG(T18.C2) AS C2, AVG(T18.C3) AS C3, T18.C4 AS C4 FROM T1 T18  GROUP BY T18.C4, (((T18.C3 * 46 * 4) - T18.C4 + T18.C1 + T18.C2) * 38), T18.C4, 73  ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T18  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 209565 |
+| 1  |  GROUP BY    |      | 100000    | 71410  |
+| 2  |   TABLE SCAN | T18  | 100000    | 20410  |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [t18.c4])
-sort keys([MIN(t18.c3) ASC], [AVG(t18.c2) ASC], [AVG(t18.c3) ASC], [t18.c4 ASC])
-1 - output expr([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [t18.c4])
+0 - output([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [t18.c4])
+sort_keys([MIN(t18.c3) ASC], [AVG(t18.c2) ASC], [AVG(t18.c3) ASC], [t18.c4 ASC])
+1 - output([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [t18.c4])
 group_by_exprs([t18.c4], [t18.c3*46*4-t18.c4+t18.c1+t18.c2*38], [t18.c4], [73])
 aggr_exprs([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)])
-2 - output expr([t18.c4], [t18.c3*46*4-t18.c4+t18.c1+t18.c2*38], [t18.c3], [t18.c2])
+2 - output([t18.c4], [t18.c3*46*4-t18.c4+t18.c1+t18.c2*38], [t18.c3], [t18.c2])
 access([t18.c3], [t18.c2], [t18.c4], [t18.c1])
 
 SELECT  MIN(T18.C3) AS C1, AVG(T18.C2) AS C2, AVG(T18.C3) AS C3, T18.C4 AS C4 FROM T1 T18  GROUP BY T18.C4, (((T18.C3 * 46 * 4) - T18.C4 + T18.C1 + T18.C2) * 38), T18.C4, 73  ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
@@ -656,20 +656,20 @@ SELECT  MIN(T18.C3) AS C1, AVG(T18.C2) AS C2, AVG(T18.C3) AS C3, T18.C4 AS C4 FR
 EXPLAIN SELECT  96 AS C1, (T19.C4 - T19.C4) AS C2, 82 AS C3, COUNT(T19.C4) AS C4 FROM T1 T19  GROUP BY 82, (T19.C4 - T19.C4)  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  GROUP BY    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T19  | 0         | 0    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | SORT         |      | 100000    | 168565 |
+| 1  |  GROUP BY    |      | 100000    | 30410  |
+| 2  |   TABLE SCAN | T19  | 100000    | 5410   |
++-----------------------------------------------+
 Outputs & filters:
-0 - output expr([96], [t19.c4-t19.c4], [82], [COUNT(t19.c4)])
-sort keys([96 ASC], [t19.c4-t19.c4 ASC], [82 DESC], [COUNT(t19.c4) ASC])
-1 - output expr([t19.c4-t19.c4], [COUNT(t19.c4)])
+0 - output([96], [t19.c4-t19.c4], [82], [COUNT(t19.c4)])
+sort_keys([96 ASC], [t19.c4-t19.c4 ASC], [82 DESC], [COUNT(t19.c4) ASC])
+1 - output([t19.c4-t19.c4], [COUNT(t19.c4)])
 group_by_exprs([82], [t19.c4-t19.c4])
 aggr_exprs([COUNT(t19.c4)], [COUNT(t19.c4)])
-2 - output expr([t19.c4-t19.c4], [t19.c4])
+2 - output([t19.c4-t19.c4], [t19.c4])
 access([t19.c4])
 
 SELECT  96 AS C1, (T19.C4 - T19.C4) AS C2, 82 AS C3, COUNT(T19.C4) AS C4 FROM T1 T19  GROUP BY 82, (T19.C4 - T19.C4)  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
@@ -684,16 +684,16 @@ SELECT  96 AS C1, (T19.C4 - T19.C4) AS C2, 82 AS C3, COUNT(T19.C4) AS C4 FROM T1
 EXPLAIN SELECT  T20.C1 AS C1, T20.C1 AS C2, T20.C3 AS C3, T20.C2 AS C4 FROM T1 T20    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 0         | 0    |
-| 1  |  TABLE SCAN | T20  | 0         | 0    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T20  | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t20.c1], [t20.c1], [t20.c3], [t20.c2])
-sort keys([t20.c1 DESC], [t20.c1 DESC], [t20.c3 ASC], [t20.c2 DESC])
-1 - output expr([t20.c1], [t20.c3], [t20.c2])
+0 - output([t20.c1], [t20.c1], [t20.c3], [t20.c2])
+sort_keys([t20.c1 DESC], [t20.c1 DESC], [t20.c3 ASC], [t20.c2 DESC])
+1 - output([t20.c1], [t20.c3], [t20.c2])
 access([t20.c1], [t20.c3], [t20.c2])
 
 SELECT  T20.C1 AS C1, T20.C1 AS C2, T20.C3 AS C3, T20.C2 AS C4 FROM T1 T20    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC

@@ -57,7 +57,8 @@
 #define IS_ALL_COLUMN_STMT	    0x36
 #define MARK_ROW                0x37
 #define NO_MORE_MEMORY          0x38
-#define MAX_ERROR_CODE			0x39
+#define MORE_THAN_ONE_ROW       0x39
+#define MAX_ERROR_CODE			0x3a
 
 #include "type.h"
 #include "log.h"

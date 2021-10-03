@@ -16,9 +16,12 @@ namespace CatDB {
 			virtual ~LogDistinct() {}
 			virtual u32 type() const {return LogicalOperator::LOG_DISTINCT;}
 			static LogicalOperator_s make_distinct(LogicalOperator_s &child);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
+			void set_distinct_exprs(const Vector<ExprStmt_s> &exprs) { distinct_exprs = exprs; }
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
 		public:
-			
+			Vector<ExprStmt_s> distinct_exprs;
 		};
 	}
 }

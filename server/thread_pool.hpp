@@ -156,12 +156,12 @@ namespace CatDB {
 			{
 				m_tasks.clear();
 				m_exit.store(true);
-				LOG_ERR("wait for all workers exit...", K(m_workers.size()));
+				LOG_INFO("wait for all workers exit...", K(m_workers.size()));
 				while (m_stop_count.load() != m_workers.size()) {
 					m_condition.notify_all();
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
-				LOG_ERR("all workers exit");
+				LOG_INFO("all workers exit");
 			}
 
 		private:

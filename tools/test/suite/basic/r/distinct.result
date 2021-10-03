@@ -29,18 +29,18 @@ SELECT * FROM T1
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 DESC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 DESC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -61,18 +61,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 DESC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 DESC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -93,18 +93,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -124,18 +124,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 ASC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 ASC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -156,18 +156,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 ASC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 ASC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -188,18 +188,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 ASC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 ASC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -219,18 +219,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -250,18 +250,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c1])
-sort keys([t1.c1 DESC])
-1 - output expr([t1.c1])
-2 - output expr([t1.c1])
+0 - output([t1.c1])
+sort_keys([t1.c1 DESC])
+1 - output([t1.c1])
+2 - output([t1.c1])
 access([t1.c1])
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -282,18 +282,18 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c1])
-sort keys([t1.c1 ASC])
-1 - output expr([t1.c1])
-2 - output expr([t1.c1])
+0 - output([t1.c1])
+sort_keys([t1.c1 ASC])
+1 - output([t1.c1])
+2 - output([t1.c1])
 access([t1.c1])
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -314,18 +314,18 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -345,18 +345,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -376,18 +376,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 ASC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 ASC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -407,18 +407,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c1])
-sort keys([t1.c1 DESC])
-1 - output expr([t1.c1])
-2 - output expr([t1.c1])
+0 - output([t1.c1])
+sort_keys([t1.c1 DESC])
+1 - output([t1.c1])
+2 - output([t1.c1])
 access([t1.c1])
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -439,18 +439,18 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c1])
-sort keys([t1.c1 DESC])
-1 - output expr([t1.c1])
-2 - output expr([t1.c1])
+0 - output([t1.c1])
+sort_keys([t1.c1 DESC])
+1 - output([t1.c1])
+2 - output([t1.c1])
 access([t1.c1])
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -471,18 +471,18 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 ASC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 ASC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -503,18 +503,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -534,18 +534,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 ASC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 ASC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -565,18 +565,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c2])
-sort keys([t1.c2 DESC])
-1 - output expr([t1.c2])
-2 - output expr([t1.c2])
+0 - output([t1.c2])
+sort_keys([t1.c2 DESC])
+1 - output([t1.c2])
+2 - output([t1.c2])
 access([t1.c2])
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -596,18 +596,18 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c3])
-sort keys([t1.c3 ASC])
-1 - output expr([t1.c3])
-2 - output expr([t1.c3])
+0 - output([t1.c3])
+sort_keys([t1.c3 ASC])
+1 - output([t1.c3])
+2 - output([t1.c3])
 access([t1.c3])
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -628,18 +628,18 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C4 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | SORT         |      | 0         | 0    |
-| 1  |  DISTINCT    |      | 0         | 0    |
-| 2  |   TABLE SCAN | T1   | 0         | 0    |
-+---------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST  |
++----------------------------------------------+
+| 0  | SORT         |      | 1000      | 18617 |
+| 1  |  DISTINCT    |      | 1000      | 18410 |
+| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
++----------------------------------------------+
 Outputs & filters:
-0 - output expr([t1.c4])
-sort keys([t1.c4 DESC])
-1 - output expr([t1.c4])
-2 - output expr([t1.c4])
+0 - output([t1.c4])
+sort_keys([t1.c4 DESC])
+1 - output([t1.c4])
+2 - output([t1.c4])
 access([t1.c4])
 
 SELECT DISTINCT T1.C4 AS C1 FROM T1 T1    ORDER BY 1 DESC

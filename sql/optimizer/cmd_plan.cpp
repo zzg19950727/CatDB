@@ -97,6 +97,16 @@ u32 CMDPlan::do_cmd_create_table()
 	CHECK(stmt->get_create_table_params(database, table, columns));
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
+	TableInfo_s info;
+	ret = guard->find_table_info(database, table, info);
+	if (SUCC(ret)) {
+		String msg = "table " + database + "." + table + " exists!";
+		query_ctx->set_error_msg(msg);
+		ret = TABLE_EXISTS;
+		return ret;
+	} else {
+		ret = SUCCESS;
+	}
 	CHECK(guard->add_table(database, table, columns));
 	CHECK(TableSpace::create_table(database, table));
 	return ret;
@@ -119,6 +129,8 @@ u32 CMDPlan::do_cmd_drop_table()
 		ret = SUCCESS;
 		return ret;
 	} else if (FAIL(ret)) {
+		String msg = "table " + database + "." + table + " not exists!";
+		query_ctx->set_error_msg(msg);
 		return ret;
 	}
 	CHECK(TableSpace::delete_table(database, table));
@@ -135,6 +147,16 @@ u32 CMDPlan::do_cmd_create_database()
 	CHECK(stmt->get_create_database_params(database));
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
+	DatabaseInfo_s info;
+	ret = guard->find_database_info(database, info);
+	if (SUCC(ret)) {
+		String msg = "database " + database + " exists!";
+		query_ctx->set_error_msg(msg);
+		ret = DATABASE_EXISTS;
+		return ret;
+	} else {
+		ret = SUCCESS;
+	}
 	CHECK(TableSpace::create_database(database));
 	CHECK(guard->add_database(database));
 	return ret;
@@ -156,6 +178,8 @@ u32 CMDPlan::do_cmd_drop_database()
 		ret = SUCCESS;
 		return ret;
 	} else if (FAIL(ret)) {
+		String msg = "database " + database + " not exists!";
+		query_ctx->set_error_msg(msg);
 		return ret;
 	}
 	CHECK(guard->del_database(database));
@@ -227,6 +251,15 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 	bool is_show_column_statis;
 	
 	CHECK(stmt->get_desc_table_params(database, table, is_show_table_statis, is_show_column_statis));
+	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	MY_ASSERT(guard);
+	TableInfo_s info;
+	ret = guard->find_table_info(database, table, info);
+	if (FAIL(ret)) {
+		String msg = "table " + database + "." + table + " not exists!";
+		query_ctx->set_error_msg(msg);
+		return ret;
+	}
 	if (is_show_table_statis) {
 		CHECK(show_table_statis(database, table, query_result));
 	} else if (is_show_column_statis) {
@@ -306,7 +339,7 @@ u32 CMDPlan::show_table_statis(const String &database, const String &table, Resu
 	String query = R"(select row_count,space_size,analyze_time
 				from `system`.`table_statis`  
 				where `tid` = )" + std::to_string(tid) +
-		R"( order by `analyze_time` desc;)";
+		R"( order by `analyze_time` desc limit 1;)";
 	CHECK(SqlEngine::handle_inner_sql(query, *query_ctx, query_result));
 	return ret;
 }
@@ -323,8 +356,12 @@ u32 CMDPlan::show_column_statis(const String &database, const String &table, Res
 				from system.sys_databases as db, system.sys_tables as tb, 
 				system.sys_columns as col, `system`.`column_statis` as cs  
 				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
-				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + 
-				std::to_string(tid) + R"( order by `analyze_time` desc;)";
+				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) +
+				R"(and cs.analyze_time = (select max(cs.analyze_time) from system.sys_databases as db, system.sys_tables as tb, 
+				system.sys_columns as col, `system`.`column_statis` as cs  
+				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
+				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) + ")" +
+				R"( order by col.id asc;)";
 	CHECK(SqlEngine::handle_inner_sql(query, *query_ctx, query_result));
 	return ret;
 }
@@ -337,6 +374,15 @@ u32 CMDPlan::do_cmd_use_database()
 	u32 id;
 	
 	CHECK(stmt->get_use_database_params(database));
+	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	MY_ASSERT(guard);
+	DatabaseInfo_s info;
+	ret = guard->find_database_info(database, info);
+	if (FAIL(ret)) {
+		String msg = "database " + database + " not exists!";
+		query_ctx->set_error_msg(msg);
+		return ret;
+	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	MY_ASSERT(checker);
 	CHECK(checker->get_database_id(database, id));
@@ -371,8 +417,8 @@ u32 CMDPlan::do_set_var()
 		int level = LOG_LEVEL_ERR;
 		if (var_value == "trace") {
 			level = LOG_LEVEL_TRACE;
-		} else if (var_value == "warning") {
-			level = LOG_LEVEL_WARN;
+		} else if (var_value == "info") {
+			level = LOG_LEVEL_INFO;
 		} else if (var_value == "error") {
 			level = LOG_LEVEL_ERR;
 		} else {

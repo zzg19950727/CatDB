@@ -34,6 +34,7 @@
 #include "phy_view.h"
 #include "phy_expression.h"
 #include "phy_filter.h"
+#include "phy_subquery_evaluate.h"
 
 #include "query_ctx.h"
 #include "table_space.h"
@@ -51,11 +52,31 @@ using namespace CatDB::Sql;
 u32 CodeGenerator::generate_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& log_root, PhyOperator_s &phy_root)
 {
 	u32 ret = SUCCESS;
+    CHECK(generate_phy_plan_pre(ctx, log_root));
+    CHECK(generate_child_phy_plan(ctx, log_root));
+    CHECK(generate_phy_plan_post(ctx, log_root, phy_root));
+	return ret;
+}
+
+u32 CodeGenerator::generate_phy_plan_pre(ExprGenerateCtx &ctx, LogicalOperator_s& log_root)
+{
+    u32 ret = SUCCESS;
     MY_ASSERT(log_root);
-    if (LogicalOperator::LOG_SUBQUERY_EVALUATE == log_root->type()) {
-        CHECK(generate_subquery_evaluate_op(ctx, log_root, phy_root));
+    //generate phy plan pre
+    switch (log_root->type())
+    {
+    case LogicalOperator::LOG_SUBQUERY_EVALUATE:
+        CHECK(generate_subquery_evaluate_op_pre(ctx, log_root));
+        break;
     }
+    return ret;
+}
+
+u32 CodeGenerator::generate_child_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& log_root)
+{
+    u32 ret = SUCCESS;
     MY_ASSERT(log_root);
+    //generate phy child plan
     Vector<PhyOperator_s> child_ops;
     PhyOperator_s phy_op;
     for (u32 i = 0; i < log_root->childs.size(); ++i) {
@@ -63,6 +84,13 @@ u32 CodeGenerator::generate_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& lo
         child_ops.push_back(phy_op);
     }
     ctx.child_ops = child_ops;
+    return ret;
+}
+
+u32 CodeGenerator::generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_s& log_root, PhyOperator_s &phy_root)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(log_root);
     CHECK(generate_access_exprs(ctx, log_root));
     switch (log_root->type())
     {
@@ -107,6 +135,9 @@ u32 CodeGenerator::generate_phy_plan(ExprGenerateCtx &ctx, LogicalOperator_s& lo
         break;
     case LogicalOperator::LOG_VIEW:
         CHECK(generate_view_op(ctx, log_root, phy_root));
+        break;
+    case LogicalOperator::LOG_SUBQUERY_EVALUATE:
+        CHECK(generate_subquery_evaluate_op(ctx, log_root, phy_root));
         break;
     default:
         ret = ERR_UNEXPECTED;
@@ -334,7 +365,7 @@ u32 CodeGenerator::generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op,
 	return ret;
 }
 
-u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOperator_s &log_op, PhyOperator_s &phy_op)
+u32 CodeGenerator::generate_subquery_evaluate_op_pre(ExprGenerateCtx &ctx, LogicalOperator_s &log_op)
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(LogicalOperator::LOG_SUBQUERY_EVALUATE == log_op->type(), 
@@ -344,10 +375,23 @@ u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOp
     ctx.subplan_map.clear();
     for (u32 i = 1; i < log_op->childs.size(); ++i) {
         SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i-1];
-        ctx.subplan_map[ctx.key(subquery)] = log_op->childs[i];
-        
+        ctx.subplan_map[subquery] = log_op->childs[i];
     }
-    log_op = log_op->childs[0];
+    LogicalOperator_s child = log_op->childs[0];
+    log_op->childs.clear();
+    log_op->childs.push_back(child);
+	return ret;
+}
+
+u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOperator_s &log_op, PhyOperator_s &phy_op)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(log_op, ctx.child_ops.size() == 1);
+    MY_ASSERT(LogicalOperator::LOG_SUBQUERY_EVALUATE == log_op->type());
+    LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
+    PhySubqueryEvaluate_s phy_subquery_evaluate = PhySubqueryEvaluate::make_subquery_evaluate(ctx.child_ops[0]);
+    phy_subquery_evaluate->add_children(ctx.phy_subplans);
+    phy_op = phy_subquery_evaluate;
 	return ret;
 }
 

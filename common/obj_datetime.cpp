@@ -159,7 +159,7 @@ Object_s DateTime::operator-(const Object_s & other)
 	else {
 		DateTime_s rhs = other;
 		if (data < rhs->data) {
-			LOG_WARN("uncorrect datetime after sub");
+			LOG_ERR("uncorrect datetime after sub");
 			return DateTime::make_object(0);
 		}
 		else {

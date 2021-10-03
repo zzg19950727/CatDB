@@ -74,7 +74,7 @@ u32 IoService::read_page(Page_s & page)
 		return UNKNOWN_PAGE_OFFSET;
 	}
 	u32 ret = fread(buffer->buf, 1, size, file_handle);
-	if (ret != size){
+	if (ret != size) {
 		LOG_ERR("read page error", err_string(ret));
 		return BAD_PAGE_IN_FILE;
 	}

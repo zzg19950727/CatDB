@@ -20,6 +20,9 @@ namespace CatDB {
         DECLARE(SingleChildLogicalOperator);
         DECLARE(DoubleChildLogicalOperator);
 		DECLARE(DMLPlan);
+		DECLARE(EstInfo);
+		DECLARE(ConflictDetector);
+		using Sql::QueryCtx;
 		using Parser::ExprStmt_s;
 		using Parser::ColumnStmt_s;
 		using Parser::TableStmt_s;
@@ -58,7 +61,15 @@ namespace CatDB {
                 cost(0) {}
 			virtual ~LogicalOperator() {}
 			virtual u32 type() const = 0;
-			void set_query_ctx(Sql::QueryCtx* query_ctx);
+			String get_op_name();
+			u32 init(QueryCtx *query_ctx, EstInfo_s& est_info);
+			u32 compute_property();
+			virtual u32 est_row_count();
+			virtual u32 est_cost();
+			double get_output_rows() { return output_rows; }
+			double get_cost() { return cost; }
+			const BitSet &get_tables_ids() const { return table_ids; }
+			void add_table_ids(const BitSet& ids) { table_ids.add_members(ids); }
 			virtual u32 allocate_expr_pre();
 			virtual u32 allocate_expr_post(Vector<ExprStmt_s> &expr_input, 
 										   Vector<ExprStmt_s> &expr_output);
@@ -78,18 +89,27 @@ namespace CatDB {
 			u32 visit_plan();
 			virtual void print_plan(u32 depth, Vector<PlanInfo> &plan_info) = 0;
 			void print_basic_info(u32 depth, PlanInfo& info, const String &type="");
-			void print_exprs(Vector<ExprStmt_s> &exprs, String &out);
-			void print_exprs(Vector<ExprStmt_s> &exprs, const String& type, String &out);
+			void print_exprs(Vector<ExprStmt_s> &exprs, 
+							 const String &title, 
+							 PlanInfo& info);
+			void print_exprs(Vector<ExprStmt_s> &exprs, 
+							 const String& type, 
+							 const String &title, 
+							 PlanInfo& info);
 			void print_expr(ExprStmt_s &expr, String &out);
+			Vector<ConflictDetector_s> &get_used_conflict_detectors() 
+			{ return used_conflict_detectors; }
 
 		public:
+			Vector<ConflictDetector_s> used_conflict_detectors;
 			Vector<LogicalOperator_s> childs;
 			Vector<ExprStmt_s> filters;
 			Vector<ExprStmt_s> output_exprs;
 			Vector<ExprStmt_s> access_exprs;
 			LogicalOperator_s parent;
+			EstInfo_s est_info;
+			QueryCtx *query_ctx;
 			BitSet table_ids;
-			Sql::QueryCtx *query_ctx;
 			DMLPlan_s plan;
             u32 operator_id;
             double output_rows;

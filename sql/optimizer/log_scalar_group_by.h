@@ -17,6 +17,8 @@ namespace CatDB {
 			virtual u32 type() const {return LogicalOperator::LOG_SCALAR_GROUP;}
 			static LogicalOperator_s make_scalar_group_by(const LogicalOperator_s& child,
 														Vector<ExprStmt_s> &agg_items);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
 		public:

@@ -208,6 +208,7 @@ namespace CatDB {
 			KV_STRING(
 				KV(flags, flags_to_string()),
 				K(table_ids),
+				K(output_one_row),
 				KV(corrected_exprss, params),
 				K(query_stmt)
 			);
@@ -216,6 +217,7 @@ namespace CatDB {
 			SelectStmt_s query_stmt;
 			Vector<ExecParamStmt_s> exec_params;
 			u32 subquery_id;
+			bool output_one_row;
 		};
 		//表达式列表
 		DECLARE(ListStmt);

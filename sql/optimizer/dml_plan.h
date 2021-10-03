@@ -13,6 +13,7 @@ namespace CatDB {
 		DECLARE(SelectStmt);
 	}
 	namespace Optimizer {
+		DECLARE(EstInfo);
 		DECLARE(LogicalOperator);
 		using Parser::Stmt_s;
 		using Parser::ExprStmt_s;
@@ -57,6 +58,7 @@ namespace CatDB {
 			KV_STRING(
 				K(join_info),
 				K(conflict_rules),
+				K(cross_product_rules),
 				K(table_set),
 				K(L_TES),
 				K(R_TES),
@@ -81,7 +83,8 @@ namespace CatDB {
 											Vector<ExprStmt_s> &conds,
 											Vector<ConflictDetector_s> &detectors);
 			u32 generate_cross_product_detector(Vector<TableStmt_s> &tables, 
-												Vector<ConflictDetector_s> &detectors);
+												Vector<ConflictDetector_s> &detectors,
+												Vector<ConflictDetector_s> &outer_join_detectors);
 			u32 flatten_table_items(Vector<TableStmt_s> &tables, 
 									Vector<ExprStmt_s> &conds);
 			u32 flatten_table_items(const TableStmt_s &table, 
@@ -123,7 +126,7 @@ namespace CatDB {
 			u32 generate_join_order_with_DP(u32 left_level, u32 right_level);
 			u32 choose_join_info(LogicalOperator_s &left_tree, 
 								 LogicalOperator_s &right_tree, 
-								 JoinInfo &join_info,
+								 Vector<ConflictDetector_s> &detectors,
 								 bool &is_legal);
 			u32 is_join_legal(const BitSet &left_tables, 
 							  const BitSet &right_tables, 
@@ -137,6 +140,7 @@ namespace CatDB {
 								   LogicalOperator_s &right_tree, 
 								   JoinInfo &join_info,
 								   LogicalOperator_s &join_plan);
+			u32 add_join_order(LogicalOperator_s& join_order, u32 level);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);
 			virtual u32 generate_plan_tree() = 0;
 			u32 set_table_access_columns(LogicalOperator_s &op);
@@ -145,6 +149,7 @@ namespace CatDB {
 		public:
 			Vector<Vector<LogicalOperator_s>> join_orders;
 			Vector<ConflictDetector_s> conflict_detectors;
+			EstInfo_s est_info;
 		};
 	}
 }

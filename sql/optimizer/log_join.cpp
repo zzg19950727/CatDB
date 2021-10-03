@@ -1,5 +1,7 @@
 #include "log_join.h"
 #include "expr_stmt.h"
+#include "opt_est_sel.h"
+#include "opt_est_cost.h"
 
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
@@ -13,6 +15,44 @@ LogicalOperator_s LogJoin::make_join(const LogicalOperator_s& left,
     join->join_type = join_type;
     join->join_algo = join_algo;
     return LogicalOperator_s(join);
+}
+
+u32 LogJoin::est_row_count()
+{
+    u32 ret = SUCCESS;
+    double selectivity = 1.0;
+    double sel = 1.0;
+    CHECK(EstSelUtil::calc_selectivity(est_info, equal_join_condition, sel));
+    selectivity *= sel;
+    CHECK(EstSelUtil::calc_selectivity(est_info, other_join_condition, sel));
+    selectivity *= sel;
+    CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
+    selectivity *= sel;
+    output_rows = left_child()->get_output_rows() * right_child()->get_output_rows() * selectivity;
+    return ret;
+}
+
+u32 LogJoin::est_cost()
+{
+    u32 ret = SUCCESS;
+    double op_cost = 0.0;
+    if (HASH_JOIN == join_algo) {
+        op_cost = EstCostUtil::cost_hash_join(left_child()->get_output_rows(),
+                                              right_child()->get_output_rows(),
+                                              output_rows,
+                                              equal_join_condition,
+                                              other_join_condition);
+    } else {
+        op_cost = EstCostUtil::cost_hash_join(left_child()->get_output_rows(),
+                                              right_child()->get_output_rows(),
+                                              right_child()->get_cost(),
+                                              equal_join_condition,
+                                              other_join_condition);
+    }
+    op_cost += EstCostUtil::cost_filters(output_rows, filters);
+    cost = op_cost;
+    cost += left_child()->get_cost() + right_child()->get_cost();
+    return ret;
 }
 
 u32  LogJoin::allocate_expr_pre()
@@ -34,10 +74,12 @@ void LogJoin::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
         info.op = "NESTED LOOP ";
     }
     info.op += JoinTypeString[join_type] + String(" JOIN");
-    info.expr_info += "equal_join_conditions:";
-    print_exprs(equal_join_condition, info.expr_info);
-    info.expr_info += "other_join_conditions:";
-    print_exprs(other_join_condition, info.expr_info);
+    if (!equal_join_condition.empty()) {
+        print_exprs(equal_join_condition, "equal_join_conditions", info);
+    }
+    if (!other_join_condition.empty()) {
+        print_exprs(other_join_condition, "other_join_conditions", info);
+    }
     plan_info.push_back(info);
     left_child()->print_plan(depth + 1, plan_info);
     right_child()->print_plan(depth + 1, plan_info);

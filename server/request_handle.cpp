@@ -198,33 +198,33 @@ u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 	{
 		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
 		{
-				LOG_WARN("process row packet failed", K(ret));
+				LOG_ERR("process row packet failed", K(ret));
 		}
 		else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 		{
-				LOG_WARN("process row eof packet failed", K(ret));
+				LOG_ERR("process row eof packet failed", K(ret));
 		}
 		return ret;
 	}
 	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
 	{
-		LOG_WARN("process resheasder packet failed", K(ret));
+		LOG_ERR("process resheasder packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
 	{
-		LOG_WARN("process field packet failed", K(ret));
+		LOG_ERR("process field packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 	{
-		LOG_WARN("process field eof packet failed", K(ret));
+		LOG_ERR("process field eof packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_row_packets(buf, buffer_pos, result_set)))
 	{
-		LOG_WARN("process row packet failed", K(ret));
+		LOG_ERR("process row packet failed", K(ret));
 	}
 	else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 	{
-		LOG_WARN("process row eof packet failed", K(ret));
+		LOG_ERR("process row eof packet failed", K(ret));
 	}
 	if (SUCCESS == ret)
 	{
@@ -381,7 +381,6 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
 	is_com_field_list = false;
-	LOG_TRACE("handle client command", K(u32(command)));
 	switch (command)
 	{
 		case COM_INIT_DB:
@@ -395,6 +394,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_QUERY:
 		{
 			String query(buf + 1, len - 1);
+			LOG_INFO("handle client command", K(query));
 			if (query.find("SHOW SESSION") != String::npos)
 					query = "select * from system.sys_vars";
 			else if (query.find("SELECT current_user") != String::npos)

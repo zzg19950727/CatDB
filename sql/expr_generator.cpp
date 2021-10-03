@@ -122,14 +122,16 @@ u32 ExprGenerator::generate_subquery_expr(ExprGenerateCtx &ctx,
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr);
-    auto iter = ctx.subplan_map.find(ctx.key(expr));
+    auto iter = ctx.subplan_map.find(expr);
     MY_ASSERT(iter != ctx.subplan_map.end());
     Vector<ExecParamExpression_s> rt_exec_params;
     CHECK(generate_exec_params(ctx, expr->exec_params, rt_exec_params));
     PhyOperator_s phy_op;
-    CHECK(CodeGenerator::generate_phy_plan(ctx, ctx.subplan_map[ctx.key(expr)], phy_op));
+    CHECK(CodeGenerator::generate_phy_plan(ctx, ctx.subplan_map[expr], phy_op));
+    ctx.phy_subplans.push_back(phy_op);
     SubplanExpression_s subplan_expr = SubplanExpression::make_subplan_expression(phy_op);
     subplan_expr->exec_params = rt_exec_params;
+    subplan_expr->output_one_row = expr->output_one_row;
     rt_expr = subplan_expr;
     return ret;
 }

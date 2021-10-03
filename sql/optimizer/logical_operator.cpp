@@ -2,13 +2,74 @@
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "query_ctx.h"
+#include "error.h"
 
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
 
-void LogicalOperator::set_query_ctx(Sql::QueryCtx* query_ctx)
+u32 LogicalOperator::init(QueryCtx *query_ctx, EstInfo_s& est_info)
 {
     this->query_ctx = query_ctx;
+    this->est_info = est_info;
+}
+
+String LogicalOperator::get_op_name()
+{
+    switch(type()) {
+        case LOG_TABLE_SCAN:
+			return String(N(LOG_TABLE_SCAN));
+        case LOG_JOIN:
+			return String(N(LOG_JOIN));
+        case LOG_SORT:
+			return String(N(LOG_SORT));
+        case LOG_DISTINCT:
+			return String(N(LOG_DISTINCT));
+        case LOG_GROUP_BY:
+			return String(N(LOG_GROUP_BY));
+        case LOG_SCALAR_GROUP:
+			return String(N(LOG_SCALAR_GROUP));
+        case LOG_SET:
+			return String(N(LOG_SET));
+        case LOG_LIMIT:
+			return String(N(LOG_LIMIT));
+        case LOG_VIEW:
+			return String(N(LOG_VIEW));
+        case LOG_INSERT:
+			return String(N(LOG_INSERT));
+        case LOG_UPDATE:
+			return String(N(LOG_UPDATE));
+        case LOG_DELETE:
+			return String(N(LOG_DELETE));
+        case LOG_EXPR_VALUE:
+			return String(N(LOG_EXPR_VALUE));
+        case LOG_DUAL_TABLE:
+			return String(N(LOG_DUAL_TABLE));
+        case LOG_SUBQUERY_EVALUATE:
+			return String(N(LOG_SUBQUERY_EVALUATE));
+    }
+    return "";
+}
+
+u32 LogicalOperator::compute_property()
+{
+    u32 ret = SUCCESS;
+    CHECK(est_row_count());
+    CHECK(est_cost());
+    return ret;
+}
+
+u32 LogicalOperator::est_row_count()
+{
+    u32 ret = SUCCESS;
+    output_rows = 0.0;
+    return ret;
+}
+
+u32 LogicalOperator::est_cost()
+{
+    u32 ret = SUCCESS;
+    cost = 0.0;
+    return ret;
 }
 
 u32 LogicalOperator::allocate_expr_pre()
@@ -44,7 +105,11 @@ u32 LogicalOperator::allocate_expr_post(Vector<ExprStmt_s> &expr_input,
     CHECK(expr_can_be_consumed(expr_ctx.expr_consume,
                                expr_child_output,
                                can_be));
-    MY_ASSERT(can_be);
+    if (!can_be) {
+        ret = ERR_UNEXPECTED;
+        LOG_ERR("expr can not be consumed", K(expr_ctx.expr_consume), K(expr_child_output), K(get_op_name()));
+        return ret;
+    }
     CHECK(produce_more_expr(expr_input,
                             expr_child_output, 
                             dummy_input));
@@ -164,49 +229,59 @@ u32 LogicalOperator::visit_plan()
     return ret;
 }
 
+String double_to_string(double v)
+{
+    String ret;
+    if (v < 1000000) {
+        ret = std::to_string(int(v));
+    } else {
+        char tmp[100];
+        sprintf(tmp, "%.3e", v);
+        ret = String(tmp);
+    }
+    return ret;
+}
+
 void LogicalOperator::print_basic_info(u32 depth, PlanInfo& info, const String &type)
 {
     info.depth = depth;
-    info.rows = std::to_string(int(output_rows));
-    info.cost = std::to_string(int(cost));
+    info.rows = double_to_string(output_rows);
+    info.cost = double_to_string(cost);
     if (!output_exprs.empty()) {
-        info.expr_info += "output expr";
         if (type.empty()) {
-            print_exprs(output_exprs, info.expr_info);
+            print_exprs(output_exprs, "output", info);
         } else {
-            print_exprs(output_exprs, type, info.expr_info);
+            print_exprs(output_exprs, type, "output", info);
         }
     }
     if (!filters.empty()) {
-        info.expr_info += "filters";
-        print_exprs(filters, info.expr_info);
+        print_exprs(filters, "filters", info);
     }
 }
 
-void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, String &out)
+void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, 
+                                  const String &title, 
+                                  PlanInfo& info)
 {
-    out += "(";
+    ExprInfo expr_info;
+    expr_info.title = title;
     for (u32 i = 0; i < exprs.size(); ++i) {
-        if (0 == i) {
-            out += "[" + exprs[i]->to_string() + "]";
-        } else {
-            out += ", [" + exprs[i]->to_string() + "]";
-        }
+        expr_info.exprs.push_back(exprs[i]->to_string());
     }
-    out += ")\n ";
+    info.expr_infos.push_back(expr_info);
 }
 
-void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, const String& type, String &out)
+void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs, 
+                                  const String& type, 
+                                  const String &title, 
+                                  PlanInfo& info)
 {
-    out += "(";
+    ExprInfo expr_info;
+    expr_info.title = title;
     for (u32 i = 0; i < exprs.size(); ++i) {
-        if (0 == i) {
-            out += "[" + type + "(" + exprs[i]->to_string() + ")]";
-        } else {
-            out += ", [" + type + "(" + exprs[i]->to_string() + ")]";
-        }
+        expr_info.exprs.push_back(type + "(" + exprs[i]->to_string() + ")");
     }
-    out += ")\n ";
+    info.expr_infos.push_back(expr_info);
 }
 
 void LogicalOperator::print_expr(ExprStmt_s &expr, String &out)

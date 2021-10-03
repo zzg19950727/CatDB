@@ -21,6 +21,8 @@ namespace CatDB {
 												Vector<ColumnStmt_s> &column_exprs,
 												Vector<ExprStmt_s> &value_exprs,
 												ColumnStmt_s &row_id);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
 		public:

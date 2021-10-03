@@ -83,8 +83,8 @@ int ServerServiceConfig::log_level()const
 	int level = LOG_LEVEL_ERR;
 	if (level_str == "trace") {
 		level = LOG_LEVEL_TRACE;
-	} else if (level_str == "warning") {
-		level = LOG_LEVEL_WARN;
+	} else if (level_str == "info") {
+		level = LOG_LEVEL_INFO;
 	} else if (level_str == "error") {
 		level = LOG_LEVEL_ERR;
 	}

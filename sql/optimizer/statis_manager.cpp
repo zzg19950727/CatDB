@@ -51,7 +51,7 @@ double StatisManager::get_table_row_count(u32 tid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 0;
+        return 100000;
     } else {
         return iter->second->row_count;
     }
@@ -60,7 +60,7 @@ double StatisManager::get_table_row_count(u32 tid)
 double StatisManager::get_avg_row_size(u32 tid)
 {
     auto iter = all_table_statis.find(tid);
-    if (iter == all_table_statis.end()) {
+    if (iter == all_table_statis.end() || iter->second->row_count < 1) {
         return 100;
     } else {
         return iter->second->space_size / iter->second->row_count;
@@ -81,11 +81,11 @@ double StatisManager::get_column_ndv(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 0;
+        return 1000;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 0;
+            return 1000;
         } else {
             return iter2->second->ndv;
         }
@@ -96,11 +96,11 @@ double StatisManager::get_column_max_value(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 0;
+        return 1000;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 0;
+            return 1000;
         } else {
             return iter2->second->max_value;
         }
@@ -126,11 +126,11 @@ double StatisManager::get_column_null_count(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 0;
+        return 1000;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 0;
+            return 1000;
         } else {
             return iter2->second->null_count;
         }

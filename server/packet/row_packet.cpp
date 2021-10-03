@@ -48,7 +48,7 @@ int RowPacket::cell_str(const Object_s & obj, char * buf, const int64_t len, int
 		ret = varchar_cell_str(obj, buf, len, pos);
 		break;
 	default:
-		LOG_WARN("invalid data type", K(obj));
+		LOG_ERR("invalid data type", K(obj));
 		Util::store_obstr(buf, len, obj->to_string(), pos);
 		break;
 	}

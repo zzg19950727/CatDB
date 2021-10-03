@@ -279,7 +279,8 @@ bool SetExprStmt::same_as(const ExprStmt_s& other)
 }
 
 SubQueryStmt::SubQueryStmt()
-	: subquery_id(0)
+	: subquery_id(0),
+	output_one_row(true)
 {
 }
 

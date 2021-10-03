@@ -1,0 +1,171 @@
+
+
+DROP DATABASE IF EXISTS RANDOM_TEST
+
+CREATE DATABASE RANDOM_TEST
+
+DROP TABLE IF EXISTS T1
+
+CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+
+SELECT * FROM T1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 2    | 2    | 2    | 2    |
+| 2    | 2    | 2    | 2    |
+| 1    | 1    | 1    | 1    |
+| 1    | 1    | 1    | 1    |
++------+------+------+------+
+4 rows in set
+
+ANALYZE TABLE RANDOM_TEST.T1
+
+DROP TABLE IF EXISTS T2
+
+CREATE TABLE T2(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+
+SELECT * FROM T2
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 3    | 3    | 3    | 3    |
+| 3    | 3    | 3    | 3    |
+| 2    | 2    | 2    | 2    |
+| 2    | 2    | 2    | 2    |
++------+------+------+------+
+4 rows in set
+
+ANALYZE TABLE RANDOM_TEST.T2
+
+EXPLAIN SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | HASH Inner JOIN |      | 8         | 9    |
+| 1  |  TABLE SCAN     | T1   | 4         | 4    |
+| 2  |  TABLE SCAN     | T2   | 4         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([t1.ROWID], [t2.ROWID], [t1.c1], [t2.c1])
+equal_join_conditions([t1.c1=t2.c1])
+1 - output([t1.c1], [t1.ROWID])
+access([t1.c1], [t1.ROWID])
+2 - output([t2.c1], [t2.ROWID])
+access([t2.c1], [t2.ROWID])
+
+SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
+
++----------+----------+-------+-------+
+| t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
++----------+----------+-------+-------+
+| 3        | 1        | 2     | 2     |
+| 2        | 1        | 2     | 2     |
+| 3        | 0        | 2     | 2     |
+| 2        | 0        | 2     | 2     |
++----------+----------+-------+-------+
+4 rows in set
+
+EXPLAIN SELECT * FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
+
+Query Plan:
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T1   | 4         | 4    |
+| 2  |  TABLE SCAN         | T2   | 4         | 4    |
++----------------------------------------------------+
+Outputs & filters:
+0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
+equal_join_conditions([t1.c1=t2.c1])
+1 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+2 - output([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+
+SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
+
++----------+----------+-------+-------+
+| t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
++----------+----------+-------+-------+
+| 3        | 1        | 2     | 2     |
+| 2        | 1        | 2     | 2     |
+| 3        | 0        | 2     | 2     |
+| 2        | 0        | 2     | 2     |
+| 1        | NULL     | 1     | NULL  |
+| 0        | NULL     | 1     | NULL  |
++----------+----------+-------+-------+
+6 rows in set
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
+
+Query Plan:
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T2   | 4         | 4    |
+| 2  |  TABLE SCAN         | T1   | 4         | 4    |
++----------------------------------------------------+
+Outputs & filters:
+0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
+equal_join_conditions([t1.c1=t2.c1])
+1 - output([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+2 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+
+SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
+
++----------+----------+-------+-------+
+| t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
++----------+----------+-------+-------+
+| 3        | 1        | 2     | 2     |
+| 3        | 0        | 2     | 2     |
+| 2        | 1        | 2     | 2     |
+| 2        | 0        | 2     | 2     |
+| NULL     | 3        | NULL  | 3     |
+| NULL     | 2        | NULL  | 3     |
++----------+----------+-------+-------+
+6 rows in set
+
+EXPLAIN SELECT * FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
+
+Query Plan:
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH FullOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T1   | 4         | 4    |
+| 2  |  TABLE SCAN         | T2   | 4         | 4    |
++----------------------------------------------------+
+Outputs & filters:
+0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
+equal_join_conditions([t1.c1=t2.c1])
+1 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+2 - output([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+
+SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
+
++----------+----------+-------+-------+
+| t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
++----------+----------+-------+-------+
+| NULL     | 3        | NULL  | 3     |
+| NULL     | 2        | NULL  | 3     |
+| 3        | 1        | 2     | 2     |
+| 2        | 1        | 2     | 2     |
+| 3        | 0        | 2     | 2     |
+| 2        | 0        | 2     | 2     |
+| 1        | NULL     | 1     | NULL  |
+| 0        | NULL     | 1     | NULL  |
++----------+----------+-------+-------+
+8 rows in set
+
+Bye

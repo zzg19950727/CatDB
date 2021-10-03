@@ -58,6 +58,19 @@ u32 SchemaGuard::find_column_info(u32 table_id, const String& column_name, Colum
     return ret;
 }
 
+u32 SchemaGuard::find_column_info(u32 table_id, u32 column_id, ColumnInfo_s &column_info)
+{
+    u32 ret = SUCCESS;
+    TableInfo_s table_info;
+    CHECK(find_table_info(table_id, table_info));
+    auto iter = table_info->id_column_infos.find(column_id);
+    if (iter == table_info->id_column_infos.end()) {
+        return COLUMN_NOT_EXISTS;
+    }
+    column_info = iter->second;
+    return ret;
+}
+
 u32 SchemaGuard::find_database_info(const String& db_name, DatabaseInfo_s &db_info)
 {
     auto iter = name_database_infos.find(db_name);

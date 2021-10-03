@@ -88,10 +88,10 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	*os << "[" << put_time(t) <<"] ";
-	if (log_level == LOG_LEVEL_ERR)
+	if (log_level == LOG_LEVEL_INFO)
+		*os << "[INFO ] ";
+	else if (log_level == LOG_LEVEL_ERR)
 		*os << "[ERR  ] ";
-	else if (log_level == LOG_LEVEL_WARN)
-		*os << "[WARN ] ";
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
 	*os << "[" << module << "] " << "[" << file << ":" << line << "] " << msg << std::endl;

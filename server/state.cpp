@@ -33,7 +33,7 @@ const char *State::get_odbc_state(int err) const
     }
     else if (err >= MAX_ERROR_CODE)
     {
-      LOG_WARN("error code out of range", K(err));
+      LOG_ERR("error code out of range", K(err));
     }
     else if (NULL != maps_[err].odbc_state && maps_[err].odbc_state[0] != '\0')
     {
@@ -56,7 +56,7 @@ const char *State::get_jdbc_state(int err) const
     }
     else if (err >= MAX_ERROR_CODE)
     {
-      LOG_WARN("error code out of range", K(err));
+      LOG_ERR("error code out of range", K(err));
     }
     else if (NULL != maps_[err].jdbc_state && maps_[err].jdbc_state[0] != '\0')
     {

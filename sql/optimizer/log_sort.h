@@ -23,6 +23,8 @@ namespace CatDB {
 			static LogicalOperator_s make_sort(LogicalOperator_s &child,
 												Vector<OrderStmt_s> &sort_keys,
 												u32 top_n = 0);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
 			void set_top_n(u32 top_n)	{ this->top_n = top_n; }	
 			u32 get_top_n() const { return top_n; }
 			u32 allocate_expr_pre() override;

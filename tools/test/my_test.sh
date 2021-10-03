@@ -130,7 +130,7 @@ test_one_case() {
 	result_file="suite/"$suite_name"/r/"$case_name".result"
 	reject_file="suite/"$suite_name"/r/"$case_name".reject"
 	start_time=`date +%s`
-	echo "source "$test_file"" | mysql -h $IP -P $PORT -c -vvv 1> $reject_file 2> $reject_file
+	echo "source "$test_file"" | mysql -h $IP -P $PORT -c -vvv > $reject_file 2>&1
 	format_result $reject_file
 	format_result $reject_file
 	check_case $result_file $reject_file

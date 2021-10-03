@@ -18,6 +18,8 @@ namespace CatDB {
 			virtual ~LogLimit() {}
 			virtual u32 type() const {return LogicalOperator::LOG_LIMIT;}
 			static LogicalOperator_s make_limit(LogicalOperator_s &child, u32 offset, u32 limit_value);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
 		public:
 			u32 offset;

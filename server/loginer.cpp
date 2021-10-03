@@ -39,21 +39,21 @@ int Loginer::login()
 	ret = handshake();
 	if (SUCCESS != ret)
 	{
-		LOG_WARN("send hand shake packet failed");
+		LOG_ERR("send hand shake packet failed");
 	}
 	else
 	{
 		ret = parse_packet();
 		if (SUCCESS != ret)
 		{
-			LOG_WARN("parse client auth packet failed");
+			LOG_ERR("parse client auth packet failed");
 		}
 		else
 		{
 			 ret = check_privilege();
 			 if (SUCCESS != ret)
 			 {
-				LOG_WARN("login failed", K(ret));
+				LOG_ERR("login failed", K(ret));
 			 }
 		}
 	}
@@ -105,7 +105,7 @@ int Loginer::parse_packet()
 	ret = read_data(client_fd, (char*)buffer->buf, read_size);
 	if (SUCCESS != ret)
 	{
-		LOG_WARN("read packet header failed");
+		LOG_ERR("read packet header failed");
 		ret = ERR_UNEXPECTED;
 	}
 	else
@@ -117,7 +117,7 @@ int Loginer::parse_packet()
 		ret = read_data(client_fd, (char*)buffer->buf + PACKET_HEADER_SIZE, packet_len);
 		if (SUCCESS != ret)
 		{
-			LOG_WARN("read packet data failed", K(ret));
+			LOG_ERR("read packet data failed", K(ret));
 			ret = ERR_UNEXPECTED;
 		}
 		else
@@ -173,7 +173,7 @@ int Loginer::check_privilege()
 		send_err = write_data(client_fd, (char*)buffer->buf, pos);
 		if (SUCCESS != send_err)
 		{
-			LOG_WARN("write packet to mysql client failed", K(client_fd), K(pos), K(send_err));
+			LOG_ERR("write packet to mysql client failed", K(client_fd), K(pos), K(send_err));
 		}
 		else
 		{
@@ -206,7 +206,7 @@ int Loginer::write_data(int fd, char* buffer, size_t length)
 				else
 				{
 					ret = ERR_UNEXPECTED;
-					LOG_WARN("write data faild", K(errno));
+					LOG_ERR("write data faild", K(errno));
 				}
 
 			}
@@ -242,7 +242,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 				else
 				{
 					ret = ERR_UNEXPECTED;
-					LOG_WARN("read data faild", K(errno));
+					LOG_ERR("read data faild", K(errno));
 				}
 			}
 			buff += count;
@@ -251,7 +251,7 @@ int Loginer::read_data(int fd, char* buffer, size_t length)
 		if (0 != length)
 		{
 			ret = ERR_UNEXPECTED;
-			LOG_WARN("read not return enough data", K(length));
+			LOG_ERR("read not return enough data", K(length));
 		}
 	}
 	return ret;

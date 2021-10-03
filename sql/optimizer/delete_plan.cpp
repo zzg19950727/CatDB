@@ -43,6 +43,7 @@ u32 DeletePlan::generate_plan_tree()
 										   stmt->table,
 										   stmt->row_id_col,
 										   is_delete_all);
-	root_operator->set_query_ctx(query_ctx);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
 	return ret;
 }

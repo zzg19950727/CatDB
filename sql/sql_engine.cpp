@@ -188,7 +188,6 @@ u32 SqlEngine::handle_query()
     ResolveCtx resolve_ctx;
 	parser.set_global_database(query_ctx.cur_database);
 	parser.parse_sql(query);
-    LOG_ERR("handle query:", K(query));
 	if (parser.is_sys_error()) {
 		ret = ERR_UNEXPECTED;
         err_msg = parser.sys_error();
@@ -208,9 +207,8 @@ u32 SqlEngine::handle_query()
             DMLStmt_s dml_stmt = lex_stmt;
             CHECK(transformer.transform(dml_stmt));
         }
-		plan = Plan::make_plan(lex_stmt);
+		plan = Plan::make_plan(lex_stmt, &query_ctx);
 		MY_ASSERT(plan);
-        plan->set_query_ctx(&query_ctx);
 		CHECK(plan->build_plan());
         query_result = ResultSet::make_result_set();
         if (lex_stmt->stmt_type() ==  Stmt::DoCMD) {

@@ -16,6 +16,8 @@ namespace CatDB {
 			virtual ~LogInsert() {}
 			virtual u32 type() const {return LogicalOperator::LOG_INSERT;}
 			static LogicalOperator_s make_insert(LogicalOperator_s &child, BasicTableStmt_s &insert_table);
+			virtual u32 est_row_count()override;
+			virtual u32 est_cost()override;
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
 		public:
 			BasicTableStmt_s table_item;

@@ -52,11 +52,11 @@ u32 PhySort::inner_get_next_row(Row_s & row)
 		}
 	}
 	if (pos >= rows.size()){
-		return NO_MORE_ROWS;
-	}else{
+		ret = NO_MORE_ROWS;
+	} else {
 		row = rows[pos++];
-		return SUCCESS;
 	}
+	return ret;
 }
 
 u32 PhySort::type() const
@@ -130,9 +130,10 @@ bool PhySort::compare(const Row_s& lhs, const Row_s& rhs)const
 
 u32 PhySort::sort_rows()
 {
+	u32 ret = SUCCESS;
 	rows.clear();
 	Row_s row;
-	while (child->get_next_row(row) == SUCCESS){
+	while ((ret=child->get_next_row(row)) == SUCCESS) {
 		row = Row::deep_copy(row);
 		rows.push_back(row);
 	}
@@ -141,7 +142,10 @@ u32 PhySort::sort_rows()
 	//std::sort(rows.begin(), rows.end(), cmp);
 	pos = 0;
 	is_start = true;
-	return SUCCESS;
+	if (NO_MORE_ROWS == ret) {
+		ret = SUCCESS;
+	}
+	return ret;
 }
 
 PhyTopNSort::PhyTopNSort(PhyOperator_s & child, u32 topn)
@@ -168,11 +172,12 @@ u32 PhyTopNSort::type() const
 
 u32 PhyTopNSort::sort_rows()
 {
+	u32 ret = SUCCESS;
 	rows.clear();
 	Row_s row;
 	bool have_make_heap = false;
 	auto compare_func = [&](const Row_s& lhs, const Row_s& rhs) {return this->compare(lhs, rhs); };
-	while (child->get_next_row(row) == SUCCESS){
+	while ((ret = child->get_next_row(row)) == SUCCESS) {
 		if (rows.size() == topn) {
 			if (!have_make_heap) {
 				std::make_heap(rows.begin(), rows.end(), compare_func);
@@ -195,5 +200,8 @@ u32 PhyTopNSort::sort_rows()
 	//std::sort(rows.begin(), rows.end(), compare_func);
 	pos = 0;
 	is_start = true;
-	return SUCCESS;
+	if (NO_MORE_ROWS == ret) {
+		ret = SUCCESS;
+	}
+	return ret;
 }

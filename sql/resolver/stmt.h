@@ -22,7 +22,7 @@ namespace CatDB {
 			virtual ~Stmt();
 			virtual StmtType stmt_type()const = 0;
 			virtual u32 formalize() = 0;
-			bool is_select_stmt() const { return stmt_type() == Select; }
+			bool is_select_stmt() const;
 			VIRTUAL_KV_STRING(
 				K("")
 			);

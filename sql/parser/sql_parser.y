@@ -287,10 +287,10 @@
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>		select_with_parens simple_select set_select sub_set_select
 %type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt
-%type<ExprStmt_s>	projection expr simple_expr arith_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
+%type<ExprStmt_s>	projection simple_expr arith_expr cmp_expr logical_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
 %type<OrderStmt_s>	order_by
 %type<LimitStmt_s>	opt_select_limit
-%type<TableStmt_s>	table_factor sub_table_factor
+%type<TableStmt_s>	table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
 %type<bool>			opt_distinct opt_asc_desc  distinct_or_all opt_if_exists
 %type<int>			limit_expr data_type
 %type<double>		opt_sample_size
@@ -298,7 +298,7 @@
 %type<Vector<TableStmt_s>>	from_list 
 %type<BasicTableStmt_s> 	relation_factor
 %type<Vector<OrderStmt_s>>	opt_order_by order_by_list
-%type<Vector<ExprStmt_s>>	select_expr_list opt_groupby expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list
+%type<Vector<ExprStmt_s>>	select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list1 when_then_list2
 %type<ColumnDefineStmt_s>	column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
 %start sql_stmt
@@ -461,18 +461,18 @@ from_list:
   ;
 
 opt_where:
-    WHERE expr		{ $$ = Vector<ExprStmt_s>(); $$.push_back($2); }
-  | /* EMPTY */		{ $$ = Vector<ExprStmt_s>(); }
+    WHERE logical_expr		{ $$ = Vector<ExprStmt_s>(); $$.push_back($2); }
+  | /* EMPTY */				{ $$ = Vector<ExprStmt_s>(); }
   ;
 
 opt_groupby:
-    GROUP BY expr_list	{ $$ = $3; }
-  | /* EMPTY */			{ $$ = Vector<ExprStmt_s>(); }
+    GROUP BY arith_expr_list	{ $$ = $3; }
+  | /* EMPTY */					{ $$ = Vector<ExprStmt_s>(); }
   ;
 
 opt_having:
-    HAVING expr		{ $$ = Vector<ExprStmt_s>(); $$.push_back($2); }
-  | /* EMPTY */		{ $$ = Vector<ExprStmt_s>(); }
+    HAVING logical_expr		{ $$ = Vector<ExprStmt_s>(); $$.push_back($2); }
+  | /* EMPTY */				{ $$ = Vector<ExprStmt_s>(); }
   ;
 
 opt_order_by:
@@ -494,7 +494,7 @@ order_by_list:
 	;
 
 order_by:
-  	expr opt_asc_desc
+  	arith_expr opt_asc_desc
     {
 		$$ = OrderStmt::make_order_stmt($1, $2);
     }
@@ -532,19 +532,19 @@ limit_expr:
 	;
 
 projection:
-    expr
+    arith_expr
     {
 		//设置表达式别名
 		$$ = $1;
 		$$->alias_name = $1->to_string();
     }
-  | expr column_label
+  | arith_expr column_label
     {
 		//设置表达式别名
 		$$ = $1;
 		$$->alias_name = $2;
     }
-  | expr AS column_label
+  | arith_expr AS column_label
     {
 		//设置表达式别名
 		$$ = $1;
@@ -552,32 +552,70 @@ projection:
     }
   ;
 
-table_factor:
-  "(" sub_table_factor
-  {
-	  $$ = $2;
-  }
-  | relation_factor opt_alias
+basic_table_factor:
+	relation_factor opt_alias
     {
 		$$ = $1;
 		$$->set_alias_name($2);
     }
-   | table_factor LEFT JOIN table_factor ON expr
+	;
+
+view_table_factor:
+	"(" select_stmt ")" opt_alias
+	{
+		//设置表的别名
+		$$ = ViewTableStmt::make_view_table($2);
+		$$->set_alias_name($4);
+	}
+	;
+
+joined_table_factor:
+   table_factor LEFT JOIN sub_table_factor ON logical_expr
    {
 	   $$ = JoinedTableStmt::make_joined_table($1, $4, LeftOuter, $6);
    }
-   | table_factor RIGHT JOIN table_factor ON expr
+   | table_factor RIGHT JOIN sub_table_factor ON logical_expr
    {
 	   $$ = JoinedTableStmt::make_joined_table($1, $4, RightOuter, $6);
    }
-   | table_factor FULL JOIN table_factor ON expr
+   | table_factor FULL JOIN sub_table_factor ON logical_expr
    {
 	   $$ = JoinedTableStmt::make_joined_table($1, $4, FullOuter, $6);
    }
-   | table_factor INNER JOIN table_factor ON expr
+   | table_factor INNER JOIN sub_table_factor ON logical_expr
    {
 	   $$ = JoinedTableStmt::make_joined_table($1, $4, Inner, $6);
    }
+  ;
+
+sub_table_factor:
+	basic_table_factor
+	{
+		$$ = $1;
+	}
+	| view_table_factor
+	{
+		$$ = $1;
+	}
+	| "(" joined_table_factor ")"
+	{
+		$$ = $2;
+	}
+	;
+
+table_factor:
+  basic_table_factor
+  {
+	  $$ = $1;
+  }
+  | view_table_factor
+  {
+	  $$ = $1;
+  }
+  | joined_table_factor
+  {
+	  $$ = $1;
+  }
   ;
 
 opt_alias:
@@ -592,163 +630,33 @@ opt_alias:
 	}
 	;
 
-sub_table_factor:
-	select_stmt ")" opt_alias
-	{
-		//设置表的别名
-		$$ = ViewTableStmt::make_view_table($1);
-		$$->set_alias_name($3);
-	}
-	| table_factor ")"
-	{
-		$$ = $1;
-	}
-	;
-
 /**************************************************************
  *
  *	expression define
  *
  **************************************************************/
- expr_list:
-    expr
-    {
-		//构建表达式列表
-		$$ = Vector<ExprStmt_s>();
-		$$.push_back($1);
-    }
-  | expr_list "," expr
-    {
-		//将新的表达式加入到表达式列表
-		$$ = $1;
-		$$.push_back($3);
-    }
-  ;
-
-expr:
-    arith_expr   
-	{ 
-		$$ = $1;
-	}
-  | expr CMP_LE expr 
-	{
-		//构建比较二元表达式 
-		make_binary_stmt($$, $1, $3, OP_LE);
-	}
-  | expr CMP_LT expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_LT);
-	}
-  | expr CMP_EQ expr
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_EQ);
-	}
-  | expr CMP_GE expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_GE);
-	}
-  | expr CMP_GT expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_GT);
-	}
-  | expr CMP_NE expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_NE);
-	}
-  | expr LIKE expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_LIKE);
-	}
-  | expr NOT LIKE expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $4, OP_NOT_LIKE);
-	}
-  | expr AND expr %prec AND
-    {
-		//构建and二元表达式
-		make_binary_stmt($$, $1, $3, OP_AND);
-    }
-  | expr OR expr %prec OR
-    {
-		//构建or二元表达式
-		make_binary_stmt($$, $1, $3, OP_OR);
-    }
-  | expr IS NULLX
-    {
-		//构建is null表达式
-		make_unary_stmt($$, $1, OP_IS_NULL);
-    }
-  | expr IS NOT NULLX
-    {
-		//构建is not null表达式
-		make_unary_stmt($$, $1, OP_IS_NOT_NULL);
-    }
-  | expr BETWEEN arith_expr AND arith_expr %prec BETWEEN
-    {
-		//构建between and三元表达式
-		make_ternary_stmt($$, $1, $3, $5, OP_BETWEEN);
-    }
-  | expr NOT BETWEEN arith_expr AND arith_expr %prec BETWEEN
-    {
-		//构建not between and三元表达式
-		make_ternary_stmt($$, $1, $4, $6, OP_NOT_BETWEEN);
-    }
-  | expr IN in_expr
-    {
-		//构建in表达式
-		make_binary_stmt($$, $1, $3, OP_IN);
-    }
-  | expr NOT IN in_expr
-    {
-		//构建not in表达式
-		make_binary_stmt($$, $1, $4, OP_NOT_IN);
-    }
-  | EXISTS query_ref_expr
-    {
-    	make_unary_stmt($$, $2, OP_EXISTS);
-    }
-  | NOT EXISTS query_ref_expr
-    {
-		//构建not一元表达式
-		make_unary_stmt($$, $3, OP_NOT_EXISTS);
-    }
-  | case_when_expr
-  {
-	  $$ = $1;
-  }
-  ;
-
-in_expr:
-    query_ref_expr
-    {
-		$$ = $1;
-    }
-  | "(" expr_list ")"
+simple_expr:
+    column_ref
     { 
-		ListStmt_s list_stmt = ListStmt::make_list_stmt();
-		Vector<ExprStmt_s> &exprs = $2;
-		for (u32 i = 0; i < exprs.size(); ++i) {
-			list_stmt->push_back(exprs[i]);
-		}
-		$$ = list_stmt;
+		$$ = $1;
 	}
-  ;
-
-query_ref_expr:
-	select_with_parens
+  | expr_const
+    { 
+		 $$ = $1;
+	}
+  | "(" arith_expr ")"
+    { 
+		$$ = $2;
+	}
+  | func_expr
     {
-		SubQueryStmt_s query_expr = SubQueryStmt::make_query_stmt();
-		query_expr->query_stmt = $1;
-		$$ = query_expr;
+      	$$ = $1;
     }
-	;
+  | query_ref_expr %prec UMINUS
+    {
+    	$$ = $1;
+    }
+  ;
 
 arith_expr:
     simple_expr   
@@ -785,30 +693,200 @@ arith_expr:
 		//构建二元表达式
 		make_binary_stmt($$, $1, $3, OP_DIV);
 	}
-  ;
-
-simple_expr:
-    column_ref
-    { 
+  | case_when_expr
+	{
 		$$ = $1;
 	}
-  | expr_const
-    { 
-		 $$ = $1;
-	}
-  | "(" expr ")"
-    { 
-		$$ = $2;
-	}
-  | func_expr
+  ;
+
+arith_expr_list:
+    arith_expr
     {
-      	$$ = $1;
+		//构建表达式列表
+		$$ = Vector<ExprStmt_s>();
+		$$.push_back($1);
     }
-  | query_ref_expr %prec UMINUS
+  | arith_expr_list "," arith_expr
     {
-    	$$ = $1;
+		//将新的表达式加入到表达式列表
+		$$ = $1;
+		$$.push_back($3);
     }
   ;
+
+cmp_expr:
+	arith_expr CMP_LE arith_expr 
+	{
+		//构建比较二元表达式 
+		make_binary_stmt($$, $1, $3, OP_LE);
+	}
+  | arith_expr CMP_LT arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_LT);
+	}
+  | arith_expr CMP_EQ arith_expr
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_EQ);
+	}
+  | arith_expr CMP_GE arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_GE);
+	}
+  | arith_expr CMP_GT arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_GT);
+	}
+  | arith_expr CMP_NE arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_NE);
+	}
+  | arith_expr LIKE arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $3, OP_LIKE);
+	}
+  | arith_expr NOT LIKE arith_expr 
+	{
+		//构建比较二元表达式
+		make_binary_stmt($$, $1, $4, OP_NOT_LIKE);
+	}
+  | arith_expr IS NULLX
+    {
+		//构建is null表达式
+		make_unary_stmt($$, $1, OP_IS_NULL);
+    }
+  | arith_expr IS NOT NULLX
+    {
+		//构建is not null表达式
+		make_unary_stmt($$, $1, OP_IS_NOT_NULL);
+    }
+  | arith_expr BETWEEN arith_expr AND arith_expr %prec BETWEEN
+    {
+		//构建between and三元表达式
+		make_ternary_stmt($$, $1, $3, $5, OP_BETWEEN);
+    }
+  | arith_expr NOT BETWEEN arith_expr AND arith_expr %prec BETWEEN
+    {
+		//构建not between and三元表达式
+		make_ternary_stmt($$, $1, $4, $6, OP_NOT_BETWEEN);
+    }
+  | arith_expr IN in_expr
+    {
+		//构建in表达式
+		make_binary_stmt($$, $1, $3, OP_IN);
+    }
+  | arith_expr NOT IN in_expr
+    {
+		//构建not in表达式
+		make_binary_stmt($$, $1, $4, OP_NOT_IN);
+    }
+  | EXISTS query_ref_expr
+    {
+    	make_unary_stmt($$, $2, OP_EXISTS);
+    }
+  | NOT EXISTS query_ref_expr
+    {
+		//构建not一元表达式
+		make_unary_stmt($$, $3, OP_NOT_EXISTS);
+    }
+  ;
+
+in_expr:
+    query_ref_expr
+    {
+		$$ = $1;
+    }
+  | "(" arith_expr_list ")"
+    { 
+		ListStmt_s list_stmt = ListStmt::make_list_stmt();
+		Vector<ExprStmt_s> &exprs = $2;
+		for (u32 i = 0; i < exprs.size(); ++i) {
+			list_stmt->push_back(exprs[i]);
+		}
+		$$ = list_stmt;
+	}
+  ;
+
+query_ref_expr:
+	select_with_parens
+    {
+		SubQueryStmt_s query_expr = SubQueryStmt::make_query_stmt();
+		query_expr->query_stmt = $1;
+		$$ = query_expr;
+    }
+	;
+
+case_when_expr:
+	CASE arith_expr when_then_list1 ELSE arith_expr END_SYM
+	{
+		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
+		$$->params.push_back($2);
+		append($$->params, $3);
+		$$->params.push_back($5);
+	}
+	| CASE when_then_list2 ELSE arith_expr END_SYM
+	{
+		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
+		append($$->params, $2);
+		$$->params.push_back($4);
+	}
+	;
+
+when_then_list1:
+	WHEN arith_expr THEN arith_expr
+	{
+		$$ = Vector<ExprStmt_s>();
+		$$.push_back($2);
+		$$.push_back($4);
+	}
+	| when_then_list1 WHEN arith_expr THEN arith_expr
+	{
+		$$ = $1;
+		$$.push_back($3);
+		$$.push_back($5);
+	}
+	;
+
+when_then_list2:
+	WHEN logical_expr THEN arith_expr
+	{
+		$$ = Vector<ExprStmt_s>();
+		$$.push_back($2);
+		$$.push_back($4);
+	}
+	| when_then_list2 WHEN logical_expr THEN arith_expr
+	{
+		$$ = $1;
+		$$.push_back($3);
+		$$.push_back($5);
+	}
+	;
+
+logical_expr:
+	cmp_expr
+	{
+		$$ = $1;
+	}
+  | "(" logical_expr ")"
+	{
+		$$ = $2;
+	}
+  | logical_expr AND logical_expr %prec AND
+    {
+		//构建and二元表达式
+		make_binary_stmt($$, $1, $3, OP_AND);
+    }
+  | logical_expr OR logical_expr %prec OR
+    {
+		//构建or二元表达式
+		make_binary_stmt($$, $1, $3, OP_OR);
+    }
+	;
 
 column_ref:
     column_name
@@ -924,7 +1002,7 @@ func_expr:
 		aggr->set_aggr_expr(col);
 		$$ = aggr;
     }
-  | function_name "(" distinct_or_all expr ")"
+  | function_name "(" distinct_or_all arith_expr ")"
     {
 		AggrStmt_s aggr;
 		make_aggr_stmt(aggr, $1);
@@ -932,7 +1010,7 @@ func_expr:
 		aggr->set_aggr_expr($4);
 		$$ = aggr;
     }
-  | function_name "(" expr ")"
+  | function_name "(" arith_expr ")"
     {
 		AggrStmt_s aggr;
 		make_aggr_stmt(aggr, $1);
@@ -951,37 +1029,6 @@ distinct_or_all:
 		$$ = true;
     }
   ;
-
-case_when_expr:
-	CASE expr when_then_list ELSE expr END_SYM
-	{
-		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
-		$$->params.push_back($2);
-		append($$->params, $3);
-		$$->params.push_back($5);
-	}
-	| CASE when_then_list ELSE expr END_SYM
-	{
-		$$ = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
-		append($$->params, $2);
-		$$->params.push_back($4);
-	}
-	;
-
-when_then_list:
-	WHEN expr THEN expr
-	{
-		$$ = Vector<ExprStmt_s>();
-		$$.push_back($2);
-		$$.push_back($4);
-	}
-	| when_then_list WHEN expr THEN expr
-	{
-		$$ = $1;
-		$$.push_back($3);
-		$$.push_back($5);
-	}
-	;
 
 /**************************************************************
  *
@@ -1021,12 +1068,12 @@ insert_value_list:
 	;
 
 insert_value:
-    expr 
+    arith_expr 
 	{ 
 		//构建值列表
 		make_list($$, $1);
 	}
-  | insert_value "," expr
+  | insert_value "," arith_expr
     {
 		//将新的表达式加入到表达式列表
 		list_push($$, $1, $3);
@@ -1077,7 +1124,7 @@ update_asgn_list:
   ;
 
 update_asgn_factor:
-    column_name CMP_EQ expr
+    column_name CMP_EQ arith_expr
     {
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt("", $1);

@@ -47,7 +47,7 @@ int Util::store_length(char *buf, int64_t len, uint64_t length, int64_t &pos)
 	if (len < 0 || pos < 0 || len <= pos)
 	{
 		ret = SIZE_OVERFLOW;
-		LOG_WARN("Store length fail, buffer over flow!", K(len), K(pos), K(length), K(ret));
+		LOG_ERR("Store length fail, buffer over flow!", K(len), K(pos), K(length), K(ret));
 	}
 
 	int64_t remain = len - pos;
@@ -161,7 +161,7 @@ int Util::store_str_v(char *buf, int64_t len, const char *str,
 
 	if (SUCCESS != (ret = store_length(buf, len, length, pos)))
 	{
-		LOG_WARN("Store length fail!", K(len), K(pos), K(length), K(ret));
+		LOG_ERR("Store length fail!", K(len), K(pos), K(length), K(ret));
 	}
 	else if (len >= pos && length <= static_cast<uint64_t>(len - pos))
 	{

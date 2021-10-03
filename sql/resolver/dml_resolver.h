@@ -33,7 +33,6 @@ namespace CatDB {
             DMLResolver(DMLStmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx);
             ~DMLResolver();
             virtual u32 resolve_stmt() = 0;
-            String get_error_msg() const {return err_msg;}
             static u32 resolve_stmt(Stmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx);
         protected:
             u32 resolve_from_stmt();
@@ -56,7 +55,6 @@ namespace CatDB {
 
         protected:
             DMLStmt_s stmt;
-            String err_msg;
             ResolveCtx &resolve_ctx;
             QueryCtx &query_ctx;
             Vector<AggrStmt_s> aggr_funcs;
