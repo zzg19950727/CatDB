@@ -17,6 +17,7 @@ namespace CatDB {
             ~TransformRule();
             u32 transform(DMLStmt_s stmt);
             bool transform_happened() const { return happened; }
+            virtual bool need_rewrite(DMLStmt_s stmt) const;
         protected:
             virtual u32 transform_one_stmt(DMLStmt_s &stmt);
         private:

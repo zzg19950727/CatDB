@@ -11,6 +11,7 @@ namespace CatDB {
     }
     namespace Parser {
         DECLARE(Stmt);
+        DECLARE(DMLStmt);
     }
 
     namespace Optimizer {
@@ -27,6 +28,7 @@ namespace CatDB {
         using Common::Object_s;
         using Common::QueryResult_s;
         using Parser::Stmt_s;
+        using Parser::DMLStmt_s;
         using Optimizer::Plan_s;
         using Optimizer::LogicalOperator_s;
 
@@ -81,6 +83,8 @@ namespace CatDB {
         private:
             u32 execute_plan(PhyOperator_s root);
             u32 explain_plan(LogicalOperator_s root);
+            u32 print_outline(String &outline);
+            u32 print_stmt_outline(DMLStmt_s stmt, String &outline);
 
 		private:
             QueryCtx &query_ctx;

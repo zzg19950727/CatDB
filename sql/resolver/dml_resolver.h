@@ -20,12 +20,14 @@ namespace CatDB {
         DECLARE(BasicTableStmt);
         DECLARE(JoinedTableStmt);
         DECLARE(ViewTableStmt);
+        DECLARE(HintStmt);
         using Sql::QueryCtx;
         
         struct ResolveCtx {
             Vector<TableStmt_s> parent_tables;
             Vector<TableStmt_s> cur_tables;
             Vector<ExecParamStmt_s> columns_from_parent;
+            Vector<HintStmt_s> all_hints;
         };
         class DMLResolver
         {
@@ -52,6 +54,8 @@ namespace CatDB {
             u32 resolve_subquery(SelectStmt_s &query_stmt, ResolveCtx &resolve_ctx);
             bool find_table_name(const String& table_name);
             bool find_table_item(u32 table_id);
+
+            u32 resolve_stmt_hint();
 
         protected:
             DMLStmt_s stmt;

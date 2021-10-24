@@ -58,7 +58,8 @@
 #define MARK_ROW                0x37
 #define NO_MORE_MEMORY          0x38
 #define MORE_THAN_ONE_ROW       0x39
-#define MAX_ERROR_CODE			0x3a
+#define QB_NAME_EXISTS          0x3a
+#define MAX_ERROR_CODE			0x3b
 
 #include "type.h"
 #include "log.h"

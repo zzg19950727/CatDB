@@ -272,6 +272,34 @@ u32 SqlEngine::explain_plan(LogicalOperator_s root)
     query_result->set_column_num(5);
     PlanInfo::formalize_plan_info(plan_infos);
     PlanInfo::print_plan_info(plan_infos, explain_info);
+    explain_info += "\noutline:\n";
+    String outline;
+    CHECK(print_outline(outline));
+    explain_info += outline;
     query_result->set_explain_info(explain_info);
+    return ret;
+}
+
+u32 SqlEngine::print_outline(String &outline)
+{
+    u32 ret = SUCCESS;
+    outline = "/*+\n";
+    outline += "\tBEGIN_OUTLINE\n";
+    DMLStmt_s dml_stmt = lex_stmt;
+    CHECK(print_stmt_outline(dml_stmt, outline));
+    outline += "\tEND_OUTLINE\n";
+    outline += "*/";
+    return ret;
+}
+
+u32 SqlEngine::print_stmt_outline(DMLStmt_s stmt, String &outline)
+{
+    u32 ret = SUCCESS;
+    outline += stmt->stmt_hint.print_outline();
+    Vector<SelectStmt_s> child_stmts;
+    CHECK(stmt->get_child_stmts(child_stmts));
+    for (u32 i = 0; i < child_stmts.size(); ++i) {
+        CHECK(print_stmt_outline(child_stmts[i], outline));
+    }
     return ret;
 }

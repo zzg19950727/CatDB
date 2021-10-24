@@ -49,27 +49,6 @@ u32 LimitStmt::formalize()
 	return SUCCESS;
 }
 
-HintStmt::HintStmt()
-{
-}
-
-HintStmt::~HintStmt()
-{
-}
-
-HintStmt_s HintStmt::make_hint_stmt(HintType type, const HintBody & hint)
-{
-	HintStmt* stmt = new HintStmt();
-	stmt->type = type;
-	stmt->hint = hint;
-	return HintStmt_s(stmt);
-}
-
-u32 HintStmt::formalize()
-{
-	return SUCCESS;
-}
-
 SelectStmt::SelectStmt()
 	:DMLStmt(),
 	is_distinct(false)
@@ -96,9 +75,6 @@ u32 SelectStmt::formalize()
 	CHECK(DMLStmt::formalize());
 	for (u32 i = 0; i < select_expr_list.size(); ++i) {
 		CHECK(select_expr_list[i]->formalize());
-	}
-	if (hint_list) {
-		CHECK(hint_list->formalize());
 	}
 	for (u32 i = 0; i < group_exprs.size(); ++i) {
 		CHECK(group_exprs[i]->formalize());

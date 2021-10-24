@@ -12,7 +12,6 @@ namespace CatDB {
 		class LogJoin : public DoubleChildLogicalOperator
 		{
 		public:
-			enum JoinAlgo {HASH_JOIN, NL_JOIN};
 			LogJoin(const LogicalOperator_s& left, const LogicalOperator_s& right)
                 :DoubleChildLogicalOperator(left, right),
 				join_type(Inner),

@@ -10,7 +10,9 @@ namespace CatDB {
         public:
             TransformPostProcess();
             ~TransformPostProcess();
-            virtual u32 transform_one_stmt(DMLStmt_s &stmt);
+            virtual bool need_rewrite(DMLStmt_s stmt) const override;
+            virtual u32 transform_one_stmt(DMLStmt_s &stmt)override;
+            u32 finial_table_hint(DMLStmt_s &stmt, bool &happened);
         };
     }
 }

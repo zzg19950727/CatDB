@@ -223,7 +223,7 @@ u32 CodeGenerator::generate_insert_op(ExprGenerateCtx &ctx, LogInsert_s log_op, 
 u32 CodeGenerator::generate_join_op(ExprGenerateCtx &ctx, LogJoin_s log_op, PhyOperator_s &phy_op)
 {
 	u32 ret = SUCCESS;
-    if (LogJoin::HASH_JOIN == log_op->join_algo) {
+    if (HASH_JOIN == log_op->join_algo) {
         CHECK(generate_hash_join_op(ctx, log_op, phy_op));
     } else {
         CHECK(generate_nested_loop_join_op(ctx, log_op, phy_op));

@@ -11,6 +11,7 @@ namespace CatDB {
 		DECLARE(ExprStmt);
 		DECLARE(TableStmt);
 		DECLARE(SelectStmt);
+		DECLARE(LeadingTable);
 	}
 	namespace Optimizer {
 		DECLARE(EstInfo);
@@ -22,6 +23,7 @@ namespace CatDB {
 		using Parser::BasicTableStmt_s;
 		using Parser::JoinedTableStmt_s;
 		using Parser::ViewTableStmt_s;
+		using Parser::LeadingTable_s;
 
 		struct JoinInfo {
 			Vector<ExprStmt_s> equal_join_condition;
@@ -71,6 +73,23 @@ namespace CatDB {
 			{ return ConflictDetector_s(new ConflictDetector); }
 		};
 
+		struct LeadingInfo {
+			struct TablePair {
+				KV_STRING(
+					K(left_ids),
+					K(right_ids)
+				);
+				BitSet left_ids;
+				BitSet right_ids;
+			};
+			KV_STRING(
+				K(table_pairs),
+				K(table_ids)
+			);
+			Vector<TablePair> table_pairs;
+			BitSet table_ids;
+		};
+
 		class DMLPlan : public Plan
 		{
 		protected:
@@ -114,7 +133,7 @@ namespace CatDB {
 			u32 generate_join_operator(LogicalOperator_s &left,
 									LogicalOperator_s &right,
 									JoinInfo &join_info,
-									LogJoin::JoinAlgo join_algo,
+									JoinAlgo join_algo,
 									LogicalOperator_s &op);
 			u32 generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt, LogicalOperator_s &op);
 			u32 generate_join_order_with_basic_table(BasicTableStmt_s table_stmt, LogicalOperator_s &op);
@@ -122,8 +141,11 @@ namespace CatDB {
 			u32 generate_join_order_with_table_item(TableStmt_s& table_stmt, LogicalOperator_s &op);
 			u32 generate_join_order();
 			u32 generate_base_plan(Vector<TableStmt_s> &base_tables);
-			u32 generate_join_order_with_DP();
-			u32 generate_join_order_with_DP(u32 left_level, u32 right_level);
+			u32 generate_join_order_with_DP(bool ignore_hint);
+			u32 generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 right_level);
+			u32 is_leading_legal(const BitSet &left_tables, 
+								const BitSet &right_tables, 
+								bool &is_legal);
 			u32 choose_join_info(LogicalOperator_s &left_tree, 
 								 LogicalOperator_s &right_tree, 
 								 Vector<ConflictDetector_s> &detectors,
@@ -140,15 +162,22 @@ namespace CatDB {
 								   LogicalOperator_s &right_tree, 
 								   JoinInfo &join_info,
 								   LogicalOperator_s &join_plan);
+			u32 get_join_method(const BitSet &left_tables,
+								const BitSet &right_tables,
+								JoinInfo &join_info,
+								JoinAlgo &algo);
 			u32 add_join_order(LogicalOperator_s& join_order, u32 level);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);
 			virtual u32 generate_plan_tree() = 0;
 			u32 set_table_access_columns(LogicalOperator_s &op);
 			u32 generate_subplan();
+			u32 init_leading_info();
+			u32 get_leading_info(const LeadingTable_s &leading_table, BitSet &table_ids);
 
 		public:
 			Vector<Vector<LogicalOperator_s>> join_orders;
 			Vector<ConflictDetector_s> conflict_detectors;
+			LeadingInfo leading_info;
 			EstInfo_s est_info;
 		};
 	}

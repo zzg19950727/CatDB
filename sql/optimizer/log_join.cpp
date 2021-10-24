@@ -43,11 +43,11 @@ u32 LogJoin::est_cost()
                                               equal_join_condition,
                                               other_join_condition);
     } else {
-        op_cost = EstCostUtil::cost_hash_join(left_child()->get_output_rows(),
-                                              right_child()->get_output_rows(),
-                                              right_child()->get_cost(),
-                                              equal_join_condition,
-                                              other_join_condition);
+        op_cost = EstCostUtil::cost_nestloop_join(left_child()->get_output_rows(),
+                                                right_child()->get_output_rows(),
+                                                right_child()->get_cost(),
+                                                equal_join_condition,
+                                                other_join_condition);
     }
     op_cost += EstCostUtil::cost_filters(output_rows, filters);
     cost = op_cost;

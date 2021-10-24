@@ -144,7 +144,7 @@ run_client() {
         echo "mysql client not install"
         exit
     fi
-    mysql -h $IP -P $PORT
+    mysql -h $IP -P $PORT -c
 }
 
 build_server() {

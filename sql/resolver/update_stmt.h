@@ -27,6 +27,7 @@ namespace CatDB {
 			KV_STRING(
 				KV(stmt_type, N(UPDATE)),
 				K(is_explain),
+				K(stmt_hint),
 				K(table),
 				K(update_assign_stmt),
 				K(from_stmts),

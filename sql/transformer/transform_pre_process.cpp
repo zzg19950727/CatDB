@@ -18,6 +18,11 @@ TransformPreProcess::~TransformPreProcess()
 
 }
 
+bool TransformPreProcess::need_rewrite(DMLStmt_s stmt) const
+{
+    return true;
+}
+
 u32 TransformPreProcess::transform_one_stmt(DMLStmt_s &stmt)
 {
     return SUCCESS;

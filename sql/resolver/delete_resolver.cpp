@@ -20,6 +20,7 @@ DeleteResolver::~DeleteResolver()
 u32 DeleteResolver::resolve_stmt()
 {
     u32 ret = SUCCESS;
+    CHECK(resolve_stmt_hint());
     CHECK(resolve_from_stmt());
     CHECK(resolve_where_stmt());
     MY_ASSERT(delete_stmt->table);

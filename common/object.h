@@ -85,7 +85,7 @@ namespace CatDB {
 			virtual void increase();
 			//自身累加
 			virtual void accumulate(const Object_s& other);
-			virtual KV_STRING(
+			VIRTUAL_KV_STRING(
 						KV(obj_type,type()),
 						K(obj_width));
 

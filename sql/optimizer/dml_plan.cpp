@@ -445,7 +445,7 @@ u32 DMLPlan::add_conflict_rule(Vector<ConflictRule> &conflict_rules,
 u32 DMLPlan::generate_join_operator(LogicalOperator_s &left,
                                     LogicalOperator_s &right,
                                     JoinInfo &join_info,
-                                    LogJoin::JoinAlgo join_algo,
+                                    JoinAlgo join_algo,
                                     LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
@@ -474,7 +474,7 @@ u32 DMLPlan::generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt,
     CHECK(generate_join_operator(left_op, 
                                  right_op,
                                  join_info,
-                                 LogJoin::NL_JOIN,
+                                 NL_JOIN,
                                  op));
     return ret;
 }
@@ -540,7 +540,14 @@ u32 DMLPlan::generate_join_order()
     LOG_TRACE("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
-    CHECK(generate_join_order_with_DP());
+    CHECK(init_leading_info());
+    if (stmt->stmt_hint.has_leading_hint()) {
+        CHECK(generate_join_order_with_DP(false));
+    }
+    if (join_orders.size() != base_tables.size() || 
+        join_orders[base_tables.size() - 1].size() != 1) {
+        CHECK(generate_join_order_with_DP(true));
+    }
     MY_ASSERT(join_orders.size() == base_tables.size());
     MY_ASSERT(join_orders[base_tables.size() - 1].size() == 1);
     root_operator = join_orders[base_tables.size() - 1][0];
@@ -568,7 +575,7 @@ u32 DMLPlan::generate_base_plan(Vector<TableStmt_s> &base_tables)
     return ret;
 }
 
-u32 DMLPlan::generate_join_order_with_DP()
+u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(join_orders.size() > 0);
@@ -577,14 +584,14 @@ u32 DMLPlan::generate_join_order_with_DP()
         LOG_TRACE("begin to generate join order", K(level));
         for (u32 left_level = 0; left_level < level; ++left_level) {
             u32 right_level = level - 1 - left_level;
-            CHECK(generate_join_order_with_DP(left_level, right_level));
+            CHECK(generate_join_order_with_DP(ignore_hint, left_level, right_level));
         }
         LOG_TRACE("succeed to generate join order", K(level), K(join_orders[level].size()));
     }
     return ret;
 }
 
-u32 DMLPlan::generate_join_order_with_DP(u32 left_level, u32 right_level)
+u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 right_level)
 {
     u32 ret = SUCCESS;
     LogicalOperator_s join_op;
@@ -599,6 +606,11 @@ u32 DMLPlan::generate_join_order_with_DP(u32 left_level, u32 right_level)
             if (left_tree->table_ids.overlap(right_tree->table_ids)) {
                 //LOG_TRACE("join order is overlap", K(left_tree->table_ids), K(right_tree->table_ids));
                 continue;
+            } else if (!ignore_hint) {
+                CHECK(is_leading_legal(left_tree->table_ids, right_tree->table_ids, is_legal));
+                if (!is_legal) {
+                    continue;
+                }
             }
             CHECK(choose_join_info(left_tree, right_tree, detectors, is_legal));
             if (!is_legal) {
@@ -616,6 +628,26 @@ u32 DMLPlan::generate_join_order_with_DP(u32 left_level, u32 right_level)
             CHECK(add_join_order(join_op, left_level + right_level + 1));
             LOG_TRACE("generate join plan for", K(left_tree->table_ids), K(right_tree->table_ids), K(join_info));
         }
+    }
+    return ret;
+}
+
+u32 DMLPlan::is_leading_legal(const BitSet &left_tables, 
+                            const BitSet &right_tables, 
+                            bool &is_legal)
+{
+    u32 ret = SUCCESS;
+    is_legal = false;
+    if (left_tables.is_subset(leading_info.table_ids) && 
+        right_tables.is_subset(leading_info.table_ids)) {
+        for (u32 i = 0; !is_legal && i < leading_info.table_pairs.size(); ++i) {
+            if (leading_info.table_pairs[i].left_ids.is_equal(left_tables) &&
+                leading_info.table_pairs[i].right_ids.is_equal(right_tables)) {
+                is_legal = true;
+            }
+        }
+    } else if (leading_info.table_ids.is_subset(left_tables)) {
+        is_legal = true;
     }
     return ret;
 }
@@ -776,26 +808,47 @@ u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree,
                                 LogicalOperator_s &join_plan)
 {
     u32 ret = SUCCESS;
+    JoinAlgo algo;
+    CHECK(get_join_method(left_tree->table_ids, 
+                          right_tree->table_ids, 
+                          join_info, 
+                          algo));
+    CHECK(generate_join_operator(left_tree, 
+                                right_tree, 
+                                join_info, 
+                                algo, 
+                                join_plan));
+    return ret;
+}
+
+u32 DMLPlan::get_join_method(const BitSet &left_tables,
+                            const BitSet &right_tables,
+                            JoinInfo &join_info,
+                            JoinAlgo &algo)
+{
+    u32 ret = SUCCESS;
+    Vector<JoinHintStmt_s> join_hints;
+    DMLStmt_s stmt = lex_stmt;
+    stmt->stmt_hint.get_join_hints(join_hints);
     if (join_info.equal_join_condition.empty()) {
+        algo = NL_JOIN;
+    } else {
+        algo = HASH_JOIN;
+        for (u32 i = 0; i < join_hints.size(); ++i) {
+            JoinHintStmt_s &hint = join_hints[i];
+            if (right_tables.is_equal(hint->table_ids)) {
+                algo = hint->join_algo;
+            }
+        }
+    }
+    if (NL_JOIN == algo) {
         if (RightOuter == join_info.join_type ||
             FullOuter == join_info.join_type ||
             RightSemi == join_info.join_type ||
             RightAnti == join_info.join_type) {
             ret = OPERATION_NOT_SUPPORT;
-            LOG_TRACE("NestLoop Join not support join type", K(join_info));
-            return ret;    
+            LOG_TRACE("NestLoop Join not support join type", K(join_info));   
         }
-        CHECK(generate_join_operator(left_tree, 
-                                     right_tree, 
-                                     join_info, 
-                                     LogJoin::NL_JOIN, 
-                                     join_plan));
-    } else {
-        CHECK(generate_join_operator(left_tree, 
-                                     right_tree, 
-                                     join_info, 
-                                     LogJoin::HASH_JOIN, 
-                                     join_plan));
     }
     return ret;
 }
@@ -868,5 +921,44 @@ u32 DMLPlan::generate_subplan()
     }
     root_operator = subquery_evaluate;
     CHECK(root_operator->compute_property());
+    return ret;
+}
+
+u32 DMLPlan::init_leading_info()
+{
+    u32 ret = SUCCESS;
+    DMLStmt_s stmt = lex_stmt;
+    if (!stmt->stmt_hint.has_leading_hint()) {
+        return ret;
+    }
+    LeadingHintStmt_s leading_hint = stmt->stmt_hint.get_leading_hint();
+    MY_ASSERT(leading_hint->tables);
+    CHECK(get_leading_info(leading_hint->tables, leading_info.table_ids));
+    return ret;
+}
+
+u32 DMLPlan::get_leading_info(const LeadingTable_s &leading_table, BitSet &table_ids)
+{
+    u32 ret = SUCCESS;
+    if (leading_table->is_base_table) {
+        table_ids.add_member(leading_table->table_id);
+    } else if (leading_table->table_list.empty()) {
+        //do nothing
+    } else if (1 == leading_table->table_list.size()) {
+        CHECK(get_leading_info(leading_table->table_list[0], table_ids));
+    } else {
+        BitSet left_ids, right_ids;
+        CHECK(get_leading_info(leading_table->table_list[0], left_ids));
+        for (u32 i = 1; i < leading_table->table_list.size(); ++i) {
+            CHECK(get_leading_info(leading_table->table_list[i], right_ids));
+            LeadingInfo::TablePair pair;
+            pair.left_ids.add_members(left_ids);
+            pair.right_ids.add_members(right_ids);
+            leading_info.table_pairs.push_back(pair);
+            left_ids.add_members(right_ids);
+            right_ids.clear();
+        }
+        table_ids.add_members(left_ids);
+    }
     return ret;
 }

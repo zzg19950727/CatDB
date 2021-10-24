@@ -72,6 +72,7 @@ u32 InsertResolver::resolve_row(Vector<ExprStmt_s>& list, const RowDesc& row_des
 u32 InsertResolver::resolve_stmt()
 {
     u32 ret = SUCCESS;
+    CHECK(resolve_stmt_hint());
     MY_ASSERT(insert_stmt->table);
     MY_ASSERT(insert_stmt->table->is_basic_table());
     BasicTableStmt_s &insert_table_item = insert_stmt->table;

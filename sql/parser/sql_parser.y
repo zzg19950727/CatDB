@@ -189,6 +189,7 @@
 %token<std::string>	IDENT
 %token<std::string>	NUMERIC
 %token<std::string>	TIMESTAMP
+%token<std::string>	QB_NAME_IDENT
 %token FALSE
 %token TRUE
 %token BOOL
@@ -247,7 +248,6 @@
 %token NUMBER
 %token ORDER
 %token ON
-%token PARALLEL
 %token RIGHT
 %token ROWID
 %token SAMPLE
@@ -282,6 +282,17 @@
 %token THEN
 %token ELSE
 %token END_SYM
+%token BEGIN_HINT
+%token END_HINT
+%token QB_NAME
+%token USE_HASH
+%token USE_NL
+%token LEADING
+%token PARALLEL
+%token ORDERED
+%token NO_REWRITE
+%token BEGIN_OUTLINE
+%token END_OUTLINE
 %token END 0
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
@@ -301,6 +312,14 @@
 %type<Vector<ExprStmt_s>>	select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list1 when_then_list2
 %type<ColumnDefineStmt_s>	column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
+%type<Hint> opt_hint
+%type<Vector<HintStmt_s>> hint_list
+%type<HintStmt_s> single_hint
+%type<Vector<String>> hint_table_list
+%type<Vector<LeadingTable_s>> leading_hint_table_list
+%type<LeadingTable_s> leading_hint_table
+%type<bool> opt_split
+%type<std::string> opt_qb_name opt_qb_name_single
 %start sql_stmt
 %%
 
@@ -410,23 +429,165 @@ select_with_parens:
 	;
 
 simple_select:
-	SELECT opt_distinct select_expr_list
+	SELECT opt_hint opt_distinct select_expr_list
     FROM from_list
     opt_where opt_groupby opt_having
     opt_order_by opt_select_limit
     {
 		//构建select stmt
 		SelectStmt_s select_stmt = SelectStmt::make_select_stmt();
-		select_stmt->is_distinct = $2;
-		select_stmt->select_expr_list = $3;
-		select_stmt->from_stmts = $5;
-		select_stmt->where_stmt = $6;
-		select_stmt->group_exprs = $7;
-		select_stmt->having_stmt = $8;
-		select_stmt->order_exprs = $9;
-		select_stmt->limit_stmt = $10;
+		select_stmt->stmt_hint = $2;
+		select_stmt->is_distinct = $3;
+		select_stmt->select_expr_list = $4;
+		select_stmt->from_stmts = $6;
+		select_stmt->where_stmt = $7;
+		select_stmt->group_exprs = $8;
+		select_stmt->having_stmt = $9;
+		select_stmt->order_exprs = $10;
+		select_stmt->limit_stmt = $11;
 		$$ = select_stmt;
     }
+	;
+
+opt_hint:
+	/*empty*/ { $$ = Hint(); }
+	| BEGIN_HINT hint_list END_HINT
+	{
+		$$ = Hint();
+		$$.all_hints = $2;
+	}
+	;
+
+hint_list:
+	single_hint
+	{
+		$$ = Vector<HintStmt_s>();
+		if ($1) {
+			$$.push_back($1);
+		}
+	}
+	| hint_list single_hint
+	{
+		$$ = $1;
+		if ($2) {
+			$$.push_back($2);
+		}
+	}
+	;
+
+single_hint:
+	QB_NAME "(" ident ")"
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::QB_NAME);
+		$$->set_qb_name($3);
+	}
+	| NO_REWRITE opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::NO_REWRITE);
+		$$->set_qb_name($2);
+	}
+	| ORDERED opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::LEADING);
+		$$->set_qb_name($2);
+		LeadingHintStmt_s leading = $$;
+		leading->set_is_ordered();
+	}
+	| USE_HASH "(" opt_qb_name hint_table_list ")"
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::JOIN);
+		$$->set_qb_name($3);
+		JoinHintStmt_s join_hint = $$;
+		join_hint->set_join_algo(HASH_JOIN);
+		join_hint->table_names = $4;
+	}
+	| USE_NL "(" opt_qb_name hint_table_list ")"
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::JOIN);
+		$$->set_qb_name($3);
+		JoinHintStmt_s join_hint = $$;
+		join_hint->set_join_algo(NL_JOIN);
+		join_hint->table_names = $4;
+	}
+	| LEADING "(" opt_qb_name leading_hint_table_list ")"
+	{
+		$$ = HintStmt::make_hint_stmt(HintStmt::LEADING);
+		$$->set_qb_name($3);
+		LeadingHintStmt_s leading = $$;
+		leading->tables = LeadingTable::make_leading_table();
+		leading->tables->is_base_table = false;
+		leading->tables->table_list = $4;
+	}
+	| BEGIN_OUTLINE
+	{
+		$$ = HintStmt_s();
+	}
+	| END_OUTLINE
+	{
+		$$ = HintStmt_s();
+	}
+	;
+
+opt_qb_name:
+	/*empty*/ { $$ = ""; }
+	| QB_NAME_IDENT
+	{
+		$$ = $1;
+	}
+	;
+
+opt_qb_name_single:
+	/*empty*/ { $$ = ""; }
+	| "(" QB_NAME_IDENT ")"
+	{
+		$$ = $2;
+	}
+	;
+
+hint_table_list:
+	ident
+	{
+		$$ = Vector<String>();
+		$$.push_back($1);
+	}
+	| hint_table_list opt_split ident
+	{
+		$$ = $1;
+		$$.push_back($3);
+	}
+	;
+
+opt_split:
+	/*empty*/ {}
+	| "," {}
+	;
+
+leading_hint_table:
+	ident
+	{
+		$$ = LeadingTable::make_leading_table();
+		$$->is_base_table = true;
+		$$->table_name = $1;
+	}
+	| "(" leading_hint_table_list ")"
+	{
+		$$ = LeadingTable::make_leading_table();
+		$$->is_base_table = false;
+		$$->table_list = $2;
+	}
+	;
+
+leading_hint_table_list:
+	leading_hint_table
+	{
+		$$ = Vector<LeadingTable_s>();
+		$$.push_back($1);
+	}
+	| leading_hint_table_list opt_split leading_hint_table
+	{
+		$$ = $1;
+		$$.push_back($3);
+	}
 	;
 
 opt_distinct:
@@ -1086,24 +1247,26 @@ insert_value:
  *
  **************************************************************/
  update_stmt:
-    UPDATE relation_factor SET update_asgn_list opt_where
+    UPDATE opt_hint relation_factor SET update_asgn_list opt_where
     {
 		UpdateStmt_s update_stmt = UpdateStmt::make_update_stmt();
 		check(update_stmt);
-		update_stmt->table = $2;
-		update_stmt->from_stmts.push_back($2);
-		update_stmt->update_assign_stmt = $4;
-		update_stmt->where_stmt = $5;
+		update_stmt->stmt_hint = $2;
+		update_stmt->table = $3;
+		update_stmt->from_stmts.push_back($3);
+		update_stmt->update_assign_stmt = $5;
+		update_stmt->where_stmt = $6;
 		$$ = update_stmt;
     }
-	| UPDATE relation_factor SET update_asgn_list FROM from_list opt_where
+	| UPDATE opt_hint relation_factor SET update_asgn_list FROM from_list opt_where
     {
 		UpdateStmt_s update_stmt = UpdateStmt::make_update_stmt();
 		check(update_stmt);
-		update_stmt->table = $2;
-		update_stmt->update_assign_stmt = $4;
-		update_stmt->from_stmts = $6;
-		update_stmt->where_stmt = $7;
+		update_stmt->stmt_hint = $2;
+		update_stmt->table = $3;
+		update_stmt->update_assign_stmt = $5;
+		update_stmt->from_stmts = $7;
+		update_stmt->where_stmt = $8;
 		$$ = update_stmt;
     }
   ;
@@ -1139,33 +1302,36 @@ update_asgn_factor:
  *
  **************************************************************/
 delete_stmt:
-    DELETE FROM relation_factor opt_alias opt_where
+    DELETE opt_hint FROM relation_factor opt_alias opt_where
     {
 		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
 		check(delete_stmt);
-		delete_stmt->table = $3;
-		$3->set_alias_name($4);
-		delete_stmt->from_stmts.push_back($3);
-		delete_stmt->where_stmt = $5;
-		$$ = delete_stmt;
-    }
-	| DELETE "*" FROM relation_factor opt_alias opt_where
-    {
-		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
-		check(delete_stmt);
+		delete_stmt->stmt_hint = $2;
 		delete_stmt->table = $4;
-		$4->set_alias_name($5); 
+		$4->set_alias_name($5);
 		delete_stmt->from_stmts.push_back($4);
 		delete_stmt->where_stmt = $6;
 		$$ = delete_stmt;
     }
-	| DELETE relation_factor FROM from_list opt_where
+	| DELETE opt_hint "*" FROM relation_factor opt_alias opt_where
     {
 		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
 		check(delete_stmt);
-		delete_stmt->table = $2;
-		delete_stmt->from_stmts = $4;
-		delete_stmt->where_stmt = $5;
+		delete_stmt->stmt_hint = $2;
+		delete_stmt->table = $5;
+		$5->set_alias_name($6); 
+		delete_stmt->from_stmts.push_back($5);
+		delete_stmt->where_stmt = $7;
+		$$ = delete_stmt;
+    }
+	| DELETE opt_hint relation_factor FROM from_list opt_where
+    {
+		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
+		check(delete_stmt);
+		delete_stmt->stmt_hint = $2;
+		delete_stmt->table = $3;
+		delete_stmt->from_stmts = $5;
+		delete_stmt->where_stmt = $6;
 		$$ = delete_stmt;
     }
   ;

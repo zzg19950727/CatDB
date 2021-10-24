@@ -22,6 +22,7 @@ num1    {digit}+(\.)?([eE][-]?{digit}+)?
 num2    {digit}*(\.)?{digit}+([eE][-]?{digit}+)?
 number  ({num1}|{num2})
 ident	{letter}({letter}|{digit})*
+qb_name_ident @{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
 timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
@@ -90,7 +91,6 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "number"		{ return CatDB::SqlParser::make_NUMBER(loc); }
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
-"parallel"		{ return CatDB::SqlParser::make_PARALLEL(loc); }
 "right"			{ return CatDB::SqlParser::make_RIGHT(loc); }
 "rowid"			{ return CatDB::SqlParser::make_ROWID(loc); }
 "sample"		{ return CatDB::SqlParser::make_SAMPLE(loc); }
@@ -134,6 +134,17 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "-"				{ return CatDB::SqlParser::make_MINUS(loc); }
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
+"/*+"			{ return CatDB::SqlParser::make_BEGIN_HINT(loc); }
+"*/"			{ return CatDB::SqlParser::make_END_HINT(loc); }
+"qb_name"		{ return CatDB::SqlParser::make_QB_NAME(loc); }
+"use_hash"		{ return CatDB::SqlParser::make_USE_HASH(loc); }
+"use_nl"		{ return CatDB::SqlParser::make_USE_NL(loc); }
+"leading"		{ return CatDB::SqlParser::make_LEADING(loc); }
+"parallel"		{ return CatDB::SqlParser::make_PARALLEL(loc); }
+"ordered"		{ return CatDB::SqlParser::make_ORDERED(loc); }
+"no_rewrite"	{ return CatDB::SqlParser::make_NO_REWRITE(loc); }
+"begin_outline"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE(loc); }
+"end_outline"	{ return CatDB::SqlParser::make_END_OUTLINE(loc); }
 
 \"				{parse_str.clear();BEGIN(beg_str);}
 <beg_str>\"         {
@@ -183,5 +194,6 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 {space}
 {number}		{ return CatDB::SqlParser::make_NUMERIC(yytext,loc);	}
 {ident}			{ return CatDB::SqlParser::make_IDENT(yytext,loc);	} 
+{qb_name_ident}	{ return CatDB::SqlParser::make_QB_NAME_IDENT(yytext+1,loc);	} 
 <<EOF>>			{ yyterminate(); }
 %%

@@ -50,25 +50,6 @@ namespace CatDB {
 			u32 limit_size;				//limit行数
 		};
 
-		class HintStmt
-		{
-		private:
-			HintStmt();
-		public:
-			enum HintType{Parallel=0};
-			union HintBody
-			{
-				u32 dop;
-			};
-			~HintStmt();
-			static HintStmt_s make_hint_stmt(HintType type, const HintBody& hint);
-			u32 formalize();
-
-		private:
-			HintType type;
-			HintBody hint;
-		};
-
 		class SelectStmt : public DMLStmt
 		{
 		protected:
@@ -87,6 +68,7 @@ namespace CatDB {
 			KV_STRING(
 				KV(stmt_type, N(SELECT)),
 				K(is_explain),
+				K(stmt_hint),
 				K(is_distinct),
 				K(select_expr_list),
 				K(from_stmts),
@@ -98,7 +80,6 @@ namespace CatDB {
 			);
 
 		public:
-			HintStmt_s hint_list;			//
 			bool is_distinct;			//输出集是否去重
 			Vector<ExprStmt_s> select_expr_list;	//select语句块
 			Vector<ExprStmt_s> group_exprs;		//groupby 列

@@ -24,6 +24,7 @@ SelectResolver::~SelectResolver()
 u32 SelectResolver::resolve_stmt()
 {
     u32 ret = SUCCESS;
+    CHECK(resolve_stmt_hint());
     CHECK(resolve_from_stmt());
     CHECK(resolve_where_stmt());
     if (select_stmt->group_exprs.size() > 0) {

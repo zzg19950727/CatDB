@@ -24,6 +24,7 @@ DMLResolver::DMLResolver(DMLStmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolv
     can_use_aggr_func(false)
 {
     resolve_ctx.cur_tables.clear();
+    stmt->stmt_id = query_ctx.generate_stmt_id();
 }
 
 DMLResolver::~DMLResolver()
@@ -134,9 +135,14 @@ u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
         resolve_ctx.cur_tables.push_back(table_stmt);
     } else {
         SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-        CHECK(checker->get_table_id(table_stmt->database,
+        ret=(checker->get_table_id(table_stmt->database,
                                     table_stmt->table_name,
                                     table_stmt->ref_table_id));
+        if (FAIL(ret)) {
+            String err_msg = "table " + table_stmt->alias_name + " not exists";
+            query_ctx.set_error_msg(err_msg);
+            return ret;
+        }
         table_stmt->table_id = query_ctx.generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
     }
@@ -427,10 +433,11 @@ u32 DMLResolver::resolve_column_from_view(ViewTableStmt_s table, ColumnStmt_s &c
     return ret;
 }
 
-u32 DMLResolver::resolve_subquery(SelectStmt_s& query_stmt, ResolveCtx &resolve_ctx)
+u32 DMLResolver::resolve_subquery(SelectStmt_s& query_stmt, ResolveCtx &ctx)
 {
     u32 ret = SUCCESS;
-    CHECK(resolve_stmt(query_stmt, query_ctx, resolve_ctx));
+    ctx.all_hints = resolve_ctx.all_hints;
+    CHECK(resolve_stmt(query_stmt, query_ctx, ctx));
     return ret;
 }
 
@@ -452,4 +459,54 @@ bool DMLResolver::find_table_item(u32 table_id)
         }
     }
     return false;
+}
+
+u32 DMLResolver::resolve_stmt_hint()
+{
+    u32 ret = SUCCESS;
+    Vector<HintStmt_s> &all_hints = stmt->stmt_hint.all_hints;
+    String qb_name;
+    if (!stmt->stmt_hint.has_qb_name()) {
+        qb_name = stmt->stmt_hint.generate_qb_name(stmt->stmt_id);
+    } else {
+        qb_name = stmt->stmt_hint.get_qb_name();
+    }
+    //qb_name是否重复
+    for (u32 i = 0; i < resolve_ctx.all_hints.size(); ++i) {
+        if (HintStmt::QB_NAME == resolve_ctx.all_hints[i]->get_hint_type()) {
+            if (qb_name == resolve_ctx.all_hints[i]->get_qb_name()) {
+                ret = QB_NAME_EXISTS;
+                return ret;
+            }
+        }
+    }
+    //未指定qb_name的hint设置当前stmt的qb_name
+    for (u32 i = 0; i < all_hints.size(); ++i) {
+        if (!all_hints[i]->has_qb_name()) {
+            all_hints[i]->set_qb_name(qb_name);
+        }
+    }
+    append(resolve_ctx.all_hints, all_hints);
+    all_hints.clear();
+    //选出当前stmt的hint
+    for (u32 i = 0; i < resolve_ctx.all_hints.size(); ++i) {
+        if (qb_name == resolve_ctx.all_hints[i]->get_qb_name()) {
+            all_hints.push_back(resolve_ctx.all_hints[i]);
+        }
+    }
+    //single hint去重
+    BitSet hint_map;
+    Vector<HintStmt_s> new_hints;
+    for (u32 i = 0; i < all_hints.size(); ++i) {
+        if (!all_hints[i]->is_single_hint()) {
+            new_hints.push_back(all_hints[i]);
+        } else if (hint_map.has_member( u32(all_hints[i]->get_hint_type()) )) {
+            //重复hint
+        } else {
+            new_hints.push_back(all_hints[i]);
+            hint_map.add_member( u32(all_hints[i]->get_hint_type()) );
+        }
+    }
+    all_hints = new_hints;
+    return ret;
 }

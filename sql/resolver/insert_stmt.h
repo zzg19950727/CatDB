@@ -26,6 +26,7 @@ namespace CatDB {
 			KV_STRING(
 				KV(stmt_type, N(INSERT)),
 				K(is_explain),
+				K(stmt_hint),
 				K(table),
 				K(value_list),
 				K(query_values)

@@ -10,7 +10,8 @@ namespace CatDB {
         public:
             TransformPreProcess();
             ~TransformPreProcess();
-            virtual u32 transform_one_stmt(DMLStmt_s &stmt);
+            virtual bool need_rewrite(DMLStmt_s stmt) const override;
+            virtual u32 transform_one_stmt(DMLStmt_s &stmt) override;
         };
     }
 }

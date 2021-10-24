@@ -25,6 +25,7 @@ namespace CatDB {
 			KV_STRING(
 				KV(stmt_type, N(DELETE)),
 				K(is_explain),
+				K(stmt_hint),
 				K(table),
 				K(from_stmts),
 				K(where_stmt)

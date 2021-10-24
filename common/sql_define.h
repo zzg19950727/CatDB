@@ -41,6 +41,7 @@ enum AggrType {
 			};
 
 enum SetOpType {UNION_ALL = 0, UNION, INTERSECT, EXCEPT};
+
 static const char* SetOpTypeString[] = {"UNION_ALL", "UNION", "INTERSECT", "EXCEPT"};
 
 enum JoinType {Inner = 0,
@@ -51,6 +52,7 @@ enum JoinType {Inner = 0,
 			   RightSemi, 
 			   LeftAnti, 
 			   RightAnti};
+
 static JoinType ReverseJoinType[] = {Inner,
 			   RightOuter,
 			   LeftOuter, 
@@ -59,6 +61,7 @@ static JoinType ReverseJoinType[] = {Inner,
 			   LeftSemi, 
 			   RightAnti,
 			   LeftAnti};
+
 static const char* JoinTypeString[] = {
 				"Inner",
 				"LeftOuter",
@@ -68,4 +71,10 @@ static const char* JoinTypeString[] = {
 				"RightSemi",
 				"LeftAnti",
 				"RightAnti"};
+				
+enum JoinAlgo {HASH_JOIN, NL_JOIN};
+
+static const char* JoinAlgoString[] = {
+				"HASH_JOIN",
+				"NL_JOIN"};
 #endif //SQL_DEFINE_H
