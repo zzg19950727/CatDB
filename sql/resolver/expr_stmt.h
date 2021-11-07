@@ -1,10 +1,7 @@
 ﻿#ifndef EXPR_STMT_H
 #define EXPR_STMT_H
-#include "select_stmt.h"
 #include "bit_set.h"
 #include "object.h"
-#include "error.h"
-#include "stmt.h"
 
 namespace CatDB {
 	namespace Common {
@@ -20,46 +17,18 @@ namespace CatDB {
 		DECLARE(ColumnStmt);
 		DECLARE(OpExprStmt);
 		DECLARE(ListStmt);
-		DECLARE(TableStmt);
 
-		 enum StmtFlag {
-			INVALID_FLAG = 0,
-			IS_COLUMN,
-			HAS_COLUMN,
-			IS_CONST,
-			HAS_CONST,
-			IS_SET_EXPR,
-			HAS_SET_EXPR,
-			IS_AGG,
-			HAS_AGG,
-			IS_SUBQUERY,
-			HAS_SUBQUERY,
-			IS_LIST,
-			IS_OP_EXPR,
-			IS_EXEC_PARAM,
-			HAS_EXEC_PARAM
-		};
 		//表达式语句
 		DECLARE(ExprStmt);
 		class ExprStmt
 		{
 		public:
-			enum ExprType {
-				Const = 0,
-				ExecParam,
-				Column,
-				SetExpr,
-				Aggregate,
-				SubQuery,
-				List,
-				OperationExpr
-			};
-			
 			ExprStmt();
 			~ExprStmt();
 			virtual ExprType expr_type()const = 0;
 			virtual String to_string()const = 0;
 			virtual u32 formalize() = 0;
+			virtual u32 deep_copy(ExprStmt_s &expr, u32 flag)const = 0;
 			virtual bool same_as(const ExprStmt_s &other) { return false;}
 			//expr flag interface
 			bool has_flag(StmtFlag flag) const { return flag == is_flag || flags.has_member(u32(flag)); }
@@ -98,6 +67,7 @@ namespace CatDB {
 			ExprType expr_type()const;
 			static ExprStmt_s make_const_stmt(const Object_s& value);
 			String to_string()const;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
 			u32 formalize();
 			KV_STRING(
@@ -118,6 +88,7 @@ namespace CatDB {
 			ExprType expr_type()const;
 			static ExprStmt_s make_exec_param_stmt(const ExprStmt_s& ref_expr);
 			String to_string()const;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
 			u32 formalize();
 			ExprStmt_s& get_ref_expr() { return ref_expr; }
@@ -147,6 +118,7 @@ namespace CatDB {
 			u32 formalize();
 			bool is_all_column()const;
 			String to_string()const;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
 			KV_STRING(
 				KV(flags, flags_to_string()),
@@ -177,6 +149,7 @@ namespace CatDB {
 			void set_index(u32 idx) { index = idx; }
 			u32 get_index() const { return index; }
 			String to_string()const;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
 			KV_STRING(
 				KV(type, SetOpTypeString[type]),
@@ -200,18 +173,13 @@ namespace CatDB {
 			static ExprStmt_s make_query_stmt();
 			String to_string()const;
 			u32 formalize();
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s &other) { return false;}
 			Vector<ExecParamStmt_s>& get_corrected_exprs() { return exec_params; }
-			void add_corrected_exprs(ExecParamStmt_s& expr);
+			void add_corrected_exprs(ExecParamStmt_s expr);
 			void set_subquery_id(u32 id) { subquery_id = id; }
 			u32 get_subquery_id() const { return subquery_id; }
-			KV_STRING(
-				KV(flags, flags_to_string()),
-				K(table_ids),
-				K(output_one_row),
-				KV(corrected_exprss, params),
-				K(query_stmt)
-			);
+			DECLARE_KV_STRING;
 
 		public:
 			SelectStmt_s query_stmt;
@@ -230,6 +198,7 @@ namespace CatDB {
 			ExprType expr_type()const;
 			static ExprStmt_s make_list_stmt();
 			String to_string()const;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			u32 size() const { return params.size(); }
 			ExprStmt_s& at(u32 i) { return params[i]; }
 			void push_back(const ExprStmt_s &expr) { params.push_back(expr); }
@@ -253,6 +222,7 @@ namespace CatDB {
 			String to_string()const;
 			String aggr_func_name()const;
 			u32 formalize();
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s &other);
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
@@ -281,6 +251,7 @@ namespace CatDB {
 			static ExprStmt_s make_op_expr_stmt(OperationType op_type);
 			String to_string()const;
 			u32 formalize();
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s &other);
 			//json print
 			static String op_string(OperationType op_type);
@@ -294,122 +265,6 @@ namespace CatDB {
 
 		public:
 			OperationType op_type;
-		};
-
-		//表的描述语句
-		DECLARE(TableStmt);
-		class TableStmt
-		{
-		protected:
-			TableStmt();
-		public:
-			~TableStmt();
-			enum TableType {BasicTable = 0, JoinedTable, ViewTable};
-			
-			String to_string()const {return alias_name;}
-			virtual u32 formalize() = 0;
-			bool is_basic_table()const {return table_type == BasicTable;}
-			bool is_joined_table()const {return table_type == JoinedTable;}
-			bool is_view_table()const {return table_type == ViewTable;}
-			virtual bool is_dual_table() const { return false; }
-			bool is_basic_and_not_dual_table() const { return is_basic_table() && !is_dual_table(); }
-			bool same_as(const TableStmt_s& other)	{ return false; }
-			virtual u32 get_table_exprs(Vector<ExprStmt_s> &exprs);
-			void set_alias_name(const String& alias_name);
-			//json print
-			static String get_table_type_name(TableType table_type);
-			VIRTUAL_KV_STRING(
-				K(alias_name),
-				K(table_id)
-			);
-
-		public:
-			Vector<ExprStmt_s> table_filter;
-			TableType table_type;
-			String alias_name;
-			u32 table_id;
-			BitSet table_ids;
-		};
-
-		DECLARE(BasicTableStmt);
-		class BasicTableStmt : public TableStmt
-		{
-		private:
-			BasicTableStmt(const String &database, const String& table_name);
-		public:
-			static TableStmt_s make_basic_table(const String &database, const String& table_name);
-			static TableStmt_s make_dual_table();
-			bool is_dual_table() const { return is_dual; }
-			u32 formalize();
-			bool same_as(const TableStmt_s& other);
-			
-			
-			KV_STRING(
-				KV(table_type, get_table_type_name(table_type)),
-				K(database),
-				K(table_name),
-				K(alias_name),
-				K(ref_table_id),
-				K(table_id),
-				K(table_filter),
-				K(is_dual)
-			);
-
-			String database;
-			String table_name;
-			u32 ref_table_id;
-			bool is_dual;
-		};
-
-		DECLARE(JoinedTableStmt);
-		class JoinedTableStmt : public TableStmt
-		{
-		private:
-			JoinedTableStmt()
-			{ table_type = JoinedTable; }
-		public:
-			static TableStmt_s make_joined_table(TableStmt_s &left_table,
-												 TableStmt_s &right_table,
-												 JoinType join_type,
-												 ExprStmt_s &join_condition);
-			u32 formalize();
-			u32 get_table_items(Vector<TableStmt_s> &table_items);
-			u32 get_table_exprs(Vector<ExprStmt_s> &exprs)override;
-
-			KV_STRING(
-				KV(table_type, get_table_type_name(table_type)),
-				KV(join_type, JoinTypeString[join_type]),
-				K(table_id),
-				K(left_table),
-				K(right_table),
-				K(join_condition),
-				K(table_filter)
-			);
-			TableStmt_s left_table;
-			TableStmt_s right_table;
-			JoinType join_type;
-			Vector<ExprStmt_s> join_condition;
-		};
-
-		DECLARE(ViewTableStmt);
-		class ViewTableStmt : public TableStmt
-		{
-		private:
-			ViewTableStmt(Stmt_s &ref_query)
-				:ref_query(ref_query)
-			{ table_type = TableStmt::ViewTable; }
-		public:
-			static TableStmt_s make_view_table(Stmt_s &ref_query);
-			u32 formalize();
-			
-			KV_STRING(
-				KV(table_type, get_table_type_name(table_type)),
-				K(alias_name),
-				K(table_id),
-				K(table_filter),
-				K(ref_query)
-				);
-			SelectStmt_s ref_query;
 		};
 	}
 }

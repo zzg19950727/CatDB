@@ -1,13 +1,12 @@
 #ifndef DML_PLAN_H
 #define DML_PLAN_H
-#include "expr_stmt.h"
+#include "table_stmt.h"
 #include "log_join.h"
 #include "type.h"
 #include "plan.h"
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
 		DECLARE(ExprStmt);
 		DECLARE(TableStmt);
 		DECLARE(SelectStmt);
@@ -16,9 +15,8 @@ namespace CatDB {
 	namespace Optimizer {
 		DECLARE(EstInfo);
 		DECLARE(LogicalOperator);
-		using Parser::Stmt_s;
 		using Parser::ExprStmt_s;
-		using Parser::TableStmt;
+		using Parser::TableStmt_s;
 		using Parser::SelectStmt_s;
 		using Parser::BasicTableStmt_s;
 		using Parser::JoinedTableStmt_s;
@@ -173,6 +171,10 @@ namespace CatDB {
 			u32 generate_subplan();
 			u32 init_leading_info();
 			u32 get_leading_info(const LeadingTable_s &leading_table, BitSet &table_ids);
+			u32 generate_plan_hint();
+			u32 generate_plan_hint(LogicalOperator_s &op, 
+								   Vector<String> &table_names, 
+								   LeadingTable_s &table);
 
 		public:
 			Vector<Vector<LogicalOperator_s>> join_orders;

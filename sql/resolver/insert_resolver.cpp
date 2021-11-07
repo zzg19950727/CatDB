@@ -3,6 +3,7 @@
 #include "select_stmt.h"
 #include "insert_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "error.h"
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
@@ -29,7 +30,7 @@ u32 InsertResolver::check_insert_value(BasicTableStmt_s &insert_table, Vector<Ex
 	CHECK(checker->get_row_desc(insert_table->ref_table_id, row_desc));
 	for (u32 i = 0; i < value_list.size(); ++i) {
         CHECK(value_list[i]->formalize());
-        MY_ASSERT(ExprStmt::List == value_list[i]->expr_type());
+        MY_ASSERT(EXPR_LIST == value_list[i]->expr_type());
 		CHECK(resolve_row(value_list[i]->params, row_desc));
 	}
 	return ret;

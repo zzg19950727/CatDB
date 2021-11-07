@@ -9,6 +9,7 @@
 #include "insert_stmt.h"
 #include "dml_resolver.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "dml_stmt.h"
 #include "stmt.h"
 #include "object.h"
@@ -219,11 +220,11 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
     MY_ASSERT(expr_stmt);
 	switch (expr_stmt->expr_type())
 	{
-	case ExprStmt::Const:
+	case CONST:
 	{
 		break;
 	}
-	case ExprStmt::Column:
+	case COLUMN:
 	{
 		ColumnStmt_s column_stmt = expr_stmt;
 		if (column_stmt->is_all_column()) {
@@ -233,7 +234,7 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
 		}
 		break;
 	}
-	case ExprStmt::SubQuery:
+	case SUBQUERY:
 	{
         SubQueryStmt_s query = expr_stmt;
         ResolveCtx temp_ctx;
@@ -243,7 +244,7 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
         for (uint i = 0; i <temp_ctx.columns_from_parent.size(); ++i) {
             ExecParamStmt_s& exec_param = temp_ctx.columns_from_parent[i];
             ExprStmt_s& correlated_expr = exec_param->get_ref_expr();
-            if (ExprStmt::Column == correlated_expr->expr_type()) {
+            if (COLUMN == correlated_expr->expr_type()) {
                 ColumnStmt_s col = correlated_expr;
                 if (find_table_item(col->table_id)) {
                     query->add_corrected_exprs(exec_param);
@@ -256,7 +257,7 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
         }
 		break;
 	}
-	case ExprStmt::List:
+	case EXPR_LIST:
 	{
 		ListStmt_s list = expr_stmt;
 		for (u32 i = 0; SUCC(ret) && i < list->size(); ++i) {
@@ -264,7 +265,7 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
 		}
 		break;
 	}
-	case ExprStmt::Aggregate:
+	case AGG_EXPR:
 	{
 		if (!can_use_aggr_func) {
 			LOG_ERR("aggregate function can only exist in select list or having stmt");
@@ -286,7 +287,7 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
         }
 		break;
 	}
-	case ExprStmt::OperationExpr:
+	case OP_EXPR:
 	{
         for (u32 i = 0; i < expr_stmt->params.size(); ++i) {
             ret = resolve_expr(expr_stmt->params[i], resolve_ctx);
@@ -300,13 +301,13 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
         if (OP_EXISTS == op_expr->op_type || OP_NOT_EXISTS == op_expr->op_type) {
             MY_ASSERT(expr_stmt->params.size() == 1);
             ExprStmt_s param_expr = expr_stmt->params[0];
-            MY_ASSERT(ExprStmt::SubQuery == param_expr->expr_type());
+            MY_ASSERT(SUBQUERY == param_expr->expr_type());
             SubQueryStmt_s subquery = param_expr;
             subquery->output_one_row = false;
         } else if (OP_IN == op_expr->op_type || OP_NOT_IN == op_expr->op_type) {
             MY_ASSERT(expr_stmt->params.size() == 2);
             ExprStmt_s param_expr = expr_stmt->params[1];
-            MY_ASSERT(ExprStmt::SubQuery == param_expr->expr_type());
+            MY_ASSERT(SUBQUERY == param_expr->expr_type());
             SubQueryStmt_s subquery = param_expr;
             subquery->output_one_row = false;
         }
@@ -324,7 +325,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
     u32 ret = SUCCESS;
     bool find = false;
     u32 find_cnt = 0;
-    MY_ASSERT(expr_stmt, ExprStmt::Column == expr_stmt->expr_type());
+    MY_ASSERT(expr_stmt, COLUMN == expr_stmt->expr_type());
     ColumnStmt_s column = expr_stmt;
     if (!column->table.empty()) {
         for (u32 i = 0; !find && i < resolve_ctx.cur_tables.size(); ++i) {
@@ -464,49 +465,32 @@ bool DMLResolver::find_table_item(u32 table_id)
 u32 DMLResolver::resolve_stmt_hint()
 {
     u32 ret = SUCCESS;
-    Vector<HintStmt_s> &all_hints = stmt->stmt_hint.all_hints;
-    String qb_name;
-    if (!stmt->stmt_hint.has_qb_name()) {
-        qb_name = stmt->stmt_hint.generate_qb_name(stmt->stmt_id);
-    } else {
-        qb_name = stmt->stmt_hint.get_qb_name();
+    String qb_name = stmt->stmt_hint.generate_qb_name(stmt->stmt_id);
+    if (stmt->stmt_hint.has_qb_name()) {
+        HintStmt_s qb_name_hint = stmt->stmt_hint.get_hint(HintStmt::QB_NAME);
+        qb_name = qb_name_hint->get_qb_name();
     }
-    //qb_name是否重复
-    for (u32 i = 0; i < resolve_ctx.all_hints.size(); ++i) {
-        if (HintStmt::QB_NAME == resolve_ctx.all_hints[i]->get_hint_type()) {
-            if (qb_name == resolve_ctx.all_hints[i]->get_qb_name()) {
-                ret = QB_NAME_EXISTS;
-                return ret;
-            }
-        }
-    }
-    //未指定qb_name的hint设置当前stmt的qb_name
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (!all_hints[i]->has_qb_name()) {
-            all_hints[i]->set_qb_name(qb_name);
-        }
-    }
-    append(resolve_ctx.all_hints, all_hints);
-    all_hints.clear();
+    Vector<HintStmt_s> all_hints = stmt->stmt_hint.all_hints;
+    stmt->stmt_hint.all_hints.clear();
     //选出当前stmt的hint
     for (u32 i = 0; i < resolve_ctx.all_hints.size(); ++i) {
-        if (qb_name == resolve_ctx.all_hints[i]->get_qb_name()) {
-            all_hints.push_back(resolve_ctx.all_hints[i]);
+        if (qb_name == resolve_ctx.all_hints[i]->get_qb_name() ||
+            resolve_ctx.all_hints[i]->is_global_hint()) {
+            stmt->stmt_hint.add_hint(resolve_ctx.all_hints[i]);
         }
     }
-    //single hint去重
-    BitSet hint_map;
-    Vector<HintStmt_s> new_hints;
     for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (!all_hints[i]->is_single_hint()) {
-            new_hints.push_back(all_hints[i]);
-        } else if (hint_map.has_member( u32(all_hints[i]->get_hint_type()) )) {
-            //重复hint
-        } else {
-            new_hints.push_back(all_hints[i]);
-            hint_map.add_member( u32(all_hints[i]->get_hint_type()) );
+        if (!all_hints[i]->has_qb_name() ||
+            qb_name == all_hints[i]->get_qb_name() ||
+            all_hints[i]->is_global_hint()) {
+            stmt->stmt_hint.add_hint(all_hints[i]);
+        }
+        if ((all_hints[i]->has_qb_name() &&
+            qb_name != all_hints[i]->get_qb_name()) ||
+            all_hints[i]->is_global_hint()) {
+            resolve_ctx.all_hints.push_back(all_hints[i]);
         }
     }
-    all_hints = new_hints;
+    CHECK(stmt->stmt_hint.formalize());
     return ret;
 }

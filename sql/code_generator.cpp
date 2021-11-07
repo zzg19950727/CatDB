@@ -39,6 +39,8 @@
 #include "query_ctx.h"
 #include "table_space.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
+#include "select_stmt.h"
 #include "expr_utils.h"
 #include "error.h"
 #include "log.h"
@@ -244,7 +246,7 @@ u32 CodeGenerator::generate_hash_join_op(ExprGenerateCtx &ctx, LogJoin_s log_op,
     LogicalOperator_s &right_child = log_op->childs[1];
     for (u32 i = 0; i < log_op->equal_join_condition.size(); ++i) {
         ExprStmt_s &expr = log_op->equal_join_condition[i];
-        MY_ASSERT(ExprStmt::OperationExpr == expr->expr_type());
+        MY_ASSERT(OP_EXPR == expr->expr_type());
         OpExprStmt_s op_expr = expr;
         MY_ASSERT(op_expr->params.size() == 2);
         ExprStmt_s &left_expr = op_expr->params[0];
@@ -406,7 +408,7 @@ u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s l
     ColumnDesc col_desc;
     for (u32 i = 0; i < log_op->access_exprs.size(); ++i) {
         ExprStmt_s &expr = log_op->access_exprs[i];
-        MY_ASSERT(ExprStmt::Column == expr->expr_type());
+        MY_ASSERT(COLUMN == expr->expr_type());
         ColumnStmt_s col = expr;
         col_desc.set_tid_cid(col->table_id, col->column_id);
         CHECK(row_desc.add_column_desc(col_desc));
@@ -461,7 +463,7 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
             ColumnDesc desc;
             for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
                 ExprStmt_s &expr = log_root->access_exprs[i];
-                MY_ASSERT(ExprStmt::Column == expr->expr_type());
+                MY_ASSERT(COLUMN == expr->expr_type());
                 ColumnStmt_s col_expr = expr;
                 desc.set_tid_cid(child->operator_id, i);
                 rt_expr = ColumnExpression::make_column_expression(desc);

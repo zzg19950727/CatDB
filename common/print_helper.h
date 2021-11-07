@@ -9,8 +9,11 @@
 #define KV(arg1, arg2) N(arg1) + ":" + V(arg2)
 #define KV_STRING(...) String \
 to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
-#define VIRTUAL_KV_STRING(...) virtual String \
-to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
+#define VIRTUAL_KV_STRING(...) virtual KV_STRING(__VA_ARGS__)
+#define DECLARE_KV_STRING String to_kv_string()const;
+#define DEFINE_KV_STRING(CLASS, ...) String \
+CLASS::to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
+
 
 String to_kv_string(const char& value);
 String to_kv_string(const u8& value);

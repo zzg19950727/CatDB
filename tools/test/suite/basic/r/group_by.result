@@ -41,6 +41,11 @@ sort_keys([t1.c4 ASC], [t1.c4+t1.c4*t1.c3-23+80 DESC], [47 DESC], [t1.c4 ASC])
 1 - output([t1.c4], [t1.c4+t1.c4*t1.c3-23+80])
 access([t1.c4], [t1.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C4 AS C1, ((T1.C4 + T1.C4 * T1.C3) - 23 + 80) AS C2, 47 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 +------+------+------+------+
@@ -78,6 +83,11 @@ aggr_exprs([COUNT(DISTINCT t2.c1)], [COUNT(DISTINCT t2.c1)])
 2 - output([t2.c2], [t2.c3-t2.c2*t2.c3], [t2.c3], [t2.c1])
 access([t2.c1], [t2.c3], [t2.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t2)
+*/
+
 SELECT  COUNT(DISTINCT T2.C1) AS C1, 3 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T2  GROUP BY T2.C2, ((T2.C3 - T2.C2) * T2.C3), T2.C3  ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 +------+------+------+------+
@@ -110,6 +120,11 @@ Outputs & filters:
 sort_keys([t3.c1 ASC], [42/t3.c1/t3.c2 DESC], [t3.c4 ASC], [t3.c2 DESC])
 1 - output([t3.c1], [42/t3.c1/t3.c2], [t3.c4], [t3.c2])
 access([t3.c1], [t3.c2], [t3.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t3)
+*/
 
 SELECT  T3.C1 AS C1, (42 / T3.C1 / T3.C2) AS C2, T3.C4 AS C3, T3.C2 AS C4 FROM T1 T3    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
@@ -148,6 +163,11 @@ aggr_exprs([MAX(DISTINCT t4.c4)], [MAX(DISTINCT t4.c4)])
 2 - output([t4.c1], [63+t4.c1/t4.c3], [t4.c2], [t4.c4])
 access([t4.c2], [t4.c4], [t4.c1], [t4.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t4)
+*/
+
 SELECT  T4.C2 AS C1, 69 AS C2, MAX(DISTINCT T4.C4) AS C3, 6 AS C4 FROM T1 T4  GROUP BY T4.C1, 44, 63 + T4.C1 / T4.C3, T4.C2, T4.C4  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
 +------+------+------+------+
@@ -185,6 +205,11 @@ aggr_exprs([COUNT(DISTINCT t5.c1)], [COUNT(DISTINCT t5.c1)])
 2 - output([t5.c3*t5.c4], [t5.c3], [t5.c1])
 access([t5.c1], [t5.c3], [t5.c4])
 
+outline:
+/*+
+LEADING(@SEL1 t5)
+*/
+
 SELECT  69 AS C1, COUNT(DISTINCT T5.C1) AS C2, (T5.C3 * T5.C4) AS C3, T5.C3 AS C4 FROM T1 T5  GROUP BY (T5.C3 * T5.C4), 69, T5.C3  ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 +------+------+------+------+
@@ -217,6 +242,11 @@ Outputs & filters:
 sort_keys([45 DESC], [t6.c3*87/31*t6.c2-33+t6.c1+t6.c2 DESC], [t6.c3 ASC], [t6.c2 ASC])
 1 - output([t6.c3], [t6.c2])
 access([t6.c3], [t6.c2], [t6.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t6)
+*/
 
 SELECT  45 AS C1, (T6.C3 * (((87 / 31) * T6.C2 - 33) + T6.C1) + T6.C2) AS C2, T6.C3 AS C3, T6.C2 AS C4 FROM T1 T6    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC
 
@@ -254,6 +284,11 @@ group_by_exprs([36], [58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
 2 - output([58/t7.c4*t7.c4/t7.c1-t7.c1*t7.c1+72-t7.c1+t7.c2/t7.c1])
 access([t7.c4], [t7.c1], [t7.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t7)
+*/
+
 SELECT  (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1) AS C1, 36 AS C2, 36 AS C3, 22 AS C4 FROM T1 T7  GROUP BY 36, (58 / (((T7.C4 * (T7.C4 / T7.C1) - T7.C1) * T7.C1 + 72) - T7.C1) + T7.C2 / T7.C1)  ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC
 
 +-----------------------+------+------+------+
@@ -287,6 +322,11 @@ group_by_exprs([t8.c2])
 aggr_exprs([AVG(17)], [AVG(17)])
 2 - output([t8.c2], [t8.c2/19])
 access([t8.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t8)
+*/
 
 SELECT  (T8.C2 / 19) AS C1, T8.C2 AS C2, AVG(17) AS C3, 80 AS C4 FROM T1 T8  GROUP BY T8.C2  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
@@ -322,6 +362,11 @@ aggr_exprs([MIN(48)], [MIN(DISTINCT 92)], [MIN(48)], [MIN(DISTINCT 92)])
 2 - output([t9.c4], [57-t9.c1*t9.c4], [t9.c1])
 access([t9.c4], [t9.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t9)
+*/
+
 SELECT  94 AS C1, 40 AS C2, MIN(48) AS C3, MIN(DISTINCT 92) AS C4 FROM T1 T9  GROUP BY T9.C4, (57 - T9.C1) * T9.C4, T9.C1  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 +------+------+------+------+
@@ -355,6 +400,11 @@ sort_keys([t10.c4-t10.c3 ASC], [70 ASC], [t10.c1 ASC], [t10.c3 DESC])
 1 - output([t10.c4-t10.c3], [t10.c1], [t10.c3])
 access([t10.c4], [t10.c3], [t10.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t10)
+*/
+
 SELECT  (T10.C4 - T10.C3) AS C1, 70 AS C2, T10.C1 AS C3, T10.C3 AS C4 FROM T1 T10    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 +------+------+------+------+
@@ -387,6 +437,11 @@ Outputs & filters:
 sort_keys([t11.c3/t11.c2 ASC], [t11.c4 ASC], [t11.c3 DESC], [t11.c4 DESC])
 1 - output([t11.c3/t11.c2], [t11.c4], [t11.c3])
 access([t11.c3], [t11.c2], [t11.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t11)
+*/
 
 SELECT  (T11.C3 / T11.C2) AS C1, T11.C4 AS C2, T11.C3 AS C3, T11.C4 AS C4 FROM T1 T11    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
@@ -425,6 +480,11 @@ aggr_exprs([COUNT(DISTINCT t12.c1)], [COUNT(DISTINCT t12.c1)])
 2 - output([t12.c2/t12.c4], [t12.c3], [t12.c1])
 access([t12.c3], [t12.c1], [t12.c2], [t12.c4])
 
+outline:
+/*+
+LEADING(@SEL1 t12)
+*/
+
 SELECT  T12.C3 AS C1, T12.C3 AS C2, COUNT(DISTINCT T12.C1) AS C3, 79 AS C4 FROM T1 T12  GROUP BY T12.C2 / T12.C4, 47, T12.C3, T12.C1, T12.C3  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 +------+------+------+------+
@@ -460,6 +520,11 @@ sort_keys([60 ASC], [88 DESC], [t13.c2-t13.c3-t13.c3-t13.c3 DESC], [t13.c2-t13.c
 group_by_exprs([t13.c2-t13.c3-t13.c3-t13.c3], [t13.c4])
 2 - output([t13.c2-t13.c3-t13.c3-t13.c3], [t13.c4])
 access([t13.c2], [t13.c3], [t13.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t13)
+*/
 
 SELECT  60 AS C1, 88 AS C2, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C3, (((T13.C2 - T13.C3) - T13.C3) - T13.C3) AS C4 FROM T1 T13  GROUP BY (((T13.C2 - T13.C3) - T13.C3) - T13.C3), T13.C4  ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
@@ -498,6 +563,11 @@ aggr_exprs([AVG(DISTINCT 6)], [AVG(DISTINCT t14.c2)], [AVG(DISTINCT 6)], [AVG(DI
 2 - output([t14.c1], [t14.c3/t14.c1], [t14.c2])
 access([t14.c2], [t14.c3], [t14.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t14)
+*/
+
 SELECT  AVG(DISTINCT 6) AS C1, AVG(DISTINCT T14.C2) AS C2, (T14.C3 / T14.C1) AS C3, T14.C1 AS C4 FROM T1 T14  GROUP BY T14.C1, (T14.C3 / T14.C1), 15, 81, T14.C1  ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 +----------------------+----------------------+-----------------+------+
@@ -528,6 +598,11 @@ Outputs & filters:
 sort_keys([t15.c1+t15.c3 ASC], [t15.c3 DESC], [t15.c1 DESC], [t15.c1 DESC])
 1 - output([t15.c1+t15.c3], [t15.c3], [t15.c1])
 access([t15.c1], [t15.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t15)
+*/
 
 SELECT  (T15.C1 + T15.C3) AS C1, T15.C3 AS C2, T15.C1 AS C3, T15.C1 AS C4 FROM T1 T15    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
@@ -565,6 +640,11 @@ group_by_exprs([69], [t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [t16.c3], [97])
 2 - output([t16.c3/t16.c3/t16.c4-80*t16.c4+t16.c1], [t16.c3])
 access([t16.c3], [t16.c4], [t16.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t16)
+*/
+
 SELECT  69 AS C1, 69 AS C2, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1) AS C3, 69 AS C4 FROM T1 T16  GROUP BY 69, (T16.C3 / ((T16.C3 / T16.C4) - 80) * T16.C4 + T16.C1), T16.C3, 97  ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC
 
 +------+------+-----------------------+------+
@@ -597,6 +677,11 @@ Outputs & filters:
 sort_keys([t17.c2*t17.c2 DESC], [t17.c2 ASC], [t17.c1 DESC], [t17.c2 ASC])
 1 - output([t17.c2*t17.c2], [t17.c2], [t17.c1])
 access([t17.c2], [t17.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t17)
+*/
 
 SELECT  T17.C2 * T17.C2 AS C1, T17.C2 AS C2, T17.C1 AS C3, T17.C2 AS C4 FROM T1 T17    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
@@ -635,6 +720,11 @@ aggr_exprs([MIN(t18.c3)], [AVG(t18.c2)], [AVG(t18.c3)], [MIN(t18.c3)], [AVG(t18.
 2 - output([t18.c4], [t18.c3*46*4-t18.c4+t18.c1+t18.c2*38], [t18.c3], [t18.c2])
 access([t18.c3], [t18.c2], [t18.c4], [t18.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t18)
+*/
+
 SELECT  MIN(T18.C3) AS C1, AVG(T18.C2) AS C2, AVG(T18.C3) AS C3, T18.C4 AS C4 FROM T1 T18  GROUP BY T18.C4, (((T18.C3 * 46 * 4) - T18.C4 + T18.C1 + T18.C2) * 38), T18.C4, 73  ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 +------+----------------------+----------------------+------+
@@ -672,6 +762,11 @@ aggr_exprs([COUNT(t19.c4)], [COUNT(t19.c4)])
 2 - output([t19.c4-t19.c4], [t19.c4])
 access([t19.c4])
 
+outline:
+/*+
+LEADING(@SEL1 t19)
+*/
+
 SELECT  96 AS C1, (T19.C4 - T19.C4) AS C2, 82 AS C3, COUNT(T19.C4) AS C4 FROM T1 T19  GROUP BY 82, (T19.C4 - T19.C4)  ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 +------+------+------+------+
@@ -695,6 +790,11 @@ Outputs & filters:
 sort_keys([t20.c1 DESC], [t20.c1 DESC], [t20.c3 ASC], [t20.c2 DESC])
 1 - output([t20.c1], [t20.c3], [t20.c2])
 access([t20.c1], [t20.c3], [t20.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t20)
+*/
 
 SELECT  T20.C1 AS C1, T20.C1 AS C2, T20.C3 AS C3, T20.C2 AS C4 FROM T1 T20    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC
 

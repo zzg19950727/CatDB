@@ -38,6 +38,11 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c1], [t1.c3])
 access([t1.c3], [t1.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1
 
 +------+------+------+------+
@@ -68,6 +73,11 @@ Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c1], [t1.c1])
 filters([t1.c1=t1.c1 OR t1.c4>t1.c3])
 access([t1.c1], [t1.c4], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C1 OR T1.C4 > T1.C3)
 
@@ -100,6 +110,11 @@ Outputs & filters:
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
 access([t1.c1], [t1.c3], [t1.c4])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
 +------+------+------+------+
@@ -126,6 +141,11 @@ Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c1], [t1.c1])
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
 access([t1.c1], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
@@ -154,6 +174,11 @@ Outputs & filters:
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
 access([t1.c1], [t1.c3], [t1.c4], [t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
 +------+------+------+------+
@@ -181,6 +206,11 @@ Outputs & filters:
 filters([t1.c4 IS NULL])
 access([t1.c4], [t1.c1], [t1.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C4 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 IS NULL
 
 Empty set
@@ -197,6 +227,11 @@ Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c2], [t1.c4])
 filters([t1.c3 IS NOT NULL])
 access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
 
@@ -229,6 +264,11 @@ Outputs & filters:
 filters([t1.c3 IS NOT NULL])
 access([t1.c3], [t1.c4], [t1.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
 
 +------+------+------+------+
@@ -259,6 +299,11 @@ Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c1], [t1.c1])
 filters([t1.c4!=t1.c1])
 access([t1.c4], [t1.c1], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
 
@@ -291,6 +336,11 @@ Outputs & filters:
 filters([t1.c4!=t1.c1])
 access([t1.c4], [t1.c1], [t1.c2], [t1.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
 
 +------+------+------+------+
@@ -322,6 +372,11 @@ Outputs & filters:
 filters([t1.c1=t1.c4 AND t1.c4<=t1.c2 OR t1.c4 IS NULL OR t1.c3<=t1.c4])
 access([t1.c1], [t1.c4], [t1.c2], [t1.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C4 AND T1.C4 <= T1.C2 OR T1.C4 IS NULL OR T1.C3 <= T1.C4)
 
 +------+------+------+------+
@@ -347,6 +402,11 @@ Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c2], [t1.c4])
 filters([t1.c3>=t1.c3])
 access([t1.c3], [t1.c4], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
@@ -379,6 +439,11 @@ Outputs & filters:
 filters([t1.c3>=t1.c3])
 access([t1.c3], [t1.c1], [t1.c2], [t1.c4])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
 +------+------+------+------+
@@ -410,6 +475,11 @@ Outputs & filters:
 filters([t1.c3>=t1.c3])
 access([t1.c3], [t1.c4], [t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
 +------+------+------+------+
@@ -440,6 +510,11 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c2], [t1.c4], [t1.c2])
 filters([t1.c4 LIKE t1.c3])
 access([t1.c4], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C4 LIKE T1.C3
 

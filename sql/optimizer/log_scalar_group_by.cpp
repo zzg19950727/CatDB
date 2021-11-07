@@ -1,6 +1,8 @@
 #include "log_scalar_group_by.h"
 #include "expr_stmt.h"
 #include "opt_est_cost.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 

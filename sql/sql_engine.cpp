@@ -205,7 +205,9 @@ u32 SqlEngine::handle_query()
             CHECK(DMLResolver::resolve_stmt(lex_stmt, query_ctx, resolve_ctx));
             Transformer transformer;
             DMLStmt_s dml_stmt = lex_stmt;
-            CHECK(transformer.transform(dml_stmt));
+            TransformCtx_s transform_ctx = TransformCtx::make_transform_ctx();
+            transform_ctx->query_ctx = &query_ctx;
+            CHECK(transformer.transform(dml_stmt, transform_ctx));
         }
 		plan = Plan::make_plan(lex_stmt, &query_ctx);
 		MY_ASSERT(plan);
@@ -284,22 +286,20 @@ u32 SqlEngine::print_outline(String &outline)
 {
     u32 ret = SUCCESS;
     outline = "/*+\n";
-    outline += "\tBEGIN_OUTLINE\n";
     DMLStmt_s dml_stmt = lex_stmt;
-    CHECK(print_stmt_outline(dml_stmt, outline));
-    outline += "\tEND_OUTLINE\n";
+    CHECK(print_stmt_outline(dml_stmt, true, outline));
     outline += "*/";
     return ret;
 }
 
-u32 SqlEngine::print_stmt_outline(DMLStmt_s stmt, String &outline)
+u32 SqlEngine::print_stmt_outline(DMLStmt_s stmt, bool print_global_hint, String &outline)
 {
     u32 ret = SUCCESS;
-    outline += stmt->stmt_hint.print_outline();
+    outline += stmt->stmt_hint.print_outline(print_global_hint);
     Vector<SelectStmt_s> child_stmts;
     CHECK(stmt->get_child_stmts(child_stmts));
     for (u32 i = 0; i < child_stmts.size(); ++i) {
-        CHECK(print_stmt_outline(child_stmts[i], outline));
+        CHECK(print_stmt_outline(child_stmts[i], false, outline));
     }
     return ret;
 }

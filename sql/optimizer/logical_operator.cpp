@@ -1,5 +1,6 @@
 #include "logical_operator.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "expr_utils.h"
 #include "query_ctx.h"
 #include "error.h"

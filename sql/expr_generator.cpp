@@ -2,6 +2,7 @@
 #include "code_generator.h"
 #include "phy_expression.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "error.h"
 #include "log.h"
 
@@ -48,13 +49,13 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
     MY_ASSERT(expr);
 	switch (expr->expr_type())
 	{
-	case ExprStmt::Const:
+	case CONST:
 	{
         ConstStmt_s const_expr = expr;
         rt_expr = ConstExpression::make_const_expression(const_expr->value);
 		break;
 	}
-	case ExprStmt::Column:
+	case COLUMN:
 	{
 		ColumnStmt_s col_expr = expr;
         ColumnDesc desc;
@@ -62,25 +63,25 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
         rt_expr = ColumnExpression::make_column_expression(desc);
 		break;
 	}
-    case ExprStmt::SetExpr:
+    case SET_EXPR:
     {
         SetExprStmt_s set_expr = expr;
         rt_expr = SetExpression::make_set_expression(set_expr->get_index());
         break;
     }
-	case ExprStmt::SubQuery:
+	case SUBQUERY:
 	{
         SubQueryStmt_s subquery = expr;
         CHECK(generate_subquery_expr(ctx, subquery, rt_expr));
 		break;
 	}
-	case ExprStmt::List:
+	case EXPR_LIST:
 	{
 		ret = ERR_UNEXPECTED;
         LOG_ERR("List Expr can not be generate", K(expr), K(ret));
 		break;
 	}
-	case ExprStmt::Aggregate:
+	case AGG_EXPR:
 	{
         AggrStmt_s aggr_expr = expr;
 		Expression_s rt_aggr_expr;
@@ -90,7 +91,7 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
                                                                  aggr_expr->distinct);
 		break;
 	}
-	case ExprStmt::OperationExpr:
+	case OP_EXPR:
 	{
         OpExprStmt_s op_expr = expr;
         OpExpression_s rt_op_expr = OpExpression::make_op_expression(op_expr->op_type);
@@ -101,7 +102,7 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
         rt_expr = rt_op_expr;
 		break;
 	}
-    case ExprStmt::ExecParam:
+    case EXEC_PARAM:
     {
         ExecParamStmt_s exec_param = expr;
         auto iter = ctx.exec_param_map.find(exec_param);

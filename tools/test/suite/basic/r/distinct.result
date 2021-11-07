@@ -43,6 +43,11 @@ sort_keys([t1.c3 DESC])
 2 - output([t1.c3])
 access([t1.c3])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -74,6 +79,11 @@ sort_keys([t1.c3 DESC])
 1 - output([t1.c3])
 2 - output([t1.c3])
 access([t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
@@ -107,6 +117,11 @@ sort_keys([t1.c2 DESC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -137,6 +152,11 @@ sort_keys([t1.c3 ASC])
 1 - output([t1.c3])
 2 - output([t1.c3])
 access([t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
@@ -169,6 +189,11 @@ sort_keys([t1.c3 ASC])
 1 - output([t1.c3])
 2 - output([t1.c3])
 access([t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
@@ -202,6 +227,11 @@ sort_keys([t1.c2 ASC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 +------+
@@ -233,6 +263,11 @@ sort_keys([t1.c2 DESC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -263,6 +298,11 @@ sort_keys([t1.c1 DESC])
 1 - output([t1.c1])
 2 - output([t1.c1])
 access([t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
@@ -296,6 +336,11 @@ sort_keys([t1.c1 ASC])
 2 - output([t1.c1])
 access([t1.c1])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 +------+
@@ -328,6 +373,11 @@ sort_keys([t1.c2 DESC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -358,6 +408,11 @@ sort_keys([t1.c2 DESC])
 1 - output([t1.c2])
 2 - output([t1.c2])
 access([t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
@@ -390,6 +445,11 @@ sort_keys([t1.c2 ASC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 +------+
@@ -420,6 +480,11 @@ sort_keys([t1.c1 DESC])
 1 - output([t1.c1])
 2 - output([t1.c1])
 access([t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
@@ -452,6 +517,11 @@ sort_keys([t1.c1 DESC])
 1 - output([t1.c1])
 2 - output([t1.c1])
 access([t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
@@ -484,6 +554,11 @@ sort_keys([t1.c3 ASC])
 1 - output([t1.c3])
 2 - output([t1.c3])
 access([t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
@@ -517,6 +592,11 @@ sort_keys([t1.c2 DESC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -547,6 +627,11 @@ sort_keys([t1.c2 ASC])
 1 - output([t1.c2])
 2 - output([t1.c2])
 access([t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
@@ -579,6 +664,11 @@ sort_keys([t1.c2 DESC])
 2 - output([t1.c2])
 access([t1.c2])
 
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
+
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 +------+
@@ -609,6 +699,11 @@ sort_keys([t1.c3 ASC])
 1 - output([t1.c3])
 2 - output([t1.c3])
 access([t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
@@ -641,6 +736,11 @@ sort_keys([t1.c4 DESC])
 1 - output([t1.c4])
 2 - output([t1.c4])
 access([t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT DISTINCT T1.C4 AS C1 FROM T1 T1    ORDER BY 1 DESC
 

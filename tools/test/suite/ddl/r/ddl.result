@@ -11,9 +11,10 @@ show databases
 +-------------+
 | test        |
 | random_test |
+| test1       |
 | system      |
 +-------------+
-3 rows in set
+4 rows in set
 
 drop database test
 
@@ -23,9 +24,10 @@ show databases
 | databases   |
 +-------------+
 | random_test |
+| test1       |
 | system      |
 +-------------+
-2 rows in set
+3 rows in set
 
 create database test
 

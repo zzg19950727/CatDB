@@ -22,21 +22,26 @@ SELECT * FROM T1
 EXPLAIN SELECT  T2.C4 AS C1, T2.C2 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T1, T1 T2    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T1   | 4         | 4    |
-| 3  |   TABLE SCAN            | T2   | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.767e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.102e+07 |
+| 2  |   TABLE SCAN            | T2   | 100000    | 15410     |
+| 3  |   TABLE SCAN            | T1   | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t2.c4], [t2.c2], [t2.c3], [t2.c2])
 sort_keys([t2.c4 DESC], [t2.c2 DESC], [t2.c3 DESC], [t2.c2 ASC])
 1 - output([t2.c4], [t2.c2], [t2.c3])
-2 - access()
-3 - output([t2.c4], [t2.c2], [t2.c3])
+2 - output([t2.c4], [t2.c2], [t2.c3])
 access([t2.c4], [t2.c2], [t2.c3])
+
+outline:
+/*+
+USE_NL(@SEL1 t1)
+LEADING(@SEL1 t2, t1)
+*/
 
 SELECT  T2.C4 AS C1, T2.C2 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T1, T1 T2    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
@@ -58,14 +63,14 @@ SELECT  T2.C4 AS C1, T2.C2 AS C2, T2.C3 AS C3, T2.C2 AS C4 FROM T1 T1, T1 T2    
 EXPLAIN SELECT  T6.C3 AS C1, T6.C3 AS C2, T6.C2 AS C3, T5.C1 AS C4 FROM T1 T5, T1 T6 WHERE T6.C3 LIKE T6.C2   ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 4         | 9    |
-| 1  |  NESTED LOOP Inner JOIN |      | 4         | 9    |
-| 2  |   TABLE SCAN            | T6   | 1         | 4    |
-| 3  |   TABLE SCAN            | T5   | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 3.000e+09 | 8.018e+09 |
+| 1  |  NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.623e+08 |
+| 2  |   TABLE SCAN            | T6   | 30000     | 13410     |
+| 3  |   TABLE SCAN            | T5   | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t6.c3], [t6.c3], [t6.c2], [t5.c1])
 sort_keys([t6.c3 ASC], [t6.c3 DESC], [t6.c2 ASC], [t5.c1 DESC])
@@ -76,6 +81,12 @@ access([t6.c3], [t6.c2])
 3 - output([t5.c1])
 access([t5.c1])
 
+outline:
+/*+
+USE_NL(@SEL1 t5)
+LEADING(@SEL1 t6, t5)
+*/
+
 SELECT  T6.C3 AS C1, T6.C3 AS C2, T6.C2 AS C3, T5.C1 AS C4 FROM T1 T5, T1 T6 WHERE T6.C3 LIKE T6.C2   ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 Empty set
@@ -83,14 +94,14 @@ Empty set
 EXPLAIN SELECT  T7.C2 AS C1, T7.C2 AS C2, T8.C1 AS C3, T8.C1 AS C4 FROM T1 T7, T1 T8    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 8    |
-| 2  |   TABLE SCAN            | T7   | 4         | 4    |
-| 3  |   TABLE SCAN            | T8   | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T7   | 100000    | 5410      |
+| 3  |   TABLE SCAN            | T8   | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t7.c2], [t7.c2], [t8.c1], [t8.c1])
 sort_keys([t7.c2 DESC], [t7.c2 ASC], [t8.c1 ASC], [t8.c1 ASC])
@@ -99,6 +110,12 @@ sort_keys([t7.c2 DESC], [t7.c2 ASC], [t8.c1 ASC], [t8.c1 ASC])
 access([t7.c2])
 3 - output([t8.c1])
 access([t8.c1])
+
+outline:
+/*+
+USE_NL(@SEL1 t8)
+LEADING(@SEL1 t7, t8)
+*/
 
 SELECT  T7.C2 AS C1, T7.C2 AS C2, T8.C1 AS C3, T8.C1 AS C4 FROM T1 T7, T1 T8    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
@@ -120,22 +137,28 @@ SELECT  T7.C2 AS C1, T7.C2 AS C2, T8.C1 AS C3, T8.C1 AS C4 FROM T1 T7, T1 T8    
 EXPLAIN SELECT  T10.C1 AS C1, T9.C4 AS C2, T9.C4 AS C3, T10.C4 AS C4 FROM T1 T9, T1 T10    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T9   | 4         | 4    |
-| 3  |   TABLE SCAN            | T10  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T10  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T9   | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t10.c1], [t9.c4], [t9.c4], [t10.c4])
 sort_keys([t10.c1 DESC], [t9.c4 DESC], [t9.c4 DESC], [t10.c4 DESC])
 1 - output([t10.c1], [t9.c4], [t10.c4])
-2 - output([t9.c4])
-access([t9.c4])
-3 - output([t10.c1], [t10.c4])
+2 - output([t10.c1], [t10.c4])
 access([t10.c1], [t10.c4])
+3 - output([t9.c4])
+access([t9.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t9)
+LEADING(@SEL1 t10, t9)
+*/
 
 SELECT  T10.C1 AS C1, T9.C4 AS C2, T9.C4 AS C3, T10.C4 AS C4 FROM T1 T9, T1 T10    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
@@ -157,21 +180,26 @@ SELECT  T10.C1 AS C1, T9.C4 AS C2, T9.C4 AS C3, T10.C4 AS C4 FROM T1 T9, T1 T10 
 EXPLAIN SELECT  T12.C1 AS C1, T12.C4 AS C2, T12.C2 AS C3, T12.C4 AS C4 FROM T1 T11, T1 T12    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T11  | 4         | 4    |
-| 3  |   TABLE SCAN            | T12  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.767e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.102e+07 |
+| 2  |   TABLE SCAN            | T12  | 100000    | 15410     |
+| 3  |   TABLE SCAN            | T11  | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t12.c1], [t12.c4], [t12.c2], [t12.c4])
 sort_keys([t12.c1 ASC], [t12.c4 ASC], [t12.c2 ASC], [t12.c4 ASC])
 1 - output([t12.c1], [t12.c4], [t12.c2])
-2 - access()
-3 - output([t12.c1], [t12.c4], [t12.c2])
+2 - output([t12.c1], [t12.c4], [t12.c2])
 access([t12.c1], [t12.c4], [t12.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t11)
+LEADING(@SEL1 t12, t11)
+*/
 
 SELECT  T12.C1 AS C1, T12.C4 AS C2, T12.C2 AS C3, T12.C4 AS C4 FROM T1 T11, T1 T12    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
@@ -193,14 +221,14 @@ SELECT  T12.C1 AS C1, T12.C4 AS C2, T12.C2 AS C3, T12.C4 AS C4 FROM T1 T11, T1 T
 EXPLAIN SELECT  T13.C3 AS C1, T13.C2 AS C2, T13.C3 AS C3, T13.C4 AS C4 FROM T1 T13, T1 T14 WHERE T13.C1 NOT LIKE T13.C4   ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 4         | 10   |
-| 1  |  NESTED LOOP Inner JOIN |      | 4         | 9    |
-| 2  |   TABLE SCAN            | T13  | 1         | 5    |
-| 3  |   TABLE SCAN            | T14  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 3.000e+09 | 7.868e+09 |
+| 1  |  NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.232e+07 |
+| 2  |   TABLE SCAN            | T13  | 30000     | 23410     |
+| 3  |   TABLE SCAN            | T14  | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t13.c3], [t13.c2], [t13.c3], [t13.c4])
 sort_keys([t13.c3 DESC], [t13.c2 DESC], [t13.c3 DESC], [t13.c4 DESC])
@@ -208,7 +236,12 @@ sort_keys([t13.c3 DESC], [t13.c2 DESC], [t13.c3 DESC], [t13.c4 DESC])
 2 - output([t13.c3], [t13.c2], [t13.c4])
 filters([t13.c1 NOT LIKE t13.c4])
 access([t13.c1], [t13.c4], [t13.c3], [t13.c2])
-3 - access()
+
+outline:
+/*+
+USE_NL(@SEL1 t14)
+LEADING(@SEL1 t13, t14)
+*/
 
 SELECT  T13.C3 AS C1, T13.C2 AS C2, T13.C3 AS C3, T13.C4 AS C4 FROM T1 T13, T1 T14 WHERE T13.C1 NOT LIKE T13.C4   ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
@@ -217,21 +250,26 @@ Empty set
 EXPLAIN SELECT  T16.C1 AS C1, T16.C1 AS C2, T16.C1 AS C3, T16.C4 AS C4 FROM T1 T15, T1 T16    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 8    |
-| 2  |   TABLE SCAN            | T15  | 4         | 4    |
-| 3  |   TABLE SCAN            | T16  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.767e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
+| 2  |   TABLE SCAN            | T16  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T15  | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t16.c1], [t16.c1], [t16.c1], [t16.c4])
 sort_keys([t16.c1 DESC], [t16.c1 ASC], [t16.c1 ASC], [t16.c4 ASC])
 1 - output([t16.c1], [t16.c4])
-2 - access()
-3 - output([t16.c1], [t16.c4])
+2 - output([t16.c1], [t16.c4])
 access([t16.c1], [t16.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t15)
+LEADING(@SEL1 t16, t15)
+*/
 
 SELECT  T16.C1 AS C1, T16.C1 AS C2, T16.C1 AS C3, T16.C4 AS C4 FROM T1 T15, T1 T16    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
@@ -253,14 +291,14 @@ SELECT  T16.C1 AS C1, T16.C1 AS C2, T16.C1 AS C3, T16.C4 AS C4 FROM T1 T15, T1 T
 EXPLAIN SELECT  T21.C2 AS C1, T21.C1 AS C2, T22.C2 AS C3, T21.C3 AS C4 FROM T1 T21, T1 T22    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T21  | 4         | 4    |
-| 3  |   TABLE SCAN            | T22  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T21  | 100000    | 15410     |
+| 3  |   TABLE SCAN            | T22  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t21.c2], [t21.c1], [t22.c2], [t21.c3])
 sort_keys([t21.c2 ASC], [t21.c1 ASC], [t22.c2 DESC], [t21.c3 ASC])
@@ -269,6 +307,12 @@ sort_keys([t21.c2 ASC], [t21.c1 ASC], [t22.c2 DESC], [t21.c3 ASC])
 access([t21.c2], [t21.c1], [t21.c3])
 3 - output([t22.c2])
 access([t22.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t22)
+LEADING(@SEL1 t21, t22)
+*/
 
 SELECT  T21.C2 AS C1, T21.C1 AS C2, T22.C2 AS C3, T21.C3 AS C4 FROM T1 T21, T1 T22    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
@@ -290,23 +334,29 @@ SELECT  T21.C2 AS C1, T21.C1 AS C2, T22.C2 AS C3, T21.C3 AS C4 FROM T1 T21, T1 T
 EXPLAIN SELECT  T23.C1 AS C1, T23.C1 AS C2, T24.C4 AS C3, T24.C2 AS C4 FROM T1 T23, T1 T24 WHERE T23.C1 IS NOT NULL   ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T23  | 4         | 4    |
-| 3  |   TABLE SCAN            | T24  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 9.900e+09 | 2.818e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 9.900e+09 | 8.410e+08 |
+| 2  |   TABLE SCAN            | T24  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T23  | 99000     | 8410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t23.c1], [t23.c1], [t24.c4], [t24.c2])
 sort_keys([t23.c1 ASC], [t23.c1 DESC], [t24.c4 DESC], [t24.c2 ASC])
 1 - output([t23.c1], [t24.c4], [t24.c2])
-2 - output([t23.c1])
+2 - output([t24.c4], [t24.c2])
+access([t24.c4], [t24.c2])
+3 - output([t23.c1])
 filters([t23.c1 IS NOT NULL])
 access([t23.c1])
-3 - output([t24.c4], [t24.c2])
-access([t24.c4], [t24.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t23)
+LEADING(@SEL1 t24, t23)
+*/
 
 SELECT  T23.C1 AS C1, T23.C1 AS C2, T24.C4 AS C3, T24.C2 AS C4 FROM T1 T23, T1 T24 WHERE T23.C1 IS NOT NULL   ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
@@ -328,14 +378,14 @@ SELECT  T23.C1 AS C1, T23.C1 AS C2, T24.C4 AS C3, T24.C2 AS C4 FROM T1 T23, T1 T
 EXPLAIN SELECT  T25.C2 AS C1, T25.C1 AS C2, T26.C4 AS C3, T25.C1 AS C4 FROM T1 T25, T1 T26    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T25  | 4         | 4    |
-| 3  |   TABLE SCAN            | T26  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T25  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T26  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t25.c2], [t25.c1], [t26.c4], [t25.c1])
 sort_keys([t25.c2 ASC], [t25.c1 DESC], [t26.c4 ASC], [t25.c1 ASC])
@@ -344,6 +394,12 @@ sort_keys([t25.c2 ASC], [t25.c1 DESC], [t26.c4 ASC], [t25.c1 ASC])
 access([t25.c2], [t25.c1])
 3 - output([t26.c4])
 access([t26.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t26)
+LEADING(@SEL1 t25, t26)
+*/
 
 SELECT  T25.C2 AS C1, T25.C1 AS C2, T26.C4 AS C3, T25.C1 AS C4 FROM T1 T25, T1 T26    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
@@ -365,14 +421,14 @@ SELECT  T25.C2 AS C1, T25.C1 AS C2, T26.C4 AS C3, T25.C1 AS C4 FROM T1 T25, T1 T
 EXPLAIN SELECT  T27.C1 AS C1, T28.C4 AS C2, T27.C2 AS C3, T27.C4 AS C4 FROM T1 T27, T1 T28    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T27  | 4         | 4    |
-| 3  |   TABLE SCAN            | T28  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T27  | 100000    | 15410     |
+| 3  |   TABLE SCAN            | T28  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t27.c1], [t28.c4], [t27.c2], [t27.c4])
 sort_keys([t27.c1 DESC], [t28.c4 ASC], [t27.c2 ASC], [t27.c4 ASC])
@@ -381,6 +437,12 @@ sort_keys([t27.c1 DESC], [t28.c4 ASC], [t27.c2 ASC], [t27.c4 ASC])
 access([t27.c1], [t27.c2], [t27.c4])
 3 - output([t28.c4])
 access([t28.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t28)
+LEADING(@SEL1 t27, t28)
+*/
 
 SELECT  T27.C1 AS C1, T28.C4 AS C2, T27.C2 AS C3, T27.C4 AS C4 FROM T1 T27, T1 T28    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC
 
@@ -402,22 +464,28 @@ SELECT  T27.C1 AS C1, T28.C4 AS C2, T27.C2 AS C3, T27.C4 AS C4 FROM T1 T27, T1 T
 EXPLAIN SELECT  T32.C2 AS C1, T32.C2 AS C2, T32.C3 AS C3, T31.C2 AS C4 FROM T1 T31, T1 T32    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 16        | 14   |
-| 1  |  NESTED LOOP Inner JOIN |      | 16        | 9    |
-| 2  |   TABLE SCAN            | T31  | 4         | 4    |
-| 3  |   TABLE SCAN            | T32  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T32  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T31  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t32.c2], [t32.c2], [t32.c3], [t31.c2])
 sort_keys([t32.c2 ASC], [t32.c2 ASC], [t32.c3 ASC], [t31.c2 ASC])
 1 - output([t32.c2], [t32.c3], [t31.c2])
-2 - output([t31.c2])
-access([t31.c2])
-3 - output([t32.c2], [t32.c3])
+2 - output([t32.c2], [t32.c3])
 access([t32.c2], [t32.c3])
+3 - output([t31.c2])
+access([t31.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t31)
+LEADING(@SEL1 t32, t31)
+*/
 
 SELECT  T32.C2 AS C1, T32.C2 AS C2, T32.C3 AS C3, T31.C2 AS C4 FROM T1 T31, T1 T32    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
@@ -439,14 +507,14 @@ SELECT  T32.C2 AS C1, T32.C2 AS C2, T32.C3 AS C3, T31.C2 AS C4 FROM T1 T31, T1 T
 EXPLAIN SELECT  T35.C3 AS C1, T36.C4 AS C2, T36.C4 AS C3, T35.C4 AS C4 FROM T1 T35, T1 T36 WHERE T35.C4 = T35.C2   ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 8         | 11   |
-| 1  |  NESTED LOOP Inner JOIN |      | 8         | 9    |
-| 2  |   TABLE SCAN            | T35  | 2         | 4    |
-| 3  |   TABLE SCAN            | T36  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+07 | 1.991e+07 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+07 | 564820    |
+| 2  |   TABLE SCAN            | T35  | 100       | 18410     |
+| 3  |   TABLE SCAN            | T36  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t35.c3], [t36.c4], [t36.c4], [t35.c4])
 sort_keys([t35.c3 ASC], [t36.c4 DESC], [t36.c4 ASC], [t35.c4 ASC])
@@ -456,6 +524,12 @@ filters([t35.c4=t35.c2])
 access([t35.c4], [t35.c2], [t35.c3])
 3 - output([t36.c4])
 access([t36.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t36)
+LEADING(@SEL1 t35, t36)
+*/
 
 SELECT  T35.C3 AS C1, T36.C4 AS C2, T36.C4 AS C3, T35.C4 AS C4 FROM T1 T35, T1 T36 WHERE T35.C4 = T35.C2   ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
@@ -474,14 +548,14 @@ SELECT  T35.C3 AS C1, T36.C4 AS C2, T36.C4 AS C3, T35.C4 AS C4 FROM T1 T35, T1 T
 EXPLAIN SELECT  T39.C4 AS C1, T39.C1 AS C2, T39.C1 AS C3, T40.C3 AS C4 FROM T1 T39, T1 T40 WHERE T40.C3 NOT BETWEEN T40.C2 AND T40.C1   ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 11        | 12   |
-| 1  |  NESTED LOOP Inner JOIN |      | 11        | 9    |
-| 2  |   TABLE SCAN            | T40  | 2         | 4    |
-| 3  |   TABLE SCAN            | T39  | 4         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 7.000e+09 | 1.977e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 7.000e+09 | 7.287e+08 |
+| 2  |   TABLE SCAN            | T40  | 70000     | 18410     |
+| 3  |   TABLE SCAN            | T39  | 100000    | 10410     |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t39.c4], [t39.c1], [t39.c1], [t40.c3])
 sort_keys([t39.c4 DESC], [t39.c1 ASC], [t39.c1 DESC], [t40.c3 ASC])
@@ -491,6 +565,12 @@ filters([t40.c3 NOT BETWEEN t40.c2 AND t40.c1])
 access([t40.c3], [t40.c2], [t40.c1])
 3 - output([t39.c4], [t39.c1])
 access([t39.c4], [t39.c1])
+
+outline:
+/*+
+USE_NL(@SEL1 t39)
+LEADING(@SEL1 t40, t39)
+*/
 
 SELECT  T39.C4 AS C1, T39.C1 AS C2, T39.C1 AS C3, T40.C3 AS C4 FROM T1 T39, T1 T40 WHERE T40.C3 NOT BETWEEN T40.C2 AND T40.C1   ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 

@@ -32,9 +32,9 @@ namespace CatDB {
 		private:
 			
 			u32 cache_right_table();
-			u32 join(Row_s &row);
-			u32 semi_join(Row_s &row);
-			u32 anti_join(Row_s &row);
+			u32 inner_join(Row_s &row);
+			u32 left_semi_join(Row_s &row);
+			u32 left_anti_join(Row_s &row);
 			u32 left_outer_join(Row_s &row);
 		private:
 			PhyFilter_s join_condition;

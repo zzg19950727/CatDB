@@ -29,17 +29,22 @@ SELECT * FROM T1
 EXPLAIN SELECT  COUNT(DISTINCT T1.C3) AS C1, AVG(DISTINCT T1.C2) AS C2, COUNT(T1.C3) AS C3, COUNT(T1.C4) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c3)], [AVG(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 aggr_exprs([COUNT(DISTINCT t1.c3)], [AVG(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
 access([t1.c3], [t1.c2], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  COUNT(DISTINCT T1.C3) AS C1, AVG(DISTINCT T1.C2) AS C2, COUNT(T1.C3) AS C3, COUNT(T1.C4) AS C4 FROM T1 T1
 
@@ -53,17 +58,22 @@ SELECT  COUNT(DISTINCT T1.C3) AS C1, AVG(DISTINCT T1.C2) AS C2, COUNT(T1.C3) AS 
 EXPLAIN SELECT  COUNT(DISTINCT T1.C2) AS C1, MIN(T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, COUNT(DISTINCT T1.C2) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c2)], [MIN(t1.c3)], [COUNT(DISTINCT t1.c4)], [COUNT(DISTINCT t1.c2)])
 aggr_exprs([COUNT(DISTINCT t1.c2)], [MIN(t1.c3)], [COUNT(DISTINCT t1.c4)], [COUNT(DISTINCT t1.c2)])
 1 - output([t1.c2], [t1.c3], [t1.c4])
 access([t1.c2], [t1.c3], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  COUNT(DISTINCT T1.C2) AS C1, MIN(T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, COUNT(DISTINCT T1.C2) AS C4 FROM T1 T1
 
@@ -77,17 +87,22 @@ SELECT  COUNT(DISTINCT T1.C2) AS C1, MIN(T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS 
 EXPLAIN SELECT  SUM(T1.C4) AS C1, AVG(T1.C1) AS C2, COUNT(DISTINCT T1.C3) AS C3, MIN(DISTINCT T1.C2) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 34410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 20410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([SUM(t1.c4)], [AVG(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)])
 aggr_exprs([SUM(t1.c4)], [AVG(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)])
 1 - output([t1.c4], [t1.c1], [t1.c3], [t1.c2])
 access([t1.c4], [t1.c1], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  SUM(T1.C4) AS C1, AVG(T1.C1) AS C2, COUNT(DISTINCT T1.C3) AS C3, MIN(DISTINCT T1.C2) AS C4 FROM T1 T1
 
@@ -101,17 +116,22 @@ SELECT  SUM(T1.C4) AS C1, AVG(T1.C1) AS C2, COUNT(DISTINCT T1.C3) AS C3, MIN(DIS
 EXPLAIN SELECT  COUNT(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, SUM(DISTINCT T1.C4) AS C3, AVG(DISTINCT T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(DISTINCT t1.c4)], [AVG(DISTINCT t1.c1)])
 aggr_exprs([COUNT(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(DISTINCT t1.c4)], [AVG(DISTINCT t1.c1)])
 1 - output([t1.c2], [t1.c4], [t1.c1])
 access([t1.c2], [t1.c4], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  COUNT(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, SUM(DISTINCT T1.C4) AS C3, AVG(DISTINCT T1.C1) AS C4 FROM T1 T1
 
@@ -125,17 +145,22 @@ SELECT  COUNT(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, SUM(DISTINCT T1.
 EXPLAIN SELECT  AVG(T1.C1) AS C1, SUM(DISTINCT T1.C4) AS C2, COUNT(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 24410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 10410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([AVG(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
 aggr_exprs([AVG(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  AVG(T1.C1) AS C1, SUM(DISTINCT T1.C4) AS C2, COUNT(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
@@ -149,17 +174,22 @@ SELECT  AVG(T1.C1) AS C1, SUM(DISTINCT T1.C4) AS C2, COUNT(T1.C4) AS C3, MIN(T1.
 EXPLAIN SELECT  COUNT(DISTINCT T1.C3) AS C1, MAX(T1.C4) AS C2, MIN(T1.C2) AS C3, COUNT(T1.C3) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c3)], [MAX(t1.c4)], [MIN(t1.c2)], [COUNT(t1.c3)])
 aggr_exprs([COUNT(DISTINCT t1.c3)], [MAX(t1.c4)], [MIN(t1.c2)], [COUNT(t1.c3)])
 1 - output([t1.c3], [t1.c4], [t1.c2])
 access([t1.c3], [t1.c4], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  COUNT(DISTINCT T1.C3) AS C1, MAX(T1.C4) AS C2, MIN(T1.C2) AS C3, COUNT(T1.C3) AS C4 FROM T1 T1
 
@@ -173,17 +203,22 @@ SELECT  COUNT(DISTINCT T1.C3) AS C1, MAX(T1.C4) AS C2, MIN(T1.C2) AS C3, COUNT(T
 EXPLAIN SELECT  MIN(DISTINCT T1.C1) AS C1, AVG(T1.C4) AS C2, MIN(DISTINCT T1.C3) AS C3, COUNT(T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MIN(DISTINCT t1.c1)], [AVG(t1.c4)], [MIN(DISTINCT t1.c3)], [COUNT(t1.c1)])
 aggr_exprs([MIN(DISTINCT t1.c1)], [AVG(t1.c4)], [MIN(DISTINCT t1.c3)], [COUNT(t1.c1)])
 1 - output([t1.c1], [t1.c4], [t1.c3])
 access([t1.c1], [t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MIN(DISTINCT T1.C1) AS C1, AVG(T1.C4) AS C2, MIN(DISTINCT T1.C3) AS C3, COUNT(T1.C1) AS C4 FROM T1 T1
 
@@ -197,17 +232,22 @@ SELECT  MIN(DISTINCT T1.C1) AS C1, AVG(T1.C4) AS C2, MIN(DISTINCT T1.C3) AS C3, 
 EXPLAIN SELECT  SUM(DISTINCT T1.C1) AS C1, MIN(T1.C2) AS C2, COUNT(T1.C3) AS C3, MAX(DISTINCT T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([SUM(DISTINCT t1.c1)], [MIN(t1.c2)], [COUNT(t1.c3)], [MAX(DISTINCT t1.c1)])
 aggr_exprs([SUM(DISTINCT t1.c1)], [MIN(t1.c2)], [COUNT(t1.c3)], [MAX(DISTINCT t1.c1)])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  SUM(DISTINCT T1.C1) AS C1, MIN(T1.C2) AS C2, COUNT(T1.C3) AS C3, MAX(DISTINCT T1.C1) AS C4 FROM T1 T1
 
@@ -221,17 +261,22 @@ SELECT  SUM(DISTINCT T1.C1) AS C1, MIN(T1.C2) AS C2, COUNT(T1.C3) AS C3, MAX(DIS
 EXPLAIN SELECT  SUM(DISTINCT T1.C2) AS C1, AVG(T1.C4) AS C2, COUNT(DISTINCT T1.C3) AS C3, SUM(T1.C3) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([SUM(DISTINCT t1.c2)], [AVG(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 aggr_exprs([SUM(DISTINCT t1.c2)], [AVG(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  SUM(DISTINCT T1.C2) AS C1, AVG(T1.C4) AS C2, COUNT(DISTINCT T1.C3) AS C3, SUM(T1.C3) AS C4 FROM T1 T1
 
@@ -245,17 +290,22 @@ SELECT  SUM(DISTINCT T1.C2) AS C1, AVG(T1.C4) AS C2, COUNT(DISTINCT T1.C3) AS C3
 EXPLAIN SELECT  MIN(T1.C4) AS C1, COUNT(T1.C1) AS C2, AVG(DISTINCT T1.C4) AS C3, SUM(T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 24410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 10410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MIN(t1.c4)], [COUNT(t1.c1)], [AVG(DISTINCT t1.c4)], [SUM(t1.c1)])
 aggr_exprs([MIN(t1.c4)], [COUNT(t1.c1)], [AVG(DISTINCT t1.c4)], [SUM(t1.c1)])
 1 - output([t1.c4], [t1.c1])
 access([t1.c4], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MIN(T1.C4) AS C1, COUNT(T1.C1) AS C2, AVG(DISTINCT T1.C4) AS C3, SUM(T1.C1) AS C4 FROM T1 T1
 
@@ -269,17 +319,22 @@ SELECT  MIN(T1.C4) AS C1, COUNT(T1.C1) AS C2, AVG(DISTINCT T1.C4) AS C3, SUM(T1.
 EXPLAIN SELECT  AVG(T1.C3) AS C1, MAX(T1.C1) AS C2, MAX(T1.C2) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([AVG(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([AVG(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c3], [t1.c1], [t1.c2])
 access([t1.c3], [t1.c1], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  AVG(T1.C3) AS C1, MAX(T1.C1) AS C2, MAX(T1.C2) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
@@ -293,17 +348,22 @@ SELECT  AVG(T1.C3) AS C1, MAX(T1.C1) AS C2, MAX(T1.C2) AS C3, COUNT(DISTINCT T1.
 EXPLAIN SELECT  COUNT(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C1) AS C2, MIN(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 24410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 10410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c1)], [MIN(DISTINCT t1.c1)], [MIN(t1.c4)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([COUNT(DISTINCT t1.c1)], [MIN(DISTINCT t1.c1)], [MIN(t1.c4)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  COUNT(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C1) AS C2, MIN(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
@@ -317,17 +377,22 @@ SELECT  COUNT(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C1) AS C2, MIN(T1.C4) AS C3
 EXPLAIN SELECT  MIN(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, AVG(T1.C2) AS C3, AVG(T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MIN(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [AVG(t1.c2)], [AVG(t1.c1)])
 aggr_exprs([MIN(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [AVG(t1.c2)], [AVG(t1.c1)])
 1 - output([t1.c1], [t1.c3], [t1.c2])
 access([t1.c1], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MIN(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, AVG(T1.C2) AS C3, AVG(T1.C1) AS C4 FROM T1 T1
 
@@ -341,17 +406,22 @@ SELECT  MIN(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, AVG(T1.C2) AS C3, 
 EXPLAIN SELECT  MIN(T1.C4) AS C1, AVG(T1.C3) AS C2, SUM(T1.C4) AS C3, MIN(T1.C3) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 24410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 10410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MIN(t1.c4)], [AVG(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 aggr_exprs([MIN(t1.c4)], [AVG(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 1 - output([t1.c4], [t1.c3])
 access([t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MIN(T1.C4) AS C1, AVG(T1.C3) AS C2, SUM(T1.C4) AS C3, MIN(T1.C3) AS C4 FROM T1 T1
 
@@ -365,17 +435,22 @@ SELECT  MIN(T1.C4) AS C1, AVG(T1.C3) AS C2, SUM(T1.C4) AS C3, MIN(T1.C3) AS C4 F
 EXPLAIN SELECT  SUM(DISTINCT T1.C3) AS C1, MIN(DISTINCT T1.C2) AS C2, COUNT(T1.C4) AS C3, AVG(T1.C2) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([SUM(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)], [COUNT(t1.c4)], [AVG(t1.c2)])
 aggr_exprs([SUM(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)], [COUNT(t1.c4)], [AVG(t1.c2)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
 access([t1.c3], [t1.c2], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  SUM(DISTINCT T1.C3) AS C1, MIN(DISTINCT T1.C2) AS C2, COUNT(T1.C4) AS C3, AVG(T1.C2) AS C4 FROM T1 T1
 
@@ -389,17 +464,22 @@ SELECT  SUM(DISTINCT T1.C3) AS C1, MIN(DISTINCT T1.C2) AS C2, COUNT(T1.C4) AS C3
 EXPLAIN SELECT  AVG(T1.C4) AS C1, MIN(T1.C2) AS C2, MIN(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([AVG(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 aggr_exprs([AVG(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c4], [t1.c2], [t1.c1])
 access([t1.c4], [t1.c2], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  AVG(T1.C4) AS C1, MIN(T1.C2) AS C2, MIN(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
@@ -413,17 +493,22 @@ SELECT  AVG(T1.C4) AS C1, MIN(T1.C2) AS C2, MIN(T1.C4) AS C3, MIN(T1.C1) AS C4 F
 EXPLAIN SELECT  MAX(DISTINCT T1.C2) AS C1, SUM(DISTINCT T1.C2) AS C2, SUM(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MAX(DISTINCT t1.c2)], [SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([MAX(DISTINCT t1.c2)], [SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c2], [t1.c4], [t1.c1])
 access([t1.c2], [t1.c4], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MAX(DISTINCT T1.C2) AS C1, SUM(DISTINCT T1.C2) AS C2, SUM(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
@@ -437,17 +522,22 @@ SELECT  MAX(DISTINCT T1.C2) AS C1, SUM(DISTINCT T1.C2) AS C2, SUM(T1.C4) AS C3, 
 EXPLAIN SELECT  AVG(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, AVG(T1.C4) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([AVG(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [COUNT(DISTINCT t1.c4)], [AVG(t1.c4)])
 aggr_exprs([AVG(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [COUNT(DISTINCT t1.c4)], [AVG(t1.c4)])
 1 - output([t1.c1], [t1.c3], [t1.c4])
 access([t1.c1], [t1.c3], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  AVG(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, AVG(T1.C4) AS C4 FROM T1 T1
 
@@ -461,17 +551,22 @@ SELECT  AVG(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, COUNT(DISTINCT T1.
 EXPLAIN SELECT  MAX(DISTINCT T1.C4) AS C1, MAX(T1.C4) AS C2, COUNT(T1.C3) AS C3, MIN(T1.C2) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 29410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 15410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MAX(DISTINCT t1.c4)], [MAX(t1.c4)], [COUNT(t1.c3)], [MIN(t1.c2)])
 aggr_exprs([MAX(DISTINCT t1.c4)], [MAX(t1.c4)], [COUNT(t1.c3)], [MIN(t1.c2)])
 1 - output([t1.c4], [t1.c3], [t1.c2])
 access([t1.c4], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MAX(DISTINCT T1.C4) AS C1, MAX(T1.C4) AS C2, COUNT(T1.C3) AS C3, MIN(T1.C2) AS C4 FROM T1 T1
 
@@ -485,17 +580,22 @@ SELECT  MAX(DISTINCT T1.C4) AS C1, MAX(T1.C4) AS C2, COUNT(T1.C3) AS C3, MIN(T1.
 EXPLAIN SELECT  MAX(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, AVG(T1.C1) AS C3, MIN(DISTINCT T1.C3) AS C4 FROM T1 T1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | SCALAR GROUP BY |      | 1         | 5    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-+------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST  |
++-------------------------------------------------+
+| 0  | SCALAR GROUP BY |      | 1         | 34410 |
+| 1  |  TABLE SCAN     | T1   | 100000    | 20410 |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([MAX(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [AVG(t1.c1)], [MIN(DISTINCT t1.c3)])
 aggr_exprs([MAX(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [AVG(t1.c1)], [MIN(DISTINCT t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  MAX(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, AVG(T1.C1) AS C3, MIN(DISTINCT T1.C3) AS C4 FROM T1 T1
 

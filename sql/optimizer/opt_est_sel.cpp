@@ -2,6 +2,8 @@
 #include "opt_est_info.h"
 #include "expr_utils.h"
 #include "expr_stmt.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
@@ -31,7 +33,7 @@ u32 EstSelUtil::calc_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, double &
 {
     u32 ret = SUCCESS;
     selectivity = 0.3;
-    if (ExprStmt::OperationExpr == expr->expr_type()) {
+    if (OP_EXPR == expr->expr_type()) {
         OpExprStmt_s op_expr = expr;
         switch(op_expr->op_type) {
             case OP_EQ:
@@ -116,9 +118,9 @@ u32 EstSelUtil::calc_bwt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doub
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr, expr->params.size() == 3);
-    if (ExprStmt::Column != expr->params[0]->expr_type() ||
-        ExprStmt::Const != expr->params[1]->expr_type() ||
-        ExprStmt::Const != expr->params[2]->expr_type()) {
+    if (COLUMN != expr->params[0]->expr_type() ||
+        CONST != expr->params[1]->expr_type() ||
+        CONST != expr->params[2]->expr_type()) {
         selectivity = 0.3;
         return ret;
     }
@@ -142,15 +144,15 @@ u32 EstSelUtil::calc_lt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr, expr->params.size() == 2);
-    if (!((ExprStmt::Column == expr->params[0]->expr_type() &&
-        ExprStmt::Const == expr->params[1]->expr_type()) ||
-        (ExprStmt::Const == expr->params[0]->expr_type() &&
-        ExprStmt::Column == expr->params[1]->expr_type()))) {
+    if (!((COLUMN == expr->params[0]->expr_type() &&
+        CONST == expr->params[1]->expr_type()) ||
+        (CONST == expr->params[0]->expr_type() &&
+        COLUMN == expr->params[1]->expr_type()))) {
         selectivity = 0.3;
         return ret;
     }
-    if (ExprStmt::Column == expr->params[0]->expr_type() &&
-        ExprStmt::Const == expr->params[1]->expr_type()) {
+    if (COLUMN == expr->params[0]->expr_type() &&
+        CONST == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[0];
         ConstStmt_s r_const = expr->params[1];
         if (r_const->value->get_type() != T_NUMBER) {
@@ -161,8 +163,8 @@ u32 EstSelUtil::calc_lt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));
         selectivity = (r_band - column_statis->min_value) / (column_statis->max_value - column_statis->min_value);
-    } else if (ExprStmt::Const == expr->params[0]->expr_type() &&
-        ExprStmt::Column == expr->params[1]->expr_type()) {
+    } else if (CONST == expr->params[0]->expr_type() &&
+        COLUMN == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[1];
         ConstStmt_s l_const = expr->params[0]; 
         if (l_const->value->get_type() != T_NUMBER) {
@@ -181,15 +183,15 @@ u32 EstSelUtil::calc_gt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr, expr->params.size() == 2);
-    if (!((ExprStmt::Column == expr->params[0]->expr_type() &&
-        ExprStmt::Const == expr->params[1]->expr_type()) ||
-        (ExprStmt::Const == expr->params[0]->expr_type() &&
-        ExprStmt::Column == expr->params[1]->expr_type()))) {
+    if (!((COLUMN == expr->params[0]->expr_type() &&
+        CONST == expr->params[1]->expr_type()) ||
+        (CONST == expr->params[0]->expr_type() &&
+        COLUMN == expr->params[1]->expr_type()))) {
         selectivity = 0.3;
         return ret;
     }
-    if (ExprStmt::Column == expr->params[0]->expr_type() &&
-        ExprStmt::Const == expr->params[1]->expr_type()) {
+    if (COLUMN == expr->params[0]->expr_type() &&
+        CONST == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[0];
         ConstStmt_s r_const = expr->params[1];
         if (r_const->value->get_type() != T_NUMBER) {
@@ -200,8 +202,8 @@ u32 EstSelUtil::calc_gt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));
         selectivity = (column_statis->max_value - r_band) / (column_statis->max_value - column_statis->min_value);
-    } else if (ExprStmt::Const == expr->params[0]->expr_type() &&
-        ExprStmt::Column == expr->params[1]->expr_type()) {
+    } else if (CONST == expr->params[0]->expr_type() &&
+        COLUMN == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[1];
         ConstStmt_s l_const = expr->params[0]; 
         if (l_const->value->get_type() != T_NUMBER) {

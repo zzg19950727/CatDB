@@ -19,6 +19,7 @@
 	#include "dml_stmt.h"
 	#include "cmd_stmt.h"
 	#include "expr_stmt.h"
+	#include "table_stmt.h"
 	#include "stmt.h"
 	#include "type.h"
 	/*避免包含头文件时冲突*/
@@ -42,6 +43,7 @@
 	#include "dml_stmt.h"
 	#include "cmd_stmt.h"
 	#include "expr_stmt.h"
+    #include "table_stmt.h"
 	#include "object.h"
 	
 	/*注意：这里的参数由%parse-param决定*/
@@ -291,8 +293,6 @@
 %token PARALLEL
 %token ORDERED
 %token NO_REWRITE
-%token BEGIN_OUTLINE
-%token END_OUTLINE
 %token END 0
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
@@ -303,7 +303,7 @@
 %type<LimitStmt_s>	opt_select_limit
 %type<TableStmt_s>	table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
 %type<bool>			opt_distinct opt_asc_desc  distinct_or_all opt_if_exists
-%type<int>			limit_expr data_type
+%type<int>			limit_expr data_type int_value
 %type<double>		opt_sample_size
 %type<std::string>	op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number
 %type<Vector<TableStmt_s>>	from_list 
@@ -456,6 +456,10 @@ opt_hint:
 		$$ = Hint();
 		$$.all_hints = $2;
 	}
+	| BEGIN_HINT END_HINT
+	{
+		$$ = Hint();
+	}
 	;
 
 hint_list:
@@ -518,13 +522,11 @@ single_hint:
 		leading->tables->is_base_table = false;
 		leading->tables->table_list = $4;
 	}
-	| BEGIN_OUTLINE
+	| PARALLEL "(" int_value ")"
 	{
-		$$ = HintStmt_s();
-	}
-	| END_OUTLINE
-	{
-		$$ = HintStmt_s();
+		$$ = HintStmt::make_hint_stmt(HintStmt::PARALLEL);
+		ParallelHintStmt_s hint = $$;
+		hint->parallel = $3;
 	}
 	;
 
@@ -686,9 +688,9 @@ opt_select_limit:
 	;
 
 limit_expr:
-    number
+    int_value
     {
-		$$ = std::stoi($1);
+		$$ = $1;
 	}
 	;
 
@@ -1714,6 +1716,11 @@ number:
 	NUMERIC		{ $$ = $1; }
 	;
 
+int_value:
+	number
+    {
+		$$ = std::stoi($1);
+	}
 %%
 
 void CatDB::SqlParser::error(const CatDB::location& location, const std::string& message)

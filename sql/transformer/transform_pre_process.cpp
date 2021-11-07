@@ -1,5 +1,6 @@
 #include "transform_pre_process.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "dml_stmt.h"
 #include "error.h"
 #include "log.h"

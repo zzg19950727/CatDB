@@ -21,6 +21,7 @@ namespace CatDB {
 		public:
 			~OrderStmt();
 			static OrderStmt_s make_order_stmt(const ExprStmt_s& order_expr, bool asc = true);
+			u32 deep_copy(OrderStmt_s &order, u32 flag)const;
 			u32 formalize();
 			KV_STRING(
 				K(order_expr),
@@ -59,11 +60,14 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_select_stmt();
 			virtual u32 formalize();
+			virtual u32 deep_copy(SelectStmt_s &stmt, u32 flag)const;
 			bool is_scalar_group_by() const;
 			bool has_group_by() const;
 			Vector<ExprStmt_s> &get_aggr_exprs()	{ return aggr_exprs; }
 		protected:
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
+			virtual u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                   		 		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
 			KV_STRING(
 				KV(stmt_type, N(SELECT)),
@@ -98,7 +102,11 @@ namespace CatDB {
 			StmtType stmt_type()const;
 			static Stmt_s make_set_stmt(const Stmt_s& left_query, const Stmt_s& right_query, SetOpType set_op);
 			u32 formalize();
+			u32 deep_copy(SelectStmt_s &stmt, u32 flag)const;
+		private:
 			u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
+			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                   		 const Vector<ExprStmt_s> &new_exprs)override;
 
 			KV_STRING(
 				KV(stmt_type, N(SET)),

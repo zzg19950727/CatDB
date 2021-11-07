@@ -1,5 +1,8 @@
 #include "log_dual_table.h"
+#include "table_stmt.h"
 #include "expr_stmt.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 

@@ -22,15 +22,10 @@ namespace CatDB {
 			u32 formalize();
 		protected:
 			u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
+			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                   		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
-			KV_STRING(
-				KV(stmt_type, N(INSERT)),
-				K(is_explain),
-				K(stmt_hint),
-				K(table),
-				K(value_list),
-				K(query_values)
-			);
+			DECLARE_KV_STRING;
 
 		public:
 			BasicTableStmt_s table;

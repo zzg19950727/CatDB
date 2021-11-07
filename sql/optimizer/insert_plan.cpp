@@ -1,5 +1,6 @@
 #include "insert_plan.h"
 #include "insert_stmt.h"
+#include "expr_stmt.h"
 #include "log_expr_value.h"
 #include "log_insert.h"
 #include "error.h"
@@ -40,7 +41,7 @@ u32 InsertPlan::generate_value_plan_tree()
 		Vector<Vector<ExprStmt_s>> values;
 		u32 size = 0;
 		for (u32 i = 0; i < stmt->value_list.size(); ++i) {
-			MY_ASSERT(ExprStmt::List == stmt->value_list[i]->expr_type());
+			MY_ASSERT(EXPR_LIST == stmt->value_list[i]->expr_type());
 			if (0 == i) {
 				size = stmt->value_list[i]->params.size();
 				MY_ASSERT(size > 0);

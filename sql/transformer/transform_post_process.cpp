@@ -1,5 +1,6 @@
 #include "transform_post_process.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "dml_stmt.h"
 #include "error.h"
 #include "log.h"
@@ -28,6 +29,7 @@ u32 TransformPostProcess::transform_one_stmt(DMLStmt_s &stmt)
     u32 ret = SUCCESS;
     bool trans_happend = false;
     CHECK(finial_table_hint(stmt, trans_happend));
+    happened = trans_happend;
     LOG_TRACE("succeed to final table hint", K(trans_happend));
     return ret;
 }

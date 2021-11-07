@@ -6,6 +6,7 @@
 #include "object.h"
 #include "cmd_plan.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "cmd_stmt.h"
 #include "stmt.h"
 #include "error.h"

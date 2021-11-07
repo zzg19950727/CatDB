@@ -2,6 +2,8 @@
 #include "opt_est_cost.h"
 #include "expr_stmt.h"
 #include "object.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;

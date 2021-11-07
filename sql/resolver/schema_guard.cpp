@@ -1,11 +1,13 @@
 #include "schema_guard.h"
+#include "statis_manager.h"
+#include "system_table.def"
 #include "sql_engine.h"
 #include "query_result.h"
 #include "query_ctx.h"
 #include "error.h"
 #include "row.h"
-#include "system_table.def"
 
+using namespace CatDB::Optimizer;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
@@ -123,6 +125,12 @@ u32 SchemaGuard::del_database(const String& name)
     DatabaseInfo_s database_info = iter->second;
     CHECK(del_database_from_cache(database_info->db_id, name));
     CHECK(del_database_from_inner_table(database_info->db_id));
+    StatisManager_s statis_manager = StatisManager::make_statis_manager();
+    for (auto iter = database_info->id_table_infos.cbegin(); 
+         iter != database_info->id_table_infos.cend(); 
+         ++iter) {
+        CHECK(statis_manager->delete_table_statis(iter->first));
+    }
     return ret;
 }
 
@@ -152,6 +160,8 @@ u32 SchemaGuard::del_table(const String &db_name, const String& table_name)
     u32 table_id = iter2->second->table_id;
     CHECK(del_table_from_cache(db_id, table_id, table_name));
     CHECK(del_table_from_inner_table(db_id, table_id));
+    StatisManager_s statis_manager = StatisManager::make_statis_manager();
+    CHECK(statis_manager->delete_table_statis(table_id));
     return ret;
 }
 

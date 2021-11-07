@@ -51,14 +51,14 @@ SELECT * FROM T2
 EXPLAIN SELECT  T1.C4 AS C1, T2.C2 AS C2, (T1.C2) AS C3, (T2.C1) AS C4 FROM T1 T1, T1 T2    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 100       | 66   |
-| 1  |  NESTED LOOP Inner JOIN |      | 100       | 10   |
-| 2  |   TABLE SCAN            | T1   | 10        | 5    |
-| 3  |   TABLE SCAN            | T2   | 10        | 5    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.867e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 1.041e+09 |
+| 2  |   TABLE SCAN            | T1   | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T2   | 100000    | 10410     |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t2.c2], [t1.c2], [t2.c1])
 sort_keys([t1.c4 DESC], [t2.c2 ASC], [t1.c2 DESC], [t2.c1 DESC])
@@ -68,25 +68,31 @@ access([t1.c4], [t1.c2])
 3 - output([t2.c2], [t2.c1])
 access([t2.c2], [t2.c1])
 
+outline:
+/*+
+USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
+*/
+
 EXPLAIN SELECT  (T3.C1) AS C1, T4.C2 AS C2, (T4.C4) AS C3, (T3.C3) AS C4 FROM T2 T3 INNER JOIN (T2 T4 FULL JOIN T2 T5 ON (T4.C1) = T5.C1) ON (((T5.C1) >= (T4.C1) AND (T5.C2) >= (T4.C1)) AND T5.C2 IS NOT NULL), T1 T6 RIGHT JOIN T2 T7 ON T6.C4 > T6.C2 FULL JOIN T1 T8 ON T7.C2 = (T8.C2)    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------------+
-| ID | OPERATOR                      | NAME | ROW COUNT | COST |
-+--------------------------------------------------------------+
-| 0  | SORT                          |      | 482       | 395  |
-| 1  |  NESTED LOOP Inner JOIN       |      | 482       | 37   |
-| 2  |   NESTED LOOP Inner JOIN      |      | 12        | 17   |
-| 3  |    HASH FullOuter JOIN        |      | 1         | 12   |
-| 4  |     TABLE SCAN                | T4   | 10        | 5    |
-| 5  |     TABLE SCAN                | T5   | 10        | 5    |
-| 6  |    TABLE SCAN                 | T3   | 10        | 5    |
-| 7  |   HASH FullOuter JOIN         |      | 37        | 18   |
-| 8  |    TABLE SCAN                 | T8   | 10        | 4    |
-| 9  |    NESTED LOOP LeftOuter JOIN |      | 30        | 10   |
-| 10 |     TABLE SCAN                | T7   | 10        | 4    |
-| 11 |     TABLE SCAN                | T6   | 3         | 5    |
-+--------------------------------------------------------------+
++-------------------------------------------------------------------+
+| ID | OPERATOR                      | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------------+
+| 0  | SORT                          |      | 2.673e+22 | 1.658e+23 |
+| 1  |  NESTED LOOP Inner JOIN       |      | 2.673e+22 | 1.382e+20 |
+| 2  |   NESTED LOOP Inner JOIN      |      | 8.910e+10 | 9.275e+09 |
+| 3  |    HASH FullOuter JOIN        |      | 891000    | 125010    |
+| 4  |     TABLE SCAN                | T4   | 100000    | 15410     |
+| 5  |     TABLE SCAN                | T5   | 100000    | 10410     |
+| 6  |    TABLE SCAN                 | T3   | 100000    | 10410     |
+| 7  |   HASH FullOuter JOIN         |      | 3.000e+11 | 1.551e+09 |
+| 8  |    TABLE SCAN                 | T8   | 100000    | 5410      |
+| 9  |    NESTED LOOP LeftOuter JOIN |      | 3.000e+09 | 1.341e+09 |
+| 10 |     TABLE SCAN                | T7   | 100000    | 5410      |
+| 11 |     TABLE SCAN                | T6   | 30000     | 13410     |
++-------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t3.c1], [t4.c2], [t4.c4], [t3.c3])
 sort_keys([t3.c1 ASC], [t4.c2 ASC], [t4.c4 DESC], [t3.c3 ASC])
@@ -110,112 +116,136 @@ access([t7.c2])
 11 - filters([t6.c4>t6.c2])
 access([t6.c4], [t6.c2])
 
+outline:
+/*+
+USE_HASH(@SEL1 t5)
+USE_NL(@SEL1 t3)
+USE_NL(@SEL1 t6)
+USE_HASH(@SEL1 t7, t6)
+USE_NL(@SEL1 t8, t7, t6)
+LEADING(@SEL1 ((t4, t5), t3), (t8, (t7, t6)))
+*/
+
 EXPLAIN SELECT  T19.C4 AS C1, T9.C3 AS C2, (T20.C1) AS C3, T18.C2 AS C4 FROM T1 T9, T2 T10, T2 T11, T1 T12 INNER JOIN T2 T13 ON (T13.C4 LIKE (T13.C1) OR T13.C2 >= (T13.C1)) RIGHT JOIN T1 T14 ON ((T12.C4) <= T13.C2 AND (T14.C4) != T13.C4 OR T13.C4 NOT LIKE (T14.C1) OR T14.C3 IS NULL), T2 T15, T1 T16 FULL JOIN (T2 T17 RIGHT JOIN (T2 T18 RIGHT JOIN T1 T19 ON ((T19.C1) IS NOT NULL AND (T18.C2) != (T18.C3)) AND T18.C4 <= (T19.C4)) ON ((T18.C2) > T17.C2 AND (T18.C2) IS NULL) OR (T17.C1) IS NULL) ON (T16.C3) > T16.C3 AND (T17.C3) > T17.C1 AND (T19.C2) = (T16.C1) FULL JOIN T1 T20 ON T19.C1 = T20.C1 AND ((T20.C3 LIKE (T16.C4) OR (T17.C2) = (T17.C4)) OR T16.C4 NOT LIKE T16.C2)    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------------------------------+
-| ID | OPERATOR                          | NAME | ROW COUNT | COST      |
-+-----------------------------------------------------------------------+
-| 0  | SORT                              |      | 4.556e+06 | 8.383e+06 |
-| 1  |  NESTED LOOP Inner JOIN           |      | 4.556e+06 | 186       |
-| 2  |   NESTED LOOP Inner JOIN          |      | 900       | 23        |
-| 3  |    TABLE SCAN                     | T9   | 10        | 4         |
-| 4  |    NESTED LOOP LeftOuter JOIN     |      | 90        | 17        |
-| 5  |     TABLE SCAN                    | T14  | 10        | 5         |
-| 6  |     NESTED LOOP Inner JOIN        |      | 30        | 10        |
-| 7  |      TABLE SCAN                   | T13  | 3         | 5         |
-| 8  |      TABLE SCAN                   | T12  | 10        | 4         |
-| 9  |   NESTED LOOP Inner JOIN          |      | 5062      | 58        |
-| 10 |    NESTED LOOP Inner JOIN         |      | 50        | 45        |
-| 11 |     HASH FullOuter JOIN           |      | 5         | 41        |
-| 12 |      TABLE SCAN                   | T20  | 10        | 5         |
-| 13 |      HASH FullOuter JOIN          |      | 10        | 33        |
-| 14 |       TABLE SCAN                  | T16  | 10        | 6         |
-| 15 |       NESTED LOOP LeftOuter JOIN  |      | 78        | 20        |
-| 16 |        NESTED LOOP LeftOuter JOIN |      | 26        | 12        |
-| 17 |         TABLE SCAN                | T19  | 10        | 5         |
-| 18 |         TABLE SCAN                | T18  | 8         | 5         |
-| 19 |        TABLE SCAN                 | T17  | 10        | 6         |
-| 20 |     TABLE SCAN                    | T10  | 10        | 4         |
-| 21 |    NESTED LOOP Inner JOIN         |      | 100       | 8         |
-| 22 |     TABLE SCAN                    | T11  | 10        | 4         |
-| 23 |     TABLE SCAN                    | T15  | 10        | 4         |
-+-----------------------------------------------------------------------+
++------------------------------------------------------------------------+
+| ID | OPERATOR                           | NAME | ROW COUNT | COST      |
++------------------------------------------------------------------------+
+| 0  | SORT                               |      | 2.163e+50 | 3.009e+51 |
+| 1  |  NESTED LOOP Inner JOIN            |      | 2.163e+50 | 8.868e+47 |
+| 2  |   NESTED LOOP Inner JOIN           |      | 9.000e+18 | 4.869e+17 |
+| 3  |    NESTED LOOP LeftOuter JOIN      |      | 9.000e+13 | 2.523e+13 |
+| 4  |     TABLE SCAN                     | T14  | 100000    | 15410     |
+| 5  |     NESTED LOOP Inner JOIN         |      | 3.000e+09 | 1.623e+08 |
+| 6  |      TABLE SCAN                    | T13  | 30000     | 18410     |
+| 7  |      TABLE SCAN                    | T12  | 100000    | 5410      |
+| 8  |    TABLE SCAN                      | T9   | 100000    | 5410      |
+| 9  |   NESTED LOOP Inner JOIN           |      | 2.403e+31 | 9.854e+28 |
+| 10 |    NESTED LOOP Inner JOIN          |      | 2.403e+26 | 9.854e+23 |
+| 11 |     NESTED LOOP Inner JOIN         |      | 2.403e+21 | 9.854e+18 |
+| 12 |      HASH FullOuter JOIN           |      | 2.403e+16 | 9.008e+14 |
+| 13 |       TABLE SCAN                   | T20  | 100000    | 10410     |
+| 14 |       HASH FullOuter JOIN          |      | 8.011e+14 | 1.238e+14 |
+| 15 |        TABLE SCAN                  | T16  | 100000    | 20410     |
+| 16 |        NESTED LOOP LeftOuter JOIN  |      | 8.901e+13 | 6.946e+13 |
+| 17 |         NESTED LOOP LeftOuter JOIN |      | 2.967e+09 | 2.440e+09 |
+| 18 |          TABLE SCAN                | T19  | 100000    | 15410     |
+| 19 |          TABLE SCAN                | T18  | 99900     | 18410     |
+| 20 |         TABLE SCAN                 | T17  | 100000    | 20410     |
+| 21 |      TABLE SCAN                    | T10  | 100000    | 409       |
+| 22 |     TABLE SCAN                     | T11  | 100000    | 409       |
+| 23 |    TABLE SCAN                      | T15  | 100000    | 409       |
++------------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t19.c4], [t9.c3], [t20.c1], [t18.c2])
 sort_keys([t19.c4 DESC], [t9.c3 DESC], [t20.c1 DESC], [t18.c2 DESC])
 1 - output([t19.c4], [t9.c3], [t20.c1], [t18.c2])
 2 - output([t9.c3])
-3 - output([t9.c3])
-access([t9.c3])
-4 - other_join_conditions([t12.c4<=t13.c2 AND t14.c4!=t13.c4 OR t13.c4 NOT LIKE t14.c1 OR t14.c3 IS NULL])
-5 - output([t14.c4], [t14.c1], [t14.c3])
+3 - other_join_conditions([t12.c4<=t13.c2 AND t14.c4!=t13.c4 OR t13.c4 NOT LIKE t14.c1 OR t14.c3 IS NULL])
+4 - output([t14.c4], [t14.c1], [t14.c3])
 access([t14.c4], [t14.c1], [t14.c3])
-6 - output([t12.c4], [t13.c2], [t13.c4])
-7 - output([t13.c2], [t13.c4])
+5 - output([t12.c4], [t13.c2], [t13.c4])
+6 - output([t13.c2], [t13.c4])
 filters([t13.c4 LIKE t13.c1 OR t13.c2>=t13.c1])
 access([t13.c2], [t13.c4], [t13.c1])
-8 - output([t12.c4])
+7 - output([t12.c4])
 access([t12.c4])
+8 - output([t9.c3])
+access([t9.c3])
 9 - output([t19.c4], [t20.c1], [t18.c2])
 10 - output([t19.c4], [t20.c1], [t18.c2])
 11 - output([t19.c4], [t20.c1], [t18.c2])
+12 - output([t19.c4], [t20.c1], [t18.c2])
 equal_join_conditions([t19.c1=t20.c1])
 other_join_conditions([t20.c3 LIKE t16.c4 OR t17.c2=t17.c4 OR t16.c4 NOT LIKE t16.c2])
-12 - output([t20.c1], [t20.c3])
+13 - output([t20.c1], [t20.c3])
 access([t20.c1], [t20.c3])
-13 - output([t19.c1], [t16.c4], [t17.c2], [t17.c4], [t16.c2], [t19.c4], [t18.c2])
+14 - output([t19.c1], [t16.c4], [t17.c2], [t17.c4], [t16.c2], [t19.c4], [t18.c2])
 equal_join_conditions([t19.c2=t16.c1])
 other_join_conditions([t16.c3>t16.c3], [t17.c3>t17.c1])
-14 - output([t16.c1], [t16.c3>t16.c3], [t16.c4], [t16.c2])
+15 - output([t16.c1], [t16.c3>t16.c3], [t16.c4], [t16.c2])
 access([t16.c4], [t16.c2], [t16.c3], [t16.c1])
-15 - output([t19.c2], [t17.c3>t17.c1], [t19.c1], [t17.c2], [t17.c4], [t19.c4], [t18.c2])
+16 - output([t19.c2], [t17.c3>t17.c1], [t19.c1], [t17.c2], [t17.c4], [t19.c4], [t18.c2])
 other_join_conditions([t18.c2>t17.c2 AND t18.c2 IS NULL OR t17.c1 IS NULL])
-16 - output([t18.c2], [t19.c2], [t19.c1], [t19.c4])
+17 - output([t18.c2], [t19.c2], [t19.c1], [t19.c4])
 other_join_conditions([t19.c1 IS NOT NULL], [t18.c4<=t19.c4])
-17 - output([t19.c1 IS NOT NULL], [t19.c4], [t19.c2], [t19.c1])
+18 - output([t19.c1 IS NOT NULL], [t19.c4], [t19.c2], [t19.c1])
 access([t19.c1], [t19.c2], [t19.c4])
-18 - output([t18.c4], [t18.c2])
+19 - output([t18.c4], [t18.c2])
 filters([t18.c2!=t18.c3])
 access([t18.c2], [t18.c3], [t18.c4])
-19 - output([t17.c2], [t17.c1], [t17.c3>t17.c1], [t17.c4])
+20 - output([t17.c2], [t17.c1], [t17.c3>t17.c1], [t17.c4])
 access([t17.c2], [t17.c4], [t17.c3], [t17.c1])
-20 - access()
-22 - access()
-23 - access()
+
+outline:
+/*+
+USE_NL(@SEL1 t12)
+USE_NL(@SEL1 t13, t12)
+USE_NL(@SEL1 t9)
+USE_NL(@SEL1 t18)
+USE_NL(@SEL1 t17)
+USE_HASH(@SEL1 t19, t18, t17)
+USE_HASH(@SEL1 t16, t19, t18, t17)
+USE_NL(@SEL1 t10)
+USE_NL(@SEL1 t11)
+USE_NL(@SEL1 t15)
+USE_NL(@SEL1 t20, t16, t19, t18, t17, t10, t11, t15)
+LEADING(@SEL1 ((t14, (t13, t12)), t9), ((((t20, (t16, ((t19, t18), t17))), t10), t11), t15))
+*/
 
 EXPLAIN SELECT  T24.C4 AS C1, T30.C3 AS C2, T27.C3 AS C3, T30.C2 AS C4 FROM T2 T21, T2 T22 INNER JOIN (T1 T23 FULL JOIN (T2 T24 LEFT JOIN T2 T25 ON (T25.C1) >= T24.C3 RIGHT JOIN T1 T26 ON (T26.C1) > (T24.C4) OR T25.C3 < (T25.C2) AND T24.C3 != T24.C4 FULL JOIN T2 T27 ON T24.C3 LIKE T25.C1 AND (T27.C2) = (T26.C4) INNER JOIN T2 T28 ON (T24.C2) = T24.C1 AND T28.C3 >= T28.C1) ON (T23.C2) = T25.C4) ON (T23.C3 IS NULL OR T24.C4 NOT BETWEEN (T23.C1) AND (T27.C3)) OR (T26.C2) IS NOT NULL, T2 T29 FULL JOIN T1 T30 ON (T30.C2 BETWEEN (T30.C4) AND (T29.C2) AND T30.C4 NOT BETWEEN T29.C3 AND T30.C3) AND (T29.C1) = (T30.C3)    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+------------------------------------------------------------------+
-| ID | OPERATOR                          | NAME | ROW COUNT | COST |
-+------------------------------------------------------------------+
-| 0  | SORT                              |      | 1627      | 1514 |
-| 1  |  NESTED LOOP Inner JOIN           |      | 1627      | 70   |
-| 2  |   NESTED LOOP Inner JOIN          |      | 30        | 17   |
-| 3  |    HASH FullOuter JOIN            |      | 3         | 13   |
-| 4  |     TABLE SCAN                    | T29  | 10        | 5    |
-| 5  |     TABLE SCAN                    | T30  | 10        | 5    |
-| 6  |    TABLE SCAN                     | T21  | 10        | 4    |
-| 7  |   NESTED LOOP Inner JOIN          |      | 54        | 50   |
-| 8  |    HASH FullOuter JOIN            |      | 5         | 46   |
-| 9  |     TABLE SCAN                    | T23  | 10        | 5    |
-| 10 |     NESTED LOOP Inner JOIN        |      | 12        | 38   |
-| 11 |      TABLE SCAN                   | T28  | 3         | 5    |
-| 12 |      HASH FullOuter JOIN          |      | 4         | 32   |
-| 13 |       TABLE SCAN                  | T27  | 10        | 5    |
-| 14 |       NESTED LOOP LeftOuter JOIN  |      | 90        | 19   |
-| 15 |        TABLE SCAN                 | T26  | 10        | 5    |
-| 16 |        NESTED LOOP LeftOuter JOIN |      | 30        | 13   |
-| 17 |         TABLE SCAN                | T24  | 10        | 6    |
-| 18 |         TABLE SCAN                | T25  | 10        | 6    |
-| 19 |    TABLE SCAN                     | T22  | 10        | 4    |
-+------------------------------------------------------------------+
++------------------------------------------------------------------------+
+| ID | OPERATOR                           | NAME | ROW COUNT | COST      |
++------------------------------------------------------------------------+
+| 0  | SORT                               |      | 5.103e+34 | 4.896e+35 |
+| 1  |  NESTED LOOP Inner JOIN            |      | 5.103e+34 | 2.092e+32 |
+| 2  |   NESTED LOOP Inner JOIN           |      | 5.103e+29 | 2.092e+27 |
+| 3  |    HASH FullOuter JOIN             |      | 2.100e+06 | 175820    |
+| 4  |     TABLE SCAN                     | T29  | 100000    | 15410     |
+| 5  |     TABLE SCAN                     | T30  | 100000    | 15410     |
+| 6  |    NESTED LOOP Inner JOIN          |      | 2.430e+23 | 9.964e+20 |
+| 7  |     HASH FullOuter JOIN            |      | 2.430e+18 | 1.150e+17 |
+| 8  |      TABLE SCAN                    | T23  | 100000    | 15410     |
+| 9  |      NESTED LOOP Inner JOIN        |      | 8.100e+16 | 3.646e+16 |
+| 10 |       HASH FullOuter JOIN          |      | 2.700e+12 | 2.496e+14 |
+| 11 |        TABLE SCAN                  | T27  | 100000    | 10410     |
+| 12 |        NESTED LOOP LeftOuter JOIN  |      | 9.000e+13 | 2.431e+14 |
+| 13 |         TABLE SCAN                 | T26  | 100000    | 15410     |
+| 14 |         NESTED LOOP LeftOuter JOIN |      | 3.000e+09 | 2.341e+09 |
+| 15 |          TABLE SCAN                | T24  | 100000    | 20410     |
+| 16 |          TABLE SCAN                | T25  | 100000    | 20410     |
+| 17 |       TABLE SCAN                   | T28  | 30000     | 13410     |
+| 18 |     TABLE SCAN                     | T22  | 100000    | 409       |
+| 19 |   TABLE SCAN                       | T21  | 100000    | 409       |
++------------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t24.c4], [t30.c3], [t27.c3], [t30.c2])
 sort_keys([t24.c4 DESC], [t30.c3 DESC], [t27.c3 DESC], [t30.c2 ASC])
 1 - output([t24.c4], [t30.c3], [t27.c3], [t30.c2])
-2 - output([t30.c3], [t30.c2])
+2 - output([t24.c4], [t30.c3], [t27.c3], [t30.c2])
 3 - output([t30.c3], [t30.c2])
 equal_join_conditions([t29.c1=t30.c3])
 other_join_conditions([t30.c2 BETWEEN t30.c4 AND t29.c2], [t30.c4 NOT BETWEEN t29.c3 AND t30.c3])
@@ -223,69 +253,87 @@ other_join_conditions([t30.c2 BETWEEN t30.c4 AND t29.c2], [t30.c4 NOT BETWEEN t2
 access([t29.c2], [t29.c3], [t29.c1])
 5 - output([t30.c3], [t30.c2], [t30.c4])
 access([t30.c2], [t30.c4], [t30.c3])
-6 - access()
+6 - output([t24.c4], [t27.c3])
 7 - output([t24.c4], [t27.c3])
-8 - output([t24.c4], [t27.c3])
 filters([t23.c3 IS NULL OR t24.c4 NOT BETWEEN t23.c1 AND t27.c3 OR t26.c2 IS NOT NULL])
 equal_join_conditions([t23.c2=t25.c4])
-9 - output([t23.c2], [t23.c3], [t23.c1])
+8 - output([t23.c2], [t23.c3], [t23.c1])
 access([t23.c3], [t23.c1], [t23.c2])
+9 - output([t25.c4], [t24.c4], [t27.c3], [t26.c2])
 10 - output([t25.c4], [t24.c4], [t27.c3], [t26.c2])
-11 - filters([t28.c3>=t28.c1])
-access([t28.c3], [t28.c1])
-12 - output([t25.c4], [t24.c4], [t27.c3], [t26.c2])
 filters([t24.c2=t24.c1])
 equal_join_conditions([t27.c2=t26.c4])
 other_join_conditions([t24.c3 LIKE t25.c1])
-13 - output([t27.c2], [t27.c3])
+11 - output([t27.c2], [t27.c3])
 access([t27.c3], [t27.c2])
-14 - output([t26.c4], [t24.c3 LIKE t25.c1], [t24.c2=t24.c1], [t25.c4], [t24.c4], [t26.c2])
+12 - output([t26.c4], [t24.c3 LIKE t25.c1], [t24.c2=t24.c1], [t25.c4], [t24.c4], [t26.c2])
 other_join_conditions([t26.c1>t24.c4 OR t25.c3<t25.c2 AND t24.c3!=t24.c4])
-15 - output([t26.c1], [t26.c4], [t26.c2])
+13 - output([t26.c1], [t26.c4], [t26.c2])
 access([t26.c2], [t26.c4], [t26.c1])
-16 - output([t24.c4], [t25.c3], [t25.c2], [t24.c3], [t24.c3 LIKE t25.c1], [t24.c2=t24.c1], [t25.c4])
+14 - output([t24.c4], [t25.c3], [t25.c2], [t24.c3], [t24.c3 LIKE t25.c1], [t24.c2=t24.c1], [t25.c4])
 other_join_conditions([t25.c1>=t24.c3])
-17 - output([t24.c3], [t24.c4], [t24.c2=t24.c1])
+15 - output([t24.c3], [t24.c4], [t24.c2=t24.c1])
 access([t24.c4], [t24.c2], [t24.c1], [t24.c3])
-18 - output([t25.c1], [t25.c3], [t25.c2], [t25.c4])
+16 - output([t25.c1], [t25.c3], [t25.c2], [t25.c4])
 access([t25.c4], [t25.c1], [t25.c3], [t25.c2])
-19 - access()
+17 - filters([t28.c3>=t28.c1])
+access([t28.c3], [t28.c1])
+
+outline:
+/*+
+USE_HASH(@SEL1 t30)
+USE_NL(@SEL1 t25)
+USE_NL(@SEL1 t24, t25)
+USE_HASH(@SEL1 t26, t24, t25)
+USE_NL(@SEL1 t28)
+USE_HASH(@SEL1 t27, t26, t24, t25, t28)
+USE_NL(@SEL1 t22)
+USE_NL(@SEL1 t23, t27, t26, t24, t25, t28, t22)
+USE_NL(@SEL1 t21)
+LEADING(@SEL1 ((t29, t30), ((t23, ((t27, (t26, (t24, t25))), t28)), t22)), t21)
+*/
 
 EXPLAIN SELECT  (T32.C2) AS C1, T31.C1 AS C2, (T32.C1) AS C3, T32.C2 AS C4 FROM T1 T31, T2 T32, T1 T33    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR                 | NAME | ROW COUNT | COST |
-+---------------------------------------------------------+
-| 0  | SORT                     |      | 1000      | 845  |
-| 1  |  NESTED LOOP Inner JOIN  |      | 1000      | 16   |
-| 2  |   TABLE SCAN             | T31  | 10        | 4    |
-| 3  |   NESTED LOOP Inner JOIN |      | 100       | 9    |
-| 4  |    TABLE SCAN            | T32  | 10        | 5    |
-| 5  |    TABLE SCAN            | T33  | 10        | 4    |
-+---------------------------------------------------------+
++--------------------------------------------------------------+
+| ID | OPERATOR                 | NAME | ROW COUNT | COST      |
++--------------------------------------------------------------+
+| 0  | SORT                     |      | 1.000e+15 | 4.149e+15 |
+| 1  |  NESTED LOOP Inner JOIN  |      | 1.000e+15 | 4.101e+12 |
+| 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 3  |    TABLE SCAN            | T32  | 100000    | 10410     |
+| 4  |    TABLE SCAN            | T31  | 100000    | 5410      |
+| 5  |   TABLE SCAN             | T33  | 100000    | 409       |
++--------------------------------------------------------------+
 Outputs & filters:
 0 - output([t32.c2], [t31.c1], [t32.c1], [t32.c2])
 sort_keys([t32.c2 ASC], [t31.c1 DESC], [t32.c1 DESC], [t32.c2 DESC])
 1 - output([t32.c2], [t31.c1], [t32.c1])
-2 - output([t31.c1])
-access([t31.c1])
+2 - output([t32.c2], [t31.c1], [t32.c1])
 3 - output([t32.c2], [t32.c1])
-4 - output([t32.c2], [t32.c1])
 access([t32.c2], [t32.c1])
-5 - access()
+4 - output([t31.c1])
+access([t31.c1])
+
+outline:
+/*+
+USE_NL(@SEL1 t31)
+USE_NL(@SEL1 t33)
+LEADING(@SEL1 (t32, t31), t33)
+*/
 
 EXPLAIN SELECT  (T35.C1) AS C1, T35.C3 AS C2, (T35.C2) AS C3, (T35.C3) AS C4 FROM T2 T34 LEFT JOIN T2 T35 ON (T34.C4) >= T35.C2 OR T34.C3 = T35.C4    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+------------------------------------------------------------+
-| ID | OPERATOR                    | NAME | ROW COUNT | COST |
-+------------------------------------------------------------+
-| 0  | SORT                        |      | 30        | 24   |
-| 1  |  NESTED LOOP LeftOuter JOIN |      | 30        | 12   |
-| 2  |   TABLE SCAN                | T34  | 10        | 5    |
-| 3  |   TABLE SCAN                | T35  | 10        | 6    |
-+------------------------------------------------------------+
++-----------------------------------------------------------------+
+| ID | OPERATOR                    | NAME | ROW COUNT | COST      |
++-----------------------------------------------------------------+
+| 0  | SORT                        |      | 3.000e+09 | 1.020e+10 |
+| 1  |  NESTED LOOP LeftOuter JOIN |      | 3.000e+09 | 2.341e+09 |
+| 2  |   TABLE SCAN                | T34  | 100000    | 10410     |
+| 3  |   TABLE SCAN                | T35  | 100000    | 20410     |
++-----------------------------------------------------------------+
 Outputs & filters:
 0 - output([t35.c1], [t35.c3], [t35.c2], [t35.c3])
 sort_keys([t35.c1 ASC], [t35.c3 DESC], [t35.c2 DESC], [t35.c3 DESC])
@@ -296,84 +344,100 @@ access([t34.c4], [t34.c3])
 3 - output([t35.c2], [t35.c4], [t35.c1], [t35.c3])
 access([t35.c2], [t35.c4], [t35.c1], [t35.c3])
 
+outline:
+/*+
+USE_NL(@SEL1 t35)
+LEADING(@SEL1 t34, t35)
+*/
+
 EXPLAIN SELECT  (T42.C2) AS C1, (T38.C1) AS C2, (T41.C3) AS C3, (T42.C3) AS C4 FROM T1 T36 LEFT JOIN (T1 T37 INNER JOIN T2 T38 ON T37.C3 LIKE T37.C3 AND T38.C3 <= (T38.C3) INNER JOIN T2 T39 ON T39.C3 NOT BETWEEN (T39.C3) AND T39.C1 LEFT JOIN (T2 T40 RIGHT JOIN (T1 T41 LEFT JOIN T1 T42 ON T42.C1 >= (T42.C3)) ON (((T42.C3 < T42.C1 OR (T41.C3) <= T42.C2) OR (T42.C4) != (T40.C2)) AND T42.C3 BETWEEN (T42.C4) AND (T41.C1) OR (T40.C1) > (T40.C3))) ON ((((T41.C1) < (T41.C4) AND (T41.C4) IS NOT NULL) OR (T41.C3) > T40.C3) AND (T39.C4) IS NOT NULL)) ON (T40.C2) < T40.C1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+----------------------------------------------------------------+
-| ID | OPERATOR                        | NAME | ROW COUNT | COST |
-+----------------------------------------------------------------+
-| 0  | SORT                            |      | 5103      | 5279 |
-| 1  |  NESTED LOOP LeftOuter JOIN     |      | 5103      | 51   |
-| 2  |   TABLE SCAN                    | T36  | 10        | 4    |
-| 3  |   NESTED LOOP Inner JOIN        |      | 510       | 41   |
-| 4  |    NESTED LOOP Inner JOIN       |      | 9         | 10   |
-| 5  |     TABLE SCAN                  | T37  | 3         | 4    |
-| 6  |     TABLE SCAN                  | T38  | 3         | 5    |
-| 7  |    NESTED LOOP LeftOuter JOIN   |      | 56        | 30   |
-| 8  |     TABLE SCAN                  | T39  | 7         | 5    |
-| 9  |     NESTED LOOP LeftOuter JOIN  |      | 27        | 21   |
-| 10 |      NESTED LOOP LeftOuter JOIN |      | 30        | 12   |
-| 11 |       TABLE SCAN                | T41  | 10        | 5    |
-| 12 |       TABLE SCAN                | T42  | 3         | 6    |
-| 13 |      TABLE SCAN                 | T40  | 10        | 5    |
-+----------------------------------------------------------------+
++----------------------------------------------------------------------+
+| ID | OPERATOR                         | NAME | ROW COUNT | COST      |
++----------------------------------------------------------------------+
+| 0  | SORT                             |      | 5.052e+31 | 4.567e+32 |
+| 1  |  NESTED LOOP LeftOuter JOIN      |      | 5.052e+31 | 1.416e+31 |
+| 2  |   TABLE SCAN                     | T36  | 100000    | 409       |
+| 3  |   NESTED LOOP Inner JOIN         |      | 5.052e+26 | 1.416e+26 |
+| 4  |    NESTED LOOP Inner JOIN        |      | 1.684e+22 | 7.531e+21 |
+| 5  |     NESTED LOOP LeftOuter JOIN   |      | 5.613e+17 | 3.997e+18 |
+| 6  |      TABLE SCAN                  | T39  | 70000     | 18410     |
+| 7  |      NESTED LOOP LeftOuter JOIN  |      | 2.700e+13 | 5.604e+13 |
+| 8  |       NESTED LOOP LeftOuter JOIN |      | 3.000e+09 | 2.341e+09 |
+| 9  |        TABLE SCAN                | T41  | 100000    | 15410     |
+| 10 |        TABLE SCAN                | T42  | 30000     | 23410     |
+| 11 |       TABLE SCAN                 | T40  | 100000    | 15410     |
+| 12 |     TABLE SCAN                   | T38  | 30000     | 13410     |
+| 13 |    TABLE SCAN                    | T37  | 30000     | 8410      |
++----------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t42.c2], [t38.c1], [t41.c3], [t42.c3])
 sort_keys([t42.c2 ASC], [t38.c1 DESC], [t41.c3 DESC], [t42.c3 ASC])
 1 - output([t42.c2], [t38.c1], [t41.c3], [t42.c3])
-2 - access()
 3 - output([t42.c2], [t38.c1], [t41.c3], [t42.c3])
-4 - output([t38.c1])
-5 - filters([t37.c3 LIKE t37.c3])
-access([t37.c3])
-6 - output([t38.c1])
-filters([t38.c3<=t38.c3])
-access([t38.c3], [t38.c1])
-7 - output([t42.c2], [t41.c3], [t42.c3])
+4 - output([t42.c2], [t38.c1], [t41.c3], [t42.c3])
+5 - output([t42.c2], [t41.c3], [t42.c3])
 filters([t40.c2<t40.c1])
 other_join_conditions([t39.c4 IS NOT NULL])
-8 - output([t39.c4 IS NOT NULL])
+6 - output([t39.c4 IS NOT NULL])
 filters([t39.c3 NOT BETWEEN t39.c3 AND t39.c1])
 access([t39.c4], [t39.c3], [t39.c1])
-9 - output([t40.c2<t40.c1], [t42.c2], [t41.c3], [t42.c3])
+7 - output([t40.c2<t40.c1], [t42.c2], [t41.c3], [t42.c3])
 filters([t41.c1<t41.c4 AND t41.c4 IS NOT NULL OR t41.c3>t40.c3])
 other_join_conditions([t42.c3<t42.c1 OR t41.c3<=t42.c2 OR t42.c4!=t40.c2 AND t42.c3 BETWEEN t42.c4 AND t41.c1 OR t40.c1>t40.c3])
-10 - output([t42.c3], [t42.c1], [t41.c3], [t42.c2], [t42.c4], [t41.c1], [t41.c4])
-11 - output([t41.c3], [t41.c1], [t41.c4])
+8 - output([t42.c3], [t42.c1], [t41.c3], [t42.c2], [t42.c4], [t41.c1], [t41.c4])
+9 - output([t41.c3], [t41.c1], [t41.c4])
 access([t41.c1], [t41.c4], [t41.c3])
-12 - output([t42.c3], [t42.c1], [t42.c2], [t42.c4])
+10 - output([t42.c3], [t42.c1], [t42.c2], [t42.c4])
 filters([t42.c1>=t42.c3])
 access([t42.c3], [t42.c1], [t42.c2], [t42.c4])
-13 - output([t40.c2], [t40.c1], [t40.c3], [t40.c2<t40.c1])
+11 - output([t40.c2], [t40.c1], [t40.c3], [t40.c2<t40.c1])
 access([t40.c2], [t40.c1], [t40.c3])
+12 - output([t38.c1])
+filters([t38.c3<=t38.c3])
+access([t38.c3], [t38.c1])
+13 - filters([t37.c3 LIKE t37.c3])
+access([t37.c3])
+
+outline:
+/*+
+USE_NL(@SEL1 t42)
+USE_NL(@SEL1 t40)
+USE_NL(@SEL1 t41, t42, t40)
+USE_NL(@SEL1 t38)
+USE_NL(@SEL1 t37)
+USE_NL(@SEL1 t39, t41, t42, t40, t38, t37)
+LEADING(@SEL1 t36, (((t39, ((t41, t42), t40)), t38), t37))
+*/
 
 EXPLAIN SELECT  T51.C4 AS C1, T48.C2 AS C2, (T45.C2) AS C3, (T44.C4) AS C4 FROM T2 T43 LEFT JOIN (T1 T44 RIGHT JOIN (T1 T45 RIGHT JOIN (T2 T46 FULL JOIN T2 T47 ON (T47.C1) = (T46.C2) RIGHT JOIN T1 T48 ON (T48.C2) BETWEEN T47.C3 AND T46.C4) ON (T46.C4 NOT LIKE T48.C3 OR (T46.C4) NOT BETWEEN (T46.C4) AND T47.C1)) ON T47.C2 NOT BETWEEN (T48.C1) AND T46.C3) ON (T44.C1) IS NOT NULL LEFT JOIN (T1 T49 INNER JOIN T1 T50 ON (((T50.C2) LIKE T50.C2 OR (T50.C3) IS NULL) OR (T50.C1) >= T50.C4)) ON T44.C4 IS NOT NULL, T2 T51 FULL JOIN T2 T52 ON (T51.C4) = T52.C4 AND (T52.C1 BETWEEN T52.C3 AND T51.C1 AND (T51.C2) NOT LIKE (T52.C3) AND T51.C2 = T51.C1 AND T52.C2 >= (T51.C3))    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+------------------------------------------------------------------+
-| ID | OPERATOR                         | NAME | ROW COUNT | COST  |
-+------------------------------------------------------------------+
-| 0  | SORT                             |      | 15946     | 21447 |
-| 1  |  NESTED LOOP Inner JOIN          |      | 15946     | 2928  |
-| 2  |   HASH FullOuter JOIN            |      | 0         | 14    |
-| 3  |    TABLE SCAN                    | T51  | 10        | 6     |
-| 4  |    TABLE SCAN                    | T52  | 10        | 6     |
-| 5  |   NESTED LOOP LeftOuter JOIN     |      | 236250    | 552   |
-| 6  |    NESTED LOOP LeftOuter JOIN    |      | 7875      | 68    |
-| 7  |     TABLE SCAN                   | T43  | 10        | 4     |
-| 8  |     NESTED LOOP LeftOuter JOIN   |      | 787       | 55    |
-| 9  |      NESTED LOOP LeftOuter JOIN  |      | 262       | 35    |
-| 10 |       NESTED LOOP LeftOuter JOIN |      | 37        | 19    |
-| 11 |        TABLE SCAN                | T48  | 10        | 5     |
-| 12 |        HASH FullOuter JOIN       |      | 12        | 13    |
-| 13 |         TABLE SCAN               | T46  | 10        | 5     |
-| 14 |         TABLE SCAN               | T47  | 10        | 5     |
-| 15 |       TABLE SCAN                 | T44  | 10        | 5     |
-| 16 |      TABLE SCAN                  | T45  | 10        | 4     |
-| 17 |    NESTED LOOP Inner JOIN        |      | 30        | 10    |
-| 18 |     TABLE SCAN                   | T50  | 3         | 6     |
-| 19 |     TABLE SCAN                   | T49  | 10        | 4     |
-+------------------------------------------------------------------+
++----------------------------------------------------------------------+
+| ID | OPERATOR                         | NAME | ROW COUNT | COST      |
++----------------------------------------------------------------------+
+| 0  | SORT                             |      | 5.001e+37 | 5.227e+38 |
+| 1  |  NESTED LOOP Inner JOIN          |      | 5.001e+37 | 1.730e+36 |
+| 2  |   HASH FullOuter JOIN            |      | 269       | 59852     |
+| 3  |    TABLE SCAN                    | T51  | 100000    | 20410     |
+| 4  |    TABLE SCAN                    | T52  | 100000    | 20410     |
+| 5  |   NESTED LOOP LeftOuter JOIN     |      | 1.852e+35 | 6.382e+33 |
+| 6  |    NESTED LOOP LeftOuter JOIN    |      | 6.237e+25 | 1.394e+25 |
+| 7  |     TABLE SCAN                   | T43  | 100000    | 409       |
+| 8  |     NESTED LOOP LeftOuter JOIN   |      | 6.237e+20 | 1.394e+20 |
+| 9  |      NESTED LOOP LeftOuter JOIN  |      | 9.000e+15 | 2.523e+15 |
+| 10 |       NESTED LOOP LeftOuter JOIN |      | 3.000e+11 | 3.498e+10 |
+| 11 |        TABLE SCAN                | T48  | 100000    | 15410     |
+| 12 |        HASH FullOuter JOIN       |      | 1.000e+07 | 49820     |
+| 13 |         TABLE SCAN               | T46  | 100000    | 15410     |
+| 14 |         TABLE SCAN               | T47  | 100000    | 15410     |
+| 15 |       TABLE SCAN                 | T45  | 100000    | 5410      |
+| 16 |      TABLE SCAN                  | T44  | 100000    | 10410     |
+| 17 |    NESTED LOOP Inner JOIN        |      | 3.000e+09 | 1.232e+07 |
+| 18 |     TABLE SCAN                   | T50  | 30000     | 23410     |
+| 19 |     TABLE SCAN                   | T49  | 100000    | 409       |
++----------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t51.c4], [t48.c2], [t45.c2], [t44.c4])
 sort_keys([t51.c4 DESC], [t48.c2 ASC], [t45.c2 DESC], [t44.c4 DESC])
@@ -388,41 +452,53 @@ access([t52.c4], [t52.c1], [t52.c3], [t52.c2])
 5 - output([t48.c2], [t45.c2], [t44.c4])
 other_join_conditions([t44.c4 IS NOT NULL])
 6 - output([t44.c4 IS NOT NULL], [t48.c2], [t45.c2], [t44.c4])
-7 - access()
 8 - output([t44.c4 IS NOT NULL], [t48.c2], [t45.c2], [t44.c4])
-other_join_conditions([t46.c4 NOT LIKE t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1])
-9 - output([t46.c4 NOT LIKE t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1], [t44.c4 IS NOT NULL], [t48.c2], [t44.c4])
 filters([t44.c1 IS NOT NULL])
 other_join_conditions([t47.c2 NOT BETWEEN t48.c1 AND t46.c3])
-10 - output([t47.c2 NOT BETWEEN t48.c1 AND t46.c3], [t46.c4 NOT LIKE t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1], [t48.c2])
+9 - output([t47.c2 NOT BETWEEN t48.c1 AND t46.c3], [t48.c2], [t45.c2])
+other_join_conditions([t46.c4 NOT LIKE t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1])
+10 - output([t46.c4 NOT LIKE t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1], [t47.c2 NOT BETWEEN t48.c1 AND t46.c3], [t48.c2])
 other_join_conditions([t48.c2 BETWEEN t47.c3 AND t46.c4])
-11 - output([t48.c2], [t48.c1], [t48.c3])
+11 - output([t48.c2], [t48.c3], [t48.c1])
 access([t48.c1], [t48.c3], [t48.c2])
-12 - output([t47.c3], [t46.c4], [t47.c2], [t46.c3], [t47.c1])
+12 - output([t47.c3], [t46.c4], [t47.c1], [t47.c2], [t46.c3])
 equal_join_conditions([t47.c1=t46.c2])
 13 - output([t46.c2], [t46.c4], [t46.c3])
 access([t46.c3], [t46.c4], [t46.c2])
 14 - output([t47.c1], [t47.c3], [t47.c2])
 access([t47.c2], [t47.c1], [t47.c3])
-15 - output([t44.c1 IS NOT NULL], [t44.c4 IS NOT NULL], [t44.c4])
-access([t44.c4], [t44.c1])
-16 - output([t45.c2])
+15 - output([t45.c2])
 access([t45.c2])
+16 - output([t44.c1 IS NOT NULL], [t44.c4 IS NOT NULL], [t44.c4])
+access([t44.c4], [t44.c1])
 18 - filters([t50.c2 LIKE t50.c2 OR t50.c3 IS NULL OR t50.c1>=t50.c4])
 access([t50.c2], [t50.c3], [t50.c1], [t50.c4])
-19 - access()
+
+outline:
+/*+
+USE_HASH(@SEL1 t52)
+USE_HASH(@SEL1 t47)
+USE_NL(@SEL1 t46, t47)
+USE_NL(@SEL1 t45)
+USE_NL(@SEL1 t44)
+USE_NL(@SEL1 t48, t46, t47, t45, t44)
+USE_NL(@SEL1 t49)
+USE_NL(@SEL1 t50, t49)
+USE_NL(@SEL1 t43, t48, t46, t47, t45, t44, t50, t49)
+LEADING(@SEL1 (t51, t52), ((t43, (((t48, (t46, t47)), t45), t44)), (t50, t49)))
+*/
 
 EXPLAIN SELECT  (T54.C3) AS C1, T53.C2 AS C2, (T54.C1) AS C3, T53.C2 AS C4 FROM T1 T53 RIGHT JOIN T2 T54 ON T53.C2 IS NOT NULL    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+------------------------------------------------------------+
-| ID | OPERATOR                    | NAME | ROW COUNT | COST |
-+------------------------------------------------------------+
-| 0  | SORT                        |      | 100       | 65   |
-| 1  |  NESTED LOOP LeftOuter JOIN |      | 100       | 10   |
-| 2  |   TABLE SCAN                | T54  | 10        | 5    |
-| 3  |   TABLE SCAN                | T53  | 10        | 4    |
-+------------------------------------------------------------+
++-----------------------------------------------------------------+
+| ID | OPERATOR                    | NAME | ROW COUNT | COST      |
++-----------------------------------------------------------------+
+| 0  | SORT                        |      | 9.900e+09 | 2.818e+10 |
+| 1  |  NESTED LOOP LeftOuter JOIN |      | 9.900e+09 | 8.410e+08 |
+| 2  |   TABLE SCAN                | T54  | 100000    | 10410     |
+| 3  |   TABLE SCAN                | T53  | 99000     | 8410      |
++-----------------------------------------------------------------+
 Outputs & filters:
 0 - output([t54.c3], [t53.c2], [t54.c1], [t53.c2])
 sort_keys([t54.c3 ASC], [t53.c2 ASC], [t54.c1 ASC], [t53.c2 DESC])
@@ -433,158 +509,195 @@ access([t54.c3], [t54.c1])
 filters([t53.c2 IS NOT NULL])
 access([t53.c2])
 
+outline:
+/*+
+USE_NL(@SEL1 t53)
+LEADING(@SEL1 t54, t53)
+*/
+
 EXPLAIN SELECT  T56.C3 AS C1, (T56.C2) AS C2, T55.C2 AS C3, (T56.C4) AS C4 FROM T1 T55, T2 T56    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 100       | 66   |
-| 1  |  NESTED LOOP Inner JOIN |      | 100       | 10   |
-| 2  |   TABLE SCAN            | T55  | 10        | 4    |
-| 3  |   TABLE SCAN            | T56  | 10        | 5    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T56  | 100000    | 15410     |
+| 3  |   TABLE SCAN            | T55  | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t56.c3], [t56.c2], [t55.c2], [t56.c4])
 sort_keys([t56.c3 ASC], [t56.c2 DESC], [t55.c2 DESC], [t56.c4 DESC])
 1 - output([t56.c3], [t56.c2], [t55.c2], [t56.c4])
-2 - output([t55.c2])
-access([t55.c2])
-3 - output([t56.c3], [t56.c2], [t56.c4])
+2 - output([t56.c3], [t56.c2], [t56.c4])
 access([t56.c3], [t56.c2], [t56.c4])
+3 - output([t55.c2])
+access([t55.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t55)
+LEADING(@SEL1 t56, t55)
+*/
 
 EXPLAIN SELECT  (T60.C1) AS C1, T60.C2 AS C2, (T58.C1) AS C3, (T60.C4) AS C4 FROM T2 T57, T1 T58, T2 T59 FULL JOIN T1 T60 ON T60.C2 = T59.C2    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR                 | NAME | ROW COUNT | COST |
-+---------------------------------------------------------+
-| 0  | SORT                     |      | 1250      | 1092 |
-| 1  |  NESTED LOOP Inner JOIN  |      | 1250      | 23   |
-| 2  |   HASH FullOuter JOIN    |      | 12        | 12   |
-| 3  |    TABLE SCAN            | T59  | 10        | 4    |
-| 4  |    TABLE SCAN            | T60  | 10        | 5    |
-| 5  |   NESTED LOOP Inner JOIN |      | 100       | 9    |
-| 6  |    TABLE SCAN            | T57  | 10        | 4    |
-| 7  |    TABLE SCAN            | T58  | 10        | 4    |
-+---------------------------------------------------------+
++--------------------------------------------------------------+
+| ID | OPERATOR                 | NAME | ROW COUNT | COST      |
++--------------------------------------------------------------+
+| 0  | SORT                     |      | 1.000e+17 | 4.701e+17 |
+| 1  |  NESTED LOOP Inner JOIN  |      | 1.000e+17 | 3.982e+14 |
+| 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
+| 3  |    TABLE SCAN            | T58  | 100000    | 5410      |
+| 4  |    TABLE SCAN            | T57  | 100000    | 409       |
+| 5  |   HASH FullOuter JOIN    |      | 1.000e+07 | 39820     |
+| 6  |    TABLE SCAN            | T59  | 100000    | 5410      |
+| 7  |    TABLE SCAN            | T60  | 100000    | 15410     |
++--------------------------------------------------------------+
 Outputs & filters:
 0 - output([t60.c1], [t60.c2], [t58.c1], [t60.c4])
 sort_keys([t60.c1 DESC], [t60.c2 DESC], [t58.c1 ASC], [t60.c4 ASC])
 1 - output([t60.c1], [t60.c2], [t58.c1], [t60.c4])
-2 - output([t60.c1], [t60.c2], [t60.c4])
-equal_join_conditions([t60.c2=t59.c2])
-3 - output([t59.c2])
-access([t59.c2])
-4 - output([t60.c2], [t60.c1], [t60.c4])
-access([t60.c2], [t60.c1], [t60.c4])
-5 - output([t58.c1])
-6 - access()
-7 - output([t58.c1])
+2 - output([t58.c1])
+3 - output([t58.c1])
 access([t58.c1])
+5 - output([t60.c1], [t60.c2], [t60.c4])
+equal_join_conditions([t60.c2=t59.c2])
+6 - output([t59.c2])
+access([t59.c2])
+7 - output([t60.c2], [t60.c1], [t60.c4])
+access([t60.c2], [t60.c1], [t60.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t57)
+USE_HASH(@SEL1 t60)
+USE_NL(@SEL1 t59, t60)
+LEADING(@SEL1 (t58, t57), (t59, t60))
+*/
 
 EXPLAIN SELECT  T62.C1 AS C1, (T62.C3) AS C2, T62.C2 AS C3, T62.C4 AS C4 FROM T1 T61, T1 T62    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 100       | 66   |
-| 1  |  NESTED LOOP Inner JOIN |      | 100       | 10   |
-| 2  |   TABLE SCAN            | T61  | 10        | 4    |
-| 3  |   TABLE SCAN            | T62  | 10        | 6    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.767e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.102e+07 |
+| 2  |   TABLE SCAN            | T62  | 100000    | 20410     |
+| 3  |   TABLE SCAN            | T61  | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
 sort_keys([t62.c1 DESC], [t62.c3 ASC], [t62.c2 ASC], [t62.c4 DESC])
 1 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
-2 - access()
-3 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
+2 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
 access([t62.c1], [t62.c3], [t62.c2], [t62.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t61)
+LEADING(@SEL1 t62, t61)
+*/
 
 EXPLAIN SELECT  T80.C4 AS C1, T79.C3 AS C2, (T74.C2) AS C3, (T76.C3) AS C4 FROM T2 T72, T2 T73 RIGHT JOIN T2 T74 ON (T73.C4 BETWEEN (T73.C4) AND (T74.C1) AND T74.C4 NOT BETWEEN (T74.C1) AND (T73.C3)) OR (T73.C1) > T74.C4 LEFT JOIN T1 T75 ON (((T73.C2) = (T73.C1) OR (T75.C1) NOT LIKE (T75.C2)) AND (T75.C2) = T74.C4) OR (T74.C4) = T75.C1, T2 T76 LEFT JOIN (T1 T77 INNER JOIN T2 T78 ON T77.C4 IS NOT NULL RIGHT JOIN (T2 T79 FULL JOIN T1 T80 ON (T79.C2) = (T80.C3)) ON (T80.C3) BETWEEN T79.C2 AND (T79.C2)) ON ((T79.C1 BETWEEN (T79.C2) AND T79.C1 AND T78.C4 != (T78.C4) OR T77.C1 > T76.C3 AND (T79.C3) LIKE T80.C4 AND T78.C2 BETWEEN T77.C4 AND T76.C4 AND (T77.C1) LIKE T77.C4) OR T77.C3 BETWEEN (T76.C1) AND (T77.C1) AND (T80.C1) IS NOT NULL) AND T80.C1 <= T76.C4 OR T76.C1 > T80.C4, T1 T81 INNER JOIN T1 T82 ON (T82.C4 != T82.C4 OR T82.C2 IS NULL AND T82.C2 != (T82.C1))    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------------------+
-| ID | OPERATOR                       | NAME | ROW COUNT | COST      |
-+--------------------------------------------------------------------+
-| 0  | SORT                           |      | 3.038e+07 | 6.280e+07 |
-| 1  |  NESTED LOOP Inner JOIN        |      | 3.038e+07 | 360       |
-| 2  |   NESTED LOOP Inner JOIN       |      | 2700      | 32        |
-| 3  |    NESTED LOOP Inner JOIN      |      | 30        | 10        |
-| 4  |     TABLE SCAN                 | T82  | 3         | 5         |
-| 5  |     TABLE SCAN                 | T81  | 10        | 4         |
-| 6  |    NESTED LOOP LeftOuter JOIN  |      | 90        | 19        |
-| 7  |     NESTED LOOP LeftOuter JOIN |      | 30        | 12        |
-| 8  |      TABLE SCAN                | T74  | 10        | 5         |
-| 9  |      TABLE SCAN                | T73  | 10        | 6         |
-| 10 |     TABLE SCAN                 | T75  | 10        | 5         |
-| 11 |   NESTED LOOP Inner JOIN       |      | 11250     | 53        |
-| 12 |    TABLE SCAN                  | T72  | 10        | 4         |
-| 13 |    NESTED LOOP LeftOuter JOIN  |      | 1125      | 37        |
-| 14 |     TABLE SCAN                 | T76  | 10        | 5         |
-| 15 |     NESTED LOOP LeftOuter JOIN |      | 375       | 26        |
-| 16 |      HASH FullOuter JOIN       |      | 12        | 13        |
-| 17 |       TABLE SCAN               | T79  | 10        | 5         |
-| 18 |       TABLE SCAN               | T80  | 10        | 5         |
-| 19 |      NESTED LOOP Inner JOIN    |      | 100       | 11        |
-| 20 |       TABLE SCAN               | T77  | 10        | 5         |
-| 21 |       TABLE SCAN               | T78  | 10        | 5         |
-+--------------------------------------------------------------------+
++---------------------------------------------------------------------+
+| ID | OPERATOR                        | NAME | ROW COUNT | COST      |
++---------------------------------------------------------------------+
+| 0  | SORT                            |      | 2.406e+49 | 3.283e+50 |
+| 1  |  NESTED LOOP Inner JOIN         |      | 2.406e+49 | 9.863e+46 |
+| 2  |   NESTED LOOP LeftOuter JOIN    |      | 8.910e+20 | 1.417e+21 |
+| 3  |    TABLE SCAN                   | T76  | 100000    | 15410     |
+| 4  |    NESTED LOOP LeftOuter JOIN   |      | 2.970e+16 | 1.328e+16 |
+| 5  |     HASH FullOuter JOIN         |      | 1.000e+07 | 49820     |
+| 6  |      TABLE SCAN                 | T79  | 100000    | 15410     |
+| 7  |      TABLE SCAN                 | T80  | 100000    | 15410     |
+| 8  |     NESTED LOOP Inner JOIN      |      | 9.900e+09 | 1.031e+09 |
+| 9  |      TABLE SCAN                 | T77  | 99000     | 18410     |
+| 10 |      TABLE SCAN                 | T78  | 100000    | 10410     |
+| 11 |   NESTED LOOP Inner JOIN        |      | 2.700e+28 | 1.107e+26 |
+| 12 |    NESTED LOOP Inner JOIN       |      | 2.700e+23 | 1.109e+21 |
+| 13 |     NESTED LOOP LeftOuter JOIN  |      | 9.000e+13 | 4.023e+13 |
+| 14 |      NESTED LOOP LeftOuter JOIN |      | 3.000e+09 | 2.341e+09 |
+| 15 |       TABLE SCAN                | T74  | 100000    | 15410     |
+| 16 |       TABLE SCAN                | T73  | 100000    | 20410     |
+| 17 |      TABLE SCAN                 | T75  | 100000    | 10410     |
+| 18 |     NESTED LOOP Inner JOIN      |      | 3.000e+09 | 1.232e+07 |
+| 19 |      TABLE SCAN                 | T82  | 30000     | 18410     |
+| 20 |      TABLE SCAN                 | T81  | 100000    | 409       |
+| 21 |    TABLE SCAN                   | T72  | 100000    | 409       |
++---------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t80.c4], [t79.c3], [t74.c2], [t76.c3])
 sort_keys([t80.c4 ASC], [t79.c3 DESC], [t74.c2 ASC], [t76.c3 ASC])
 1 - output([t80.c4], [t79.c3], [t74.c2], [t76.c3])
-2 - output([t74.c2])
-4 - filters([t82.c4!=t82.c4 OR t82.c2 IS NULL AND t82.c2!=t82.c1])
-access([t82.c4], [t82.c2], [t82.c1])
-5 - access()
-6 - output([t74.c2])
-other_join_conditions([t73.c2=t73.c1 OR t75.c1 NOT LIKE t75.c2 AND t75.c2=t74.c4 OR t74.c4=t75.c1])
-7 - output([t73.c2], [t73.c1], [t74.c4], [t74.c2])
-other_join_conditions([t73.c4 BETWEEN t73.c4 AND t74.c1 AND t74.c4 NOT BETWEEN t74.c1 AND t73.c3 OR t73.c1>t74.c4])
-8 - output([t74.c1], [t74.c4], [t74.c2])
-access([t74.c4], [t74.c1], [t74.c2])
-9 - output([t73.c4], [t73.c3], [t73.c1], [t73.c2])
-access([t73.c2], [t73.c1], [t73.c4], [t73.c3])
-10 - output([t75.c1], [t75.c2])
-access([t75.c1], [t75.c2])
-11 - output([t80.c4], [t79.c3], [t76.c3])
-12 - access()
-13 - output([t80.c4], [t79.c3], [t76.c3])
+2 - output([t80.c4], [t79.c3], [t76.c3])
 other_join_conditions([t79.c1 BETWEEN t79.c2 AND t79.c1 AND t78.c4!=t78.c4 OR t77.c1>t76.c3 AND t79.c3 LIKE t80.c4 AND t78.c2 BETWEEN t77.c4 AND t76.c4 AND t77.c1 LIKE t77.c4 OR t77.c3 BETWEEN t76.c1 AND t77.c1 AND t80.c1 IS NOT NULL AND t80.c1<=t76.c4 OR t76.c1>t80.c4])
-14 - output([t76.c3], [t76.c4], [t76.c1])
+3 - output([t76.c3], [t76.c4], [t76.c1])
 access([t76.c3], [t76.c4], [t76.c1])
-15 - output([t79.c1], [t79.c2], [t78.c4], [t77.c1], [t79.c3], [t80.c4], [t78.c2], [t77.c4], [t77.c3], [t80.c1])
+4 - output([t79.c1], [t79.c2], [t78.c4], [t77.c1], [t79.c3], [t80.c4], [t78.c2], [t77.c4], [t77.c3], [t80.c1])
 other_join_conditions([t80.c3 BETWEEN t79.c2 AND t79.c2])
-16 - output([t80.c3 BETWEEN t79.c2 AND t79.c2], [t79.c1], [t79.c2], [t79.c3], [t80.c4], [t80.c1])
+5 - output([t80.c3 BETWEEN t79.c2 AND t79.c2], [t79.c1], [t79.c2], [t79.c3], [t80.c4], [t80.c1])
 equal_join_conditions([t79.c2=t80.c3])
-17 - output([t79.c2], [t79.c1], [t79.c3])
+6 - output([t79.c2], [t79.c1], [t79.c3])
 access([t79.c1], [t79.c2], [t79.c3])
-18 - output([t80.c3], [t80.c4], [t80.c1])
+7 - output([t80.c3], [t80.c4], [t80.c1])
 access([t80.c4], [t80.c1], [t80.c3])
-19 - output([t78.c4], [t77.c1], [t78.c2], [t77.c4], [t77.c3])
-20 - output([t77.c1], [t77.c4], [t77.c3])
+8 - output([t78.c4], [t77.c1], [t78.c2], [t77.c4], [t77.c3])
+9 - output([t77.c1], [t77.c4], [t77.c3])
 filters([t77.c4 IS NOT NULL])
 access([t77.c1], [t77.c4], [t77.c3])
-21 - output([t78.c4], [t78.c2])
+10 - output([t78.c4], [t78.c2])
 access([t78.c4], [t78.c2])
+11 - output([t74.c2])
+12 - output([t74.c2])
+13 - output([t74.c2])
+other_join_conditions([t73.c2=t73.c1 OR t75.c1 NOT LIKE t75.c2 AND t75.c2=t74.c4 OR t74.c4=t75.c1])
+14 - output([t73.c2], [t73.c1], [t74.c4], [t74.c2])
+other_join_conditions([t73.c4 BETWEEN t73.c4 AND t74.c1 AND t74.c4 NOT BETWEEN t74.c1 AND t73.c3 OR t73.c1>t74.c4])
+15 - output([t74.c1], [t74.c4], [t74.c2])
+access([t74.c4], [t74.c1], [t74.c2])
+16 - output([t73.c4], [t73.c3], [t73.c1], [t73.c2])
+access([t73.c2], [t73.c1], [t73.c4], [t73.c3])
+17 - output([t75.c1], [t75.c2])
+access([t75.c1], [t75.c2])
+19 - filters([t82.c4!=t82.c4 OR t82.c2 IS NULL AND t82.c2!=t82.c1])
+access([t82.c4], [t82.c2], [t82.c1])
+
+outline:
+/*+
+USE_HASH(@SEL1 t80)
+USE_NL(@SEL1 t78)
+USE_NL(@SEL1 t77, t78)
+USE_NL(@SEL1 t79, t80, t77, t78)
+USE_NL(@SEL1 t73)
+USE_NL(@SEL1 t75)
+USE_NL(@SEL1 t81)
+USE_NL(@SEL1 t82, t81)
+USE_NL(@SEL1 t72)
+USE_NL(@SEL1 t74, t73, t75, t82, t81, t72)
+LEADING(@SEL1 (t76, ((t79, t80), (t77, t78))), ((((t74, t73), t75), (t82, t81)), t72))
+*/
 
 EXPLAIN SELECT  (T86.C3) AS C1, T83.C2 AS C2, T84.C1 AS C3, (T84.C3) AS C4 FROM T2 T83 LEFT JOIN (T2 T84 FULL JOIN T1 T85 ON T84.C1 = (T85.C2) AND T84.C4 != (T85.C3) AND T84.C4 >= (T85.C2) LEFT JOIN T1 T86 ON T84.C2 IS NULL) ON (T83.C2) IS NULL AND ((T83.C3) NOT LIKE (T85.C2) OR T85.C1 NOT LIKE T83.C4) OR T84.C1 LIKE T84.C2 OR (T86.C3) IS NOT NULL    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+-------------------------------------------------------------+
-| ID | OPERATOR                     | NAME | ROW COUNT | COST |
-+-------------------------------------------------------------+
-| 0  | SORT                         |      | 0         | -nan |
-| 1  |  NESTED LOOP LeftOuter JOIN  |      | 0         | 25   |
-| 2  |   TABLE SCAN                 | T83  | 10        | 5    |
-| 3  |   NESTED LOOP LeftOuter JOIN |      | 0         | 18   |
-| 4  |    HASH FullOuter JOIN       |      | 3         | 13   |
-| 5  |     TABLE SCAN               | T84  | 10        | 6    |
-| 6  |     TABLE SCAN               | T85  | 10        | 5    |
-| 7  |    TABLE SCAN                | T86  | 10        | 4    |
-+-------------------------------------------------------------+
++------------------------------------------------------------------+
+| ID | OPERATOR                     | NAME | ROW COUNT | COST      |
++------------------------------------------------------------------+
+| 0  | SORT                         |      | 8.991e+13 | 2.876e+15 |
+| 1  |  NESTED LOOP LeftOuter JOIN  |      | 8.991e+13 | 2.530e+15 |
+| 2  |   TABLE SCAN                 | T83  | 100000    | 15410     |
+| 3  |   NESTED LOOP LeftOuter JOIN |      | 2.997e+09 | 2.521e+10 |
+| 4  |    HASH FullOuter JOIN       |      | 2.997e+06 | 234639    |
+| 5  |     TABLE SCAN               | T84  | 100000    | 20410     |
+| 6  |     TABLE SCAN               | T85  | 100000    | 15410     |
+| 7  |    TABLE SCAN                | T86  | 100000    | 5410      |
++------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t86.c3], [t83.c2], [t84.c1], [t84.c3])
 sort_keys([t86.c3 ASC], [t83.c2 ASC], [t84.c1 DESC], [t84.c3 DESC])
@@ -604,38 +717,51 @@ access([t85.c2], [t85.c1], [t85.c3])
 7 - output([t86.c3])
 access([t86.c3])
 
+outline:
+/*+
+USE_HASH(@SEL1 t85)
+USE_NL(@SEL1 t86)
+USE_NL(@SEL1 t84, t85, t86)
+LEADING(@SEL1 t83, ((t84, t85), t86))
+*/
+
 EXPLAIN SELECT  T88.C3 AS C1, T88.C2 AS C2, T88.C2 AS C3, (T88.C2) AS C4 FROM T1 T87, T1 T88    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 100       | 65   |
-| 1  |  NESTED LOOP Inner JOIN |      | 100       | 9    |
-| 2  |   TABLE SCAN            | T87  | 10        | 4    |
-| 3  |   TABLE SCAN            | T88  | 10        | 5    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.767e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
+| 2  |   TABLE SCAN            | T88  | 100000    | 10410     |
+| 3  |   TABLE SCAN            | T87  | 100000    | 409       |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t88.c3], [t88.c2], [t88.c2], [t88.c2])
 sort_keys([t88.c3 ASC], [t88.c2 ASC], [t88.c2 ASC], [t88.c2 ASC])
 1 - output([t88.c3], [t88.c2])
-2 - access()
-3 - output([t88.c3], [t88.c2])
+2 - output([t88.c3], [t88.c2])
 access([t88.c3], [t88.c2])
+
+outline:
+/*+
+USE_NL(@SEL1 t87)
+LEADING(@SEL1 t88, t87)
+*/
 
 EXPLAIN SELECT  T91.C3 AS C1, T91.C4 AS C2, T91.C1 AS C3, (T89.C1) AS C4 FROM T1 T89 INNER JOIN T2 T90 ON (T89.C4) <= (T89.C4) OR (T89.C2) != T89.C3, T1 T91    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR                 | NAME | ROW COUNT | COST |
-+---------------------------------------------------------+
-| 0  | SORT                     |      | 300       | 222  |
-| 1  |  NESTED LOOP Inner JOIN  |      | 300       | 17   |
-| 2  |   TABLE SCAN             | T91  | 10        | 5    |
-| 3  |   NESTED LOOP Inner JOIN |      | 30        | 10   |
-| 4  |    TABLE SCAN            | T89  | 3         | 6    |
-| 5  |    TABLE SCAN            | T90  | 10        | 4    |
-+---------------------------------------------------------+
++--------------------------------------------------------------+
+| ID | OPERATOR                 | NAME | ROW COUNT | COST      |
++--------------------------------------------------------------+
+| 0  | SORT                     |      | 3.000e+14 | 1.201e+15 |
+| 1  |  NESTED LOOP Inner JOIN  |      | 3.000e+14 | 1.232e+12 |
+| 2  |   TABLE SCAN             | T91  | 100000    | 15410     |
+| 3  |   NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.232e+07 |
+| 4  |    TABLE SCAN            | T89  | 30000     | 23410     |
+| 5  |    TABLE SCAN            | T90  | 100000    | 409       |
++--------------------------------------------------------------+
 Outputs & filters:
 0 - output([t91.c3], [t91.c4], [t91.c1], [t89.c1])
 sort_keys([t91.c3 ASC], [t91.c4 ASC], [t91.c1 DESC], [t89.c1 DESC])
@@ -646,118 +772,143 @@ access([t91.c3], [t91.c4], [t91.c1])
 4 - output([t89.c1])
 filters([t89.c4<=t89.c4 OR t89.c2!=t89.c3])
 access([t89.c4], [t89.c2], [t89.c3], [t89.c1])
-5 - access()
+
+outline:
+/*+
+USE_NL(@SEL1 t90)
+USE_NL(@SEL1 t89, t90)
+LEADING(@SEL1 t91, (t89, t90))
+*/
 
 EXPLAIN SELECT  (T98.C4) AS C1, T94.C2 AS C2, T100.C2 AS C3, (T99.C4) AS C4 FROM T1 T92 LEFT JOIN T2 T93 ON (T93.C1) <= (T93.C3) INNER JOIN T1 T94 ON T94.C3 IS NOT NULL OR T92.C1 NOT BETWEEN (T94.C3) AND T94.C2, T2 T95 RIGHT JOIN (T1 T96 INNER JOIN T2 T97 ON (((T97.C3 <= (T96.C3) AND (T97.C2) IS NOT NULL) OR (T96.C1) = T97.C2) OR T96.C3 != (T96.C1)) LEFT JOIN (T1 T98 INNER JOIN T1 T99 ON T98.C2 IS NOT NULL) ON (T98.C1) NOT BETWEEN T97.C3 AND T97.C2 INNER JOIN T2 T100 ON (T96.C1 != (T99.C2) AND T97.C2 NOT BETWEEN (T99.C3) AND (T96.C1) OR T99.C3 >= T96.C2)) ON ((T99.C1) != T100.C2 AND (T97.C2) != T100.C4), T2 T101    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+--------------------------------------------------------------------+
-| ID | OPERATOR                       | NAME | ROW COUNT | COST      |
-+--------------------------------------------------------------------+
-| 0  | SORT                           |      | 4.341e+07 | 9.161e+07 |
-| 1  |  NESTED LOOP Inner JOIN        |      | 4.341e+07 | 999       |
-| 2  |   NESTED LOOP Inner JOIN       |      | 900       | 22        |
-| 3  |    TABLE SCAN                  | T101 | 10        | 4         |
-| 4  |    NESTED LOOP Inner JOIN      |      | 90        | 16        |
-| 5  |     TABLE SCAN                 | T94  | 10        | 5         |
-| 6  |     NESTED LOOP LeftOuter JOIN |      | 30        | 10        |
-| 7  |      TABLE SCAN                | T92  | 10        | 4         |
-| 8  |      TABLE SCAN                | T93  | 3         | 5         |
-| 9  |   NESTED LOOP LeftOuter JOIN   |      | 48234     | 440       |
-| 10 |    NESTED LOOP Inner JOIN      |      | 6300      | 58        |
-| 11 |     TABLE SCAN                 | T100 | 10        | 5         |
-| 12 |     NESTED LOOP LeftOuter JOIN |      | 630       | 46        |
-| 13 |      NESTED LOOP Inner JOIN    |      | 30        | 11        |
-| 14 |       TABLE SCAN               | T96  | 10        | 5         |
-| 15 |       TABLE SCAN               | T97  | 10        | 5         |
-| 16 |      NESTED LOOP Inner JOIN    |      | 100       | 12        |
-| 17 |       TABLE SCAN               | T98  | 10        | 5         |
-| 18 |       TABLE SCAN               | T99  | 10        | 6         |
-| 19 |    TABLE SCAN                  | T95  | 10        | 4         |
-+--------------------------------------------------------------------+
++---------------------------------------------------------------------+
+| ID | OPERATOR                        | NAME | ROW COUNT | COST      |
++---------------------------------------------------------------------+
+| 0  | SORT                            |      | 5.602e+47 | 7.393e+48 |
+| 1  |  NESTED LOOP Inner JOIN         |      | 5.602e+47 | 2.297e+45 |
+| 2  |   NESTED LOOP Inner JOIN        |      | 5.602e+42 | 3.598e+41 |
+| 3  |    NESTED LOOP LeftOuter JOIN   |      | 9.000e+13 | 4.023e+13 |
+| 4  |     NESTED LOOP Inner JOIN      |      | 3.000e+09 | 8.410e+08 |
+| 5  |      TABLE SCAN                 | T94  | 100000    | 10410     |
+| 6  |      TABLE SCAN                 | T92  | 100000    | 5410      |
+| 7  |     TABLE SCAN                  | T93  | 30000     | 13410     |
+| 8  |    NESTED LOOP LeftOuter JOIN   |      | 6.225e+28 | 3.998e+27 |
+| 9  |     NESTED LOOP Inner JOIN      |      | 6.237e+23 | 6.493e+22 |
+| 10 |      NESTED LOOP LeftOuter JOIN |      | 6.237e+18 | 6.601e+18 |
+| 11 |       NESTED LOOP Inner JOIN    |      | 3.000e+09 | 1.341e+09 |
+| 12 |        TABLE SCAN               | T96  | 100000    | 15410     |
+| 13 |        TABLE SCAN               | T97  | 100000    | 10410     |
+| 14 |       NESTED LOOP Inner JOIN    |      | 9.900e+09 | 1.841e+09 |
+| 15 |        TABLE SCAN               | T99  | 100000    | 20410     |
+| 16 |        TABLE SCAN               | T98  | 99000     | 18410     |
+| 17 |      TABLE SCAN                 | T100 | 100000    | 10410     |
+| 18 |     TABLE SCAN                  | T95  | 100000    | 409       |
+| 19 |   TABLE SCAN                    | T101 | 100000    | 409       |
++---------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t98.c4], [t94.c2], [t100.c2], [t99.c4])
 sort_keys([t98.c4 ASC], [t94.c2 ASC], [t100.c2 ASC], [t99.c4 DESC])
 1 - output([t98.c4], [t94.c2], [t100.c2], [t99.c4])
-2 - output([t94.c2])
-3 - access()
+2 - output([t98.c4], [t94.c2], [t100.c2], [t99.c4])
+3 - output([t94.c2])
 4 - output([t94.c2])
 other_join_conditions([t94.c3 IS NOT NULL OR t92.c1 NOT BETWEEN t94.c3 AND t94.c2])
 5 - output([t94.c3], [t94.c2])
 access([t94.c3], [t94.c2])
 6 - output([t92.c1])
-7 - output([t92.c1])
 access([t92.c1])
-8 - filters([t93.c1<=t93.c3])
+7 - filters([t93.c1<=t93.c3])
 access([t93.c1], [t93.c3])
-9 - output([t98.c4], [t100.c2], [t99.c4])
+8 - output([t98.c4], [t100.c2], [t99.c4])
 other_join_conditions([t99.c1!=t100.c2], [t97.c2!=t100.c4])
-10 - output([t99.c1!=t100.c2], [t97.c2!=t100.c4], [t98.c4], [t100.c2], [t99.c4])
-11 - output([t100.c2], [t100.c4])
-access([t100.c2], [t100.c4])
-12 - output([t99.c1], [t97.c2], [t98.c4], [t99.c4])
+9 - output([t99.c1!=t100.c2], [t97.c2!=t100.c4], [t98.c4], [t100.c2], [t99.c4])
+10 - output([t99.c1], [t97.c2], [t98.c4], [t99.c4])
 filters([t96.c1!=t99.c2 AND t97.c2 NOT BETWEEN t99.c3 AND t96.c1 OR t99.c3>=t96.c2])
 other_join_conditions([t98.c1 NOT BETWEEN t97.c3 AND t97.c2])
-13 - output([t97.c3], [t97.c2], [t96.c1], [t96.c2])
+11 - output([t97.c3], [t97.c2], [t96.c1], [t96.c2])
 other_join_conditions([t97.c3<=t96.c3 AND t97.c2 IS NOT NULL OR t96.c1=t97.c2 OR t96.c3!=t96.c1])
-14 - output([t96.c3], [t96.c1], [t96.c2])
+12 - output([t96.c3], [t96.c1], [t96.c2])
 access([t96.c1], [t96.c2], [t96.c3])
-15 - output([t97.c3], [t97.c2])
+13 - output([t97.c3], [t97.c2])
 access([t97.c2], [t97.c3])
-16 - output([t98.c1], [t99.c2], [t99.c3], [t99.c1], [t98.c4], [t99.c4])
-17 - output([t98.c1], [t98.c4])
+14 - output([t98.c1], [t99.c2], [t99.c3], [t99.c1], [t98.c4], [t99.c4])
+15 - output([t99.c2], [t99.c3], [t99.c1], [t99.c4])
+access([t99.c1], [t99.c2], [t99.c3], [t99.c4])
+16 - output([t98.c1], [t98.c4])
 filters([t98.c2 IS NOT NULL])
 access([t98.c1], [t98.c2], [t98.c4])
-18 - output([t99.c2], [t99.c3], [t99.c1], [t99.c4])
-access([t99.c1], [t99.c2], [t99.c3], [t99.c4])
-19 - access()
+17 - output([t100.c2], [t100.c4])
+access([t100.c2], [t100.c4])
+
+outline:
+/*+
+USE_NL(@SEL1 t92)
+USE_NL(@SEL1 t93)
+USE_NL(@SEL1 t97)
+USE_NL(@SEL1 t98)
+USE_NL(@SEL1 t99, t98)
+USE_NL(@SEL1 t100)
+USE_NL(@SEL1 t95)
+USE_NL(@SEL1 t96, t97, t99, t98, t100, t95)
+USE_NL(@SEL1 t101)
+LEADING(@SEL1 (((t94, t92), t93), ((((t96, t97), (t99, t98)), t100), t95)), t101)
+*/
 
 EXPLAIN SELECT  (T105.C2) AS C1, (T103.C2) AS C2, (T103.C2) AS C3, (T104.C4) AS C4 FROM T1 T102, T2 T103 LEFT JOIN T1 T104 ON ((T104.C2) BETWEEN T103.C4 AND (T103.C1) AND (T104.C1) BETWEEN (T104.C4) AND T104.C3), T1 T105, T1 T106    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------------+
-| ID | OPERATOR                      | NAME | ROW COUNT | COST |
-+--------------------------------------------------------------+
-| 0  | SORT                          |      | 9000      | 9866 |
-| 1  |  NESTED LOOP Inner JOIN       |      | 9000      | 33   |
-| 2  |   NESTED LOOP Inner JOIN      |      | 90        | 17   |
-| 3  |    NESTED LOOP LeftOuter JOIN |      | 9         | 12   |
-| 4  |     TABLE SCAN                | T103 | 10        | 5    |
-| 5  |     TABLE SCAN                | T104 | 3         | 6    |
-| 6  |    TABLE SCAN                 | T102 | 10        | 4    |
-| 7  |   NESTED LOOP Inner JOIN      |      | 100       | 9    |
-| 8  |    TABLE SCAN                 | T105 | 10        | 4    |
-| 9  |    TABLE SCAN                 | T106 | 10        | 4    |
-+--------------------------------------------------------------+
++--------------------------------------------------------------------+
+| ID | OPERATOR                       | NAME | ROW COUNT | COST      |
++--------------------------------------------------------------------+
+| 0  | SORT                           |      | 9.000e+23 | 5.961e+24 |
+| 1  |  NESTED LOOP Inner JOIN        |      | 9.000e+23 | 3.690e+21 |
+| 2  |   NESTED LOOP Inner JOIN       |      | 9.000e+18 | 3.690e+16 |
+| 3  |    NESTED LOOP Inner JOIN      |      | 9.000e+13 | 4.871e+12 |
+| 4  |     NESTED LOOP LeftOuter JOIN |      | 9.000e+08 | 2.431e+09 |
+| 5  |      TABLE SCAN                | T103 | 100000    | 15410     |
+| 6  |      TABLE SCAN                | T104 | 30000     | 23410     |
+| 7  |     TABLE SCAN                 | T105 | 100000    | 5410      |
+| 8  |    TABLE SCAN                  | T102 | 100000    | 409       |
+| 9  |   TABLE SCAN                   | T106 | 100000    | 409       |
++--------------------------------------------------------------------+
 Outputs & filters:
 0 - output([t105.c2], [t103.c2], [t103.c2], [t104.c4])
 sort_keys([t105.c2 DESC], [t103.c2 DESC], [t103.c2 DESC], [t104.c4 ASC])
 1 - output([t105.c2], [t103.c2], [t104.c4])
-2 - output([t103.c2], [t104.c4])
-3 - output([t103.c2], [t104.c4])
+2 - output([t105.c2], [t103.c2], [t104.c4])
+3 - output([t105.c2], [t103.c2], [t104.c4])
+4 - output([t103.c2], [t104.c4])
 other_join_conditions([t104.c2 BETWEEN t103.c4 AND t103.c1])
-4 - output([t103.c4], [t103.c1], [t103.c2])
+5 - output([t103.c4], [t103.c1], [t103.c2])
 access([t103.c4], [t103.c1], [t103.c2])
-5 - output([t104.c2], [t104.c4])
+6 - output([t104.c2], [t104.c4])
 filters([t104.c1 BETWEEN t104.c4 AND t104.c3])
 access([t104.c2], [t104.c1], [t104.c4], [t104.c3])
-6 - access()
 7 - output([t105.c2])
-8 - output([t105.c2])
 access([t105.c2])
-9 - access()
+
+outline:
+/*+
+USE_NL(@SEL1 t104)
+USE_NL(@SEL1 t105)
+USE_NL(@SEL1 t102)
+USE_NL(@SEL1 t106)
+LEADING(@SEL1 (((t103, t104), t105), t102), t106)
+*/
 
 EXPLAIN SELECT  T107.C4 AS C1, (T107.C4) AS C2, (T108.C3) AS C3, (T107.C4) AS C4 FROM T1 T107, T1 T108    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                    |      | 100       | 65   |
-| 1  |  NESTED LOOP Inner JOIN |      | 100       | 9    |
-| 2  |   TABLE SCAN            | T107 | 10        | 4    |
-| 3  |   TABLE SCAN            | T108 | 10        | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------------+
+| ID | OPERATOR                | NAME | ROW COUNT | COST      |
++-------------------------------------------------------------+
+| 0  | SORT                    |      | 1.000e+10 | 2.817e+10 |
+| 1  |  NESTED LOOP Inner JOIN |      | 1.000e+10 | 5.410e+08 |
+| 2  |   TABLE SCAN            | T107 | 100000    | 5410      |
+| 3  |   TABLE SCAN            | T108 | 100000    | 5410      |
++-------------------------------------------------------------+
 Outputs & filters:
 0 - output([t107.c4], [t107.c4], [t108.c3], [t107.c4])
 sort_keys([t107.c4 DESC], [t107.c4 ASC], [t108.c3 DESC], [t107.c4 ASC])
@@ -766,5 +917,11 @@ sort_keys([t107.c4 DESC], [t107.c4 ASC], [t108.c3 DESC], [t107.c4 ASC])
 access([t107.c4])
 3 - output([t108.c3])
 access([t108.c3])
+
+outline:
+/*+
+USE_NL(@SEL1 t108)
+LEADING(@SEL1 t107, t108)
+*/
 
 Bye

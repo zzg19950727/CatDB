@@ -23,6 +23,8 @@ namespace CatDB {
 			u32 formalize();
 		protected:
 			u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
+			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                   		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
 			KV_STRING(
 				KV(stmt_type, N(UPDATE)),
@@ -37,8 +39,6 @@ namespace CatDB {
 		public:
 			BasicTableStmt_s table;
 			Vector<ExprStmt_s> update_assign_stmt;
-			Vector<ColumnStmt_s> column_exprs;
-			Vector<ExprStmt_s> value_exprs;
 			ColumnStmt_s row_id_col;
 		};
 	}

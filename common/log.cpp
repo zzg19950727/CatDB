@@ -94,7 +94,7 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 		*os << "[ERR  ] ";
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
-	*os << "[" << module << "] " << "[" << file << ":" << line << "] " << msg << std::endl;
+	*os << "[" << module << "] " << "[" << file << ":" << line << "] " << "[ " << msg << " ]" << std::endl;
 	os->flush();
 }
 

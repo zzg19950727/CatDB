@@ -29,17 +29,22 @@ SELECT * FROM T1
 EXPLAIN SELECT  (T1.C2 - ((T1.C2 / 6) - 51) / T1.C4 * 46 / T1.C3) AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | SORT        |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | SORT        |      | 100000    | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3], [t1.c2], [t1.c4], [t1.c3])
 sort_keys([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3 DESC], [t1.c2 ASC], [t1.c4 DESC], [t1.c3 ASC])
 1 - output([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3], [t1.c2], [t1.c4], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  (T1.C2 - ((T1.C2 / 6) - 51) / T1.C4 * 46 / T1.C3) AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
@@ -62,18 +67,23 @@ SELECT  (T1.C2 - ((T1.C2 / 6) - 51) / T1.C4 * 46 / T1.C3) AS C1, T1.C2 AS C2, T1
 EXPLAIN SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 2
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 2         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 2         | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [68], [t1.c2], [t1.c1])
 sort_keys([t1.c3 ASC], [68 ASC], [t1.c2 DESC], [t1.c1 ASC])
 top_n([2])
 1 - output([t1.c3], [t1.c2], [t1.c1])
 access([t1.c3], [t1.c2], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 2
 
@@ -88,18 +98,23 @@ SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1
 EXPLAIN SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 5         | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c1], [t1.c4], [t1.c2])
 sort_keys([t1.c2 DESC], [t1.c1 ASC], [t1.c4 ASC], [t1.c2 ASC])
 top_n([5])
 1 - output([t1.c2], [t1.c1], [t1.c4])
 access([t1.c2], [t1.c1], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
 
@@ -117,18 +132,23 @@ SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  T1.C1 AS C1, 95 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 5         | 148565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [95], [85], [t1.c4])
 sort_keys([t1.c1 ASC], [95 ASC], [85 ASC], [t1.c4 ASC])
 top_n([5])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, 95 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
 
@@ -146,18 +166,23 @@ SELECT  T1.C1 AS C1, 95 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 AS
 EXPLAIN SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 5
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 5         | 148565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c1], [t1.c2], [t1.c1])
 sort_keys([t1.c2 DESC], [t1.c1 DESC], [t1.c2 ASC], [t1.c1 ASC])
 top_n([5])
 1 - output([t1.c2], [t1.c1])
 access([t1.c2], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 5
 
@@ -175,18 +200,23 @@ SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 6         | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c1], [t1.c4])
 sort_keys([t1.c3 DESC], [t1.c1 DESC], [t1.c1 ASC], [t1.c4 DESC])
 top_n([6])
 1 - output([t1.c3], [t1.c1], [t1.c4])
 access([t1.c3], [t1.c1], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
 
@@ -205,16 +235,21 @@ SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  LIMIT 0, 0
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | LIMIT       |      | 0         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST  |
++---------------------------------------------+
+| 0  | LIMIT       |      | 0         | 10410 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410 |
++---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c4], [t1.c4], [t1.c4])
 1 - output([t1.c3], [t1.c4])
 access([t1.c3], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  LIMIT 0, 0
 
@@ -223,16 +258,21 @@ Empty set
 EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, 7 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 0, 0
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | LIMIT       |      | 0         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST  |
++---------------------------------------------+
+| 0  | LIMIT       |      | 0         | 10410 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410 |
++---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [7], [t1.c2])
 1 - output([t1.c1], [t1.c2])
 access([t1.c1], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, 7 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 0, 0
 
@@ -241,16 +281,21 @@ Empty set
 EXPLAIN SELECT  T1.C4 AS C1, 0 AS C2, 70 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  LIMIT 0, 0
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | LIMIT       |      | 0         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST  |
++---------------------------------------------+
+| 0  | LIMIT       |      | 0         | 10410 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410 |
++---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [0], [70], [t1.c1])
 1 - output([t1.c4], [t1.c1])
 access([t1.c4], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C4 AS C1, 0 AS C2, 70 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  LIMIT 0, 0
 
@@ -259,16 +304,21 @@ Empty set
 EXPLAIN SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  LIMIT 0, 0
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | LIMIT       |      | 0         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST  |
++---------------------------------------------+
+| 0  | LIMIT       |      | 0         | 20410 |
+| 1  |  TABLE SCAN | T1   | 100000    | 20410 |
++---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 1 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  LIMIT 0, 0
 
@@ -280,13 +330,18 @@ Query Plan:
 +--------------------------------------------+
 | ID | OPERATOR    | NAME | ROW COUNT | COST |
 +--------------------------------------------+
-| 0  | LIMIT       |      | 0         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
+| 0  | LIMIT       |      | 0         | 5410 |
+| 1  |  TABLE SCAN | T1   | 100000    | 5410 |
 +--------------------------------------------+
 Outputs & filters:
 0 - output([30], [t1.c2], [t1.c2], [t1.c2])
 1 - output([t1.c2])
 access([t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  30 AS C1, T1.C2 AS C2, T1.C2 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  LIMIT 0, 0
 
@@ -295,13 +350,13 @@ Empty set
 EXPLAIN SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 4, 9
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | LIMIT        |      | 4         | 5    |
-| 1  |  TOP_N SORT  |      | 4         | 5    |
-| 2  |   TABLE SCAN | T1   | 4         | 4    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | LIMIT        |      | 13        | 148565 |
+| 1  |  TOP_N SORT  |      | 13        | 148565 |
+| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c3], [t1.c1], [t1.c1])
 1 - output([t1.c3], [t1.c1])
@@ -309,6 +364,11 @@ sort_keys([t1.c3 DESC], [t1.c3 DESC], [t1.c1 DESC], [t1.c1 ASC])
 top_n([13])
 2 - output([t1.c3], [t1.c1])
 access([t1.c3], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 4, 9
 
@@ -327,13 +387,13 @@ SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  T1.C1 AS C1, 5 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  LIMIT 4, 9
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | LIMIT        |      | 4         | 5    |
-| 1  |  TOP_N SORT  |      | 4         | 5    |
-| 2  |   TABLE SCAN | T1   | 4         | 4    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | LIMIT        |      | 13        | 148565 |
+| 1  |  TOP_N SORT  |      | 13        | 148565 |
+| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [5], [t1.c2], [t1.c1])
 1 - output([t1.c1], [t1.c2])
@@ -341,6 +401,11 @@ sort_keys([t1.c1 DESC], [5 ASC], [t1.c2 DESC], [t1.c1 ASC])
 top_n([13])
 2 - output([t1.c1], [t1.c2])
 access([t1.c1], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, 5 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  LIMIT 4, 9
 
@@ -359,13 +424,13 @@ SELECT  T1.C1 AS C1, 5 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 
 EXPLAIN SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6, 8
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | LIMIT        |      | 4         | 5    |
-| 1  |  TOP_N SORT  |      | 4         | 5    |
-| 2  |   TABLE SCAN | T1   | 4         | 4    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | LIMIT        |      | 14        | 148565 |
+| 1  |  TOP_N SORT  |      | 14        | 148565 |
+| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c4], [t1.c4], [t1.c3])
 1 - output([t1.c4], [t1.c3])
@@ -373,6 +438,11 @@ sort_keys([t1.c4 ASC], [t1.c4 DESC], [t1.c4 ASC], [t1.c3 DESC])
 top_n([14])
 2 - output([t1.c4], [t1.c3])
 access([t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6, 8
 
@@ -389,18 +459,23 @@ SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  T1.C4 AS C1, T1.C3 AS C2, 98 AS C3, 66 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 6         | 148565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c3], [98], [66])
 sort_keys([t1.c4 ASC], [t1.c3 DESC], [98 ASC], [66 DESC])
 top_n([6])
 1 - output([t1.c4], [t1.c3])
 access([t1.c4], [t1.c3])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C4 AS C1, T1.C3 AS C2, 98 AS C3, 66 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
 
@@ -419,18 +494,23 @@ SELECT  T1.C4 AS C1, T1.C3 AS C2, 98 AS C3, 66 AS C4 FROM T1 T1    ORDER BY 1 AS
 EXPLAIN SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C2 AS C3, 76 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 6
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 6         | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c3], [t1.c2], [76])
 sort_keys([t1.c1 DESC], [t1.c3 DESC], [t1.c2 DESC], [76 ASC])
 top_n([6])
 1 - output([t1.c1], [t1.c3], [t1.c2])
 access([t1.c1], [t1.c3], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C2 AS C3, 76 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 6
 
@@ -449,18 +529,23 @@ SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C2 AS C3, 76 AS C4 FROM T1 T1    ORDER BY 1
 EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, 33 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 1         | 4    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 1         | 143565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 5410   |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c1], [33])
 sort_keys([t1.c1 DESC], [t1.c1 DESC], [t1.c1 ASC], [33 ASC])
 top_n([1])
 1 - output([t1.c1])
 access([t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, 33 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
 
@@ -474,18 +559,23 @@ SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, 33 AS C4 FROM T1 T1    ORDER BY 1
 EXPLAIN SELECT  T1.C1 AS C1, T1.C2 AS C2, 20 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 1         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 1         | 148565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 10410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [20], [t1.c1])
 sort_keys([t1.c1 ASC], [t1.c2 DESC], [20 ASC], [t1.c1 ASC])
 top_n([1])
 1 - output([t1.c1], [t1.c2])
 access([t1.c1], [t1.c2])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C1 AS C1, T1.C2 AS C2, 20 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
 
@@ -499,18 +589,23 @@ SELECT  T1.C1 AS C1, T1.C2 AS C2, 20 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1
 EXPLAIN SELECT  T1.C2 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  LIMIT 5
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR    | NAME | ROW COUNT | COST |
-+--------------------------------------------+
-| 0  | TOP_N SORT  |      | 4         | 5    |
-| 1  |  TABLE SCAN | T1   | 4         | 4    |
-+--------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR    | NAME | ROW COUNT | COST   |
++----------------------------------------------+
+| 0  | TOP_N SORT  |      | 5         | 153565 |
+| 1  |  TABLE SCAN | T1   | 100000    | 15410  |
++----------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c2], [t1.c3], [t1.c1])
 sort_keys([t1.c2 DESC], [t1.c2 ASC], [t1.c3 ASC], [t1.c1 DESC])
 top_n([5])
 1 - output([t1.c2], [t1.c3], [t1.c1])
 access([t1.c2], [t1.c3], [t1.c1])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  T1.C2 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  LIMIT 5
 
@@ -528,13 +623,13 @@ SELECT  T1.C2 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER B
 EXPLAIN SELECT  19 AS C1, 39 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 6, 8
 
 Query Plan:
-+---------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST |
-+---------------------------------------------+
-| 0  | LIMIT        |      | 4         | 5    |
-| 1  |  TOP_N SORT  |      | 4         | 5    |
-| 2  |   TABLE SCAN | T1   | 4         | 4    |
-+---------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST   |
++-----------------------------------------------+
+| 0  | LIMIT        |      | 14        | 148565 |
+| 1  |  TOP_N SORT  |      | 14        | 148565 |
+| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([19], [39], [t1.c2], [t1.c4])
 1 - output([t1.c2], [t1.c4])
@@ -542,6 +637,11 @@ sort_keys([19 ASC], [39 ASC], [t1.c2 DESC], [t1.c4 ASC])
 top_n([14])
 2 - output([t1.c2], [t1.c4])
 access([t1.c2], [t1.c4])
+
+outline:
+/*+
+LEADING(@SEL1 t1)
+*/
 
 SELECT  19 AS C1, 39 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 6, 8
 

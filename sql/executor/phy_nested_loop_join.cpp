@@ -89,11 +89,11 @@ u32 PhyNestedLoopJoin::inner_get_next_row(Row_s & row)
 	}
 	switch (JoinPhyOperator::type) {
 	case Inner:
-		return join(row);
+		return inner_join(row);
 	case LeftSemi:
-		return semi_join(row);
+		return left_semi_join(row);
 	case LeftAnti:
-		return anti_join(row);
+		return left_anti_join(row);
 	case LeftOuter:
 		return left_outer_join(row);
 	default:
@@ -124,7 +124,7 @@ u32 PhyNestedLoopJoin::cache_right_table()
 	}
 }
 
-u32 PhyNestedLoopJoin::join(Row_s & row)
+u32 PhyNestedLoopJoin::inner_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
 	if (!left_row) {
@@ -164,10 +164,11 @@ u32 PhyNestedLoopJoin::join(Row_s & row)
 	return ret;
 }
 
-u32 PhyNestedLoopJoin::semi_join(Row_s & row)
+u32 PhyNestedLoopJoin::left_semi_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
 	while (ret=left_child->get_next_row(left_row) == SUCCESS) {
+		right_pos = 0;
 		while (right_pos < right_cache.size()) {
 			row = right_cache[right_pos++];
 			Row_s new_row = RowAgent::make_agent_row(row, left_row);
@@ -189,10 +190,10 @@ u32 PhyNestedLoopJoin::semi_join(Row_s & row)
 	return ret;
 }
 
-u32 PhyNestedLoopJoin::anti_join(Row_s & row)
+u32 PhyNestedLoopJoin::left_anti_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	while(ret = left_child->get_next_row(left_row) == SUCCESS) {
+	while((ret = left_child->get_next_row(left_row)) == SUCCESS) {
 		right_pos = 0;
 		bool is_in = false;
 		while (right_pos < right_cache.size()) {
@@ -202,12 +203,10 @@ u32 PhyNestedLoopJoin::anti_join(Row_s & row)
 				if ((*join_condition)(new_row)) {
 					is_in = true;
 					break;
-				}
-				else {
+				} else {
 					continue;
 				}
-			}
-			else {
+			} else {
 				is_in = true;
 				break;
 			}

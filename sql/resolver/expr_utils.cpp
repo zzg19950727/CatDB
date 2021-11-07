@@ -6,7 +6,9 @@
 
 using namespace::CatDB::Parser;
 
-u32 ExprUtils::get_column_exprs(Vector<ExprStmt_s> &exprs, u32 table_id, Vector<ColumnStmt_s> &columns)
+u32 ExprUtils::get_column_exprs(Vector<ExprStmt_s> &exprs, 
+                                u32 table_id, 
+                                Vector<ColumnStmt_s> &columns)
 {
     u32 ret = SUCCESS;
     for (u32 i = 0; i < exprs.size(); ++i) {
@@ -23,7 +25,9 @@ u32 ExprUtils::get_column_exprs(Vector<ExprStmt_s> &exprs, u32 table_id, Vector<
     return ret;
 }
 
-u32 ExprUtils::get_column_exprs(ExprStmt_s& expr, u32 table_id, Vector<ColumnStmt_s> &columns)
+u32 ExprUtils::get_column_exprs(ExprStmt_s& expr, 
+                                u32 table_id, 
+                                Vector<ColumnStmt_s> &columns)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr);
@@ -52,7 +56,9 @@ u32 ExprUtils::get_column_exprs(ExprStmt_s& expr, u32 table_id, Vector<ColumnStm
     return ret;
 }
 
-bool ExprUtils::find_equal_expr(const Vector<ExprStmt_s> &exprs, const ExprStmt_s& expr, u32 *index)
+bool ExprUtils::find_equal_expr(const Vector<ExprStmt_s> &exprs, 
+                                const ExprStmt_s& expr, 
+                                u32 *index)
 {
 	bool find = false;
 	for (u32 i = 0; !find && i < exprs.size(); ++i) {
@@ -64,4 +70,57 @@ bool ExprUtils::find_equal_expr(const Vector<ExprStmt_s> &exprs, const ExprStmt_
 		}
 	}
 	return find;
+}
+
+u32 ExprUtils::replace_expr(const Vector<ExprStmt_s> &old_exprs, 
+                            const Vector<ExprStmt_s> &new_exprs, 
+                            ExprStmt_s& expr)
+{
+    u32 ret = SUCCESS;
+    u32 index = 0;
+    if (find_equal_expr(old_exprs, expr, &index)) {
+        MY_ASSERT(index >=0 && index < new_exprs.size());
+        expr = new_exprs[index];
+    } else if (!expr->params.empty()) {
+        CHECK(replace_exprs(old_exprs, new_exprs, expr->params));
+    }
+    return ret;
+}
+
+u32 ExprUtils::replace_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                            const Vector<ExprStmt_s> &new_exprs, 
+                            Vector<ExprStmt_s> &exprs)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < exprs.size(); ++i) {
+        CHECK(replace_expr(old_exprs, new_exprs, exprs[i]));
+    }
+    return ret;
+}
+
+u32 ExprUtils::deep_copy_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                               Vector<ExprStmt_s> &new_exprs,
+                               u32 flag)
+{
+    u32 ret = SUCCESS;
+    ExprStmt_s expr;
+    for (u32 i = 0; i < old_exprs.size(); ++i) {
+        CHECK(deep_copy_expr(old_exprs[i], expr, flag));
+        new_exprs.push_back(expr);
+    }
+    return ret;
+}
+
+u32 ExprUtils::deep_copy_expr(const ExprStmt_s &old_expr, 
+                              ExprStmt_s &new_expr,
+                              u32 flag)
+{
+    u32 ret = SUCCESS;
+    if (old_expr->has_flag(IS_COLUMN) &&
+       !ENABLE_COPY_SHARE(flag)) {
+        new_expr = old_expr;
+    } else {
+        CHECK(old_expr->deep_copy(new_expr, flag));
+    }
+    return ret;
 }

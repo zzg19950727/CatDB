@@ -137,6 +137,20 @@ double StatisManager::get_column_null_count(u32 tid, u32 cid)
     }
 }
 
+u32 StatisManager::delete_table_statis(u32 tid)
+{
+    u32 ret = SUCCESS;
+    String sql = "DELETE FROM SYSTEM.TABLE_STATIS WHERE TID = ";
+    sql += std::to_string(tid) + ";";
+    QueryResult_s result;
+    CHECK(execute_sys_sql(sql, result));
+    sql = "DELETE FROM SYSTEM.COLUMN_STATIS WHERE TID = ";
+    sql += std::to_string(tid) + ";";
+    all_table_statis.erase(tid);
+    CHECK(execute_sys_sql(sql, result));
+    return ret;
+}
+
 u32 StatisManager::execute_sys_sql(const String& sql, QueryResult_s &result, double sample_size)
 {
     u32 ret = SUCCESS;

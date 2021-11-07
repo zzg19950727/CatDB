@@ -1,8 +1,11 @@
 #include "log_table_scan.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "opt_est_sel.h"
 #include "opt_est_cost.h"
 #include "opt_est_info.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 
@@ -50,6 +53,8 @@ void LogTableScan::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     print_basic_info(depth, info);
     info.op = "TABLE SCAN";
     info.name = table_item->alias_name;
-    print_exprs(access_exprs, "access", info);
+    if (!access_exprs.empty()) {
+        print_exprs(access_exprs, "access", info);
+    }
     plan_info.push_back(info);
 }

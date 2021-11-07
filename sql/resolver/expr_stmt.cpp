@@ -1,4 +1,5 @@
 #include "expr_stmt.h"
+#include "expr_utils.h"
 #include "select_stmt.h"
 
 using namespace::CatDB::Parser;
@@ -61,7 +62,7 @@ String ExprStmt::flags_to_string() const
 
 bool ExprStmt::is_and_expr()
 {
-	if (OperationExpr == expr_type()) {
+	if (OP_EXPR == expr_type()) {
 		OpExprStmt *op_expr = dynamic_cast<OpExprStmt*>(this);
 		if (OP_AND == op_expr->op_type) {
 			return true;
@@ -81,9 +82,9 @@ ConstStmt::~ConstStmt()
 {
 }
 
-ExprStmt::ExprType ConstStmt::expr_type() const
+ExprType ConstStmt::expr_type() const
 {
-	return ExprStmt::Const;
+	return CONST;
 }
 
 ExprStmt_s ConstStmt::make_const_stmt(const Object_s& value)
@@ -103,9 +104,17 @@ String ConstStmt::to_string() const
 	}
 }
 
+u32 ConstStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_const_stmt(value);
+	expr->alias_name = alias_name;
+	return ret;
+}
+
 bool ConstStmt::same_as(const ExprStmt_s& other)
 {
-	if (ExprStmt::Const != other->expr_type()) {
+	if (CONST != other->expr_type()) {
 		return false;
 	}
 	ConstStmt_s const_stmt = other;
@@ -129,9 +138,9 @@ ExecParamStmt::~ExecParamStmt()
 {
 }
 
-ExprStmt::ExprType ExecParamStmt::expr_type() const
+ExprType ExecParamStmt::expr_type() const
 {
-	return ExprStmt::ExecParam;
+	return EXEC_PARAM;
 }
 
 ExprStmt_s ExecParamStmt::make_exec_param_stmt(const ExprStmt_s& ref_expr)
@@ -146,9 +155,19 @@ String ExecParamStmt::to_string() const
 	return "?";
 }
 
+u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	ExprStmt_s copy_ref_expr;
+	CHECK(ExprUtils::deep_copy_expr(ref_expr, copy_ref_expr, flag));
+	expr = make_exec_param_stmt(copy_ref_expr);
+	expr->alias_name = alias_name;
+	return ret;
+}
+
 bool ExecParamStmt::same_as(const ExprStmt_s& other)
 {
-	if (ExprStmt::ExecParam != other->expr_type()) {
+	if (EXEC_PARAM != other->expr_type()) {
 		return false;
 	}
 	ExecParamStmt_s param_stmt = other;
@@ -174,9 +193,9 @@ ColumnStmt::~ColumnStmt()
 {
 }
 
-ExprStmt::ExprType ColumnStmt::expr_type() const
+ExprType ColumnStmt::expr_type() const
 {
-	return ExprStmt::Column;
+	return COLUMN;
 }
 
 ExprStmt_s ColumnStmt::make_column_stmt(const String & table, const String & column)
@@ -208,6 +227,18 @@ String ColumnStmt::to_string() const
 		return column;
 }
 
+u32 ColumnStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_column_stmt(table, column);
+	ColumnStmt_s col_expr = expr;
+	col_expr->is_row_id = is_row_id;
+	col_expr->table_id = table_id;
+	col_expr->column_id = column_id;
+	expr->alias_name = alias_name;
+	return ret;
+}
+
 u32 ColumnStmt::formalize()
 {
 	u32 ret = SUCCESS;
@@ -220,7 +251,7 @@ u32 ColumnStmt::formalize()
 
 bool ColumnStmt::same_as(const ExprStmt_s& other)
 {
-	if (ExprStmt::Column != other->expr_type()) {
+	if (COLUMN != other->expr_type()) {
 		return false;
 	}
 	ColumnStmt_s column_stmt = other;
@@ -240,9 +271,9 @@ SetExprStmt::~SetExprStmt()
 
 }
 
-ExprStmt::ExprType SetExprStmt::expr_type()const
+ExprType SetExprStmt::expr_type()const
 {
-	return ExprStmt::SetExpr;
+	return SET_EXPR;
 }
 
 ExprStmt_s SetExprStmt::make_set_expr(SetOpType type, u32 idx)
@@ -269,14 +300,30 @@ String SetExprStmt::to_string()const
 	return ret;
 }
 
+u32 SetExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_set_expr(type, index);
+	expr->alias_name = alias_name;
+	return ret;
+}
+
 bool SetExprStmt::same_as(const ExprStmt_s& other)
 {
-	if (!other || ExprStmt::SetExpr != other->expr_type()) {
+	if (!other || SET_EXPR != other->expr_type()) {
 		return false;
 	}
 	SetExprStmt_s set_expr = other;
 	return set_expr->type == type && set_expr->index == index;
 }
+
+DEFINE_KV_STRING(SubQueryStmt,
+				KV(flags, flags_to_string()),
+				K(table_ids),
+				K(output_one_row),
+				KV(corrected_exprss, params),
+				K(query_stmt)
+			);
 
 SubQueryStmt::SubQueryStmt()
 	: subquery_id(0),
@@ -288,9 +335,9 @@ SubQueryStmt::~SubQueryStmt()
 {
 }
 
-ExprStmt::ExprType SubQueryStmt::expr_type() const
+ExprType SubQueryStmt::expr_type() const
 {
-	return ExprStmt::SubQuery;
+	return SUBQUERY;
 }
 
 ExprStmt_s SubQueryStmt::make_query_stmt()
@@ -301,6 +348,24 @@ ExprStmt_s SubQueryStmt::make_query_stmt()
 String SubQueryStmt::to_string() const
 {
 	return String("subquery(") + std::to_string(subquery_id) + ")";
+}
+
+u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_query_stmt();
+	SubQueryStmt_s query_expr = expr;
+	query_expr->query_stmt = query_stmt;
+	query_stmt->increase_ref_count();
+	query_expr->subquery_id = subquery_id;
+	query_expr->output_one_row = output_one_row;
+	ExprStmt_s copy_expr;
+	for (u32 i = 0; i < exec_params.size(); ++i) {
+		CHECK(ExprUtils::deep_copy_expr(exec_params[i], copy_expr, flag));
+		query_expr->add_corrected_exprs(copy_expr);
+	}
+	expr->alias_name = alias_name;
+	return ret;
 }
 
 u32 SubQueryStmt::formalize()
@@ -319,7 +384,7 @@ u32 SubQueryStmt::formalize()
 	return ret;
 }
 
-void SubQueryStmt::add_corrected_exprs(ExecParamStmt_s& expr)
+void SubQueryStmt::add_corrected_exprs(ExecParamStmt_s expr)
 {
 	exec_params.push_back(expr);
 	params.push_back(expr->get_ref_expr());
@@ -333,9 +398,9 @@ ListStmt::~ListStmt()
 {
 }
 
-ExprStmt::ExprType ListStmt::expr_type() const
+ExprType ListStmt::expr_type() const
 {
-	return ExprStmt::List;
+	return EXPR_LIST;
 }
 
 ExprStmt_s ListStmt::make_list_stmt()
@@ -353,6 +418,15 @@ String ListStmt::to_string() const
 		}
 	}
 	ret += ")";
+	return ret;
+}
+
+u32 ListStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_list_stmt();
+	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
+	expr->alias_name = alias_name;
 	return ret;
 }
 
@@ -381,7 +455,7 @@ u32 ListStmt::formalize()
 
 bool ListStmt::same_as(const ExprStmt_s &other)
 {
-	if (ExprStmt::List != other->expr_type()) {
+	if (EXPR_LIST != other->expr_type()) {
 		return false;
 	}
 	ListStmt_s list = other;
@@ -405,9 +479,9 @@ AggrStmt::~AggrStmt()
 {
 }
 
-ExprStmt::ExprType AggrStmt::expr_type() const
+ExprType AggrStmt::expr_type() const
 {
-	return ExprStmt::Aggregate;
+	return AGG_EXPR;
 }
 
 ExprStmt_s AggrStmt::make_aggr_stmt()
@@ -424,6 +498,18 @@ String AggrStmt::to_string() const
 	}
 	String expr_str = get_aggr_expr()->to_string();
 	return func + "(" + distinct_str + expr_str + ")";
+}
+
+u32 AggrStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_aggr_stmt();
+	AggrStmt_s aggr_expr = expr;
+	aggr_expr->aggr_func = aggr_func;
+	aggr_expr->distinct = distinct;
+	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
+	expr->alias_name = alias_name;
+	return ret;
 }
 
 String AggrStmt::aggr_func_name()const
@@ -483,7 +569,7 @@ ExprStmt_s AggrStmt::get_aggr_expr() const
 
 bool AggrStmt::same_as(const ExprStmt_s &other)
 {
-	if (ExprStmt::Aggregate != other->expr_type()) {
+	if (AGG_EXPR != other->expr_type()) {
 		return false;
 	}
 	AggrStmt_s aggr = other;
@@ -507,9 +593,9 @@ OpExprStmt::~OpExprStmt()
 
 }
 
-ExprStmt::ExprType OpExprStmt::expr_type()const
+ExprType OpExprStmt::expr_type()const
 {
-	return ExprStmt::OperationExpr;
+	return OP_EXPR;
 }
 
 ExprStmt_s OpExprStmt::make_op_expr_stmt(OperationType op_type)
@@ -696,7 +782,7 @@ String OpExprStmt::to_string()const
 				ret += "CAST(";
 				ret += params[0]->to_string();
 				ret += " AS ";
-				MY_ASSERT(ExprStmt::Const == params[1]->expr_type());
+				MY_ASSERT(CONST == params[1]->expr_type());
 				ConstStmt_s const_value = params[1];
 				ret += const_value->value->type();
 				ret += ")";
@@ -734,6 +820,15 @@ String OpExprStmt::to_string()const
 	return ret;
 }
 
+u32 OpExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_op_expr_stmt(op_type);
+	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
+	expr->alias_name = alias_name;
+	return ret;
+}
+
 u32 OpExprStmt::formalize()
 {
 	u32 ret = SUCCESS;
@@ -757,7 +852,7 @@ u32 OpExprStmt::formalize()
 
 bool OpExprStmt::same_as(const ExprStmt_s &other)
 {
-	if (ExprStmt::OperationExpr != other->expr_type()) {
+	if (OP_EXPR != other->expr_type()) {
 		return false;
 	}
 	OpExprStmt_s expr = other;
@@ -808,154 +903,4 @@ String OpExprStmt::op_string(OperationType op_type)
 		case OP_CASE_WHEN: return N(OP_CASE_WHEN);
 		defualt: return N(UNKNOWN);
 	}
-}
-
-TableStmt::TableStmt()
-{
-}
-
-TableStmt::~TableStmt()
-{
-}
-
-void TableStmt::set_alias_name(const String& alias_name)
-{
-	if (!alias_name.empty()) {
-		this->alias_name = alias_name;
-	}
-}
-
-String TableStmt::get_table_type_name(TableType table_type)
-{
-	static const char* table_type_name[3] = {"BasicTable", "JoinedTable", "ViewTable"};
-	return table_type_name[table_type];
-}
-
-u32 TableStmt::get_table_exprs(Vector<ExprStmt_s> &exprs)
-{
-	append(exprs, table_filter);
-	return SUCCESS;
-}
-
-BasicTableStmt::BasicTableStmt(const String &database, const String& table_name)
-	:database(database),
-	table_name(table_name),
-	is_dual(false)
-{
-	table_type = TableStmt::BasicTable;
-}
-
-TableStmt_s BasicTableStmt::make_basic_table(const String &database, const String& table_name)
-{
-	return TableStmt_s(new BasicTableStmt(database, table_name));
-}
-
-TableStmt_s BasicTableStmt::make_dual_table()
-{
-	BasicTableStmt* table = new BasicTableStmt("SYS", "DUAL");
-	table->is_dual = true;
-	return TableStmt_s(table);
-}
-
-u32 BasicTableStmt::formalize()
-{
-	u32 ret = SUCCESS;
-	table_ids.clear();
-	table_ids.add_member(table_id);
-	for(u32 i = 0; i < table_filter.size(); ++i) {
-		CHECK(table_filter[i]->formalize());
-	}
-	return ret;
-}
-
-bool BasicTableStmt::same_as(const TableStmt_s& other)
-{
-	if (is_dual_table()) {
-		return other->is_dual_table();
-	} else if (other->is_basic_table()) {
-		BasicTableStmt_s basic_other = other;
-		return ref_table_id == basic_other->ref_table_id;
-	} else {
-		return false;
-	}
-}
-
-TableStmt_s JoinedTableStmt::make_joined_table(TableStmt_s &left_table,
-											TableStmt_s &right_table,
-											JoinType join_type,
-											ExprStmt_s &join_condition)
-{
-	JoinedTableStmt *joined_table = new JoinedTableStmt();
-	joined_table->left_table = left_table;
-	joined_table->right_table = right_table;
-	joined_table->join_type = join_type;
-	joined_table->join_condition.push_back(join_condition);
-	return TableStmt_s(joined_table);
-}
-
-u32 JoinedTableStmt::formalize()
-{
-	u32 ret = SUCCESS;
-	MY_ASSERT(left_table, right_table);
-	CHECK(left_table->formalize());
-	CHECK(right_table->formalize());
-	table_ids.clear();
-	table_ids.add_members(left_table->table_ids);
-	table_ids.add_members(right_table->table_ids);
-	for(u32 i = 0; i < table_filter.size(); ++i) {
-		CHECK(table_filter[i]->formalize());
-	}
-	for(u32 i = 0; i < join_condition.size(); ++i) {
-		CHECK(join_condition[i]->formalize());
-	}
-	return ret;
-}
-
-u32 JoinedTableStmt::get_table_items(Vector<TableStmt_s> &table_items)
-{
-	u32 ret = SUCCESS;
-	MY_ASSERT(left_table, right_table);
-	if (left_table->is_joined_table()) {
-		JoinedTableStmt_s left_joined_table = left_table;
-		CHECK(left_joined_table->get_table_items(table_items));
-	} else {
-		table_items.push_back(left_table);
-	}
-	if (right_table->is_joined_table()) {
-		JoinedTableStmt_s right_joined_table = right_table;
-		CHECK(right_joined_table->get_table_items(table_items));
-	} else {
-		table_items.push_back(right_table);
-	}
-	return ret;
-}
-
-u32 JoinedTableStmt::get_table_exprs(Vector<ExprStmt_s> &exprs)
-{
-	u32 ret = SUCCESS;
-	CHECK(TableStmt::get_table_exprs(exprs));
-	append(exprs, join_condition);
-	MY_ASSERT(left_table, right_table);
-	CHECK(left_table->get_table_exprs(exprs));
-	CHECK(right_table->get_table_exprs(exprs));
-	return ret;
-}
-
-TableStmt_s ViewTableStmt::make_view_table(Stmt_s &ref_query)
-{
-	return TableStmt_s(new ViewTableStmt(ref_query));
-}
-
-u32 ViewTableStmt::formalize()
-{
-	u32 ret = SUCCESS;
-	table_ids.clear();
-	table_ids.add_member(table_id);
-	for(u32 i = 0; i < table_filter.size(); ++i) {
-		CHECK(table_filter[i]->formalize());
-	}
-	if (ref_query) {
-		CHECK(ref_query->formalize());
-	}
-	return ret;
 }

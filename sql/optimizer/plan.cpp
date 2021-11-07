@@ -4,6 +4,7 @@
 #include "update_plan.h"
 #include "select_plan.h"
 #include "cmd_plan.h"
+#include "expr_stmt.h"
 #include "plan.h"
 #include "stmt.h"
 #include "error.h"

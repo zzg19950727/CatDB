@@ -1,7 +1,10 @@
 #include "log_join.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "opt_est_sel.h"
 #include "opt_est_cost.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
@@ -73,6 +76,9 @@ void LogJoin::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     } else {
         info.op = "NESTED LOOP ";
     }
+	if (equal_join_condition.empty() && other_join_condition.empty()) {
+		;//info.op += "CROSS ";
+	}
     info.op += JoinTypeString[join_type] + String(" JOIN");
     if (!equal_join_condition.empty()) {
         print_exprs(equal_join_condition, "equal_join_conditions", info);

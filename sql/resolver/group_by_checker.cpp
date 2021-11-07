@@ -32,12 +32,12 @@ u32 GroupByChecker::check_expr(ExprStmt_s &expr_stmt, bool &in_group_by)
     MY_ASSERT(expr_stmt);
 	switch (expr_stmt->expr_type())
 	{
-	case ExprStmt::Const:
+	case CONST:
 	{
         in_group_by = true;
 		break;
 	}
-	case ExprStmt::Column:
+	case COLUMN:
 	{
 		ColumnStmt_s column_stmt = expr_stmt;
 		if (!stmt->table_ids.has_member(column_stmt->table_id)) {
@@ -47,7 +47,7 @@ u32 GroupByChecker::check_expr(ExprStmt_s &expr_stmt, bool &in_group_by)
 		}
 		break;
 	}
-	case ExprStmt::SubQuery:
+	case SUBQUERY:
 	{
         SubQueryStmt_s query = expr_stmt;
         in_group_by = true;
@@ -56,7 +56,7 @@ u32 GroupByChecker::check_expr(ExprStmt_s &expr_stmt, bool &in_group_by)
         }
 		break;
 	}
-	case ExprStmt::List:
+	case EXPR_LIST:
 	{
 		ListStmt_s list = expr_stmt;
         in_group_by = true;
@@ -65,12 +65,12 @@ u32 GroupByChecker::check_expr(ExprStmt_s &expr_stmt, bool &in_group_by)
 		}
 		break;
 	}
-	case ExprStmt::Aggregate:
+	case AGG_EXPR:
 	{
 		in_group_by = true;
 		break;
 	}
-	case ExprStmt::OperationExpr:
+	case OP_EXPR:
 	{
         in_group_by = check_expr_in_group_by(expr_stmt);
         if (!in_group_by) {

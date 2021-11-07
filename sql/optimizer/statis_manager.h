@@ -34,6 +34,7 @@ namespace CatDB {
             static ColumnStatis_s make_column_statis()
             { return ColumnStatis_s(new ColumnStatis()); }
         };
+
         struct TableStatis {
         private:
             DISALLOW_COPY_AND_ASSIGN(TableStatis);
@@ -51,6 +52,7 @@ namespace CatDB {
             static TableStatis_s make_table_statis()
             { return TableStatis_s(new TableStatis()); }
         };
+
         class StatisManager {
         private:
             DISALLOW_COPY_AND_ASSIGN(StatisManager);
@@ -68,6 +70,7 @@ namespace CatDB {
 			double get_column_max_value(u32 tid, u32 cid);
 			double get_column_min_value(u32 tid, u32 cid);
 			double get_column_null_count(u32 tid, u32 cid);
+            u32 delete_table_statis(u32 tid);
         protected:
             u32 execute_sys_sql(const String& sql, QueryResult_s &result, double sample_size=1);
             u32 init_table_statis(Vector<TableStatis_s> &table_statis);

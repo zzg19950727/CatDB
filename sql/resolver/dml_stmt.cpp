@@ -1,197 +1,15 @@
 #include "dml_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "expr_utils.h"
 #include "select_stmt.h"
 
 using namespace CatDB::Parser;
 
-HintStmt_s HintStmt::make_hint_stmt(HintType type)
-{
-    HintStmt_s hint;
-    switch (type)
-    {
-        case QB_NAME:
-        case NO_REWRITE:
-            hint = HintStmt_s(new HintStmt());
-            break;
-        case JOIN:
-            hint = HintStmt_s(new JoinHintStmt());
-            break;
-        case LEADING:
-            hint = HintStmt_s(new LeadingHintStmt());
-            break;
-    }
-    if (hint) {
-        hint->type = type;
-    }
-    return hint;
-}
-
-String HintStmt::get_type_name() const
-{
-    switch (type)
-    {
-        case QB_NAME:
-            return "QB_NAME";
-        case NO_REWRITE:
-            return "NO_REWRITE";
-        case JOIN:
-            return "JOIN";
-        case LEADING:
-            return "LEADING";
-    }
-    return "UNKNOWN";
-}
-
-String HintStmt::print_outline()
-{
-    String ret = "";
-    if (QB_NAME == type) {
-        ret = "QB_NAME(" + qb_name + ")";
-    } else if (NO_REWRITE == type) {
-        ret = "NO_REWRITE(@" + qb_name + ")";
-    }
-    return ret;
-}
-
-String JoinHintStmt::print_outline()
-{
-    String ret;
-    if (join_algo == HASH_JOIN) {
-        ret = "USE_HASH";
-    } else {
-        ret = "USE_NL";
-    }
-    ret += "(@" + qb_name + " ";
-    for (u32 i = 0; i < table_names.size(); ++i) {
-        if (i > 0) {
-            ret += ", ";
-        }
-        ret += table_names[i];
-    }
-    ret += ")";
-    return ret;
-}
-
-String LeadingHintStmt::print_outline()
-{
-    String ret = "LEADING";
-    ret += "(@" + qb_name;
-    if (tables) {
-        String list = tables->to_kv_string();
-        list[0] = ' ';
-        ret += list;
-    } else {
-        ret += ")";
-    }
-    return ret;
-}
-
-LeadingTable_s LeadingTable::make_leading_table()
-{
-    return LeadingTable_s(new LeadingTable());
-}
-
-String LeadingTable::to_kv_string()const
-{
-    String ret;
-    if (is_base_table) {
-        ret = table_name;
-    } else {
-        ret = "(";
-        for (u32 i = 0; i < table_list.size(); ++i) {
-            if (i > 0) {
-                ret += ", ";
-            }
-            ret += table_list[i]->to_kv_string();
-        }
-        ret += ")";
-    }
-    return ret;
-}
-
-bool Hint::has_qb_name() const
-{
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::QB_NAME == all_hints[i]->get_hint_type()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-String Hint::generate_qb_name(u32 stmt_id)
-{
-    String qb_name = "SEL" + std::to_string(stmt_id);
-    HintStmt_s hint = HintStmt::make_hint_stmt(HintStmt::QB_NAME);
-    hint->set_qb_name(qb_name);
-    all_hints.push_back(hint);
-    return qb_name;
-}
-
-String Hint::get_qb_name() const
-{
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::QB_NAME == all_hints[i]->get_hint_type()) {
-            return all_hints[i]->get_qb_name();
-        }
-    }
-    return "";
-}
-
-String Hint::print_outline()
-{
-    String ret;
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::QB_NAME != all_hints[i]->get_hint_type()) {
-            ret += "\t" + all_hints[i]->print_outline() + "\n";
-        }
-    }
-    return ret;
-}
-
-bool Hint::enable_no_rewrite() const
-{
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::NO_REWRITE == all_hints[i]->get_hint_type()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void Hint::get_join_hints(Vector<JoinHintStmt_s> &join_hints)
-{
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::JOIN == all_hints[i]->get_hint_type()) {
-            join_hints.push_back(all_hints[i]);
-        }
-    }
-}
-
-bool Hint::has_leading_hint()
-{
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::LEADING == all_hints[i]->get_hint_type()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-LeadingHintStmt_s Hint::get_leading_hint()
-{
-    LeadingHintStmt_s hint;
-    for (u32 i = 0; i < all_hints.size(); ++i) {
-        if (HintStmt::LEADING == all_hints[i]->get_hint_type()) {
-            hint = all_hints[i];
-            return hint;
-        }
-    }
-}
 
 DMLStmt::DMLStmt()
-    :is_explain(false)
+    :ref_count(1), 
+    is_explain(false)
 {
 
 }
@@ -233,6 +51,25 @@ u32 DMLStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
     return ret;
 }
 
+u32 DMLStmt::replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                const Vector<ExprStmt_s> &new_exprs)
+{
+    u32 ret = SUCCESS;
+    CHECK(inner_replace_stmt_exprs(old_exprs, new_exprs));
+    return ret;
+}
+
+u32 DMLStmt::inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
+                                   	  const Vector<ExprStmt_s> &new_exprs)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < from_stmts.size(); ++i) {
+        CHECK(from_stmts[i]->replace_exprs(old_exprs, new_exprs));
+    }
+    CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, where_stmt));
+    return ret;
+}
+
 u32 DMLStmt::collect_special_exprs()
 {
     u32 ret = SUCCESS;
@@ -251,11 +88,11 @@ u32 DMLStmt::collect_special_exprs(ExprStmt_s& expr)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(expr);
-    if (ExprStmt::Column == expr->expr_type()) {
+    if (COLUMN == expr->expr_type()) {
         column_exprs.push_back(expr);
-    } else if (ExprStmt::Aggregate == expr->expr_type()) {
+    } else if (AGG_EXPR == expr->expr_type()) {
         aggr_exprs.push_back(expr);
-    } else if (ExprStmt::SubQuery == expr->expr_type()) {
+    } else if (SUBQUERY == expr->expr_type()) {
         subquery_exprs.push_back(expr);
     }
     for (u32 i = 0; i < expr->get_params().size(); ++i) {
@@ -351,6 +188,14 @@ u32 DMLStmt::update_table_hint()
     return ret;
 }
 
+u32 DMLStmt::reset_stmt_id(u32 stmt_id)
+{
+    u32 ret = SUCCESS;
+    this->stmt_id = stmt_id;
+    CHECK(stmt_hint.reset_qb_name(stmt_id));
+    return ret;
+}
+
 bool DMLStmt::update_join_hint(JoinHintStmt_s join_hint)
 {
     bool ret = true;
@@ -430,4 +275,20 @@ bool DMLStmt::find_table_id(const String &table_name, u32 &table_id)
         }
     }
     return find;
+}
+
+u32 DMLStmt::inner_deep_copy(DMLStmt_s stmt, u32 flag)const
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(stmt);
+    TableStmt_s copy_table;
+    for (u32 i = 0; i < from_stmts.size(); ++i) {
+        CHECK(from_stmts[i]->deep_copy(copy_table, flag));
+        stmt->from_stmts.push_back(copy_table);
+    }
+    CHECK(ExprUtils::deep_copy_exprs(where_stmt, stmt->where_stmt, flag));
+    CHECK(stmt_hint.deep_copy(stmt->stmt_hint, flag));
+    stmt->stmt_id = stmt_id;
+    stmt->is_explain = is_explain;
+    return ret;
 }

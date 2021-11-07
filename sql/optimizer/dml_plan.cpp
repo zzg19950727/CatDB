@@ -3,6 +3,7 @@
 #include "log_subquery_evaluate.h"
 #include "log_view.h"
 #include "dml_plan.h"
+#include "select_stmt.h"
 #include "dml_stmt.h"
 #include "expr_utils.h"
 #include "join_property.def"
@@ -552,6 +553,7 @@ u32 DMLPlan::generate_join_order()
     MY_ASSERT(join_orders[base_tables.size() - 1].size() == 1);
     root_operator = join_orders[base_tables.size() - 1][0];
     MY_ASSERT(root_operator);
+    CHECK(generate_plan_hint());
     return ret;
 }
 
@@ -959,6 +961,81 @@ u32 DMLPlan::get_leading_info(const LeadingTable_s &leading_table, BitSet &table
             right_ids.clear();
         }
         table_ids.add_members(left_ids);
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_plan_hint()
+{
+    u32 ret = SUCCESS;
+    DMLStmt_s stmt = lex_stmt;
+    stmt->stmt_hint.remove_hint(HintStmt::JOIN);
+    stmt->stmt_hint.remove_hint(HintStmt::LEADING);
+    Vector<String> table_names;
+    LeadingTable_s table;
+    CHECK(generate_plan_hint(root_operator, table_names, table));
+    MY_ASSERT(table);
+    if (table->is_base_table) {
+        LeadingTable_s table_list = LeadingTable::make_leading_table();
+        table_list->is_base_table = false;
+        table_list->table_list.push_back(table);
+        table = table_list;
+    }
+    LeadingHintStmt_s leading_hint = HintStmt::make_hint_stmt(HintStmt::LEADING);
+    leading_hint->tables = table;
+    stmt->stmt_hint.add_hint(leading_hint);
+    return ret;
+}
+
+u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op, 
+                                Vector<String> &table_names, 
+                                LeadingTable_s &table)
+{
+    u32 ret = SUCCESS;
+    if (LogicalOperator::LOG_TABLE_SCAN == op->type() ||
+        LogicalOperator::LOG_DUAL_TABLE == op->type() ||
+        LogicalOperator::LOG_VIEW == op->type()) {
+        TableStmt_s table_item;
+        if (LogicalOperator::LOG_TABLE_SCAN == op->type()) {
+            LogTableScan_s scan = op;
+            table_item = scan->table_item;
+        } else if (LogicalOperator::LOG_DUAL_TABLE == op->type()) {
+            LogDualTable_s dual = op;
+            table_item = dual->table_item;
+        } else if (LogicalOperator::LOG_VIEW == op->type()) {
+            LogView_s view = op;
+            table_item = view->table_item;
+        }
+        MY_ASSERT(table_item);
+        table_names.push_back(table_item->alias_name);
+        table = LeadingTable::make_leading_table();
+        table->is_base_table = true;
+        table->table_name = table_item->alias_name;
+    } else if (LogicalOperator::LOG_JOIN == op->type()) {
+        LogJoin_s join_op = op;
+        Vector<String> left_table_names;
+        Vector<String> right_table_names;
+        LeadingTable_s left_table;
+        LeadingTable_s right_table;
+        CHECK(generate_plan_hint(join_op->left_child(), left_table_names, left_table));
+        CHECK(generate_plan_hint(join_op->right_child(), right_table_names, right_table));
+        append(table_names, left_table_names);
+        append(table_names, right_table_names);
+        MY_ASSERT(left_table);
+        MY_ASSERT(right_table);
+        table = LeadingTable::make_leading_table();
+        table->is_base_table = false;
+        table->table_list.push_back(left_table);
+        table->table_list.push_back(right_table);
+
+        //generate join hint
+        JoinHintStmt_s join_hint = HintStmt::make_hint_stmt(HintStmt::JOIN);
+        append(join_hint->table_names, right_table_names);
+        join_hint->join_algo = join_op->join_algo;
+        DMLStmt_s stmt = lex_stmt;
+        stmt->stmt_hint.add_hint(join_hint);
+    } else {
+        ret = ERR_UNEXPECTED;
     }
     return ret;
 }

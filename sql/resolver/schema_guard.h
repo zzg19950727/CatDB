@@ -38,6 +38,7 @@ namespace CatDB {
         private:
 			DISALLOW_COPY_AND_ASSIGN(ColumnInfo);
         };
+
         class TableInfo {
             TableInfo()
             :db_id(INVALID_ID),
@@ -62,6 +63,7 @@ namespace CatDB {
         private:
 			DISALLOW_COPY_AND_ASSIGN(TableInfo);
         };
+
         class DatabaseInfo {
             DatabaseInfo()
             :db_id(INVALID_ID)
@@ -83,7 +85,6 @@ namespace CatDB {
         private:
             DISALLOW_COPY_AND_ASSIGN(DatabaseInfo);
         };
-
 
 		class SchemaGuard
 		{

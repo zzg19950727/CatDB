@@ -4,6 +4,7 @@
 #include "schema_guard.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "object.h"
 #include "error.h"
 using namespace CatDB::Parser;
@@ -76,7 +77,7 @@ u32 SelectResolver::resolve_select_list()
 u32 SelectResolver::resolve_all_column(ExprStmt_s &stmt, Vector<ExprStmt_s> &columns)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(stmt, ExprStmt::Column == stmt->expr_type())
+    MY_ASSERT(stmt, COLUMN == stmt->expr_type())
 	ColumnStmt_s column = stmt;
 	if (column->table == "*") {
 		for (u32 i = 0; i < resolve_ctx.cur_tables.size(); ++i) {
@@ -159,7 +160,7 @@ u32 SelectResolver::resolve_order_exprs(Vector<ExprStmt_s> &order_exprs)
     u32 ret = SUCCESS;
     for (u32 i = 0; i < select_stmt->order_exprs.size(); ++i) {
         CHECK(resolve_expr(select_stmt->order_exprs[i]->order_expr, resolve_ctx));
-        if (ExprStmt::Const == select_stmt->order_exprs[i]->order_expr->expr_type()) {
+        if (CONST == select_stmt->order_exprs[i]->order_expr->expr_type()) {
             ConstStmt_s const_expr = select_stmt->order_exprs[i]->order_expr;
             if (T_NUMBER == const_expr->value->get_type()) {
                 Number_s num = const_expr->value;

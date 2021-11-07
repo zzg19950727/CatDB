@@ -77,15 +77,6 @@ namespace CatDB {
 		protected:
 			Expression();
 		public:
-			enum ExprType {
-				Const = 0,
-				ExecParam,
-				Column,
-				SetExpr,
-				Subplan,
-				OpExpr,
-				Aggregate
-			};
 			virtual ~Expression();
 			virtual Object_s get_result(const Row_s& row) = 0;
 			virtual ExprType get_type()const = 0;

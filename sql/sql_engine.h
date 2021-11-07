@@ -84,7 +84,7 @@ namespace CatDB {
             u32 execute_plan(PhyOperator_s root);
             u32 explain_plan(LogicalOperator_s root);
             u32 print_outline(String &outline);
-            u32 print_stmt_outline(DMLStmt_s stmt, String &outline);
+            u32 print_stmt_outline(DMLStmt_s stmt, bool print_global_hint, String &outline);
 
 		private:
             QueryCtx &query_ctx;

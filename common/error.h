@@ -63,6 +63,7 @@
 
 #include "type.h"
 #include "log.h"
+#include <execinfo.h>
 const char* err_string(u32 err_code);
 
 #define SUCC(code)   ((code) == SUCCESS)

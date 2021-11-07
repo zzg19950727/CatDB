@@ -1,6 +1,7 @@
 #include "update_resolver.h"
 #include "update_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "error.h"
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
@@ -51,9 +52,7 @@ u32 UpdateResolver::check_assign_exprs()
         ColumnStmt_s column_expr;
         CHECK(check_assign_expr(update_stmt->update_assign_stmt[i],
                                 column_expr,
-                                value_expr));
-        update_stmt->column_exprs.push_back(column_expr);
-        update_stmt->value_exprs.push_back(value_expr);                        
+                                value_expr));                    
     }
     return ret;
 }
@@ -63,10 +62,10 @@ u32 UpdateResolver::check_assign_expr(ExprStmt_s &assign_expr,
                                       ExprStmt_s &value_expr)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(assign_expr, ExprStmt::OperationExpr == assign_expr->expr_type());
+    MY_ASSERT(assign_expr, OP_EXPR == assign_expr->expr_type());
     OpExprStmt_s expr = assign_expr;
     MY_ASSERT(OP_EQ == expr->op_type, 2 == expr->params.size());
-    MY_ASSERT(ExprStmt::Column == expr->params[0]->expr_type());
+    MY_ASSERT(COLUMN == expr->params[0]->expr_type());
     column_expr = expr->params[0];
     MY_ASSERT(column_expr->table_id == update_stmt->table->table_id);
     value_expr = expr->params[1];

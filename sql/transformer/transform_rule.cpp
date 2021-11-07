@@ -1,6 +1,7 @@
 #include "transform_rule.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "dml_stmt.h"
 #include "error.h"
 #include "log.h"

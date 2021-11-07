@@ -9,7 +9,7 @@
 	#include "location.hh" 	//包含位置调试信息头文件
 	#include <string>
 	# define YY_USER_ACTION  loc.columns (yyleng);
-	#define yyterminate() CatDB::SqlParser::make_END(loc);
+	#define yyterminate() return CatDB::SqlParser::make_END(loc);
 	# undef yywrap
   	# define yywrap() 1
 	#define YY_NO_UNISTD_H
@@ -143,9 +143,6 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "parallel"		{ return CatDB::SqlParser::make_PARALLEL(loc); }
 "ordered"		{ return CatDB::SqlParser::make_ORDERED(loc); }
 "no_rewrite"	{ return CatDB::SqlParser::make_NO_REWRITE(loc); }
-"begin_outline"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE(loc); }
-"end_outline"	{ return CatDB::SqlParser::make_END_OUTLINE(loc); }
-
 \"				{parse_str.clear();BEGIN(beg_str);}
 <beg_str>\"         {
 						BEGIN(INITIAL);

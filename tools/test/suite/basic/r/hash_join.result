@@ -58,6 +58,12 @@ access([t1.c1], [t1.ROWID])
 2 - output([t2.c1], [t2.ROWID])
 access([t2.c1], [t2.ROWID])
 
+outline:
+/*+
+USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
+*/
+
 SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
 
 +----------+----------+-------+-------+
@@ -87,6 +93,12 @@ equal_join_conditions([t1.c1=t2.c1])
 access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 2 - output([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+
+outline:
+/*+
+USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
+*/
 
 SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
 
@@ -120,6 +132,12 @@ access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 2 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 
+outline:
+/*+
+USE_HASH(@SEL1 t1)
+LEADING(@SEL1 t2, t1)
+*/
+
 SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
 
 +----------+----------+-------+-------+
@@ -151,6 +169,12 @@ equal_join_conditions([t1.c1=t2.c1])
 access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 2 - output([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+
+outline:
+/*+
+USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
+*/
 
 SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
 

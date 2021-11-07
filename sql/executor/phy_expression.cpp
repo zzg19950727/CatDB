@@ -367,9 +367,9 @@ Object_s ConstExpression::get_result(const Row_s & row)
 	}
 }
 
-Expression::ExprType ConstExpression::get_type() const
+ExprType ConstExpression::get_type() const
 {
-	return Expression::Const;
+	return CONST;
 }
 
 ExecParamExpression::ExecParamExpression(const Expression_s& ref_expr)
@@ -389,9 +389,9 @@ u32 ExecParamExpression::set_value(const Row_s & row)
 	return set_object(value);
 }
 
-Expression::ExprType ExecParamExpression::get_type() const
+ExprType ExecParamExpression::get_type() const
 {
-	return Expression::ExecParam;
+	return EXEC_PARAM;
 }
 
 ColumnExpression::ColumnExpression(const ColumnDesc& desc)
@@ -428,9 +428,9 @@ Object_s ColumnExpression::get_result(const Row_s & row)
 		return Error::make_object(ret);
 }
 
-Expression::ExprType ColumnExpression::get_type() const
+ExprType ColumnExpression::get_type() const
 {
-	return Expression::Column;
+	return COLUMN;
 }
 
 SetExpression::SetExpression(u32 idx)
@@ -458,9 +458,9 @@ Object_s SetExpression::get_result(const Row_s& row)
 		return Error::make_object(ret);
 }
 
-Expression::ExprType SetExpression::get_type()const
+ExprType SetExpression::get_type()const
 {
-	return Expression::SetExpr;
+	return SET_EXPR;
 }
 
 OpExpression::OpExpression(const Operation & op)
@@ -519,9 +519,9 @@ Object_s OpExpression::get_result(const Row_s & row)
 	}
 }
 
-Expression::ExprType OpExpression::get_type() const
+ExprType OpExpression::get_type() const
 {
-	return Expression::OpExpr;
+	return OP_EXPR;
 }
 
 AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op, bool is_distinct)
@@ -568,9 +568,9 @@ Object_s AggregateExpression::get_result(const Row_s &)
 	}
 }
 
-Expression::ExprType AggregateExpression::get_type() const
+ExprType AggregateExpression::get_type() const
 {
-	return Expression::Aggregate;
+	return AGG_EXPR;
 }
 
 u32 AggregateExpression::add_row(const Row_s & row)
@@ -727,9 +727,9 @@ Object_s SubplanExpression::get_result(const Row_s & row)
 	}
 }
 
-Expression::ExprType SubplanExpression::get_type() const
+ExprType SubplanExpression::get_type() const
 {
-	return Expression::Subplan;
+	return SUBQUERY;
 }
 
 u32 SubplanExpression::evaluate_subplan(QueryResult_s &query_result)

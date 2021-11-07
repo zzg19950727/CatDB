@@ -1,5 +1,6 @@
 #include "cmd_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "stmt.h"
 #include "log.h"
 

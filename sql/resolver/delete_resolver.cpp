@@ -1,6 +1,7 @@
 #include "delete_resolver.h"
 #include "delete_stmt.h"
 #include "expr_stmt.h"
+#include "table_stmt.h"
 #include "error.h"
 using namespace CatDB::Parser;
 using namespace CatDB::Common;

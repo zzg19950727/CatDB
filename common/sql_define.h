@@ -1,5 +1,40 @@
 #ifndef SQL_DEFINE_H
 #define SQL_DEFINE_H
+#define COPY_DEFAULT			0x1
+#define COPY_SHARE				0x2
+#define COPY_ON_WRITE			0x3
+
+#define ENABLE_COPY_SHARE(flag)		((flag) & COPY_SHARE)
+#define ENABLE_COPY_ON_WRITE(flag)	((flag) & COPY_ON_WRITE)
+
+enum StmtFlag {
+	INVALID_FLAG = 0,
+	IS_COLUMN,
+	HAS_COLUMN,
+	IS_CONST,
+	HAS_CONST,
+	IS_SET_EXPR,
+	HAS_SET_EXPR,
+	IS_AGG,
+	HAS_AGG,
+	IS_SUBQUERY,
+	HAS_SUBQUERY,
+	IS_LIST,
+	IS_OP_EXPR,
+	IS_EXEC_PARAM,
+	HAS_EXEC_PARAM
+};
+
+enum ExprType {
+	CONST = 0,
+	EXEC_PARAM,
+	COLUMN,
+	SET_EXPR,
+	AGG_EXPR,
+	SUBQUERY,
+	EXPR_LIST,
+	OP_EXPR
+};
 
 enum OperationType {
 				OP_INVALID = 0,

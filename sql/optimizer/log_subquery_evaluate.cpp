@@ -1,5 +1,7 @@
 #include "log_subquery_evaluate.h"
 #include "expr_stmt.h"
+#include "error.h"
+#include "log.h"
 
 using namespace CatDB::Optimizer;
 
