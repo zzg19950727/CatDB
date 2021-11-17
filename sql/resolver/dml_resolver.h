@@ -1,12 +1,14 @@
 #ifndef DML_RESOLVER_H
 #define DML_RESOLVER_H
-#include "query_ctx.h"
 #include "plan.h"
 #include "stmt.h"
 #include "type.h"
 #include "log.h"
 
 namespace CatDB {
+    namespace Sql {
+        DECLARE(QueryCtx);
+    }
 	namespace Parser {
         DECLARE(Stmt);
         DECLARE(DMLStmt);
@@ -21,7 +23,7 @@ namespace CatDB {
         DECLARE(JoinedTableStmt);
         DECLARE(ViewTableStmt);
         DECLARE(HintStmt);
-        using Sql::QueryCtx;
+        using Sql::QueryCtx_s;
         
         struct ResolveCtx {
             Vector<TableStmt_s> parent_tables;
@@ -32,10 +34,10 @@ namespace CatDB {
         class DMLResolver
         {
         public:
-            DMLResolver(DMLStmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx);
+            DMLResolver(DMLStmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
             ~DMLResolver();
             virtual u32 resolve_stmt() = 0;
-            static u32 resolve_stmt(Stmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx);
+            static u32 resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
         protected:
             u32 resolve_from_stmt();
             u32 resolve_where_stmt();
@@ -60,7 +62,7 @@ namespace CatDB {
         protected:
             DMLStmt_s stmt;
             ResolveCtx &resolve_ctx;
-            QueryCtx &query_ctx;
+            QueryCtx_s query_ctx;
             Vector<AggrStmt_s> aggr_funcs;
             bool can_use_aggr_func;
         };

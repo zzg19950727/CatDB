@@ -8,7 +8,7 @@
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
 
-u32 LogicalOperator::init(QueryCtx *query_ctx, EstInfo_s& est_info)
+u32 LogicalOperator::init(QueryCtx_s &query_ctx, EstInfo_s& est_info)
 {
     this->query_ctx = query_ctx;
     this->est_info = est_info;

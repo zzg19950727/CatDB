@@ -8,7 +8,7 @@
 
 namespace CatDB {
 	namespace Server {
-		class RequestHandle;
+		DECLARE(RequestHandle);
 		class ServerService
 		{
 		public:
@@ -35,6 +35,8 @@ namespace CatDB {
 			int m_thread_id;
 
 			friend class RequestHandle;
+		public:
+			static HashMap<int, RequestHandle_s> m_processlist;
 		};
 	}
 }

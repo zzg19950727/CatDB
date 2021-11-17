@@ -13,6 +13,7 @@
 #include "code_generator.h"
 #include "expr_generator.h"
 #include "transformer.h"
+#include "query_ctx.h"
 #include "plan_info.h"
 #include "object.h"
 #include "error.h"
@@ -136,7 +137,7 @@ u32 ResultSet::get_affect_rows() const
     return affect_rows;
 }
 
-SqlEngine::SqlEngine(const String& query, QueryCtx& query_ctx)
+SqlEngine::SqlEngine(const String& query, QueryCtx_s &query_ctx)
             :query_ctx(query_ctx),
             query(query)
 {
@@ -148,12 +149,12 @@ SqlEngine::~SqlEngine()
 
 }
 
-SqlEngine_s SqlEngine::make_sql_engine(const String& query, QueryCtx &query_ctx)
+SqlEngine_s SqlEngine::make_sql_engine(const String& query, QueryCtx_s &query_ctx)
 {
     return SqlEngine_s(new SqlEngine(query, query_ctx));
 }
 
-u32 SqlEngine::handle_inner_sql(const String &query, QueryCtx &query_ctx, ResultSet_s &result_set)
+u32 SqlEngine::handle_inner_sql(const String &query, QueryCtx_s &query_ctx, ResultSet_s &result_set)
 {
     u32 ret = SUCCESS;
     SqlEngine engine(query, query_ctx);
@@ -186,15 +187,15 @@ u32 SqlEngine::handle_query()
     u32 ret = SUCCESS;
     SqlDriver parser;
     ResolveCtx resolve_ctx;
-	parser.set_global_database(query_ctx.cur_database);
+	parser.set_global_database(query_ctx->cur_database);
 	parser.parse_sql(query);
 	if (parser.is_sys_error()) {
 		ret = ERR_UNEXPECTED;
-        err_msg = parser.sys_error();
+        query_ctx->set_error_msg(parser.sys_error());
         return ret;
 	} else if (parser.is_syntax_error()) {
         ret = ERR_UNEXPECTED;
-        err_msg = parser.syntax_error();
+        query_ctx->set_error_msg(parser.syntax_error());
         return ret;
 	} else if (!parser.parse_result()) {
 		ret = ERR_UNEXPECTED;
@@ -203,13 +204,14 @@ u32 SqlEngine::handle_query()
         lex_stmt = parser.parse_result();
         if (lex_stmt->stmt_type() !=  Stmt::DoCMD) {
             CHECK(DMLResolver::resolve_stmt(lex_stmt, query_ctx, resolve_ctx));
+            CHECK(lex_stmt->formalize());
             Transformer transformer;
             DMLStmt_s dml_stmt = lex_stmt;
             TransformCtx_s transform_ctx = TransformCtx::make_transform_ctx();
-            transform_ctx->query_ctx = &query_ctx;
+            transform_ctx->query_ctx = query_ctx;
             CHECK(transformer.transform(dml_stmt, transform_ctx));
         }
-		plan = Plan::make_plan(lex_stmt, &query_ctx);
+		plan = Plan::make_plan(lex_stmt, query_ctx);
 		MY_ASSERT(plan);
 		CHECK(plan->build_plan());
         query_result = ResultSet::make_result_set();
@@ -251,17 +253,19 @@ u32 SqlEngine::execute_plan(PhyOperator_s root)
             query_result->set_result_type(i, T_VARCHAR);
         }
     }
-    CHECK(root->open());
-    Row_s row;
-    while ((ret = root->get_next_row(row)) == SUCCESS) {
-        query_result->add_row(row);
+    ret = root->open();
+    if (SUCC(ret)) {
+        Row_s row;
+        while ((ret = root->get_next_row(row)) == SUCCESS) {
+            query_result->add_row(row);
+        }
+        if (ret == NO_MORE_ROWS) {
+            ret = SUCCESS;
+        }
     }
-    if (ret == NO_MORE_ROWS) {
-        ret = SUCCESS;
-    } else {
-        return ret;
-    }
+    u32 execute_status = ret;
     CHECK(root->close());
+    ret = execute_status;
     return ret;
 }
 

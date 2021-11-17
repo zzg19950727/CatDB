@@ -320,6 +320,8 @@ bool SetExprStmt::same_as(const ExprStmt_s& other)
 DEFINE_KV_STRING(SubQueryStmt,
 				KV(flags, flags_to_string()),
 				K(table_ids),
+				K(is_any),
+				K(is_all),
 				K(output_one_row),
 				KV(corrected_exprss, params),
 				K(query_stmt)
@@ -327,6 +329,8 @@ DEFINE_KV_STRING(SubQueryStmt,
 
 SubQueryStmt::SubQueryStmt()
 	: subquery_id(0),
+	is_any(false),
+	is_all(false),
 	output_one_row(true)
 {
 }
@@ -347,7 +351,15 @@ ExprStmt_s SubQueryStmt::make_query_stmt()
 
 String SubQueryStmt::to_string() const
 {
-	return String("subquery(") + std::to_string(subquery_id) + ")";
+	String ret = String("(") + std::to_string(subquery_id) + ")";
+	if (is_any) {
+		ret = "subquery_any"+ret;
+	} else if (is_all) {
+		ret = "subquery_all" + ret;
+	} else {
+		ret = "subquery" + ret;
+	}
+	return ret;
 }
 
 u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
@@ -359,6 +371,8 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	query_stmt->increase_ref_count();
 	query_expr->subquery_id = subquery_id;
 	query_expr->output_one_row = output_one_row;
+	query_expr->is_any = is_any;
+	query_expr->is_all = is_all;
 	ExprStmt_s copy_expr;
 	for (u32 i = 0; i < exec_params.size(); ++i) {
 		CHECK(ExprUtils::deep_copy_expr(exec_params[i], copy_expr, flag));

@@ -13,6 +13,7 @@ namespace CatDB {
     }
     namespace Sql {
         DECLARE(Expression);
+        DECLARE(ColumnExpression);
         DECLARE(PhyOperator);
         DECLARE(ExecParamExpression);
         using Parser::ExprStmt_s;

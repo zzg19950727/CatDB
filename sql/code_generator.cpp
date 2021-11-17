@@ -146,6 +146,7 @@ u32 CodeGenerator::generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_
         break;
     }
     CHECK(generate_output_exprs(ctx, log_root, phy_root));
+    phy_root->set_query_ctx(log_root->query_ctx);
 	return ret;
 }
 

@@ -7,7 +7,7 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-UpdateResolver::UpdateResolver(UpdateStmt_s &stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+UpdateResolver::UpdateResolver(UpdateStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
     :DMLResolver(stmt, query_ctx, resolve_ctx),
     update_stmt(stmt)
 {

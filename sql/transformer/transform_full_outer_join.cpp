@@ -1,6 +1,7 @@
 #include "transform_full_outer_join.h"
 #include "transform_utils.h"
 #include "select_stmt.h"
+#include "query_ctx.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
@@ -44,6 +45,9 @@ u32 TransformFullOuterJoin::transform_one_table(DMLStmt_s &stmt, TableStmt_s &ta
         JoinedTableStmt_s joined_table = table;
         CHECK(transform_one_table(stmt, joined_table->left_table));
         CHECK(transform_one_table(stmt, joined_table->right_table));
+        if (happened) {
+            CHECK(table->formalize());
+        }
         CHECK(check_table_need_transform(joined_table, is_valid));
         if (is_valid) {
             CHECK(do_transform(stmt, table));

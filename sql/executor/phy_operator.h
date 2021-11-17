@@ -14,8 +14,8 @@ namespace CatDB {
 		DECLARE(PhyOperator);
 		DECLARE(Expression);
 		DECLARE(PhyFilter);
-
-
+		DECLARE(QueryCtx);
+		
 		//物理运算符接口
 		class PhyOperator
 		{
@@ -63,13 +63,17 @@ namespace CatDB {
 			u32 set_filter(const PhyFilter_s& filter) { this->filter = filter; }
 			PhyFilter_s get_filter()const { return filter; }
 			void set_row_desc(RowDesc &desc) { output_desc = desc; }
+			void set_query_ctx(QueryCtx_s &ctx) { query_ctx = ctx; }
 		public:
 			u32 make_row(Row_s &row);
 			u32 make_const_row(Object_s &const_value, Row_s &row);
+			u32 check_status();
+			void increase_affected_rows();
 			Vector<Expression_s> output_exprs;
 			RowDesc output_desc;
 			PhyFilter_s filter;
 			Row_s cur_row;
+			QueryCtx_s query_ctx;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)
 		};

@@ -12,6 +12,8 @@ using namespace CatDB::Storage;
 using namespace CatDB::Parser;
 using namespace CatDB::Optimizer;
 
+HashMap<int, RequestHandle_s> ServerService::m_processlist = HashMap<int, RequestHandle_s>();
+
 ServerService::ServerService(const String& config)
 	:m_config(config.c_str()),
 	m_net_service(0),
@@ -79,8 +81,9 @@ void ServerService::do_login(int fd)
 {
 	Loginer loginer(m_thread_id, fd);
 	if (loginer.login() == SUCCESS) {
-		auto ptr = std::make_shared<RequestHandle>(fd, *this);
-		ptr->set_login_info(loginer.get_login_info());
+		auto ptr = RequestHandle_s(new RequestHandle(fd, *this));
+		m_processlist[fd] = ptr;
+		ptr->set_login_info(loginer.get_login_info(), fd);
 		ptr->set_delete_handle(ptr);
 		++m_clients;
 		++m_thread_id;
@@ -94,6 +97,7 @@ void ServerService::do_login(int fd)
 void ServerService::close_connection(int fd)
 {
 	--m_clients;
+	m_processlist.erase(fd);
 	LOG_TRACE("client closed", K(fd));
 }
 

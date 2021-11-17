@@ -8,7 +8,7 @@ namespace CatDB {
         class UpdateResolver : public DMLResolver
         {
         public:
-            UpdateResolver(UpdateStmt_s &stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx);
+            UpdateResolver(UpdateStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
             ~UpdateResolver();
             u32 resolve_stmt();
         private:

@@ -154,8 +154,8 @@ u32 StatisManager::delete_table_statis(u32 tid)
 u32 StatisManager::execute_sys_sql(const String& sql, QueryResult_s &result, double sample_size)
 {
     u32 ret = SUCCESS;
-    QueryCtx query_ctx;
-    query_ctx.sample_size = sample_size;
+    QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
+    query_ctx->sample_size = sample_size;
 	ResultSet_s result_set;
 	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result_set));
     MY_ASSERT(result_set);

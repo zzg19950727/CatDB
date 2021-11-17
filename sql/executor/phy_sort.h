@@ -27,7 +27,7 @@ namespace CatDB {
 			u32 inner_get_next_row(Row_s &row);
 			u32 type() const;
 		protected:
-			void quick_sort(Vector<Row_s> &arr, int begin, int end);
+			u32 quick_sort(Vector<Row_s> &arr, int begin, int end);
 			bool compare(const Row_s& lhs, const Row_s& rhs)const;
 			virtual u32 sort_rows();
 			Vector<Row_s> rows;

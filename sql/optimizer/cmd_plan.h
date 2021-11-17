@@ -40,6 +40,8 @@ namespace CatDB {
             u32 do_cmd_use_database();
             u32 do_cmd_analyze();
 			u32 do_set_var();
+			u32 do_show_processlist(ResultSet_s &query_result);
+			u32 do_kill_process();
 		};
 	}
 }

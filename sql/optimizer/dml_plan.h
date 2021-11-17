@@ -163,6 +163,7 @@ namespace CatDB {
 			u32 get_join_method(const BitSet &left_tables,
 								const BitSet &right_tables,
 								JoinInfo &join_info,
+								bool ignore_hint,
 								JoinAlgo &algo);
 			u32 add_join_order(LogicalOperator_s& join_order, u32 level);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);

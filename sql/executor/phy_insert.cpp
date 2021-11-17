@@ -55,6 +55,7 @@ u32 PhyInsert::inner_get_next_row(Row_s &row)
 {
     u32 ret = SUCCESS;
 	while ((ret = child->get_next_row(row)) == SUCCESS) {
+        increase_affected_rows();
 		return table_space->insert_row(row);
 	}
 	return ret;

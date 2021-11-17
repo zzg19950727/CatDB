@@ -202,6 +202,8 @@ namespace CatDB {
 			PhyOperator_s subplan;
 			Vector<ExecParamExpression_s> exec_params;
 			bool output_one_row;
+			bool is_any;
+			bool is_all;
 		};
 	}
 }

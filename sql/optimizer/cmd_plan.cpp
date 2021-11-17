@@ -8,6 +8,9 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "cmd_stmt.h"
+#include "request_handle.h"
+#include "query_ctx.h"
+#include "server.h"
 #include "stmt.h"
 #include "error.h"
 #include "log.h"
@@ -17,6 +20,7 @@ using namespace CatDB::Optimizer;
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Storage;
+using namespace CatDB::Server;
 
 CMDPlan::CMDPlan()
 {
@@ -70,6 +74,12 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 			break;
 		case CMDStmt::SetVar:
 			CHECK(do_set_var());
+			break;
+		case CMDStmt::ShowProcesslist:
+			CHECK(do_show_processlist(query_result));
+			break;
+		case CMDStmt::Kill:
+			CHECK(do_kill_process());
 			break;
         default:
 			ret = INVALID_CMD_TYPE;
@@ -341,7 +351,7 @@ u32 CMDPlan::show_table_statis(const String &database, const String &table, Resu
 				from `system`.`table_statis`  
 				where `tid` = )" + std::to_string(tid) +
 		R"( order by `analyze_time` desc limit 1;)";
-	CHECK(SqlEngine::handle_inner_sql(query, *query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
 	return ret;
 }
 
@@ -363,7 +373,7 @@ u32 CMDPlan::show_column_statis(const String &database, const String &table, Res
 				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
 				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) + ")" +
 				R"( order by col.id asc;)";
-	CHECK(SqlEngine::handle_inner_sql(query, *query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
 	return ret;
 }
 
@@ -437,6 +447,46 @@ u32 CMDPlan::do_set_var()
 		String msg = "unknown variable " + var_name;
 		MY_ASSERT(query_ctx);
 		query_ctx->set_error_msg(msg);
+	}
+	return ret;
+}
+
+u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
+{
+	u32 ret = SUCCESS;
+	String title = String("PID");
+	u32 pos = 0;
+	query_result->set_column_num(2);
+	query_result->set_result_title(pos, title);
+	query_result->set_result_type(pos++, T_VARCHAR);
+	title = String("SQL");
+	query_result->set_result_title(pos, title);
+	query_result->set_result_type(pos++, T_VARCHAR);
+	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
+		Vector<Object_s> cells;
+		Object_s pid = Varchar::make_object(std::to_string(iter->first));
+		cells.push_back(pid);
+		Object_s sql=Varchar::make_object(iter->second->get_current_query());
+		cells.push_back(sql);
+		query_result->add_row(cells);
+	}
+	return ret;
+}
+
+u32 CMDPlan::do_kill_process()
+{
+	u32 ret = SUCCESS;
+	int pid;
+	CMDStmt_s stmt = lex_stmt;
+	MY_ASSERT(query_ctx);
+	CHECK(stmt->get_kill_params(pid));
+	if (pid == 0) {
+		//kill self
+		query_ctx->killed = true;
+	} else {
+		if (ServerService::m_processlist.find(pid) != ServerService::m_processlist.cend()) {
+			ServerService::m_processlist[pid]->get_query_ctx()->killed = true;
+		}
 	}
 	return ret;
 }

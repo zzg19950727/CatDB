@@ -4,6 +4,7 @@
 #include "table_stmt.h"
 #include "expr_stmt.h"
 #include "expr_utils.h"
+#include "query_ctx.h"
 #include "error.h"
 #include "log.h"
 

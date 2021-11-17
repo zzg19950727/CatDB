@@ -164,6 +164,14 @@ u32 CMDStmt::get_set_var_params(String &var_name, String &var_value)
 	return ret;
 }
 
+u32 CMDStmt::get_kill_params(int &pid)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(cmd_type == CMDStmt::Kill);
+	pid = params.kill_params.pid;
+	return ret;
+}
+
 String CMDStmt::get_cmd_type()const
 {
 	switch(cmd_type) {

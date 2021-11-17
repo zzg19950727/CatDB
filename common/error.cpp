@@ -118,6 +118,12 @@ const char * err_string(u32 err_code)
 			return "mark row";
 		case NO_MORE_MEMORY:
 			return "no more memory";
+		case MORE_THAN_ONE_ROW:
+			return "subquery output more than one row";
+		case QB_NAME_EXISTS:
+			return "qb name exists";
+		case QUERY_KILLED:
+			return "query is killed";
 		default:
 			return "error";
 	}

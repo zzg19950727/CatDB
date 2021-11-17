@@ -7,7 +7,7 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-DeleteResolver::DeleteResolver(DeleteStmt_s &stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+DeleteResolver::DeleteResolver(DeleteStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
     :DMLResolver(stmt, query_ctx, resolve_ctx),
     delete_stmt(stmt)
 {

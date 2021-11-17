@@ -32,6 +32,30 @@ u32 LogJoin::est_row_count()
     CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
     selectivity *= sel;
     output_rows = left_child()->get_output_rows() * right_child()->get_output_rows() * selectivity;
+    if (LeftAnti == join_type || LeftSemi == join_type) {
+        if (output_rows > left_child()->get_output_rows()) {
+            output_rows = left_child()->get_output_rows();
+        }
+    } else if (RightAnti == join_type || RightSemi == join_type) {
+        if (output_rows > right_child()->get_output_rows()) {
+            output_rows = right_child()->get_output_rows();
+        }
+    } else if (LeftOuter == join_type) {
+        if (output_rows < left_child()->get_output_rows()) {
+            output_rows = left_child()->get_output_rows();
+        }
+    } else if (RightOuter == join_type) {
+        if (output_rows < right_child()->get_output_rows()) {
+            output_rows = right_child()->get_output_rows();
+        }
+    } else if (FullOuter == join_type) {
+        if (output_rows < left_child()->get_output_rows()) {
+            output_rows = left_child()->get_output_rows();
+        }
+        if (output_rows < right_child()->get_output_rows()) {
+            output_rows = right_child()->get_output_rows();
+        }
+    }
     return ret;
 }
 

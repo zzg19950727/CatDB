@@ -23,7 +23,7 @@ Plan::~Plan()
 {
 }
 
-Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx *ctx)
+Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx_s &ctx)
 {
 	if (!lex_stmt) {
 		return Plan_s();

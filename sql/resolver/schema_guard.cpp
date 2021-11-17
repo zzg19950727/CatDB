@@ -168,7 +168,7 @@ u32 SchemaGuard::del_table(const String &db_name, const String& table_name)
 u32 SchemaGuard::execute_sys_sql(const String& sql, QueryResult_s &result)
 {
     u32 ret = SUCCESS;
-    QueryCtx query_ctx;
+    QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
 	ResultSet_s result_set;
 	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result_set));
     MY_ASSERT(result_set);

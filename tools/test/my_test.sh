@@ -6,7 +6,7 @@ CASE_INDEX=0
 PASS_COUNT=0
 FAIL_COUNT=0
 CASES=()
-TYPE="all"
+TYPE="unknown"
 
 print_usage() {
 	echo "my_test IP PORT [option]"

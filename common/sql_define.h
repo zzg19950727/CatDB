@@ -88,6 +88,15 @@ enum JoinType {Inner = 0,
 			   LeftAnti, 
 			   RightAnti};
 
+static JoinType ReveriseJoinType[] = {Inner,
+								RightOuter, 
+								LeftOuter, 
+								FullOuter, 
+								RightSemi, 
+								LeftSemi, 
+								RightAnti, 
+								LeftAnti};
+
 static JoinType ReverseJoinType[] = {Inner,
 			   RightOuter,
 			   LeftOuter, 

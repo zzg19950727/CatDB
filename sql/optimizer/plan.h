@@ -12,7 +12,7 @@ namespace CatDB {
 	namespace Optimizer {
 		DECLARE(Plan);
 		DECLARE(LogicalOperator);
-		using Sql::QueryCtx;
+		using Sql::QueryCtx_s;
 		using Parser::Stmt_s;
 	
 		class Plan
@@ -30,7 +30,7 @@ namespace CatDB {
 			
 		public:
 			virtual ~Plan();
-			static Plan_s make_plan(const Stmt_s& lex_stmt, QueryCtx *ctx);
+			static Plan_s make_plan(const Stmt_s& lex_stmt, QueryCtx_s &ctx);
 			void set_lex_stmt(const Stmt_s& stmt);
 			Stmt_s get_lex_stmt()const;
 			virtual u32 build_plan() = 0;
@@ -42,7 +42,7 @@ namespace CatDB {
 		protected:
 			Stmt_s lex_stmt;
 			LogicalOperator_s root_operator;
-			QueryCtx *query_ctx;
+			QueryCtx_s query_ctx;
 		};
 	}
 }

@@ -8,6 +8,7 @@
 #include "expr_utils.h"
 #include "join_property.def"
 #include "opt_est_info.h"
+#include "query_ctx.h"
 #include "error.h"
 #include "log.h"
 
@@ -538,7 +539,7 @@ u32 DMLPlan::generate_join_order()
     CHECK(generate_conflict_detecotrs(stmt->from_stmts, 
                                       stmt->where_stmt, 
                                       conflict_detectors));
-    LOG_TRACE("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
+    LOG_INFO("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
     CHECK(init_leading_info());
@@ -554,6 +555,7 @@ u32 DMLPlan::generate_join_order()
     root_operator = join_orders[base_tables.size() - 1][0];
     MY_ASSERT(root_operator);
     CHECK(generate_plan_hint());
+    LOG_INFO("succeed to generate join order");
     return ret;
 }
 
@@ -583,12 +585,12 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint)
     MY_ASSERT(join_orders.size() > 0);
     u32 join_levels = join_orders[0].size();
     for (u32 level = 1; level < join_levels; ++level) {
-        LOG_TRACE("begin to generate join order", K(level));
+        LOG_INFO("begin to generate join order", K(level));
         for (u32 left_level = 0; left_level < level; ++left_level) {
             u32 right_level = level - 1 - left_level;
             CHECK(generate_join_order_with_DP(ignore_hint, left_level, right_level));
         }
-        LOG_TRACE("succeed to generate join order", K(level), K(join_orders[level].size()));
+        LOG_INFO("succeed to generate join order", K(level), K(join_orders[level].size()));
     }
     return ret;
 }
@@ -600,13 +602,13 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
     MY_ASSERT(left_level < join_orders.size(), right_level < join_orders.size());
     for (u32 i = 0; i < join_orders[left_level].size(); ++i) {
         for (u32 j = 0; j < join_orders[right_level].size(); ++j) {
+            CHECK(query_ctx->check_query_status());
             JoinInfo join_info;
             Vector<ConflictDetector_s> detectors;
             bool is_legal = false;
             LogicalOperator_s &left_tree = join_orders[left_level][i];
             LogicalOperator_s &right_tree = join_orders[right_level][j];
             if (left_tree->table_ids.overlap(right_tree->table_ids)) {
-                //LOG_TRACE("join order is overlap", K(left_tree->table_ids), K(right_tree->table_ids));
                 continue;
             } else if (!ignore_hint) {
                 CHECK(is_leading_legal(left_tree->table_ids, right_tree->table_ids, is_legal));
@@ -615,20 +617,34 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
                 }
             }
             CHECK(choose_join_info(left_tree, right_tree, detectors, is_legal));
-            if (!is_legal) {
-                //LOG_TRACE("join order is not legal", K(left_tree->table_ids), K(right_tree->table_ids));
-                continue;
+            if (is_legal) {
+                CHECK(merge_join_infos(left_tree->table_ids, 
+                                        right_tree->table_ids, 
+                                        detectors, 
+                                        join_info));
+            } else {
+                CHECK(choose_join_info(right_tree, left_tree, detectors, is_legal));
+                if (is_legal) {
+                    CHECK(merge_join_infos(left_tree->table_ids, 
+                                            right_tree->table_ids, 
+                                            detectors, 
+                                            join_info));
+                    join_info.join_type = ReveriseJoinType[join_info.join_type];
+                } else {
+                    continue;
+                }
             }
-            CHECK(merge_join_infos(left_tree->table_ids, 
-                                right_tree->table_ids, 
-                                detectors, 
-                                join_info));
-            CHECK(generate_join_plan(left_tree, right_tree, join_info, join_op));
-            append(join_op->get_used_conflict_detectors(), left_tree->get_used_conflict_detectors());
-            append(join_op->get_used_conflict_detectors(), right_tree->get_used_conflict_detectors());
-            append(join_op->get_used_conflict_detectors(), detectors);
-            CHECK(add_join_order(join_op, left_level + right_level + 1));
-            LOG_TRACE("generate join plan for", K(left_tree->table_ids), K(right_tree->table_ids), K(join_info));
+            ret = (generate_join_plan(left_tree, right_tree, join_info, join_op));
+            if (OPERATION_NOT_SUPPORT == ret) {
+                ret = SUCCESS;
+                continue;
+            } else if (SUCC(ret)) {
+                append(join_op->get_used_conflict_detectors(), left_tree->get_used_conflict_detectors());
+                append(join_op->get_used_conflict_detectors(), right_tree->get_used_conflict_detectors());
+                append(join_op->get_used_conflict_detectors(), detectors);
+                CHECK(add_join_order(join_op, left_level + right_level + 1));
+                LOG_TRACE("generate join plan for", K(left_tree->table_ids), K(right_tree->table_ids), K(join_info));
+            }
         }
     }
     return ret;
@@ -813,7 +829,8 @@ u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree,
     JoinAlgo algo;
     CHECK(get_join_method(left_tree->table_ids, 
                           right_tree->table_ids, 
-                          join_info, 
+                          join_info,
+                          false,
                           algo));
     CHECK(generate_join_operator(left_tree, 
                                 right_tree, 
@@ -826,6 +843,7 @@ u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree,
 u32 DMLPlan::get_join_method(const BitSet &left_tables,
                             const BitSet &right_tables,
                             JoinInfo &join_info,
+                            bool ignore_hint,
                             JoinAlgo &algo)
 {
     u32 ret = SUCCESS;
@@ -836,7 +854,7 @@ u32 DMLPlan::get_join_method(const BitSet &left_tables,
         algo = NL_JOIN;
     } else {
         algo = HASH_JOIN;
-        for (u32 i = 0; i < join_hints.size(); ++i) {
+        for (u32 i = 0; !ignore_hint && i < join_hints.size(); ++i) {
             JoinHintStmt_s &hint = join_hints[i];
             if (right_tables.is_equal(hint->table_ids)) {
                 algo = hint->join_algo;
@@ -848,8 +866,12 @@ u32 DMLPlan::get_join_method(const BitSet &left_tables,
             FullOuter == join_info.join_type ||
             RightSemi == join_info.join_type ||
             RightAnti == join_info.join_type) {
-            ret = OPERATION_NOT_SUPPORT;
-            LOG_TRACE("NestLoop Join not support join type", K(join_info));   
+            if (ignore_hint) {
+                ret = OPERATION_NOT_SUPPORT;
+                LOG_TRACE("NestLoop Join not support join type", K(join_info));
+            } else {
+                CHECK(get_join_method(left_tables, right_tables, join_info, true, algo));
+            }
         }
     }
     return ret;

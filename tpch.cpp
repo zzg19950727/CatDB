@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include "sql_engine.h"
+#include "query_ctx.h"
 #include "error.h"
 using namespace CatDB::Sql;
 
@@ -22,7 +23,7 @@ void splite(const String& line, char c, Vector<String>& list)
 
 bool execute_sql(const String& query)
 {
-	QueryCtx query_ctx;
+	QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
 	ResultSet_s result_set;
 	return SqlEngine::handle_inner_sql(query, query_ctx, result_set) == SUCCESS;
 }

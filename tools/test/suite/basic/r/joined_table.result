@@ -220,17 +220,17 @@ Query Plan:
 +------------------------------------------------------------------------+
 | ID | OPERATOR                           | NAME | ROW COUNT | COST      |
 +------------------------------------------------------------------------+
-| 0  | SORT                               |      | 5.103e+34 | 4.896e+35 |
-| 1  |  NESTED LOOP Inner JOIN            |      | 5.103e+34 | 2.092e+32 |
-| 2  |   NESTED LOOP Inner JOIN           |      | 5.103e+29 | 2.092e+27 |
+| 0  | SORT                               |      | 1.701e+36 | 1.704e+37 |
+| 1  |  NESTED LOOP Inner JOIN            |      | 1.701e+36 | 6.974e+33 |
+| 2  |   NESTED LOOP Inner JOIN           |      | 1.701e+31 | 6.975e+28 |
 | 3  |    HASH FullOuter JOIN             |      | 2.100e+06 | 175820    |
 | 4  |     TABLE SCAN                     | T29  | 100000    | 15410     |
 | 5  |     TABLE SCAN                     | T30  | 100000    | 15410     |
-| 6  |    NESTED LOOP Inner JOIN          |      | 2.430e+23 | 9.964e+20 |
-| 7  |     HASH FullOuter JOIN            |      | 2.430e+18 | 1.150e+17 |
+| 6  |    NESTED LOOP Inner JOIN          |      | 8.100e+24 | 3.321e+22 |
+| 7  |     HASH FullOuter JOIN            |      | 8.100e+19 | 3.826e+18 |
 | 8  |      TABLE SCAN                    | T23  | 100000    | 15410     |
-| 9  |      NESTED LOOP Inner JOIN        |      | 8.100e+16 | 3.646e+16 |
-| 10 |       HASH FullOuter JOIN          |      | 2.700e+12 | 2.496e+14 |
+| 9  |      NESTED LOOP Inner JOIN        |      | 2.700e+18 | 1.207e+18 |
+| 10 |       HASH FullOuter JOIN          |      | 9.000e+13 | 2.548e+14 |
 | 11 |        TABLE SCAN                  | T27  | 100000    | 10410     |
 | 12 |        NESTED LOOP LeftOuter JOIN  |      | 9.000e+13 | 2.431e+14 |
 | 13 |         TABLE SCAN                 | T26  | 100000    | 15410     |
@@ -417,9 +417,9 @@ Query Plan:
 +----------------------------------------------------------------------+
 | ID | OPERATOR                         | NAME | ROW COUNT | COST      |
 +----------------------------------------------------------------------+
-| 0  | SORT                             |      | 5.001e+37 | 5.227e+38 |
-| 1  |  NESTED LOOP Inner JOIN          |      | 5.001e+37 | 1.730e+36 |
-| 2  |   HASH FullOuter JOIN            |      | 269       | 59852     |
+| 0  | SORT                             |      | 1.852e+40 | 2.067e+41 |
+| 1  |  NESTED LOOP Inner JOIN          |      | 1.852e+40 | 6.382e+38 |
+| 2  |   HASH FullOuter JOIN            |      | 100000    | 71820     |
 | 3  |    TABLE SCAN                    | T51  | 100000    | 20410     |
 | 4  |    TABLE SCAN                    | T52  | 100000    | 20410     |
 | 5  |   NESTED LOOP LeftOuter JOIN     |      | 1.852e+35 | 6.382e+33 |

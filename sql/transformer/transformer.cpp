@@ -6,10 +6,12 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
+#include "query_ctx.h"
 #include "log.h"
 
 using namespace CatDB::Transform;
 using namespace CatDB::Parser;
+using namespace CatDB::Sql;
 
 static const u32 MAX_TRANSFORM_COUNT = 10;
 
@@ -33,7 +35,7 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
         if (!happened) {
             break;
         } else {
-            LOG_ERR("success to transform once", K(i), K(stmt));
+            LOG_INFO("success to transform once", K(i), K(stmt));
         }
     }
     TRANSFORM(TransformPostProcess, stmt, ctx, happened);

@@ -683,7 +683,9 @@ u32 AggregateExpression::min(const Row_s & row)
 
 SubplanExpression::SubplanExpression(PhyOperator_s& subplan)
 	:subplan(subplan),
-	output_one_row(true)
+	output_one_row(true),
+	is_any(false),
+	is_all(false)
 {
 }
 
@@ -695,9 +697,12 @@ Expression_s SubplanExpression::make_subplan_expression(PhyOperator_s& subplan)
 
 Object_s SubplanExpression::get_result(const Row_s & row)
 {
+	/* 嵌套子查询的bug
 	if (result && exec_params.empty()) {
 		return result;
-	} else {
+	} else 
+	*/
+	{
 		for (u32 i = 0; i < exec_params.size(); ++i) {
 			exec_params[i]->set_value(row);
 		}

@@ -64,8 +64,9 @@ u32 PhySort::type() const
 	return PhyOperator::SORT;
 }
 
-void PhySort::quick_sort(Vector<Row_s> &arr, int begin, int end)
+u32 PhySort::quick_sort(Vector<Row_s> &arr, int begin, int end)
 {
+	u32 ret = SUCCESS;
 	//如果区间不只一个数
 	if(begin < end)
 	{
@@ -75,17 +76,22 @@ void PhySort::quick_sort(Vector<Row_s> &arr, int begin, int end)
 		//不重复遍历
 		while(i < j)
 		{
+			CHECK(check_status());
 			//当右边的数大于基准数时，略过，继续向左查找
 			//不满足条件时跳出循环，此时的j对应的元素是小于基准元素的
-			while(i<j && compare(arr[j], temp))
+			while(i<j && compare(arr[j], temp)) {
+				CHECK(check_status());
 				j--;
+			}
 			//将右边小于等于基准元素的数填入右边相应位置
 			arr[i] = arr[j];
 			//当左边的数小于等于基准数时，略过，继续向右查找
 			//(重复的基准元素集合到左区间)
 			//不满足条件时跳出循环，此时的i对应的元素是大于等于基准元素的
-			while(i<j && !compare(arr[i], temp))
+			while(i<j && !compare(arr[i], temp)) {
+				CHECK(check_status());
 				i++;
+			}
 			//将左边大于基准元素的数填入左边相应位置
 			arr[j] = arr[i];
 		}
@@ -97,9 +103,7 @@ void PhySort::quick_sort(Vector<Row_s> &arr, int begin, int end)
 		//对基准元素的右边子区间进行相似的快速排序
 		quick_sort(arr,i+1,end);
 	}
-	//如果区间只有一个数，则返回
-	else
-		return;
+	return ret;
 }
 
 bool PhySort::compare(const Row_s& lhs, const Row_s& rhs)const
@@ -137,7 +141,7 @@ u32 PhySort::sort_rows()
 		row = Row::deep_copy(row);
 		rows.push_back(row);
 	}
-	quick_sort(rows, 0, rows.size() - 1);
+	CHECK(quick_sort(rows, 0, rows.size() - 1));
 	auto cmp = [&](const Row_s& lhs, const Row_s& rhs) {return this->compare(lhs, rhs); };
 	//std::sort(rows.begin(), rows.end(), cmp);
 	pos = 0;

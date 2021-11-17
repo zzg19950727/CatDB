@@ -22,7 +22,7 @@ namespace CatDB {
 		DECLARE(DMLPlan);
 		DECLARE(EstInfo);
 		DECLARE(ConflictDetector);
-		using Sql::QueryCtx;
+		using Sql::QueryCtx_s;
 		using Parser::ExprStmt_s;
 		using Parser::ColumnStmt_s;
 		using Parser::TableStmt_s;
@@ -62,7 +62,7 @@ namespace CatDB {
 			virtual ~LogicalOperator() {}
 			virtual u32 type() const = 0;
 			String get_op_name();
-			u32 init(QueryCtx *query_ctx, EstInfo_s& est_info);
+			u32 init(QueryCtx_s &query_ctx, EstInfo_s& est_info);
 			u32 compute_property();
 			virtual u32 est_row_count();
 			virtual u32 est_cost();
@@ -108,7 +108,7 @@ namespace CatDB {
 			Vector<ExprStmt_s> access_exprs;
 			LogicalOperator_s parent;
 			EstInfo_s est_info;
-			QueryCtx *query_ctx;
+			QueryCtx_s query_ctx;
 			BitSet table_ids;
 			DMLPlan_s plan;
             u32 operator_id;

@@ -79,6 +79,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "full"          { return CatDB::SqlParser::make_FULL(loc); }
 "group"			{ return CatDB::SqlParser::make_GROUP(loc); }
 "having"		{ return CatDB::SqlParser::make_HAVING(loc); }
+"kill"			{ return CatDB::SqlParser::make_KILL(loc); }
 "if"			{ return CatDB::SqlParser::make_IF(loc); }
 "insert"		{ return CatDB::SqlParser::make_INSERT(loc); }
 "index"			{ return CatDB::SqlParser::make_INDEX(loc); }
@@ -91,6 +92,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "number"		{ return CatDB::SqlParser::make_NUMBER(loc); }
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
+"processlist"	{ return CatDB::SqlParser::make_PROCESSLIST(loc); }
 "right"			{ return CatDB::SqlParser::make_RIGHT(loc); }
 "rowid"			{ return CatDB::SqlParser::make_ROWID(loc); }
 "sample"		{ return CatDB::SqlParser::make_SAMPLE(loc); }

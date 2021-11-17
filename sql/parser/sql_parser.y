@@ -238,6 +238,7 @@
 %token FULL
 %token GROUP
 %token HAVING
+%token KILL
 %token IF
 %token INDEX
 %token INNER
@@ -250,6 +251,7 @@
 %token NUMBER
 %token ORDER
 %token ON
+%token PROCESSLIST
 %token RIGHT
 %token ROWID
 %token SAMPLE
@@ -297,7 +299,7 @@
 
 %type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>		select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt
+%type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt kill_stmt
 %type<ExprStmt_s>	projection simple_expr arith_expr cmp_expr logical_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
 %type<OrderStmt_s>	order_by
 %type<LimitStmt_s>	opt_select_limit
@@ -318,6 +320,7 @@
 %type<Vector<String>> hint_table_list
 %type<Vector<LeadingTable_s>> leading_hint_table_list
 %type<LeadingTable_s> leading_hint_table
+%type<OperationType> cmp_type
 %type<bool> opt_split
 %type<std::string> opt_qb_name opt_qb_name_single
 %start sql_stmt
@@ -354,6 +357,7 @@ cmd_stmt:
 	| use_stmt			{ $$ = $1; }
 	| analyze_stmt		{ $$ = $1; }
 	| set_var_stmt		{ $$ = $1; }
+	| kill_stmt			{ $$ = $1; }
 	;
 
 select_stmt:
@@ -878,45 +882,26 @@ arith_expr_list:
   ;
 
 cmp_expr:
-	arith_expr CMP_LE arith_expr 
+	arith_expr cmp_type arith_expr 
 	{
 		//构建比较二元表达式 
-		make_binary_stmt($$, $1, $3, OP_LE);
+		make_binary_stmt($$, $1, $3, $2);
 	}
-  | arith_expr CMP_LT arith_expr 
+  | arith_expr cmp_type ANY query_ref_expr 
 	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_LT);
+		SubQueryStmt_s query_expr = $4;
+		query_expr->is_any = true;
+		query_expr->output_one_row = false;
+		//构建比较二元表达式 
+		make_binary_stmt($$, $1, $4, $2);
 	}
-  | arith_expr CMP_EQ arith_expr
+  | arith_expr cmp_type ALL query_ref_expr 
 	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_EQ);
-	}
-  | arith_expr CMP_GE arith_expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_GE);
-	}
-  | arith_expr CMP_GT arith_expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_GT);
-	}
-  | arith_expr CMP_NE arith_expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_NE);
-	}
-  | arith_expr LIKE arith_expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $3, OP_LIKE);
-	}
-  | arith_expr NOT LIKE arith_expr 
-	{
-		//构建比较二元表达式
-		make_binary_stmt($$, $1, $4, OP_NOT_LIKE);
+		SubQueryStmt_s query_expr = $4;
+		query_expr->is_all = true;
+		query_expr->output_one_row = false;
+		//构建比较二元表达式 
+		make_binary_stmt($$, $1, $4, $2);
 	}
   | arith_expr IS NULLX
     {
@@ -950,18 +935,59 @@ cmp_expr:
     }
   | EXISTS query_ref_expr
     {
+		SubQueryStmt_s query_expr = $2;
+		query_expr->output_one_row = false;
     	make_unary_stmt($$, $2, OP_EXISTS);
     }
   | NOT EXISTS query_ref_expr
     {
+		SubQueryStmt_s query_expr = $3;
+		query_expr->output_one_row = false;
 		//构建not一元表达式
 		make_unary_stmt($$, $3, OP_NOT_EXISTS);
     }
   ;
 
+cmp_type:
+	CMP_LE  
+	{
+		$$ = OP_LE;
+	}
+  | CMP_LT 
+	{
+		$$ = OP_LT;
+	}
+  | CMP_EQ
+	{
+		$$ = OP_EQ;
+	}
+  | CMP_GE 
+	{
+		$$ = OP_GE;
+	}
+  | CMP_GT 
+	{
+		$$ = OP_GT;
+	}
+  | CMP_NE 
+	{
+		$$ = OP_NE;
+	}
+  | LIKE 
+	{
+		$$ = OP_LIKE;
+	}
+  | NOT LIKE 
+	{
+		$$ = OP_NOT_LIKE;
+	}
+	;
+
 in_expr:
     query_ref_expr
     {
+		SubQueryStmt_s query_expr = $1;
+		query_expr->output_one_row = false;
 		$$ = $1;
     }
   | "(" arith_expr_list ")"
@@ -1493,6 +1519,7 @@ opt_char_length:
 opt_if_exists:
 	/*empty*/	{ $$ = false; }
 	| IF EXISTS { $$ = true; }
+	;
 
 /**************************************************************
  *
@@ -1550,6 +1577,12 @@ opt_if_exists:
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $4;
 		cmd_stmt->params.desc_table_params.is_show_column_statis = true;
+		$$ = cmd_stmt;
+	}
+	| SHOW PROCESSLIST
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowProcesslist);
+		check(cmd_stmt);
 		$$ = cmd_stmt;
 	}
   ;
@@ -1637,6 +1670,7 @@ opt_sample_size:
 	{
 		$$ = std::stod($3);
 	}
+	;
 
 set_var_stmt:
 	SET ident CMP_EQ string
@@ -1647,7 +1681,17 @@ set_var_stmt:
 		cmd_stmt->params.set_var_params.var_value = $4;
 		$$ = cmd_stmt;
 	}
+	;
 
+kill_stmt:
+	KILL int_value
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Kill);
+		check(cmd_stmt);
+		cmd_stmt->params.kill_params.pid = $2;
+		$$ = cmd_stmt;
+	}
+	;
  /**************************************************************
  *
  *	name define

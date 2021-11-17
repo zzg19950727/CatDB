@@ -1,12 +1,14 @@
 #include "phy_operator.h"
-#include "error.h"
-#include "phy_filter.h"
 #include "phy_expression.h"
+#include "phy_filter.h"
+#include "query_ctx.h"
+#include "error.h"
 
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 
 PhyOperator::PhyOperator()
+	:query_ctx(NULL)
 {
 }
 
@@ -25,15 +27,14 @@ u32 PhyOperator::get_next_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
 	while ((ret=inner_get_next_row(row)) == SUCCESS) {
+		CHECK(check_status());
 		if (filter) {
 			if ((*filter)(row)) {
 				return make_row(row);
-			}
-			else {
+			} else {
 				continue;
 			}
-		}
-		else {
+		} else {
 			return make_row(row);
 		}
 	}
@@ -78,6 +79,24 @@ u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
 	}
 	row = cur_row;
 	return ret;
+}
+
+u32 PhyOperator::check_status()
+{
+	u32 ret = SUCCESS;
+	if (!query_ctx) {
+		ret = SUCCESS;
+	} else {
+		ret = query_ctx->check_query_status(); 
+	}
+	return ret;
+}
+
+void PhyOperator::increase_affected_rows()
+{
+	if (query_ctx) {
+		query_ctx->increase_affected_rows(); 
+	}
 }
 
 SingleChildPhyOperator::SingleChildPhyOperator(const PhyOperator_s & child)

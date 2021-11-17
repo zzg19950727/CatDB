@@ -162,7 +162,6 @@ u32 Row::get_cell(const ColumnDesc & c_desc, Object_s & cell) const
 	if (ret != SUCCESS){
 		u32 table_id, column_id;
 		c_desc.get_tid_cid(table_id, column_id);
-		LOG_ERR("column not found in row", K(c_desc));
 		return ret;
 	}else{
 		cell = cells[idx];

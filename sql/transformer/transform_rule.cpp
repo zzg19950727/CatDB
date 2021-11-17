@@ -64,7 +64,9 @@ u32 TransformRule::transform_self(DMLStmt_s &stmt)
 {
     u32 ret = SUCCESS;
     CHECK(transform_one_stmt(stmt));
-    CHECK(stmt->formalize());
+    if (happened) {
+        CHECK(stmt->formalize());
+    }
     return ret;
 }
 

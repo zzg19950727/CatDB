@@ -1,6 +1,5 @@
 #ifndef SQL_ENGINE_H
 #define SQL_ENGINE_H
-#include "query_ctx.h"
 #include "type.h"
 #include "row.h"
 
@@ -23,6 +22,7 @@ namespace CatDB {
         DECLARE(PhyOperator);
         DECLARE(SqlEngine);
         DECLARE(ResultSet);
+        DECLARE(QueryCtx);
         using Common::RowDesc;
         using Common::Row_s;
         using Common::Object_s;
@@ -70,15 +70,14 @@ namespace CatDB {
 		{
 		private:
 			SqlEngine() = delete;
-			SqlEngine(const String& query, QueryCtx& query_ctx);
+			SqlEngine(const String& query, QueryCtx_s &query_ctx);
 		public:
 			~SqlEngine();
-			static SqlEngine_s make_sql_engine(const String& query, QueryCtx &query_ctx);
-            static u32 handle_inner_sql(const String &query, QueryCtx &query_ctx, ResultSet_s &result_set);
+			static SqlEngine_s make_sql_engine(const String& query, QueryCtx_s &query_ctx);
+            static u32 handle_inner_sql(const String &query, QueryCtx_s &query_ctx, ResultSet_s &result_set);
             static u32 handle_subplan(PhyOperator_s root, Object_s &result);
             u32 handle_query();
 			ResultSet_s get_query_result();
-            const String& get_error_msg() const {return err_msg;}
 
         private:
             u32 execute_plan(PhyOperator_s root);
@@ -87,14 +86,13 @@ namespace CatDB {
             u32 print_stmt_outline(DMLStmt_s stmt, bool print_global_hint, String &outline);
 
 		private:
-            QueryCtx &query_ctx;
+            QueryCtx_s query_ctx;
             String query;
             Stmt_s lex_stmt;
             Plan_s plan;
             LogicalOperator_s log_root;
             PhyOperator_s phy_root;
 			ResultSet_s query_result;
-            String err_msg;
         private:
             DISALLOW_COPY_AND_ASSIGN(SqlEngine);
 		};

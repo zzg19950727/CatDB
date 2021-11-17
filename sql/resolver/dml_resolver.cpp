@@ -11,6 +11,7 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
+#include "query_ctx.h"
 #include "stmt.h"
 #include "object.h"
 #include "error.h"
@@ -18,14 +19,14 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-DMLResolver::DMLResolver(DMLStmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+DMLResolver::DMLResolver(DMLStmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
     :stmt(stmt),
     query_ctx(query_ctx),
     resolve_ctx(resolve_ctx),
     can_use_aggr_func(false)
 {
     resolve_ctx.cur_tables.clear();
-    stmt->stmt_id = query_ctx.generate_stmt_id();
+    stmt->stmt_id = query_ctx->generate_stmt_id();
 }
 
 DMLResolver::~DMLResolver()
@@ -33,7 +34,7 @@ DMLResolver::~DMLResolver()
 
 }
 
-u32 DMLResolver::resolve_stmt(Stmt_s stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+u32 DMLResolver::resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(stmt);
@@ -128,11 +129,11 @@ u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
         String err_msg = "table " + table_stmt->alias_name + " exists";
-        query_ctx.set_error_msg(err_msg);
+        query_ctx->set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else if (table_stmt->is_dual) {
-        table_stmt->table_id = query_ctx.generate_table_id();
+        table_stmt->table_id = query_ctx->generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
     } else {
         SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -141,10 +142,10 @@ u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
                                     table_stmt->ref_table_id));
         if (FAIL(ret)) {
             String err_msg = "table " + table_stmt->alias_name + " not exists";
-            query_ctx.set_error_msg(err_msg);
+            query_ctx->set_error_msg(err_msg);
             return ret;
         }
-        table_stmt->table_id = query_ctx.generate_table_id();
+        table_stmt->table_id = query_ctx->generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
     }
     return ret;
@@ -177,11 +178,11 @@ u32 DMLResolver::resolve_view_table_item(ViewTableStmt_s table_stmt)
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
         String err_msg = "table " + table_stmt->alias_name + " exists";
-        query_ctx.set_error_msg(err_msg);
+        query_ctx->set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else {
-        table_stmt->table_id = query_ctx.generate_table_id();
+        table_stmt->table_id = query_ctx->generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
         ResolveCtx temp_ctx;
         append(temp_ctx.parent_tables, resolve_ctx.parent_tables);
@@ -296,20 +297,6 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
             } else if (FAIL(ret)) {
                 return ret;
             }
-        }
-        OpExprStmt_s op_expr = expr_stmt;
-        if (OP_EXISTS == op_expr->op_type || OP_NOT_EXISTS == op_expr->op_type) {
-            MY_ASSERT(expr_stmt->params.size() == 1);
-            ExprStmt_s param_expr = expr_stmt->params[0];
-            MY_ASSERT(SUBQUERY == param_expr->expr_type());
-            SubQueryStmt_s subquery = param_expr;
-            subquery->output_one_row = false;
-        } else if (OP_IN == op_expr->op_type || OP_NOT_IN == op_expr->op_type) {
-            MY_ASSERT(expr_stmt->params.size() == 2);
-            ExprStmt_s param_expr = expr_stmt->params[1];
-            MY_ASSERT(SUBQUERY == param_expr->expr_type());
-            SubQueryStmt_s subquery = param_expr;
-            subquery->output_one_row = false;
         }
 		break;
 	}

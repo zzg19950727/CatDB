@@ -1,12 +1,14 @@
 #include "request_handle.h"
 #include "query_result.h"
 #include "sql_engine.h"
+#include <algorithm>
 #include "resheader_packet.h"
 #include "field_packet.h"
 #include "error_packet.h"
 #include "eof_packet.h"
 #include "row_packet.h"
 #include "ok_packet.h"
+#include "query_ctx.h"
 #include "buffer.h"
 #include "global.h"
 #include "server.h"
@@ -32,7 +34,8 @@ RequestHandle::RequestHandle(int fd,ServerService& service)
 	{
 		close_connection();
 	}
-	query_ctx.cur_database = "test";
+	query_ctx = QueryCtx::make_query_ctx();
+	query_ctx->cur_database = "test";
 }
 
 RequestHandle::~RequestHandle()
@@ -41,15 +44,16 @@ RequestHandle::~RequestHandle()
 		close_connection();
 }
 
-void RequestHandle::set_delete_handle(std::shared_ptr<RequestHandle>& self)
+void RequestHandle::set_delete_handle(RequestHandle_s& self)
 {
 	m_self.swap(self);
 }
 
-void RequestHandle::set_login_info(const Loginer::LoginInfo & info)
+void RequestHandle::set_login_info(const Loginer::LoginInfo & info, int fd)
 {
 	login_info = info;
-	query_ctx.cur_database = info.db_name_;
+	query_ctx->cur_database = info.db_name_;
+	query_ctx->pid = fd;
 }
 
 void RequestHandle::notify_socket(int fd, NetService::Event e)
@@ -122,7 +126,7 @@ void RequestHandle::close_connection()
 	net_close(m_fd);
 	m_server_service.m_net_service.unregister_io(m_fd, NetService::E_RW);
 	m_server_service.close_connection(m_fd);
-	std::shared_ptr<RequestHandle> copy;
+	RequestHandle_s copy;
 	copy.swap(m_self);
 	m_fd = -1;
 }
@@ -159,10 +163,11 @@ u32 RequestHandle::post_packet(Packet & packet, uint8_t seq)
 	return ret;
 }
 
-u32 RequestHandle::send_ok_packet()
+u32 RequestHandle::send_ok_packet(u32 affected_rows)
 {
 	int ret = SUCCESS;
 	OKPacket okpacket;
+	okpacket.set_affected_rows(affected_rows);
 	ret = post_packet(okpacket, ++seq);
 	if (SUCCESS != ret)
 	{
@@ -325,31 +330,30 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
-	query_ctx.reset();
+	query_ctx->reset();
+	cur_query = query;
 	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {
-		String err_msg = engine->get_error_msg();
-		if (err_msg.empty()) {
-			err_msg = query_ctx.get_error_msg();
-			if (err_msg.empty()) {
-				err_msg = err_string(ret);
-			}
-		}
-		return send_error_packet(ERR_UNEXPECTED, err_msg);
-	}
-	ResultSet_s result_set = engine->get_query_result();
-	MY_ASSERT(result_set);
-	if (result_set->need_send_result()) {
-		String explain_info = result_set->get_explain_info();
-		if (!explain_info.empty()) {
-			return send_explain_info(explain_info);
-		} else {
-			return send_result_set(result_set);
-		}
+		String err_msg = err_string(ret);
+		err_msg += " " + query_ctx->get_error_msg();
+		ret = send_error_packet(ERR_UNEXPECTED, err_msg);
 	} else {
-		return send_ok_packet();
+		ResultSet_s result_set = engine->get_query_result();
+		MY_ASSERT(result_set);
+		if (result_set->need_send_result()) {
+			String explain_info = result_set->get_explain_info();
+			if (!explain_info.empty()) {
+				ret = send_explain_info(explain_info);
+			} else {
+				ret = send_result_set(result_set);
+			}
+		} else {
+			ret = send_ok_packet(query_ctx->get_affected_rows());
+		}
 	}
+	cur_query = "SLEEP";
+	return ret;
 }
 
 u32 RequestHandle::send_explain_info(String& explain_info)
@@ -363,16 +367,6 @@ u32 RequestHandle::send_explain_info(String& explain_info)
 		LOG_ERR("failed to send ok packet to mysql client", K(ret));
 	}
 	return ret;
-}
-
-void RequestHandle::worker_caller(const std::string& func, std::shared_ptr<char> ptr, size_t len)
-{
-	LOG_TRACE("RequestHandle::worker_caller call func", K(func), K(len));
-	
-	if(!m_write_cache.write_package(ptr.get(),len))
-	{
-		LOG_ERR("RequestHandle write_cache full,drop response", K(func));
-	}
 }
 
 void RequestHandle::handle_request(char* buf, size_t len)
@@ -397,27 +391,25 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			LOG_INFO("handle client command", K(query));
 			if (query.find("SHOW SESSION") != String::npos)
 					query = "select * from system.sys_vars";
-			else if (query.find("SELECT current_user") != String::npos)
+			else if (query.find("SELECT CURRENT_USER") != String::npos)
 					query = "select * from system.current_user";
 			else if (query.find("SELECT CONNECTION_ID") != String::npos)
 					query = "select * from system.connection_id";
-			else if (query.find("show char") != String::npos)
+			else if (query.find("SHOW CHAR") != String::npos)
 					query = "select * from system.charset";
-			else if (query.find("show engines") != String::npos)
+			else if (query.find("SHOW ENGINES") != String::npos)
 					query = "select * from system.engine";
-			else if (query.find("show collation") != String::npos)
+			else if (query.find("SHOW COLLATION") != String::npos)
 					query = "select * from system.collation";
-			else if (query.find("show variables") != String::npos)
-					query = "select * from system.sys_vars";
 			else if (query.find("SHOW VARIABLES") != String::npos)
 					query = "select * from system.sys_vars";
 			else if (query.find("SHOW PROCEDURE") != String::npos)
 					{send_ok_packet();return;}
 			else if (query.find("SHOW FUNCTION") != String::npos)
 					{send_ok_packet();return;}
-			else if (query.find("load tpch data") != String::npos)
+			else if (query.find("LOAD TPCH DATA") != String::npos)
 					{load_tpch_data();return;}
-			else if (query.find("version_comment") != String::npos)
+			else if (query.find("VERSION_COMMENT") != String::npos)
 					{send_ok_packet();return;}
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);

@@ -78,6 +78,7 @@ u32 PhyDelete::inner_get_next_row(Row_s &row)
 			return INVALID_ARGUMENT;
 		}
 		Number_s num = result;
+		increase_affected_rows();
 		return table_space->delete_row(num->value());
 	}
 	return ret;

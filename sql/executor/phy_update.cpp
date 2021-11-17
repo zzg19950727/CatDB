@@ -78,6 +78,7 @@ u32 PhyUpdate::inner_get_next_row(Row_s &row)
         for (u32 i = 0; SUCC(ret) && i < value_exprs.size(); ++i) {
             CHECK(cur_row->set_cell(i, value_exprs[i]->get_result(row)));
         }
+        increase_affected_rows();
         CHECK(table_space->update_row(cur_row));
     }
     return ret;

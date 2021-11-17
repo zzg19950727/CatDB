@@ -183,6 +183,8 @@ namespace CatDB {
 
 		public:
 			SelectStmt_s query_stmt;
+			bool is_any;
+			bool is_all;
 			Vector<ExecParamStmt_s> exec_params;
 			u32 subquery_id;
 			bool output_one_row;

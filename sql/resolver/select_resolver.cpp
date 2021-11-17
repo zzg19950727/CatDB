@@ -11,7 +11,7 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-SelectResolver::SelectResolver(SelectStmt_s &stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+SelectResolver::SelectResolver(SelectStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
     :DMLResolver(stmt, query_ctx, resolve_ctx),
     select_stmt(stmt)
 {
@@ -175,7 +175,7 @@ u32 SelectResolver::resolve_order_exprs(Vector<ExprStmt_s> &order_exprs)
     return ret;
 }
 
-SetResolver::SetResolver(SetStmt_s &stmt, QueryCtx &query_ctx, ResolveCtx &resolve_ctx)
+SetResolver::SetResolver(SetStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
     :DMLResolver(stmt, query_ctx, resolve_ctx),
     set_stmt(stmt)
 {
