@@ -49,11 +49,11 @@ void RequestHandle::set_delete_handle(RequestHandle_s& self)
 	m_self.swap(self);
 }
 
-void RequestHandle::set_login_info(const Loginer::LoginInfo & info, int fd)
+void RequestHandle::set_login_info(const Loginer::LoginInfo & info, int thread_id)
 {
 	login_info = info;
 	query_ctx->cur_database = info.db_name_;
-	query_ctx->pid = fd;
+	query_ctx->thread_id = thread_id;
 }
 
 void RequestHandle::notify_socket(int fd, NetService::Event e)

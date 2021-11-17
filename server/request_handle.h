@@ -25,7 +25,7 @@ namespace CatDB {
 			RequestHandle(int fd, ServerService& service);
 			~RequestHandle();
 			void set_delete_handle(RequestHandle_s& self);
-			void set_login_info(const Loginer::LoginInfo& info, int fd);
+			void set_login_info(const Loginer::LoginInfo& info, int thread_id);
 			QueryCtx_s &get_query_ctx() { return query_ctx; }
 			const String &get_current_query() const { return cur_query; }
 

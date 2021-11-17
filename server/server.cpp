@@ -82,14 +82,13 @@ void ServerService::do_login(int fd)
 	Loginer loginer(m_thread_id, fd);
 	if (loginer.login() == SUCCESS) {
 		auto ptr = RequestHandle_s(new RequestHandle(fd, *this));
-		m_processlist[fd] = ptr;
-		ptr->set_login_info(loginer.get_login_info(), fd);
+		m_processlist[m_thread_id] = ptr;
+		ptr->set_login_info(loginer.get_login_info(), m_thread_id);
 		ptr->set_delete_handle(ptr);
 		++m_clients;
 		++m_thread_id;
 		LOG_TRACE("new client login", K(fd));
-	}
-	else {
+	} else {
 		LOG_ERR("login failed");
 	}
 }

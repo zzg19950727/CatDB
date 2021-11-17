@@ -35,7 +35,7 @@ namespace CatDB {
             u32 cur_view_id;
             double sample_size;
             u32 affected_rows;
-            u32 pid;
+            u32 thread_id;
             bool killed;
         };
     }

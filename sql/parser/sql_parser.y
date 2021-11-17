@@ -1688,7 +1688,7 @@ kill_stmt:
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Kill);
 		check(cmd_stmt);
-		cmd_stmt->params.kill_params.pid = $2;
+		cmd_stmt->params.kill_params.thread_id = $2;
 		$$ = cmd_stmt;
 	}
 	;

@@ -164,11 +164,11 @@ u32 CMDStmt::get_set_var_params(String &var_name, String &var_value)
 	return ret;
 }
 
-u32 CMDStmt::get_kill_params(int &pid)
+u32 CMDStmt::get_kill_params(int &thread_id)
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(cmd_type == CMDStmt::Kill);
-	pid = params.kill_params.pid;
+	thread_id = params.kill_params.thread_id;
 	return ret;
 }
 

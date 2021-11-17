@@ -141,14 +141,16 @@ u32 PhySort::sort_rows()
 		row = Row::deep_copy(row);
 		rows.push_back(row);
 	}
+	if (NO_MORE_ROWS == ret) {
+		ret = SUCCESS;
+	} else {
+		return ret;
+	}
 	CHECK(quick_sort(rows, 0, rows.size() - 1));
 	auto cmp = [&](const Row_s& lhs, const Row_s& rhs) {return this->compare(lhs, rhs); };
 	//std::sort(rows.begin(), rows.end(), cmp);
 	pos = 0;
 	is_start = true;
-	if (NO_MORE_ROWS == ret) {
-		ret = SUCCESS;
-	}
 	return ret;
 }
 

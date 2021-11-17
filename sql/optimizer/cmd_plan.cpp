@@ -464,8 +464,8 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 	query_result->set_result_type(pos++, T_VARCHAR);
 	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
 		Vector<Object_s> cells;
-		Object_s pid = Varchar::make_object(std::to_string(iter->first));
-		cells.push_back(pid);
+		Object_s thread_id = Varchar::make_object(std::to_string(iter->first));
+		cells.push_back(thread_id);
 		Object_s sql=Varchar::make_object(iter->second->get_current_query());
 		cells.push_back(sql);
 		query_result->add_row(cells);
@@ -476,17 +476,15 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 u32 CMDPlan::do_kill_process()
 {
 	u32 ret = SUCCESS;
-	int pid;
+	int thread_id;
 	CMDStmt_s stmt = lex_stmt;
 	MY_ASSERT(query_ctx);
-	CHECK(stmt->get_kill_params(pid));
-	if (pid == 0) {
+	CHECK(stmt->get_kill_params(thread_id));
+	if (ServerService::m_processlist.find(thread_id) != ServerService::m_processlist.cend()) {
+		ServerService::m_processlist[thread_id]->get_query_ctx()->killed = true;
+	} else {
 		//kill self
 		query_ctx->killed = true;
-	} else {
-		if (ServerService::m_processlist.find(pid) != ServerService::m_processlist.cend()) {
-			ServerService::m_processlist[pid]->get_query_ctx()->killed = true;
-		}
 	}
 	return ret;
 }
