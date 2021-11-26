@@ -827,6 +827,7 @@ String OpExprStmt::to_string()const
 				ret += " END";
 			}
 			break;
+		case OP_IFNULL:
 		defualt: 
 			ret += "UNKNOWN";
 			break;
@@ -915,6 +916,7 @@ String OpExprStmt::op_string(OperationType op_type)
 		case OP_NOT_LIKE: return N(OP_NOT_LIKE);
 		case OP_CAST: return N(OP_CAST);
 		case OP_CASE_WHEN: return N(OP_CASE_WHEN);
+		case OP_IFNULL: return N(OP_IFNULL);
 		defualt: return N(UNKNOWN);
 	}
 	return "";

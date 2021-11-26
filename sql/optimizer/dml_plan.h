@@ -167,7 +167,7 @@ namespace CatDB {
 								JoinAlgo &algo);
 			u32 add_join_order(LogicalOperator_s& join_order, u32 level);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);
-			virtual u32 generate_plan_tree() = 0;
+			virtual u32 generate_plan_tree() override = 0;
 			u32 set_table_access_columns(LogicalOperator_s &op);
 			u32 generate_subplan();
 			u32 init_leading_info();

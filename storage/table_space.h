@@ -22,8 +22,8 @@ namespace CatDB {
 			//对外获取记录接口
 			u32 open();
 			u32 get_next_row(Row_s& row);
-			u32 reset() override;
-			u32 close() override;
+			u32 reset();
+			u32 close();
 
 			//
 			u32 insert_row(const Row_s& row);
