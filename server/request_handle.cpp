@@ -83,7 +83,8 @@ void RequestHandle::read_socket(int fd)
 	bool state = true;
 	while(state)
 	{
-		if(state=m_read_cache.read_package(buffer))
+		state = m_read_cache.read_package(buffer);
+		if(state)
 		{
 			handle_request(buffer.data, buffer.length);
 		}

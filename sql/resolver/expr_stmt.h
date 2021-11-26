@@ -64,12 +64,12 @@ namespace CatDB {
 			ConstStmt();
 		public:
 			~ConstStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_const_stmt(const Object_s& value);
-			String to_string()const;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
-			bool same_as(const ExprStmt_s& other);
-			u32 formalize();
+			String to_string()const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			bool same_as(const ExprStmt_s& other) override;
+			u32 formalize() override;
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				K(value)
@@ -85,12 +85,12 @@ namespace CatDB {
 			ExecParamStmt();
 		public:
 			~ExecParamStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_exec_param_stmt(const ExprStmt_s& ref_expr);
-			String to_string()const;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
-			bool same_as(const ExprStmt_s& other);
-			u32 formalize();
+			String to_string()const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			bool same_as(const ExprStmt_s& other) override;
+			u32 formalize() override;
 			ExprStmt_s& get_ref_expr() { return ref_expr; }
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
@@ -112,14 +112,14 @@ namespace CatDB {
 			ColumnStmt();
 		public:
 			~ColumnStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_column_stmt(const String& table, const String& column);
 			static ExprStmt_s make_all_column_stmt();
-			u32 formalize();
+			u32 formalize() override;
 			bool is_all_column()const;
-			String to_string()const;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
-			bool same_as(const ExprStmt_s& other);
+			String to_string()const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				K(table),
@@ -143,14 +143,14 @@ namespace CatDB {
 			SetExprStmt();
 		public:
 			~SetExprStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_set_expr(SetOpType type, u32 idx);
-			u32 formalize();
+			u32 formalize() override;
 			void set_index(u32 idx) { index = idx; }
 			u32 get_index() const { return index; }
-			String to_string()const;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
-			bool same_as(const ExprStmt_s& other);
+			String to_string()const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(type, SetOpTypeString[type]),
 				K(index)
@@ -169,11 +169,11 @@ namespace CatDB {
 			SubQueryStmt();
 		public:
 			~SubQueryStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_query_stmt();
-			String to_string()const;
-			u32 formalize();
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
+			String to_string()const override;
+			u32 formalize() override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) { return false;}
 			Vector<ExecParamStmt_s>& get_corrected_exprs() { return exec_params; }
 			void add_corrected_exprs(ExecParamStmt_s expr);
@@ -197,15 +197,15 @@ namespace CatDB {
 			ListStmt();
 		public:
 			~ListStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_list_stmt();
-			String to_string()const;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
+			String to_string()const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			u32 size() const { return params.size(); }
 			ExprStmt_s& at(u32 i) { return params[i]; }
 			void push_back(const ExprStmt_s &expr) { params.push_back(expr); }
 			void clear() { params.clear(); }
-			u32 formalize();
+			u32 formalize() override;
 			bool same_as(const ExprStmt_s &other);
 			KV_STRING_OVERRIDE(
 				V(params)
@@ -219,12 +219,12 @@ namespace CatDB {
 			AggrStmt();
 		public:
 			~AggrStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_aggr_stmt();
-			String to_string()const;
+			String to_string()const override;
 			String aggr_func_name()const;
-			u32 formalize();
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
+			u32 formalize() override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other);
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
@@ -249,11 +249,11 @@ namespace CatDB {
 			OpExprStmt(OperationType op_type);
 		public:
 			~OpExprStmt();
-			ExprType expr_type()const;
+			ExprType expr_type()const override;
 			static ExprStmt_s make_op_expr_stmt(OperationType op_type);
-			String to_string()const;
-			u32 formalize();
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
+			String to_string()const override;
+			u32 formalize() override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other);
 			//json print
 			static String op_string(OperationType op_type);

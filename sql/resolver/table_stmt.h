@@ -26,7 +26,7 @@ namespace CatDB {
 			bool is_view_table()const {return table_type == ViewTable;}
 			virtual bool is_dual_table() const { return false; }
 			bool is_basic_and_not_dual_table() const { return is_basic_table() && !is_dual_table(); }
-			bool same_as(const TableStmt_s& other)	{ return false; }
+			virtual bool same_as(const TableStmt_s& other)	{ return false; }
 			virtual u32 get_table_exprs(Vector<ExprStmt_s> &exprs);
 			virtual u32 replace_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                 	  const Vector<ExprStmt_s> &new_exprs);
@@ -57,10 +57,10 @@ namespace CatDB {
 		public:
 			static TableStmt_s make_basic_table(const String &database, const String& table_name);
 			static TableStmt_s make_dual_table();
-			bool is_dual_table() const { return is_dual; }
-			u32 deep_copy(TableStmt_s &table, u32 flag)const;
-			u32 formalize();
-			bool same_as(const TableStmt_s& other);
+			bool is_dual_table() const override { return is_dual; }
+			u32 deep_copy(TableStmt_s &table, u32 flag)const override;
+			u32 formalize() override;
+			bool same_as(const TableStmt_s& other) override;
 			
 			
 			KV_STRING_OVERRIDE(
@@ -94,8 +94,8 @@ namespace CatDB {
 			static TableStmt_s make_joined_table(TableStmt_s &left_table,
 												 TableStmt_s &right_table,
 												 JoinType join_type);
-			u32 deep_copy(TableStmt_s &table, u32 flag)const;
-			u32 formalize();
+			u32 deep_copy(TableStmt_s &table, u32 flag)const override;
+			u32 formalize() override;
 			u32 get_table_items(Vector<TableStmt_s> &table_items);
 			u32 get_table_exprs(Vector<ExprStmt_s> &exprs)override;
 			u32 replace_exprs(const Vector<ExprStmt_s> &old_exprs, 
@@ -123,8 +123,8 @@ namespace CatDB {
 			ViewTableStmt(Stmt_s &ref_query);
 		public:
 			static TableStmt_s make_view_table(Stmt_s ref_query);
-			u32 deep_copy(TableStmt_s &table, u32 flag)const;
-			u32 formalize();
+			u32 deep_copy(TableStmt_s &table, u32 flag)const override;
+			u32 formalize() override;
 			DECLARE_KV_STRING_OVERRIDE;
 			SelectStmt_s ref_query;
 		};

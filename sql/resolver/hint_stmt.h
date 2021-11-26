@@ -47,9 +47,9 @@ namespace CatDB {
 			void set_join_algo(JoinAlgo algo) { join_algo = algo; }
 			JoinAlgo get_join_algo() const { return join_algo; }
 			String print_outline() override;
-			u32 deep_copy(HintStmt_s &hint, u32 flag) const;
+			u32 deep_copy(HintStmt_s &hint, u32 flag) const override;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(type, get_type_name()),
 				K(qb_name),
 				KV(join_algo, JoinAlgoString[join_algo]),
@@ -90,9 +90,9 @@ namespace CatDB {
 			~LeadingHintStmt() {}
 			void set_is_ordered() { is_ordered = true; }
 			String print_outline() override;
-			u32 deep_copy(HintStmt_s &hint, u32 flag) const;
+			u32 deep_copy(HintStmt_s &hint, u32 flag) const override;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(type, get_type_name()),
 				K(qb_name),
 				K(is_ordered),
@@ -114,9 +114,9 @@ namespace CatDB {
 		public:
 			~ParallelHintStmt() {}
 			String print_outline() override;
-			u32 deep_copy(HintStmt_s &hint, u32 flag) const;
+			u32 deep_copy(HintStmt_s &hint, u32 flag) const override;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(type, get_type_name()),
 				K(parallel)
 			);

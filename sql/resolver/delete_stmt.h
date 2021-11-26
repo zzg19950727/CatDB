@@ -18,7 +18,7 @@ namespace CatDB {
 			~DeleteStmt();
 			StmtType stmt_type()const override;
 			static Stmt_s make_delete_stmt();
-			u32 formalize();
+			u32 formalize() override;
 		protected:
 			u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
 			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 

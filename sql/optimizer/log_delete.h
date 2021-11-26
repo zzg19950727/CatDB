@@ -15,7 +15,7 @@ namespace CatDB {
                 :SingleChildLogicalOperator(child),
 				is_delete_all(false) {}
 			virtual ~LogDelete() {}
-			virtual u32 type() const {return LogicalOperator::LOG_DELETE;}
+			virtual u32 type() const override {return LogicalOperator::LOG_DELETE;}
 			static LogicalOperator_s make_delete(LogicalOperator_s &child,
 												BasicTableStmt_s &delete_table,
 												ColumnStmt_s& row_id,
@@ -23,7 +23,7 @@ namespace CatDB {
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;
-			void print_plan(u32 depth, Vector<PlanInfo> &plan_info);
+			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
 		public:
 			BasicTableStmt_s table_item;
 			ColumnStmt_s row_id;

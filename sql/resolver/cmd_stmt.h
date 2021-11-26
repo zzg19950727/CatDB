@@ -74,7 +74,7 @@ namespace CatDB {
             u32 get_set_var_params(String &var_name, String &var_value);
             u32 get_kill_params(int &thread_id);
             String get_cmd_type()const;
-            u32 formalize();
+            u32 formalize() override;
 		public:
             struct CMDParams{
                 //for create table
