@@ -16,8 +16,6 @@ CatDB
 SqlGenerator
 log.txt
 sql/parser/sql_parser.output
-sql/parser/sql_parser.cpp
-sql/parser/sql_scanner.cpp
 core.*
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

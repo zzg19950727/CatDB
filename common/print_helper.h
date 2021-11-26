@@ -14,7 +14,7 @@ to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String(
 #define DEFINE_KV_STRING(CLASS, ...) String \
 CLASS::to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
 
-
+String to_kv_string(const long long& value);
 String to_kv_string(const char& value);
 String to_kv_string(const u8& value);
 String to_kv_string(const u16& value);

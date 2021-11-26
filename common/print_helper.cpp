@@ -6,6 +6,7 @@
                                             return out.str(); \
                                         }
 
+TO_STRING_DEFINE(long long);
 TO_STRING_DEFINE(char);
 TO_STRING_DEFINE(u16);
 TO_STRING_DEFINE(u32);

@@ -10,8 +10,13 @@
 #define SET_FILE_POS(fpos, u64_v)	(fpos) = (u64_v);
 #define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos);
 #else
-#define SET_FILE_POS(fpos, u64_v)	(fpos.__pos) = (u64_v);
-#define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos.__pos);
+	#ifdef __linux__
+	#define SET_FILE_POS(fpos, u64_v)	(fpos.__pos) = (u64_v);
+	#define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos.__pos);
+	#else
+	#define SET_FILE_POS(fpos, u64_v)	(fpos) = (u64_v);
+	#define GET_FILE_POS(u64_v, fpos)	(u64_v) = (fpos);
+	#endif //__linux__
 #endif	//_WIN32
 using namespace CatDB::Storage;
 
