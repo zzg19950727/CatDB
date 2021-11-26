@@ -16,7 +16,7 @@ namespace CatDB {
 			DeleteStmt();
 		public:
 			~DeleteStmt();
-			StmtType stmt_type()const;
+			StmtType stmt_type()const override;
 			static Stmt_s make_delete_stmt();
 			u32 formalize();
 		protected:
@@ -24,7 +24,7 @@ namespace CatDB {
 			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                    		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(stmt_type, N(DELETE)),
 				K(is_explain),
 				K(stmt_hint),

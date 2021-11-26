@@ -10,7 +10,7 @@ namespace CatDB {
         {
         public:
             SelectResolver(SelectStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
-            ~SelectResolver();
+            virtual ~SelectResolver();
             u32 resolve_stmt();
         private:
             u32 resolve_select_list();

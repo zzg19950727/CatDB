@@ -15,7 +15,7 @@ namespace CatDB {
 		protected:
 			TableStmt();
 		public:
-			~TableStmt();
+			virtual ~TableStmt();
 			enum TableType {BasicTable = 0, JoinedTable, ViewTable};
 			
 			String to_string()const {return alias_name;}
@@ -63,7 +63,7 @@ namespace CatDB {
 			bool same_as(const TableStmt_s& other);
 			
 			
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(table_type, get_table_type_name(table_type)),
 				K(database),
 				K(table_name),
@@ -101,7 +101,7 @@ namespace CatDB {
 			u32 replace_exprs(const Vector<ExprStmt_s> &old_exprs, 
                               const Vector<ExprStmt_s> &new_exprs)override;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(table_type, get_table_type_name(table_type)),
 				KV(join_type, JoinTypeString[join_type]),
 				K(table_id),
@@ -125,7 +125,7 @@ namespace CatDB {
 			static TableStmt_s make_view_table(Stmt_s ref_query);
 			u32 deep_copy(TableStmt_s &table, u32 flag)const;
 			u32 formalize();
-			DECLARE_KV_STRING;
+			DECLARE_KV_STRING_OVERRIDE;
 			SelectStmt_s ref_query;
 		};
 	}

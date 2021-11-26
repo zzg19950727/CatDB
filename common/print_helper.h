@@ -11,8 +11,13 @@
 to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
 #define VIRTUAL_KV_STRING(...) virtual KV_STRING(__VA_ARGS__)
 #define DECLARE_KV_STRING String to_kv_string()const;
+#define DECLARE_KV_STRING_OVERRIDE String to_kv_string()const override;
+
 #define DEFINE_KV_STRING(CLASS, ...) String \
 CLASS::to_kv_string()const { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
+
+#define KV_STRING_OVERRIDE(...) String \
+to_kv_string()const override { return String("{") + ::to_kv_string(__VA_ARGS__) + String("}"); }
 
 String to_kv_string(const long long& value);
 String to_kv_string(const char& value);

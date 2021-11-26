@@ -35,7 +35,7 @@ namespace CatDB {
         {
         public:
             DMLResolver(DMLStmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
-            ~DMLResolver();
+            virtual ~DMLResolver();
             virtual u32 resolve_stmt() = 0;
             static u32 resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
         protected:

@@ -112,7 +112,7 @@ namespace CatDB {
 			Object_s op_and (const Object_s& other) override;
 			Object_s op_or (const Object_s& other) override;
 			Object_s op_not()override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 					KV(obj_type,type()),
 					K(err_code));
 
@@ -142,7 +142,7 @@ namespace CatDB {
 			Object_s operator>(const Object_s& other) override;
 			Object_s operator<(const Object_s& other) override;
 			Object_s exists()override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 					KV(obj_type,type()),
 					K(value));
 
@@ -162,7 +162,7 @@ namespace CatDB {
 			bool is_fixed_length() override;
 			bool bool_value() override;
 			u32 hash() override;
-			double value() const;
+			double value() const override;
 			String to_string()const override;
 			Object_s copy()override;
 			void set_scale(int value);
@@ -179,7 +179,7 @@ namespace CatDB {
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void increase()override;
 			void accumulate(const Object_s& other)override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 					KV(obj_type, type()), 
 					K(scale), 
 					KV(data, to_string()));
@@ -203,7 +203,7 @@ namespace CatDB {
 			u32 hash() override;
 			String to_string()const override;
 			Object_s copy()override;
-			double value() const;
+			double value() const override;
 			static time_t StringToDatetime(const String& str);
 			static String DatetimeToString(time_t t);
 			static String CurrentDatetime();
@@ -216,7 +216,7 @@ namespace CatDB {
 			Object_s exists()override;
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			void accumulate(const Object_s& other)override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 					KV(obj_type,type()), 
 					KV(data, to_string()));
 
@@ -245,7 +245,7 @@ namespace CatDB {
 			Object_s exists()override;
 			Object_s between(const Object_s& left, const Object_s& right)override;
 			Object_s like(const Object_s& other)override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(obj_type,type()),
 				KV(data, to_string()));
 
@@ -269,7 +269,7 @@ namespace CatDB {
 			Object_s in(const Object_s& other)override;
 			Object_s not_in(const Object_s& other)override;
 			Object_s exists()override;
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 					KV(obj_type,type()),
 					K(list));
 

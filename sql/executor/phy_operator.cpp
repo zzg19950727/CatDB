@@ -84,6 +84,7 @@ u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
 u32 PhyOperator::set_filter(const PhyFilter_s& filter) 
 { 
 	this->filter = filter; 
+	return SUCCESS;
 }
 
 PhyFilter_s PhyOperator::get_filter()const 

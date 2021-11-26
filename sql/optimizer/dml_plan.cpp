@@ -4,6 +4,7 @@
 #include "log_view.h"
 #include "dml_plan.h"
 #include "select_stmt.h"
+#include "table_stmt.h"
 #include "dml_stmt.h"
 #include "expr_utils.h"
 #include "join_property.def"
@@ -466,7 +467,7 @@ u32 DMLPlan::generate_join_operator(LogicalOperator_s &left,
 u32 DMLPlan::generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt, LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(table_stmt != NULL);
+    MY_ASSERT(table_stmt);
     LogicalOperator_s left_op, right_op;
     JoinInfo join_info;
     join_info.join_type = table_stmt->join_type;
@@ -484,7 +485,7 @@ u32 DMLPlan::generate_join_order_with_joined_table(JoinedTableStmt_s table_stmt,
 u32 DMLPlan::generate_join_order_with_basic_table(BasicTableStmt_s table_stmt, LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(table_stmt != NULL);
+    MY_ASSERT(table_stmt);
     if (table_stmt->is_dual) {
         op = LogDualTable::make_dual_table(table_stmt);
     } else {
@@ -500,7 +501,7 @@ u32 DMLPlan::generate_join_order_with_basic_table(BasicTableStmt_s table_stmt, L
 u32 DMLPlan::generate_join_order_with_view_table(ViewTableStmt_s table_stmt, LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(table_stmt != NULL);
+    MY_ASSERT(table_stmt);
     CHECK(generate_sub_select_plan_tree(table_stmt->ref_query, op));
     op = LogView::make_view(table_stmt, op);
     op->init(query_ctx, est_info);

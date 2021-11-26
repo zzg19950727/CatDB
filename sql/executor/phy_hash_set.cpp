@@ -78,6 +78,7 @@ u32 CatDB::Sql::PhyHashSetOp::inner_get_next_row(Row_s & row)
 		case EXCEPT:
 			return get_next_row_except(row);
 	}
+	return ERR_UNEXPECTED;
 }
 
 u32 CatDB::Sql::PhyHashSetOp::get_next_row_union_all(Row_s &row)

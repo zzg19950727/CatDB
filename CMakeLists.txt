@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.0)
 project(CatDB CXX)
 
 #set(CMAKE_CXX_COMPILER "g++")
-set (CMAKE_CXX_FLAGS  "-std=c++11 -w ")
+set (CMAKE_CXX_FLAGS  "-std=c++11 -Wno-delete-incomplete")
 if (WIN32)
     set (PLATFORM_LIBS Ws2_32 mswsock iphlpapi ntdll)
 else (WIN32)

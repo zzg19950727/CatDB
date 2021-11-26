@@ -90,6 +90,7 @@ namespace CatDB {
 		protected:
 			ConstExpression() {}
 			ConstExpression(const Object_s& object);
+			virtual ~ConstExpression()=default;
 		public:
 			static Expression_s make_const_expression(const Object_s& object);
 			u32 set_object(Object_s& object);

@@ -17,7 +17,7 @@ namespace CatDB {
 			InsertStmt();
 		public:
 			~InsertStmt();
-			StmtType stmt_type()const;
+			StmtType stmt_type()const override;
 			static Stmt_s make_insert_stmt();
 			u32 formalize();
 		protected:
@@ -25,7 +25,7 @@ namespace CatDB {
 			u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                    		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
-			DECLARE_KV_STRING;
+			DECLARE_KV_STRING_OVERRIDE;
 
 		public:
 			BasicTableStmt_s table;

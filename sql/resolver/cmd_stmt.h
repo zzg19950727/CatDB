@@ -60,7 +60,7 @@ namespace CatDB {
                 ShowMemory
 			};
 			~CMDStmt();
-			StmtType stmt_type()const;
+			StmtType stmt_type()const override;
 			static Stmt_s make_cmd_stmt(CMDType cmd_type);
             u32 get_create_table_params(String &database, String &table, Vector<Pair<String, String>> &columns);
             u32 get_drop_table_params(String &database, String &table, bool &ignore_not_exists);
@@ -178,7 +178,7 @@ namespace CatDB {
             } params;
             CMDType cmd_type;
 
-            KV_STRING(
+            KV_STRING_OVERRIDE(
                 KV(cmd_type, get_cmd_type()),
                 K(params)
             );

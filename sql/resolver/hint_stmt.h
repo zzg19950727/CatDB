@@ -13,7 +13,7 @@ namespace CatDB {
 				is_global(false) {}
 		public:
 			enum HintType{QB_NAME = 0, NO_REWRITE, JOIN, LEADING, PARALLEL};
-			~HintStmt() {}
+			virtual ~HintStmt() {}
 			static HintStmt_s make_hint_stmt(HintType type);
 			String get_type_name() const;
 			bool has_qb_name() const { return !qb_name.empty(); }

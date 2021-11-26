@@ -93,7 +93,7 @@ namespace CatDB {
 		protected:
 			DMLPlan();
 		public:
-			~DMLPlan();
+			virtual ~DMLPlan();
 			virtual u32 build_plan();
 			virtual PlanType type()const = 0;
 			u32 generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 

@@ -56,6 +56,7 @@ Object_s Operation::calc(Object_s & obj)
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
 	}
+	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
@@ -115,6 +116,7 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
 	}
+	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj, Object_s & third_obj)
@@ -517,6 +519,7 @@ Object_s OpExpression::get_result(const Row_s & row)
 	case OP_CASE_WHEN:
 		return op.calcN(param_result);
 	}
+	return Error::make_object(OPERATION_NOT_SUPPORT);
 }
 
 ExprType OpExpression::get_type() const
@@ -597,6 +600,7 @@ u32 AggregateExpression::add_row(const Row_s & row)
 	default:
 		return UNKNOWN_AGG_FUNC;
 	}
+	return SUCCESS;
 }
 
 void AggregateExpression::reset()

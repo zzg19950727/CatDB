@@ -24,7 +24,7 @@ namespace CatDB {
 		{
 		public:
 			BufferCacheBase(int size);
-			~BufferCacheBase();
+			virtual ~BufferCacheBase();
 			int size()const;
 			int capacity()const;
 			bool is_empty()const;

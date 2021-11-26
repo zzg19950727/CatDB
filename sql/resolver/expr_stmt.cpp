@@ -917,4 +917,5 @@ String OpExprStmt::op_string(OperationType op_type)
 		case OP_CASE_WHEN: return N(OP_CASE_WHEN);
 		defualt: return N(UNKNOWN);
 	}
+	return "";
 }

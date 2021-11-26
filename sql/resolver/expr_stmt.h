@@ -24,7 +24,7 @@ namespace CatDB {
 		{
 		public:
 			ExprStmt();
-			~ExprStmt();
+			virtual ~ExprStmt();
 			virtual ExprType expr_type()const = 0;
 			virtual String to_string()const = 0;
 			virtual u32 formalize() = 0;
@@ -70,7 +70,7 @@ namespace CatDB {
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
 			u32 formalize();
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				K(value)
 			);
@@ -92,7 +92,7 @@ namespace CatDB {
 			bool same_as(const ExprStmt_s& other);
 			u32 formalize();
 			ExprStmt_s& get_ref_expr() { return ref_expr; }
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				K(ref_expr)
 			);
@@ -120,7 +120,7 @@ namespace CatDB {
 			String to_string()const;
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				K(table),
 				K(column),
@@ -151,7 +151,7 @@ namespace CatDB {
 			String to_string()const;
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			bool same_as(const ExprStmt_s& other);
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(type, SetOpTypeString[type]),
 				K(index)
 			);
@@ -179,7 +179,7 @@ namespace CatDB {
 			void add_corrected_exprs(ExecParamStmt_s expr);
 			void set_subquery_id(u32 id) { subquery_id = id; }
 			u32 get_subquery_id() const { return subquery_id; }
-			DECLARE_KV_STRING;
+			DECLARE_KV_STRING_OVERRIDE;
 
 		public:
 			SelectStmt_s query_stmt;
@@ -207,7 +207,7 @@ namespace CatDB {
 			void clear() { params.clear(); }
 			u32 formalize();
 			bool same_as(const ExprStmt_s &other);
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				V(params)
 			);
 		};
@@ -229,7 +229,7 @@ namespace CatDB {
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				KV(aggr_func, aggr_func_name()),
 				K(table_ids),
@@ -258,7 +258,7 @@ namespace CatDB {
 			//json print
 			static String op_string(OperationType op_type);
 			
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
 				KV(op_type, op_string(op_type)),
 				K(table_ids),

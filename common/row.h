@@ -59,7 +59,7 @@ namespace CatDB {
 			Row() = delete;
 			Row(const RowDesc &row_desc);
 		public:
-			~Row();
+			virtual ~Row();
 			static Row_s make_row(const RowDesc &row_desc);
 			static Row_s deep_copy(const Row_s &other);
 			//深拷贝

@@ -14,6 +14,7 @@ u32 LogicalOperator::init(QueryCtx_s &query_ctx, EstInfo_s& est_info)
 {
     this->query_ctx = query_ctx;
     this->est_info = est_info;
+    return SUCCESS;
 }
 
 String LogicalOperator::get_op_name()

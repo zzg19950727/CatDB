@@ -5,7 +5,7 @@
 class DMLGenerator {
 public:
     DMLGenerator(Config &conf);
-    ~DMLGenerator() {}
+    virtual ~DMLGenerator() {}
     void add_parent_params(vector<ParentParam> params);
     void add_parent_param(ParentParam &param);
     virtual void generate_query(string &query) = 0;
