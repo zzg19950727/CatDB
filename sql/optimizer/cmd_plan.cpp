@@ -9,6 +9,7 @@
 #include "table_stmt.h"
 #include "cmd_stmt.h"
 #include "request_handle.h"
+#include "memory_monitor.h"
 #include "query_ctx.h"
 #include "server.h"
 #include "stmt.h"
@@ -21,6 +22,7 @@ using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Storage;
 using namespace CatDB::Server;
+using namespace CatDB::Share;
 
 CMDPlan::CMDPlan()
 {
@@ -80,6 +82,9 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 			break;
 		case CMDStmt::Kill:
 			CHECK(do_kill_process());
+			break;
+		case CMDStmt::ShowMemory:
+			CHECK(do_show_memory(query_result));
 			break;
         default:
 			ret = INVALID_CMD_TYPE;
@@ -442,6 +447,8 @@ u32 CMDPlan::do_set_var()
 		set_debug_level(level);
 	} else if (var_name == "log_module") {
 		set_debug_module(var_value);
+	} else if (var_name == "trace_memory_mode") {
+		MemoryMonitor::make_memory_monitor().set_trace_mode(var_value);
 	} else {
 		ret = ERR_UNEXPECTED;
 		String msg = "unknown variable " + var_name;
@@ -486,5 +493,79 @@ u32 CMDPlan::do_kill_process()
 		//kill self
 		query_ctx->killed = true;
 	}
+	return ret;
+}
+
+String ptr2str(void *ptr)
+{
+	char tmp[128] = {0};
+	sprintf(tmp, "%p", ptr);
+	return String(tmp);
+}
+
+u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
+{
+	u32 ret = SUCCESS;
+	String mode = MemoryMonitor::make_memory_monitor().get_trace_mode();
+	MemoryMonitor::make_memory_monitor().set_trace_mode("");
+	String query = "delete from system.memory_use;";
+	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	query = "delete from system.memory_trace;";
+	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	String sql_insert_use = "insert into system.memory_use values";
+	bool has_use_info = false;
+	for (auto iter = MemoryMonitor::make_memory_monitor().mem_used.begin(); iter != MemoryMonitor::make_memory_monitor().mem_used.end(); ++iter) {
+		MemoryMonitor::MemInfo *info = iter->second;
+		sql_insert_use += "(";
+		sql_insert_use += "\"" + iter->first + "\"";
+		sql_insert_use += ", " + std::to_string(iter->second->use_count);
+		sql_insert_use += "),";
+		has_use_info = true;
+
+		String sql_insert_trace = "insert into system.memory_trace values";
+		bool has_trace_info = false;
+		for (auto iter2 = info->release_trace.begin(); iter2 != info->release_trace.end(); ++iter2) {
+			for (u32 j = 0; j < iter2->second.size(); ++j) {
+				sql_insert_trace += "(";
+				//mode
+				sql_insert_trace += "\"" + iter->first + "\"";
+				//ptr
+				sql_insert_trace += ", \"" + ptr2str(iter2->first) + "\"";
+				//release
+				sql_insert_trace += ", 1";
+				//trace_info
+				sql_insert_trace += ", \"" + iter2->second[j] + "\"";
+				sql_insert_trace += "),";
+				has_trace_info = true;
+			}
+		}
+		for (auto iter2 = info->reference_trace.begin(); iter2 != info->reference_trace.end(); ++iter2) {
+			for (u32 j = 0; j < iter2->second.size(); ++j) {
+				sql_insert_trace += "(";
+				//mode
+				sql_insert_trace += "\"" + iter->first + "\"";
+				//ptr
+				sql_insert_trace += ", \"" + ptr2str(iter2->first) + "\"";
+				//release
+				sql_insert_trace += ", 0";
+				//trace info
+				sql_insert_trace += ", \"" + iter2->second[j] + "\"";
+				sql_insert_trace += "),";
+				has_trace_info = true;
+			}
+		}
+		if (has_trace_info) {
+			sql_insert_trace[sql_insert_trace.size()-1]=';';
+			CHECK(SqlEngine::handle_inner_sql(sql_insert_trace, query_ctx, query_result));
+		}
+	}
+	if (has_use_info) {
+		sql_insert_use[sql_insert_use.size()-1]=';';
+		CHECK(SqlEngine::handle_inner_sql(sql_insert_use, query_ctx, query_result));
+	}
+	
+	query = "select * from system.memory_use order by 2;";
+	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	MemoryMonitor::make_memory_monitor().set_trace_mode(mode);
 	return ret;
 }

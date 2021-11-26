@@ -5,6 +5,7 @@
 #include "select_plan.h"
 #include "cmd_plan.h"
 #include "expr_stmt.h"
+#include "query_ctx.h"
 #include "plan.h"
 #include "stmt.h"
 #include "error.h"
@@ -15,7 +16,6 @@ using namespace CatDB::Parser;
 using namespace CatDB::Optimizer;
 
 Plan::Plan()
-	:query_ctx(NULL)
 {
 }
 

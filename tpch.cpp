@@ -3,11 +3,20 @@
 #include <fstream>
 #include <iostream>
 #include "sql_engine.h"
-#include "query_ctx.h"
 #include "error.h"
-using namespace CatDB::Sql;
 
-void splite(const String& line, char c, Vector<String>& list)
+LoadTpch::LoadTpch(QueryCtx_s &query_ctx)
+	:query_ctx(query_ctx)
+{
+
+}
+
+LoadTpch::~LoadTpch()
+{
+	
+}
+
+void LoadTpch::splite(const String& line, char c, Vector<String>& list)
 {
 	String tmp;
 	for (u32 i = 0; i < line.size(); ++i) {
@@ -21,14 +30,13 @@ void splite(const String& line, char c, Vector<String>& list)
 	}
 }
 
-bool execute_sql(const String& query)
+bool LoadTpch::execute_sql(const String& query)
 {
-	QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
 	ResultSet_s result_set;
 	return SqlEngine::handle_inner_sql(query, query_ctx, result_set) == SUCCESS;
 }
 
-void create_table()
+void LoadTpch::create_table()
 {
 	Vector<String> sqls = {
 		R"(CREATE TABLE TPCH.NATION(N_NATIONKEY  NUMERIC,
@@ -107,7 +115,7 @@ void create_table()
 	}
 }
 
-void load_nation_data()
+void LoadTpch::load_nation_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//nation.tbl");
@@ -142,7 +150,7 @@ void load_nation_data()
 	}
 }
 
-void load_region_data()
+void LoadTpch::load_region_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//region.tbl");
@@ -177,7 +185,7 @@ void load_region_data()
 	}
 }
 
-void load_supplier_data()
+void LoadTpch::load_supplier_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//supplier.tbl");
@@ -214,7 +222,7 @@ void load_supplier_data()
 	}
 }
 
-void load_part_data()
+void LoadTpch::load_part_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//part.tbl");
@@ -277,7 +285,7 @@ void load_part_data()
 	std::cout << "\nload part success" << std::endl;
 }
 
-void load_customer_data()
+void LoadTpch::load_customer_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//customer.tbl");
@@ -339,7 +347,7 @@ void load_customer_data()
 	std::cout << "\nload customer success" << std::endl;
 }
 
-void load_partsupp_data()
+void LoadTpch::load_partsupp_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//partsupp.tbl");
@@ -397,7 +405,7 @@ void load_partsupp_data()
 	std::cout << "\nload partsupp success" << std::endl;
 }
 
-void load_orders_data()
+void LoadTpch::load_orders_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//orders.tbl");
@@ -460,7 +468,7 @@ void load_orders_data()
 	std::cout << "\nload orders success" << std::endl;
 }
 
-void load_lineitem_data()
+void LoadTpch::load_lineitem_data()
 {
 	std::ifstream in;
 	in.open("tpch-data//lineitem.tbl");
@@ -525,23 +533,4 @@ void load_lineitem_data()
 		}
 	}
 	std::cout << "\nload lineitem success " << std::endl;
-}
-
-void init_db()
-{
-	String sqls[] = {
-	"drop database test",
-	"drop database system",
-	"create database system",
-	"create table system.sys_databases(id int, name varchar)",
-	"create table system.sys_tables(id int, name varchar, db_id int)",
-	"create table system.sys_columns(id int, name varchar, table_id int, type varchar)",
-	"create table system.user(name varchar, host varchar, auth_string varchar)",
-	"create table system.table_statis(tid int, row_count int, space_size int, analyze_time datetime)",
-	"create table system.column_statis(tid int, cid int, ndv int, null_count int, max_value int, min_value int, analyze_time datetime)",
-	"create database test"
-	};
-	for (u32 i = 0; i < 10; ++i) {
-		execute_sql(sqls[i]);
-	}
 }

@@ -60,10 +60,10 @@ namespace CatDB {
 			//获取当前算子的类型
 			virtual u32 type() const = 0;
 			void set_output_exprs(u32 operator_id, const Vector<Expression_s> &exprs);
-			u32 set_filter(const PhyFilter_s& filter) { this->filter = filter; }
-			PhyFilter_s get_filter()const { return filter; }
+			u32 set_filter(const PhyFilter_s& filter);
+			PhyFilter_s get_filter()const;
 			void set_row_desc(RowDesc &desc) { output_desc = desc; }
-			void set_query_ctx(QueryCtx_s &ctx) { query_ctx = ctx; }
+			void set_query_ctx(QueryCtx_s &ctx);
 		public:
 			u32 make_row(Row_s &row);
 			u32 make_const_row(Object_s &const_value, Row_s &row);

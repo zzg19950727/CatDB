@@ -81,6 +81,21 @@ u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
 	return ret;
 }
 
+u32 PhyOperator::set_filter(const PhyFilter_s& filter) 
+{ 
+	this->filter = filter; 
+}
+
+PhyFilter_s PhyOperator::get_filter()const 
+{ 
+	return filter; 
+}
+
+void PhyOperator::set_query_ctx(QueryCtx_s &ctx) 
+{ 
+	query_ctx = ctx; 
+}
+
 u32 PhyOperator::check_status()
 {
 	u32 ret = SUCCESS;

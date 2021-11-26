@@ -186,6 +186,9 @@ String CMDStmt::get_cmd_type()const
 		case UseDatabase: return String(VAR_NAME(UseDatabase));
 		case Analyze: return String(VAR_NAME(Analyze));
 		case SetVar: return String(VAR_NAME(SetVar));
+		case ShowProcesslist: return String(VAR_NAME(ShowProcesslist));
+        case Kill: return String(VAR_NAME(Kill));
+        case ShowMemory: return String(VAR_NAME(ShowMemory));
 		default: return String("UNKNOWN");
 	}
 }

@@ -21,6 +21,7 @@ namespace CatDB {
 			void new_connection(int fd, NetService::Event e);
 			void do_login(int fd);
 			void close_connection(int fd);
+			void kill_all_process();
 
 			NetService& net_service();
 			ThreadPool& workers();

@@ -104,7 +104,7 @@ u32 TableSpace::insert_row(const Row_s & row)
 	}else{//创建新的页存放
 		LOG_TRACE("page have no free space to insert row", K(page));
 		u32 offset = page->next_page_offset();
-		Page_s page;
+		pages.erase(page);
 		create_page(offset, page);
 		return page->insert_row(row_id, row);
 	}

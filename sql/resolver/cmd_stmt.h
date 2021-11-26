@@ -56,7 +56,8 @@ namespace CatDB {
 				Analyze,
                 SetVar,
                 ShowProcesslist,
-                Kill
+                Kill,
+                ShowMemory
 			};
 			~CMDStmt();
 			StmtType stmt_type()const;

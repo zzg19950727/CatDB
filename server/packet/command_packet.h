@@ -2,14 +2,12 @@
 #define COMMAND_PACKET_H
 
 #include "packet_header.h"
-#include "error.h"
 #include "type.h"
 
 namespace CatDB
 {
 	namespace Server
 	{
-		DECLARE(Request);
 		DECLARE(CommandPacket);
 
 		class CommandPacket
@@ -50,14 +48,7 @@ namespace CatDB
 				return type_;
 			}
 
-			int set_request(Request_s req);
-
 			void set_command(char* command, const int32_t length);
-
-			inline Request_s get_request() const
-			{
-				return req_;
-			}
 
 			int32_t get_command_length() const;
 
@@ -68,7 +59,6 @@ namespace CatDB
 			PacketHeader header_;
 			uint8_t type_;
 			String command_;
-			Request_s req_;                 //request pointer for send response
 			CommandPacket_s next_;
 			int64_t receive_ts_;
 		};

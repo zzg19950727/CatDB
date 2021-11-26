@@ -1,5 +1,6 @@
 #ifndef EXPR_GENERATOR_H
 #define EXPR_GENERATOR_H
+#include "phy_operator.h"
 #include "type.h"
 
 namespace CatDB {

@@ -3,7 +3,7 @@
 using namespace CatDB::Server;
 
 CommandPacket::CommandPacket() 
-	: type_(0), req_(NULL), next_(NULL), receive_ts_(-1)
+	: type_(0), next_(NULL), receive_ts_(-1)
 {
 
 }
@@ -16,21 +16,6 @@ CommandPacket::~CommandPacket()
 int32_t CommandPacket::get_command_length() const
 {
 	return command_.length();
-}
-
-int CommandPacket::set_request(Request_s req)
-{
-	int ret = SUCCESS;
-	if (!req)
-	{
-		LOG_ERR("invalid argument");
-		ret = INVALID_ARGUMENT;
-	}
-	else
-	{
-		req_ = req;
-	}
-	return ret;
 }
 
 void CommandPacket::set_command(char* data, const int32_t length)

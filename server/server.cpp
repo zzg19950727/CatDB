@@ -2,6 +2,7 @@
 #include "schema_guard.h"
 #include "statis_manager.h"
 #include "table_space.h"
+#include "query_ctx.h"
 #include "loginer.h"
 #include "server.h"
 #include "error.h"
@@ -102,10 +103,18 @@ void ServerService::close_connection(int fd)
 
 void ServerService::close_connection()
 {
+	kill_all_process();
 	net_close(m_fd);
 	m_fd = -1;
 	m_workers.quit();
 	LOG_INFO("stop ServerService success");
+}
+
+void ServerService::kill_all_process()
+{
+	for (auto iter = m_processlist.begin(); iter != m_processlist.end(); ++iter) {
+		iter->second->get_query_ctx()->killed = true;
+	}
 }
 
 NetService& ServerService::net_service()

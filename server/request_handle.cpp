@@ -434,8 +434,9 @@ void RequestHandle::handle_request(char* buf, size_t len)
 }
 
 void RequestHandle::load_tpch_data()
-{/*
-	create_table();
+{
+	LoadTpch tpch(query_ctx);
+	tpch.create_table();/*
 	Task_type task = std::bind(load_lineitem_data);
 	m_server_service.workers().append_task(task);
 	task = std::bind(load_orders_data);
@@ -449,10 +450,9 @@ void RequestHandle::load_tpch_data()
 	task = std::bind(load_supplier_data);
 	m_server_service.workers().append_task(task);
 	task = std::bind(load_region_data);
+	m_server_service.workers().append_task(task);
+	task = std::bind(load_nation_data);
 	m_server_service.workers().append_task(task);*/
-	Task_type task = std::bind(load_nation_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_partsupp_data);
-	m_server_service.workers().append_task(task);
+	tpch.load_lineitem_data();
 	send_ok_packet();
 }

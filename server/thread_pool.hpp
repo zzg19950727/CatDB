@@ -64,6 +64,11 @@ namespace CatDB {
 				}
 			}
 
+			bool has_task() const
+			{
+				return !m_tasks.empty();
+			}
+
 			void clear()
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
@@ -181,6 +186,10 @@ namespace CatDB {
 					}
 					else
 					{
+						if (m_tasks.has_task()) 
+						{
+							m_condition.notify_one();
+						}
 						++m_running;
 						task();
 						--m_running;

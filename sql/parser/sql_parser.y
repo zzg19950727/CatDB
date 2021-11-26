@@ -248,6 +248,7 @@
 %token JOIN
 %token LEFT
 %token LIMIT
+%token MEMORY
 %token NUMBER
 %token ORDER
 %token ON
@@ -1582,6 +1583,12 @@ opt_if_exists:
 	| SHOW PROCESSLIST
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowProcesslist);
+		check(cmd_stmt);
+		$$ = cmd_stmt;
+	}
+	| SHOW MEMORY
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowMemory);
 		check(cmd_stmt);
 		$$ = cmd_stmt;
 	}

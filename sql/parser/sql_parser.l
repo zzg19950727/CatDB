@@ -89,6 +89,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "join"			{ return CatDB::SqlParser::make_JOIN(loc); }
 "left"			{ return CatDB::SqlParser::make_LEFT(loc); }
 "limit"			{ return CatDB::SqlParser::make_LIMIT(loc); }
+"memory"		{ return CatDB::SqlParser::make_MEMORY(loc); }
 "number"		{ return CatDB::SqlParser::make_NUMBER(loc); }
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
