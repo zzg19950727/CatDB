@@ -18,7 +18,7 @@ namespace CatDB {
 			~DeletePlan();
 			static Plan_s make_delete_plan(const Stmt_s& lex_delete_stmt);
 			PlanType type() const override;
-			u32 generate_plan_tree();
+			u32 generate_plan_tree() override;
 		};
 	}
 }

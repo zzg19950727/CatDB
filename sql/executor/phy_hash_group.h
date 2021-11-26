@@ -29,10 +29,10 @@ namespace CatDB {
 				const Vector<Expression_s>& agg_funcs);
 
 			//物理算子必须提供的接口
-			u32 inner_open();
-			u32 close();
-			u32 reset();
-			u32 inner_get_next_row(Row_s &row);
+			u32 inner_open() override;
+			u32 close() override;
+			u32 reset() override;
+			u32 inner_get_next_row(Row_s &row) override;
 			u32 type() const override;
 		private:
 			u32 build_hash_table();

@@ -94,7 +94,7 @@ namespace CatDB {
 			DMLPlan();
 		public:
 			virtual ~DMLPlan();
-			virtual u32 build_plan();
+			virtual u32 build_plan() override;
 			virtual PlanType type()const override = 0;
 			u32 generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 
 											Vector<ExprStmt_s> &conds,

@@ -19,7 +19,7 @@ namespace CatDB {
 			static Plan_s make_insert_plan(const Stmt_s& lex_insert_stmt);
 			PlanType type() const override;
 			u32 generate_value_plan_tree();
-			u32 generate_plan_tree();
+			u32 generate_plan_tree() override;
 		};
 	}
 }

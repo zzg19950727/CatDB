@@ -18,10 +18,10 @@ namespace CatDB {
 		public:
 			static PhyOperator_s make_view(PhyOperator_s& child);
 			
-			u32 inner_open();
-			u32 close();
-			u32 reset();
-			u32 inner_get_next_row(Row_s &row);
+			u32 inner_open() override;
+			u32 close() override;
+			u32 reset() override;
+			u32 inner_get_next_row(Row_s &row) override;
 			u32 type() const override;
 		};
 	}

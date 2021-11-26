@@ -22,7 +22,7 @@ namespace CatDB {
 			DMLStmt();
 		public:
 			virtual ~DMLStmt();
-			virtual StmtType stmt_type() const = 0;
+			virtual StmtType stmt_type() const override = 0;
 			virtual u32 formalize() override;
 			void increase_ref_count() { ++ref_count; }
 			void decrease_ref_count() { --ref_count; }
@@ -54,7 +54,7 @@ namespace CatDB {
 			u32 inner_deep_copy(DMLStmt_s stmt, u32 flag)const;
 
 		public:
-			VIRTUAL_KV_STRING(
+			VIRTUAL_KV_STRING_OVERRIDE(
 				K(is_explain),
 				K(stmt_hint),
 				K(from_stmts),
