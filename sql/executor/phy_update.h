@@ -32,7 +32,7 @@ namespace CatDB {
 			u32 close();
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row) override;
-			u32 type() const;
+			u32 type() const override;
 		private:
 			TableSpace_s table_space;
 			Expression_s row_id;

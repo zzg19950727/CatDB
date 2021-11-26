@@ -23,7 +23,7 @@ namespace CatDB {
 		public:
 			virtual ~DMLStmt();
 			virtual StmtType stmt_type() const = 0;
-			virtual u32 formalize();
+			virtual u32 formalize() override;
 			void increase_ref_count() { ++ref_count; }
 			void decrease_ref_count() { --ref_count; }
 			

@@ -28,7 +28,7 @@ namespace CatDB {
 			u32 close();
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row);
-			u32 type() const;
+			u32 type() const override;
 		private:
 			
 			u32 cache_right_table();

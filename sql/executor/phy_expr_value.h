@@ -24,7 +24,7 @@ namespace CatDB {
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row);
             u32 add_value(Vector<Expression_s> &value);
-			u32 type() const;
+			u32 type() const override;
 			void set_access_desc(const RowDesc &desc) {access_desc = desc;}
 		private:
 			Vector<Vector<Expression_s>> value_list;

@@ -167,7 +167,7 @@ u32 PhyNestedLoopJoin::inner_join(Row_s & row)
 u32 PhyNestedLoopJoin::left_semi_join(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	while (ret=left_child->get_next_row(left_row) == SUCCESS) {
+	while ((ret=left_child->get_next_row(left_row)) == SUCCESS) {
 		right_pos = 0;
 		while (right_pos < right_cache.size()) {
 			row = right_cache[right_pos++];

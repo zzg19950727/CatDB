@@ -115,9 +115,9 @@ bool PhySort::compare(const Row_s& lhs, const Row_s& rhs)const
 		if (left->is_null() && right->is_null()) {
 			ret = true;
 		} else if (left->is_null()) {
-			ret = null_first && asc[i] || !null_first && !asc[i];
+			ret = (null_first && asc[i]) || (!null_first && !asc[i]);
 		} else if (right->is_null()) {
-			return !(null_first && asc[i] || !null_first && !asc[i]);
+			return !((null_first && asc[i]) || (!null_first && !asc[i]));
 		} else {
 			Object_s result = left->operator==(right);
 			if (result->bool_value())

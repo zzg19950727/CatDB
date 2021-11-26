@@ -518,6 +518,9 @@ Object_s OpExpression::get_result(const Row_s & row)
 		return op.calc(param_result[0], param_result[1], param_result[2]);
 	case OP_CASE_WHEN:
 		return op.calcN(param_result);
+	case OP_INVALID:
+	case OP_IFNULL:
+		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	return Error::make_object(OPERATION_NOT_SUPPORT);
 }

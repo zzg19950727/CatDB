@@ -17,7 +17,7 @@ namespace CatDB {
 		public:
 			~UpdatePlan();
 			static Plan_s make_update_plan(const Stmt_s& lex_update_stmt);
-			PlanType type() const;
+			PlanType type() const override;
 			u32 generate_plan_tree();
 			u32 check_assign_exprs(Vector<ColumnStmt_s> &column_exprs,
 								   Vector<ExprStmt_s> &value_exprs);

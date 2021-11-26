@@ -174,7 +174,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
-			bool same_as(const ExprStmt_s &other) { return false;}
+			bool same_as(const ExprStmt_s &other) override { return false;}
 			Vector<ExecParamStmt_s>& get_corrected_exprs() { return exec_params; }
 			void add_corrected_exprs(ExecParamStmt_s expr);
 			void set_subquery_id(u32 id) { subquery_id = id; }
@@ -206,7 +206,7 @@ namespace CatDB {
 			void push_back(const ExprStmt_s &expr) { params.push_back(expr); }
 			void clear() { params.clear(); }
 			u32 formalize() override;
-			bool same_as(const ExprStmt_s &other);
+			bool same_as(const ExprStmt_s &other) override;
 			KV_STRING_OVERRIDE(
 				V(params)
 			);
@@ -225,7 +225,7 @@ namespace CatDB {
 			String aggr_func_name()const;
 			u32 formalize() override;
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
-			bool same_as(const ExprStmt_s &other);
+			bool same_as(const ExprStmt_s &other) override;
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
 
@@ -254,7 +254,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
-			bool same_as(const ExprStmt_s &other);
+			bool same_as(const ExprStmt_s &other) override;
 			//json print
 			static String op_string(OperationType op_type);
 			

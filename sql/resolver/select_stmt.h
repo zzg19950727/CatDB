@@ -69,7 +69,7 @@ namespace CatDB {
 			virtual u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                    		 		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
-			VIRTUAL_KV_STRING(
+			VIRTUAL_KV_STRING_OVERRIDE(
 				KV(stmt_type, N(SELECT)),
 				K(is_explain),
 				K(stmt_hint),

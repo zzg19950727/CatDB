@@ -37,7 +37,7 @@ namespace CatDB {
 			u32 get_next_row_intersect(Row_s &row);
 			u32 get_next_row_except(Row_s &row);
 			u32 build_hash_table();
-			u32 type() const;
+			u32 type() const override;
 		private:
 			Common::HashTable hash_table;
 			bool init_hash_table;

@@ -25,7 +25,7 @@ namespace CatDB {
 			u32 close();
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row);
-			u32 type() const;
+			u32 type() const override;
 		protected:
 			u32 quick_sort(Vector<Row_s> &arr, int begin, int end);
 			bool compare(const Row_s& lhs, const Row_s& rhs)const;
@@ -49,7 +49,7 @@ namespace CatDB {
 												const Vector<Expression_s>& sort_exprs,
 												const Vector<bool> &asc,
 												u32 topn);
-			u32 type() const;
+			u32 type() const override;
 		private:
 			u32 sort_rows() override;
 			u32 topn;

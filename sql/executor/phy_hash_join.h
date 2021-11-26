@@ -1,5 +1,5 @@
-﻿#ifndef PHY_PHY_HASH_JOIN_H
-#define HASH_JOIN_H
+﻿#ifndef PHY_HASH_JOIN_H
+#define PHY_HASH_JOIN_H
 #include "phy_operator.h"
 #include "hash_table.h"
 #include "type.h"
@@ -30,7 +30,7 @@ namespace CatDB {
 			u32 close();
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row);
-			u32 type() const;
+			u32 type() const override;
 		private:
 			u32 build_hash_table();
 			u32 build_hash_table_for_left_anti();

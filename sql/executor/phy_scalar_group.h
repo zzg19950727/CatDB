@@ -31,7 +31,7 @@ namespace CatDB {
 			u32 close();
 			u32 reset();
 			u32 inner_get_next_row(Row_s &row);
-			u32 type() const;
+			u32 type() const override;
 		private:
 			void reset_agg_func();
 			u32 add_row_to_agg_func(const Row_s& row);
