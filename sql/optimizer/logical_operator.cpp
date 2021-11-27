@@ -10,6 +10,19 @@
 using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
 
+LogicalOperator::LogicalOperator()
+                : operator_id(0),
+                output_rows(0),
+                cost(0) 
+{
+    
+}
+
+LogicalOperator::~LogicalOperator()
+{
+
+}
+
 u32 LogicalOperator::init(QueryCtx_s &query_ctx, EstInfo_s& est_info)
 {
     this->query_ctx = query_ctx;

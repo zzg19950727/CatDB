@@ -15,6 +15,7 @@ namespace CatDB {
 		{
 		private:
 			SchemaChecker();
+			~SchemaChecker();
 		public:
 			static SchemaChecker_s make_schema_checker();
 			

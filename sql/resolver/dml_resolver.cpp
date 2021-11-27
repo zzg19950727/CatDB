@@ -1,4 +1,5 @@
 #include "schema_checker.h"
+#include "schema_guard.h"
 #include "select_resolver.h"
 #include "update_resolver.h"
 #include "delete_resolver.h"

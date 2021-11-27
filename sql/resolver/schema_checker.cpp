@@ -12,6 +12,11 @@ SchemaChecker::SchemaChecker()
 	schema_guard = SchemaGuard::make_schema_guard();
 }
 
+SchemaChecker::~SchemaChecker()
+{
+	
+}
+
 SchemaChecker_s SchemaChecker::make_schema_checker()
 {
 	static SchemaChecker_s checker(new SchemaChecker());

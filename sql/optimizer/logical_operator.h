@@ -55,11 +55,8 @@ namespace CatDB {
 				LOG_DUAL_TABLE,
 				LOG_SUBQUERY_EVALUATE
 			};
-			LogicalOperator()
-                : operator_id(0),
-                output_rows(0),
-                cost(0) {}
-			virtual ~LogicalOperator() {}
+			LogicalOperator();
+			virtual ~LogicalOperator();
 			virtual u32 type() const = 0;
 			String get_op_name();
 			u32 init(QueryCtx_s &query_ctx, EstInfo_s& est_info);

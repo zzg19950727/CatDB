@@ -15,6 +15,16 @@ using namespace CatDB::Sql;
 
 static const u32 MAX_TRANSFORM_COUNT = 10;
 
+TransformCtx::TransformCtx()
+{
+    
+}
+
+TransformCtx::~TransformCtx()
+{
+
+}
+
 TransformCtx_s TransformCtx::make_transform_ctx()
 {
     return TransformCtx_s(new TransformCtx());

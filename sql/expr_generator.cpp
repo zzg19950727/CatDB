@@ -9,6 +9,16 @@
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
+ExprGenerateCtx::ExprGenerateCtx()
+{
+
+}
+
+ExprGenerateCtx::~ExprGenerateCtx()
+{
+    
+}
+
 u32 ExprGenerator::generate_exprs(ExprGenerateCtx &ctx, 
                                   const Vector<ExprStmt_s> &exprs, 
                                   Vector<Expression_s> &rt_exprs)

@@ -22,6 +22,8 @@ namespace CatDB {
         using Sql::QueryCtx_s;
         DECLARE(TransformCtx);
         struct TransformCtx {
+            TransformCtx();
+            ~TransformCtx();
             static TransformCtx_s make_transform_ctx();
             QueryCtx_s query_ctx;
         };

@@ -1,5 +1,6 @@
 #include "insert_resolver.h"
 #include "schema_checker.h"
+#include "schema_guard.h"
 #include "select_stmt.h"
 #include "insert_stmt.h"
 #include "expr_stmt.h"

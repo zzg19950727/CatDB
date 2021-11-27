@@ -17,8 +17,7 @@ namespace CatDB {
         public:
             TransformRule(bool pre_order);
             virtual ~TransformRule();
-            void set_transform_ctx(TransformCtx_s &ctx)
-            { this->ctx = ctx; }
+            void set_transform_ctx(TransformCtx_s &ctx);
             u32 transform(DMLStmt_s stmt);
             bool transform_happened() const { return happened; }
             virtual bool need_rewrite(DMLStmt_s stmt) const;

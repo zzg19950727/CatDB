@@ -1,4 +1,5 @@
 #include "transform_rule.h"
+#include "query_ctx.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -19,6 +20,11 @@ TransformRule::TransformRule(bool pre_order)
 TransformRule::~TransformRule()
 {
 
+}
+
+void TransformRule::set_transform_ctx(TransformCtx_s &ctx)
+{ 
+    this->ctx = ctx; 
 }
 
 u32 TransformRule::transform(DMLStmt_s stmt)

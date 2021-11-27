@@ -154,6 +154,11 @@ void JoinPhyOperator::set_join_type(JoinType type)
 	this->type = type;
 }
 
+void JoinPhyOperator::set_outer_const_value(Object_s &value) 
+{ 
+	outer_const_value = value; 
+}
+
 u32 JoinPhyOperator::make_join_row(const Row_s &left_row, const Row_s &right_row, Row_s &row)
 {
 	row = RowAgent::make_agent_row(left_row, right_row);

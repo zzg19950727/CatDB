@@ -107,7 +107,7 @@ namespace CatDB {
 			virtual ~JoinPhyOperator();
 			JoinType join_type()const;
 			void set_join_type(JoinType type);
-			void set_outer_const_value(Object_s &value) { outer_const_value = value; }
+			void set_outer_const_value(Object_s &value);
 			u32 make_join_row(const Row_s &left_row, const Row_s &right_row, Row_s &row);
 		protected:
 			JoinType type;

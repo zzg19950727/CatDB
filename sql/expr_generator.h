@@ -23,6 +23,8 @@ namespace CatDB {
         using Optimizer::LogicalOperator_s;
 
         struct ExprGenerateCtx {
+            ExprGenerateCtx();
+            ~ExprGenerateCtx();
             HashMap<ExprStmt_s, Expression_s> exec_param_map;
             HashMap<ExprStmt_s, LogicalOperator_s> subplan_map;
             HashMap<ExprStmt_s, Expression_s> access_expr_map;
