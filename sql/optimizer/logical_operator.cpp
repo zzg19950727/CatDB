@@ -5,6 +5,7 @@
 #include "expr_utils.h"
 #include "query_ctx.h"
 #include "query_ctx.h"
+#include "dml_plan.h"
 #include "error.h"
 
 using namespace CatDB::Optimizer;

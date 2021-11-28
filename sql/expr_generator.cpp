@@ -1,6 +1,7 @@
 #include "expr_generator.h"
 #include "code_generator.h"
 #include "phy_expression.h"
+#include "logical_operator.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "error.h"

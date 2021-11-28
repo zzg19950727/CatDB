@@ -10,7 +10,7 @@
 #pragma once
 #include <cstddef>   
 #include "memory_monitor.h"
-//#define MEM_TRACE
+#define MEM_TRACE
 namespace CatDB {
     namespace Share {
     class shared_ptr_count
@@ -66,7 +66,7 @@ namespace CatDB {
                         throw; 
                     }
                     #ifdef MEM_TRACE
-                    MemoryMonitor::make_memory_monitor().use_memory(100);
+                    MemoryMonitor::make_memory_monitor().use_memory(sizeof(U));
                     #endif  //MEM_TRACE
                 }
                 else
@@ -89,7 +89,7 @@ namespace CatDB {
                     }
                     delete pn;
                     #ifdef MEM_TRACE
-                    MemoryMonitor::make_memory_monitor().free_memory(100);
+                    MemoryMonitor::make_memory_monitor().free_memory(sizeof(U));
                     MemoryMonitor::make_memory_monitor().clear_trace(p);
                     #endif  //MEM_TRACE
                 }
@@ -228,6 +228,7 @@ namespace CatDB {
         void release(void) throw() 
         {
             #ifdef MEM_TRACE
+            if (px)
             MemoryMonitor::make_memory_monitor().trace_memory(px, true);
             #endif  //MEM_TRACE
             pn.release(px);
