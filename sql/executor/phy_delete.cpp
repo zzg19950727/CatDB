@@ -24,10 +24,11 @@ PhyDelete::~PhyDelete()
 PhyOperator_s PhyDelete::make_delete(PhyOperator_s &child,
 								  const String&database,
 								  const String& table,
+								  const Vector<String> &engine_args,
 								  const Expression_s& row_id,
 								  bool is_delete_all)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	TableSpace_s table_space = TableSpace::make_table_space(table, database, engine_args);
     PhyDelete* op = new PhyDelete(child, table_space);
 	op->is_delete_all = is_delete_all;
 	op->row_id = row_id;

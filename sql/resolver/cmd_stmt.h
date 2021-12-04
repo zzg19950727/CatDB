@@ -62,7 +62,10 @@ namespace CatDB {
 			~CMDStmt();
 			StmtType stmt_type()const override;
 			static Stmt_s make_cmd_stmt(CMDType cmd_type);
-            u32 get_create_table_params(String &database, String &table, Vector<Pair<String, String>> &columns);
+            u32 get_create_table_params(String &database, 
+                                        String &table, 
+                                        Vector<Pair<String, String>> &columns,
+                                        Vector<String> &engine_args);
             u32 get_drop_table_params(String &database, String &table, bool &ignore_not_exists);
             u32 get_create_database_params(String &database);
             u32 get_drop_database_params(String &database, bool &ignore_not_exists);
@@ -81,9 +84,11 @@ namespace CatDB {
                 struct {
                     BasicTableStmt_s table;
 			        Vector<ColumnDefineStmt_s> column_define_list;
+                    Vector<String> engine_args;
                     KV_STRING(
                         K(table),
-                        K(column_define_list)
+                        K(column_define_list),
+                        K(engine_args)
                     );
                 } create_table_params;
                 //for drop table

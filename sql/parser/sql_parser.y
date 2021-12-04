@@ -177,153 +177,158 @@
 %left UMINUS
 %left "(" ")"
 %left "."
-%token PLUS		"+"
-%token MINUS	"-"
-%token MUL		"*"
-%token DIV		"/"
-%token LP		"("
-%token RP		")"
-%token COMMA	","
-%token PERIOD	"."
-%token SEMICOLON ";"
 
 %token<std::string>	STRING
 %token<std::string>	IDENT
 %token<std::string>	NUMERIC
 %token<std::string>	TIMESTAMP
 %token<std::string>	QB_NAME_IDENT
-%token FALSE
-%token TRUE
-%token BOOL
-%token NULLX
-%token EXCEPT
-%token UNION
-%token INTERSECT
-%token OR
-%token AND
-%token NOT
-%token CMP_NE
-%token CMP_GE
-%token CMP_GT
-%token CMP_EQ
-%token CMP_LT
-%token CMP_LE
-%token LIKE
-%token BETWEEN
-%token ANALYZE
-%token IN
-%token IS
-%token ANY
+
 %token ALL
+%token ANALYZE
+%token AND
+%token ANY
 %token AS
 %token ASC
+%token BEGIN_HINT
+%token BETWEEN
+%token BIGINT
+%token BINARY
+%token BOOL
 %token BY
+%token CASE
+%token CHAR
+%token CMP_EQ
+%token CMP_GE
+%token CMP_GT
+%token CMP_LE
+%token CMP_LT
+%token CMP_NE
 %token COLUMN
 %token COLUMNS
+%token COMMA ","
 %token CREATE
-%token DATETIME
+%token CSV
 %token DATABASE
 %token DATABASES
+%token DATE
+%token DATETIME
+%token DECIMAL
 %token DELETE
 %token DESC
 %token DESCRIBE
 %token DISTINCT
+%token DIV "/"
 %token DOUBLE
 %token DROP
 %token DUAL
+%token ELSE
+%token END_HINT
+%token END_SYM
+%token ENGINE
+%token EXCEPT
 %token EXISTS
 %token EXPLAIN
+%token FALSE
+%token FIELD
 %token FLOAT
 %token FROM
 %token FULL
 %token GROUP
 %token HAVING
-%token KILL
 %token IF
+%token IN
 %token INDEX
+%token INFILE
 %token INNER
 %token INSERT
 %token INT
+%token INTERSECT
 %token INTO
+%token IS
 %token JOIN
+%token KILL
+%token LEADING
 %token LEFT
+%token LIKE
 %token LIMIT
+%token LINE
+%token LP "("
+%token MEDIUMINT
 %token MEMORY
+%token MINUS "-"
+%token MUL "*"
+%token NOT
+%token NO_REWRITE
+%token NULLX
 %token NUMBER
-%token ORDER
+%token NUMERIC_SYM
 %token ON
+%token OR
+%token ORDER
+%token ORDERED
+%token PARALLEL
+%token PERIOD "."
+%token PLUS "+"
 %token PROCESSLIST
+%token QB_NAME
+%token REAL
 %token RIGHT
 %token ROWID
+%token RP ")"
 %token SAMPLE
 %token SELECT
+%token SEMICOLON ";"
 %token SET
 %token SHOW
 %token SIZE
+%token SMALLINT
+%token SPLIT
 %token STATIS
 %token STATUS
 %token TABLE
 %token TABLES
-%token UPDATE
-%token USING
-%token VALUES
-%token VARCHAR
-%token WHERE
-%token TINYINT
-%token SMALLINT
-%token MEDIUMINT
-%token BIGINT
-%token DECIMAL
-%token NUMERIC_SYM
-%token REAL
-%token CHAR
-%token BINARY
-%token VARBINARY
-%token TIMESTAMP_SYM
-%token DATE
-%token TIME
-%token CASE
-%token WHEN
 %token THEN
-%token ELSE
-%token END_SYM
-%token BEGIN_HINT
-%token END_HINT
-%token QB_NAME
+%token TIME
+%token TIMESTAMP_SYM
+%token TINYINT
+%token TRUE
+%token UNION
+%token UPDATE
 %token USE_HASH
 %token USE_NL
-%token LEADING
-%token PARALLEL
-%token ORDERED
-%token NO_REWRITE
+%token USING
+%token VALUES
+%token VARBINARY
+%token VARCHAR
+%token WHEN
+%token WHERE
 %token END 0
 
-%type<Stmt_s>		sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
-%type<Stmt_s>		select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>		show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt kill_stmt
-%type<ExprStmt_s>	projection simple_expr arith_expr cmp_expr logical_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
-%type<OrderStmt_s>	order_by
-%type<LimitStmt_s>	opt_select_limit
-%type<TableStmt_s>	table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
-%type<bool>			opt_distinct opt_asc_desc  distinct_or_all opt_if_exists
-%type<int>			limit_expr data_type int_value
-%type<double>		opt_sample_size
-%type<std::string>	op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number
-%type<Vector<TableStmt_s>>	from_list 
-%type<BasicTableStmt_s> 	relation_factor
-%type<Vector<OrderStmt_s>>	opt_order_by order_by_list
-%type<Vector<ExprStmt_s>>	select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list1 when_then_list2
-%type<ColumnDefineStmt_s>	column_definition
+%type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
+%type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
+%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt kill_stmt
+%type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
+%type<OrderStmt_s>					order_by
+%type<LimitStmt_s>					opt_select_limit
+%type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
+%type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split
+%type<int>							limit_expr data_type int_value
+%type<double>						opt_sample_size
+%type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number opt_qb_name opt_qb_name_single 
+%type<Vector<TableStmt_s>>			from_list 
+%type<BasicTableStmt_s> 			relation_factor
+%type<Vector<OrderStmt_s>>			opt_order_by order_by_list
+%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list1 when_then_list2
+%type<ColumnDefineStmt_s>			column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
-%type<Hint> opt_hint
-%type<Vector<HintStmt_s>> hint_list
-%type<HintStmt_s> single_hint
-%type<Vector<String>> hint_table_list
-%type<Vector<LeadingTable_s>> leading_hint_table_list
-%type<LeadingTable_s> leading_hint_table
-%type<OperationType> cmp_type
-%type<bool> opt_split
-%type<std::string> opt_qb_name opt_qb_name_single
+%type<Hint> 						opt_hint
+%type<Vector<HintStmt_s>> 			hint_list
+%type<HintStmt_s> 					single_hint
+%type<Vector<String>> 				hint_table_list opt_engine_def
+%type<Vector<LeadingTable_s>> 		leading_hint_table_list
+%type<LeadingTable_s> 				leading_hint_table
+%type<OperationType> 				cmp_type
 %start sql_stmt
 %%
 
@@ -1392,12 +1397,13 @@ explainable_stmt:
  *
  **************************************************************/
 create_stmt:
-    CREATE TABLE relation_factor "(" table_element_list ")"
+    CREATE TABLE relation_factor "(" table_element_list ")" opt_engine_def
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::CreateTable);
 		check(cmd_stmt);
 		cmd_stmt->params.create_table_params.table = $3;
 		cmd_stmt->params.create_table_params.column_define_list = $5;
+		cmd_stmt->params.create_table_params.engine_args = $7;
 		$$ = cmd_stmt;
     }
 	| CREATE DATABASE database_name
@@ -1492,6 +1498,22 @@ opt_char_length:
     "(" number ")"    { }
   | /*EMPTY*/         { }
   ;
+
+opt_engine_def:
+	/*empty*/		
+	{ 
+		$$ = Vector<String>(); 
+		$$.push_back("CAT");
+	}
+	| ENGINE CMP_EQ CSV "," INFILE CMP_EQ string "," FIELD SPLIT BY string "," LINE SPLIT BY string
+	{
+		$$ = Vector<String>();
+		$$.push_back("CSV");
+		$$.push_back($7);
+		$$.push_back($12);
+		$$.push_back("new line");
+	}
+	;
 
 /**************************************************************
  *

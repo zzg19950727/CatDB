@@ -14,7 +14,6 @@
 #include "server.h"
 #include "error.h"
 #include "util.h"
-#include "../tpch.h"
 #include "row.h"
 #include "log.h"
 #define BLOCK_SIZE	2048
@@ -333,7 +332,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 {
 	query_ctx->reset();
 	cur_query = query;
-	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
+	SqlEngine_s engine = SqlEngine::make_sql_engine(cur_query, query_ctx);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {
 		String err_msg = err_string(ret);
@@ -408,8 +407,6 @@ void RequestHandle::handle_request(char* buf, size_t len)
 					{send_ok_packet();return;}
 			else if (query.find("SHOW FUNCTION") != String::npos)
 					{send_ok_packet();return;}
-			else if (query.find("LOAD TPCH DATA") != String::npos)
-					{load_tpch_data();return;}
 			else if (query.find("VERSION_COMMENT") != String::npos)
 					{send_ok_packet();return;}
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
@@ -434,26 +431,3 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	}
 }
 
-void RequestHandle::load_tpch_data()
-{
-	LoadTpch tpch(query_ctx);
-	tpch.create_table();/*
-	Task_type task = std::bind(load_lineitem_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_orders_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_partsupp_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_customer_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_part_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_supplier_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_region_data);
-	m_server_service.workers().append_task(task);
-	task = std::bind(load_nation_data);
-	m_server_service.workers().append_task(task);*/
-	tpch.load_lineitem_data();
-	send_ok_packet();
-}

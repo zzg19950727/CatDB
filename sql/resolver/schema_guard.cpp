@@ -136,7 +136,8 @@ u32 SchemaGuard::del_database(const String& name)
 
 u32 SchemaGuard::add_table(const String& db_name,
                           const String& table_name,
-                          const Vector<Pair<String,String>> &columns)
+                          const Vector<Pair<String,String>> &columns,
+                          const Vector<String> &engine_args)
 {
     u32 ret = SUCCESS;
     auto iter = name_database_infos.find(db_name);
@@ -144,8 +145,8 @@ u32 SchemaGuard::add_table(const String& db_name,
     u32 db_id = iter->second->db_id;
     u32 table_id = INVALID_ID;
     CHECK(generate_table_id(db_id, table_id));
-    CHECK(add_table_to_inner_table(db_id, table_id, table_name, columns));
-    CHECK(add_table_to_cache(db_id, table_id, table_name, columns));
+    CHECK(add_table_to_inner_table(db_id, table_id, table_name, columns, engine_args));
+    CHECK(add_table_to_cache(db_id, table_id, table_name, columns, engine_args));
     return ret;
 }
 
@@ -215,7 +216,7 @@ u32 SchemaGuard::init_database_info()
 {
     u32 ret = SUCCESS;
     QueryResult_s database_info_result;
-    String database_info_sql = "SELECT id, name FROM " + FULL_SYSTEM_DB_NAME + 
+    String database_info_sql = "SELECT * FROM " + FULL_SYSTEM_DB_NAME + 
                                " ORDER BY id;";
     ret = execute_sys_sql(database_info_sql, database_info_result);
     if (FAIL(ret)) {
@@ -246,7 +247,7 @@ u32 SchemaGuard::init_table_info(Vector<TableInfo_s> &table_info)
 {
     u32 ret = SUCCESS;
     QueryResult_s table_info_result;
-    String table_info_sql = "SELECT db_id, id, name FROM " + FULL_SYSTEM_TABLE_NAME + 
+    String table_info_sql = "SELECT * FROM " + FULL_SYSTEM_TABLE_NAME + 
                             " ORDER BY id;";
     ret = execute_sys_sql(table_info_sql, table_info_result);
     if (FAIL(ret)) {
@@ -259,7 +260,7 @@ u32 SchemaGuard::init_table_info(Vector<TableInfo_s> &table_info)
         Object_s cell;
         u32 pos = 0;
 		CHECK(table_info_result->get_row(i, row));
-        MY_ASSERT(3 == row->get_row_desc().get_column_num());
+        MY_ASSERT(8 == row->get_row_desc().get_column_num());
 		TableInfo_s info = TableInfo::make_table_info();
         row->get_cell(pos++, cell);
         info->db_id = cell->value();
@@ -267,6 +268,12 @@ u32 SchemaGuard::init_table_info(Vector<TableInfo_s> &table_info)
         info->table_id = cell->value();
         row->get_cell(pos++, cell);
         info->table_name = cell->to_string();
+
+        for (u32 j = 0; j < ENGINE_ARG_COUNT; ++j) {
+            row->get_cell(pos++, cell);
+            info->engine_args.push_back(cell->to_string());
+        }
+
         table_info.push_back(info);
 	}
     return ret;
@@ -276,7 +283,7 @@ u32 SchemaGuard::init_column_info(Vector<ColumnInfo_s> &column_info)
 {
     u32 ret = SUCCESS;
     QueryResult_s column_info_result;
-    String column_info_sql = "SELECT table_id, id, name, type FROM " + FULL_SYSTEM_COLUMN_NAME + 
+    String column_info_sql = "SELECT * FROM " + FULL_SYSTEM_COLUMN_NAME + 
                              " ORDER BY table_id;";
     ret = execute_sys_sql(column_info_sql, column_info_result);
     if (FAIL(ret)) {
@@ -342,7 +349,8 @@ u32 SchemaGuard::add_database_to_inner_table(u32 id, const String& name)
 u32 SchemaGuard::add_table_to_cache(u32 db_id,
                                    u32 table_id,
                                    const String& name,
-                                   const Vector<Pair<String,String>> &columns)
+                                   const Vector<Pair<String,String>> &columns,
+                                   const Vector<String> &engine_args)
 {
     u32 ret = SUCCESS;
     auto iter = id_database_infos.find(db_id);
@@ -352,6 +360,7 @@ u32 SchemaGuard::add_table_to_cache(u32 db_id,
     table_info->db_id = db_id;
     table_info->table_id = table_id;
     table_info->table_name = name;
+    table_info->engine_args = engine_args;
     database_info->id_table_infos[table_id] = table_info;
     database_info->name_table_infos[name] = table_info;
 
@@ -370,11 +379,20 @@ u32 SchemaGuard::add_table_to_cache(u32 db_id,
 u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
                                         u32 table_id,
                                         const String& name,
-                                        const Vector<Pair<String,String>> &columns)
+                                        const Vector<Pair<String,String>> &columns,
+                                        const Vector<String> &engine_args)
 {
     u32 ret = SUCCESS;
     String query = "insert into " + FULL_SYSTEM_TABLE_NAME + " values(" +
-            std::to_string(db_id) + "," + std::to_string(table_id) + ",\"" + name + "\");";
+            std::to_string(db_id) + "," + std::to_string(table_id) + ",\"" + name + "\"";
+    int i = 0;
+    for (; i < engine_args.size() && i < ENGINE_ARG_COUNT; ++i) {
+        query += String(",\"") + engine_args[i] + "\""; 
+    }
+    for (; i < ENGINE_ARG_COUNT; ++i) {
+        query += String(",\" \""); 
+    }
+    query += String(");");
 	QueryResult_s result;
 	CHECK(execute_sys_sql(query, result));
 	for (u32 i = 0; i < columns.size(); ++i) {
@@ -383,6 +401,7 @@ u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
 			columns[i].first + "\",\"" + columns[i].second + "\");";
 		CHECK(execute_sys_sql(query, result));
 	}
+
     return ret;
 }
 

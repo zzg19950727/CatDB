@@ -1,5 +1,4 @@
 #include "server.h"
-#include "tpch.h"
 #include <iostream>
 int main(int argc, char* argv[])
 {
@@ -10,6 +9,5 @@ int main(int argc, char* argv[])
 	CatDB::Server::ServerService service(config_path);
 	service.run();
 	service.close_connection();
-	exit(0);
 	return 0;
 }

@@ -45,7 +45,10 @@ Stmt_s CMDStmt::make_cmd_stmt(CMDType cmd_type)
 	return Stmt_s(stmt);
 }
 
-u32 CMDStmt::get_create_table_params(String &database, String &table, Vector<Pair<String, String>> &columns)
+u32 CMDStmt::get_create_table_params(String &database, 
+									 String &table, 
+									 Vector<Pair<String, String>> &columns,
+									 Vector<String> &engine_args)
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(cmd_type == CMDStmt::CreateTable,
@@ -54,6 +57,7 @@ u32 CMDStmt::get_create_table_params(String &database, String &table, Vector<Pai
 	database = table_stmt->database;
 	table = table_stmt->table_name;
 	Vector<ColumnDefineStmt_s> &list = params.create_table_params.column_define_list;
+	engine_args = params.create_table_params.engine_args;
 	for (u32 i = 0; i < list.size(); ++i) {
 		ColumnDefineStmt_s &column_define = list[i];
 		String type;

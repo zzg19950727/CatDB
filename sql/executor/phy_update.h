@@ -25,6 +25,7 @@ namespace CatDB {
 			static PhyOperator_s make_update(PhyOperator_s& child,
 											const String&database,
 											const String& table,
+											const Vector<String> &engine_args,
 											const Expression_s& row_id,
 											const Vector<Expression_s>& value_exprs);
 			//物理算子必须提供的接口

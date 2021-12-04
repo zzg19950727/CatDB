@@ -127,25 +127,31 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "then"			{ return CatDB::SqlParser::make_THEN(loc); }
 "else"			{ return CatDB::SqlParser::make_ELSE(loc); }
 "end"			{ return CatDB::SqlParser::make_END_SYM(loc); }
+"qb_name"       { return CatDB::SqlParser::make_QB_NAME(loc); }
+"use_hash"      { return CatDB::SqlParser::make_USE_HASH(loc); }
+"use_nl"        { return CatDB::SqlParser::make_USE_NL(loc); }
+"leading"       { return CatDB::SqlParser::make_LEADING(loc); }
+"parallel"      { return CatDB::SqlParser::make_PARALLEL(loc); }
+"ordered"       { return CatDB::SqlParser::make_ORDERED(loc); }
+"no_rewrite"    { return CatDB::SqlParser::make_NO_REWRITE(loc); }
+"engine"		{ return CatDB::SqlParser::make_ENGINE(loc); }
+"infile"		{ return CatDB::SqlParser::make_INFILE(loc); }
+"field"			{ return CatDB::SqlParser::make_FIELD(loc); }
+"line"			{ return CatDB::SqlParser::make_LINE(loc); }
+"split"			{ return CatDB::SqlParser::make_SPLIT(loc); }
+"csv"			{ return CatDB::SqlParser::make_CSV(loc); }
 
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
 ","				{ return CatDB::SqlParser::make_COMMA(loc); }
 "."				{ return CatDB::SqlParser::make_PERIOD(loc); }
-";"				{ return CatDB::SqlParser::make_SEMICOLON(loc); }
+";"             { return CatDB::SqlParser::make_SEMICOLON(loc); }
 "+"				{ return CatDB::SqlParser::make_PLUS(loc); }
 "-"				{ return CatDB::SqlParser::make_MINUS(loc); }
 "*"				{ return CatDB::SqlParser::make_MUL(loc); }
 "/"				{ return CatDB::SqlParser::make_DIV(loc); }
 "/*+"			{ return CatDB::SqlParser::make_BEGIN_HINT(loc); }
 "*/"			{ return CatDB::SqlParser::make_END_HINT(loc); }
-"qb_name"		{ return CatDB::SqlParser::make_QB_NAME(loc); }
-"use_hash"		{ return CatDB::SqlParser::make_USE_HASH(loc); }
-"use_nl"		{ return CatDB::SqlParser::make_USE_NL(loc); }
-"leading"		{ return CatDB::SqlParser::make_LEADING(loc); }
-"parallel"		{ return CatDB::SqlParser::make_PARALLEL(loc); }
-"ordered"		{ return CatDB::SqlParser::make_ORDERED(loc); }
-"no_rewrite"	{ return CatDB::SqlParser::make_NO_REWRITE(loc); }
 \"				{parse_str.clear();BEGIN(beg_str);}
 <beg_str>\"         {
 						BEGIN(INITIAL);

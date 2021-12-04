@@ -5,6 +5,7 @@
 namespace CatDB {
 	namespace Storage {
 		DECLARE(Page);
+		DECLARE(CatIoService);
 		DECLARE(PageManager);
 
 		class PageManager
@@ -21,7 +22,6 @@ namespace CatDB {
 			u32 delete_all_row();
 			u32 clear();
 			void set_data_dir(const String& dir);
-			u32 get_table_id()const;
 			void reset_all_page();
 		private:
 			//��֤page��������
@@ -30,7 +30,7 @@ namespace CatDB {
 			String data_dir;
 			String database;
 			String table_name;
-			IoService_s io;
+			CatIoService_s io;
 		};
 
 		class CacheManager

@@ -48,7 +48,6 @@ namespace CatDB {
 			u32 do_cmd_query(const String& query);
 			u32 send_explain_info(String& explain_info);
 			void handle_request(char* buf, size_t len);
-			void load_tpch_data();
 
 			RequestHandle_s m_self;//delete self when no connection
 			ServerService& m_server_service;

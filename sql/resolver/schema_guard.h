@@ -48,6 +48,7 @@ namespace CatDB {
             u32 db_id;
             u32 table_id;
             String table_name;
+            Vector<String> engine_args;
             UnorderedHashMap<String, ColumnInfo_s> name_column_infos;
             UnorderedHashMap<u32, ColumnInfo_s> id_column_infos;
 
@@ -105,7 +106,8 @@ namespace CatDB {
             u32 del_database(const String& name);
             u32 add_table(const String& db_name,
                           const String& table_name,
-                          const Vector<Pair<String,String>> &columns);
+                          const Vector<Pair<String,String>> &columns,
+                          const Vector<String> &engine_args);
             u32 del_table(const String &db_name, const String& table_name);
 
         private:
@@ -119,11 +121,13 @@ namespace CatDB {
             u32 add_table_to_cache(u32 db_id,
                                    u32 table_id,
                                    const String& name,
-                                   const Vector<Pair<String,String>> &columns);
+                                   const Vector<Pair<String,String>> &columns,
+                                   const Vector<String> &engine_args = Vector<String>());
             u32 add_table_to_inner_table(u32 db_id,
                                         u32 table_id,
                                         const String& name,
-                                        const Vector<Pair<String,String>> &columns);
+                                        const Vector<Pair<String,String>> &columns,
+                                        const Vector<String> &engine_args = Vector<String>());
             u32 del_database_from_cache(u32 id, const String& name);
             u32 del_database_from_inner_table(u32 id);
             u32 del_table_from_cache(u32 db_id,

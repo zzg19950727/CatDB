@@ -36,6 +36,7 @@
 #include "phy_filter.h"
 #include "phy_subquery_evaluate.h"
 
+#include "schema_guard.h"
 #include "query_ctx.h"
 #include "table_space.h"
 #include "expr_stmt.h"
@@ -157,9 +158,13 @@ u32 CodeGenerator::generate_delete_op(ExprGenerateCtx &ctx, LogDelete_s log_op, 
     BasicTableStmt_s &delete_table = log_op->table_item;
     Expression_s rt_row_id;
     CHECK(ExprGenerator::generate_expr(ctx, log_op->row_id, rt_row_id));
+    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    TableInfo_s info;
+    CHECK(guard->find_table_info(delete_table->ref_table_id, info));
     phy_op = PhyDelete::make_delete(ctx.child_ops[0],
                                     delete_table->database, 
                                     delete_table->table_name,
+                                    info->engine_args,
                                     rt_row_id,
                                     log_op->is_delete_all);
 	return ret;
@@ -217,9 +222,13 @@ u32 CodeGenerator::generate_insert_op(ExprGenerateCtx &ctx, LogInsert_s log_op, 
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
+    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    TableInfo_s info;
+    CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     phy_op = PhyInsert::make_insert(ctx.child_ops[0],
                                     log_op->table_item->database, 
-                                    log_op->table_item->table_name);
+                                    log_op->table_item->table_name,
+                                    info->engine_args);
 	return ret;
 }
 
@@ -402,8 +411,12 @@ u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s l
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 0, log_op->query_ctx);
+    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    TableInfo_s info;
+    CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     PhyTableScan_s scan = PhyTableScan::make_table_scan(log_op->table_item->database, 
                                                         log_op->table_item->table_name, 
+                                                        info->engine_args,
                                                         log_op->query_ctx->sample_size);
 	RowDesc row_desc;
     ColumnDesc col_desc;
@@ -434,9 +447,13 @@ u32 CodeGenerator::generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, 
     }
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->value_exprs, rt_value_exprs));
     CHECK(ExprGenerator::generate_expr(ctx, log_op->row_id, rt_row_id));
+    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    TableInfo_s info;
+    CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     phy_op = PhyUpdate::make_update(ctx.child_ops[0], 
                                     log_op->table_item->database, 
                                     log_op->table_item->table_name, 
+                                    info->engine_args,
                                     rt_row_id, 
                                     rt_value_exprs);
 	phy_op->set_row_desc(row_desc);

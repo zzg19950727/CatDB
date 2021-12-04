@@ -13,10 +13,16 @@ const Vector<Pair<String, String>> SYS_DB_DEF = {
 };
 const u32 SYS_TABLE_ID =        0x00100002;
 const String SYS_TABLE_NAME =   "sys_tables";
+const u32 ENGINE_ARG_COUNT = 5;
 const Vector<Pair<String, String>> SYS_TABLE_DEF = {
     {"db_id", "number"},
     {"id","number"},
-    {"name", "varchar"}
+    {"name", "varchar"},
+    {"arg1", "varchar"},
+    {"arg2", "varchar"},
+    {"arg3", "varchar"},
+    {"arg4", "varchar"},
+    {"arg5", "varchar"}
 };
 const u32 SYS_COLUMN_ID =       0x00100003;
 const String SYS_COLUMN_NAME =  "sys_columns";

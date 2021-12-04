@@ -43,13 +43,13 @@ ANALYZE TABLE RANDOM_TEST.T2
 EXPLAIN SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST |
-+------------------------------------------------+
-| 0  | HASH Inner JOIN |      | 8         | 9    |
-| 1  |  TABLE SCAN     | T1   | 4         | 4    |
-| 2  |  TABLE SCAN     | T2   | 4         | 4    |
-+------------------------------------------------+
++-----------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST      |
++-----------------------------------------------------+
+| 0  | HASH Inner JOIN |      | 8         | 8.598e+06 |
+| 1  |  TABLE SCAN     | T1   | 4         | 4.299e+06 |
+| 2  |  TABLE SCAN     | T2   | 4         | 4.299e+06 |
++-----------------------------------------------------+
 Outputs & filters:
 0 - output([t1.ROWID], [t2.ROWID], [t1.c1], [t2.c1])
 equal_join_conditions([t1.c1=t2.c1])
@@ -79,13 +79,13 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
 EXPLAIN SELECT * FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+----------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST |
-+----------------------------------------------------+
-| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
-| 1  |  TABLE SCAN         | T1   | 4         | 4    |
-| 2  |  TABLE SCAN         | T2   | 4         | 4    |
-+----------------------------------------------------+
++---------------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST      |
++---------------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 8.598e+06 |
+| 1  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
+| 2  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
++---------------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1=t2.c1])
@@ -117,13 +117,13 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
 EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+----------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST |
-+----------------------------------------------------+
-| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
-| 1  |  TABLE SCAN         | T2   | 4         | 4    |
-| 2  |  TABLE SCAN         | T1   | 4         | 4    |
-+----------------------------------------------------+
++---------------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST      |
++---------------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 8.598e+06 |
+| 1  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
+| 2  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
++---------------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1=t2.c1])
@@ -155,13 +155,13 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
 EXPLAIN SELECT * FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+----------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST |
-+----------------------------------------------------+
-| 0  | HASH FullOuter JOIN |      | 8         | 10   |
-| 1  |  TABLE SCAN         | T1   | 4         | 4    |
-| 2  |  TABLE SCAN         | T2   | 4         | 4    |
-+----------------------------------------------------+
++---------------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST      |
++---------------------------------------------------------+
+| 0  | HASH FullOuter JOIN |      | 8         | 8.598e+06 |
+| 1  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
+| 2  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
++---------------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1=t2.c1])

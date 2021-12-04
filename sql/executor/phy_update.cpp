@@ -24,10 +24,11 @@ PhyUpdate::~PhyUpdate()
 PhyOperator_s PhyUpdate::make_update(PhyOperator_s& child,
                                   const String&database, 
                                   const String& table,
+                                  const Vector<String> &engine_args,
                                   const Expression_s& row_id,
                                   const Vector<Expression_s>& value_exprs)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	TableSpace_s table_space = TableSpace::make_table_space(table, database, engine_args);
     PhyUpdate* op = new PhyUpdate(child, table_space);
     op->row_id = row_id;
     op->value_exprs = value_exprs;

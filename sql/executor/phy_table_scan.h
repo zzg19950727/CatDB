@@ -21,6 +21,7 @@ namespace CatDB {
 			~PhyTableScan();
 			static PhyOperator_s make_table_scan(const String&database,
 				const String& table,
+				const Vector<String> &engine_args,
 				double sample_size = 1);
 			//物理算子必须提供的接口
 			u32 inner_open() override;

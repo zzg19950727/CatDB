@@ -4,26 +4,26 @@
 
 namespace CatDB {
 	namespace Storage {
-		DECLARE(Page);
 		DECLARE(IoService);
 
 		class IoService
 		{
-		private:
+		protected:
 			IoService();
 		public:
-			~IoService();
+			virtual ~IoService();
 			static IoService_s make_io_service();
 			u32 open(const String& table_file);
 			bool is_open()const;
-			u32 read_page(Page_s& page);
-			u32 write_page(const Page_s& page);
-			u32 write_page(const Page* page);
-			u32 end_offset(u32& offset);
+			u32 read_buffer(char* buffer, u64 offset, u64 &size);
+			u32 write_buffer(const char* buffer, u64 offset, u64 &size);
+			u32 read_buffer(char* buffer, u64 &size);
+			u32 write_buffer(const char* buffer, u64 &size);
+			virtual u32 end_offset(u64& offset);
 			void close();
 			bool eof()const;
-			u32 delete_file(const String& table_file);
-			u32 clear_file(const String& table_file);
+			static u32 delete_file(const String& table_file);
+			static u32 clear_file(const String& table_file);
 			static u64 get_file_size(const String& table_file);
 			static u32 make_dir(const String& dir);
 			static u32 remove_dir(const String& dir);

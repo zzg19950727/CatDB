@@ -4,6 +4,10 @@
 #define COPY_SHARE				0x2
 #define COPY_ON_WRITE			0x3
 
+//PAGE_SIZE跟row_id的结构设计相关，改大后注意是否向前兼容row_id
+//详见row_id设计
+#define PAGE_SIZE 16*1024
+
 #define ENABLE_COPY_SHARE(flag)		((flag) & COPY_SHARE)
 #define ENABLE_COPY_ON_WRITE(flag)	((flag) & COPY_ON_WRITE)
 
@@ -121,4 +125,5 @@ enum JoinAlgo {HASH_JOIN, NL_JOIN};
 static const char* JoinAlgoString[] = {
 				"HASH_JOIN",
 				"NL_JOIN"};
+
 #endif //SQL_DEFINE_H

@@ -1,4 +1,4 @@
-﻿#include "IoService.h"
+﻿#include "cat_io_service.h"
 #include "buffer.h"
 #include "object.h"
 #include "error.h"
@@ -50,7 +50,7 @@ RawRecord * RawRecord::make_raw_record(void * ptr)
 	return reinterpret_cast<RawRecord*>(ptr);
 }
 
-Page::Page(const Buffer_s & buffer, IoService_s& io_service)
+Page::Page(const Buffer_s & buffer, CatIoService_s& io_service)
 	:buffer_(buffer),
 	io_service_(io_service),
 	is_dirty(false)
@@ -81,8 +81,7 @@ Page::~Page()
 }
 
 Page_s Page::make_page(
-	IoService_s& io_service,
-	u32 table_id,
+	CatIoService_s& io_service,
 	u32 page_offset,
 	u32 page_pre,
 	u32 page_next,
@@ -93,7 +92,6 @@ Page_s Page::make_page(
 	Page* page = new Page(buffer, io_service);
 	//初始化file header
 	page->file_header_->page_checksum = 0;
-	page->file_header_->table_id = table_id;
 	page->file_header_->page_offset = page_offset;
 	page->file_header_->page_pre = page_pre;
 	page->file_header_->page_next = page_next;
@@ -236,10 +234,9 @@ u32 Page::update_row(u32 row_id, Row_s & row)
 	for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i){
 		Object_s cell;
 		ret = row->get_cell(i, cell);
-		u32 table_id, column_id;
 		ColumnDesc col_desc;
 		row->get_row_desc().get_column_desc(i, col_desc);
-		col_desc.get_tid_cid(table_id, column_id);
+		u32 column_id = col_desc.get_cid();
 		u8* buf = reinterpret_cast<u8*>(record) + record->column_offset[column_id];
 		ret = cell->serialization(buf);
 		if (ret != SUCCESS){

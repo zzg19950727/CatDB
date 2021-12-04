@@ -19,7 +19,8 @@ namespace CatDB {
 			~PhyInsert();
 			static PhyOperator_s make_insert(PhyOperator_s &child,
 											 const String&database,
-											 const String& table);
+											 const String& table,
+											 const Vector<String> &engine_args);
 			//物理算子必须提供的接口
 			u32 inner_open() override;
 			u32 close() override;

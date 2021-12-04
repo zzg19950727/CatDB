@@ -24,6 +24,7 @@ namespace CatDB {
             static PhyOperator_s make_delete(PhyOperator_s &child,
 											const String&database,
 											const String& table,
+											const Vector<String> &engine_args,
 											const Expression_s& row_id,
 											bool is_delete_all = false);
 			//物理算子必须提供的接口

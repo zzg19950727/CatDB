@@ -20,9 +20,10 @@ PhyInsert::~PhyInsert()
 
 PhyOperator_s PhyInsert::make_insert(PhyOperator_s &child,
                                   const String&database,
-                                  const String& table)
+                                  const String& table,
+                                  const Vector<String> &engine_args)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database);
+	TableSpace_s table_space = TableSpace::make_table_space(table, database, engine_args);
     return PhyOperator_s(new PhyInsert(child, table_space));
 }
 

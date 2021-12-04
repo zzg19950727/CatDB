@@ -109,8 +109,9 @@ u32 CMDPlan::do_cmd_create_table()
 	String database;
 	String table;
 	Vector<Pair<String, String>> columns;
+	Vector<String> engine_args;
 	
-	CHECK(stmt->get_create_table_params(database, table, columns));
+	CHECK(stmt->get_create_table_params(database, table, columns, engine_args));
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -123,7 +124,8 @@ u32 CMDPlan::do_cmd_create_table()
 	} else {
 		ret = SUCCESS;
 	}
-	CHECK(guard->add_table(database, table, columns));
+	engine_args.push_back(std::to_string(columns.size()));
+	CHECK(guard->add_table(database, table, columns, engine_args));
 	CHECK(TableSpace::create_table(database, table));
 	return ret;
 }

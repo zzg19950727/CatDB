@@ -1,3 +1,6 @@
 include_directories(. ${PROJECT_SOURCE_DIR}/common)
 aux_source_directory(. DIR_STORAGE_SRCS)
+add_subdirectory(cat_engine)
+add_subdirectory(csv_engine)
 add_library(storage ${DIR_STORAGE_SRCS})
+target_link_libraries(storage cat_engine csv_engine)

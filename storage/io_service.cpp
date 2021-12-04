@@ -1,9 +1,7 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "IoService.h"
-#include "buffer.h"
+#include "io_service.h"
 #include "error.h"
-#include "page.h"
 #include "log.h"
 
 #ifdef _WIN32
@@ -42,15 +40,15 @@ u32 IoService::open(const String & table_file)
 {
 	LOG_TRACE("open table", K(table_file));
 	file_handle = fopen(table_file.c_str(), "rb+");
-	if (file_handle){
+	if (file_handle) {
 		return SUCCESS;
-	}else{
+	} else {
 		file_handle = fopen(table_file.c_str(), "wb+");
-		if (file_handle){
+		if (file_handle) {
 			fclose(file_handle);
 			file_handle = fopen(table_file.c_str(), "rb+");
 			return SUCCESS;
-		}else{
+		} else {
 			LOG_ERR("open table file failed!");
 			return TABLE_FILE_NOT_EXISTS;
 		}
@@ -62,62 +60,60 @@ bool CatDB::Storage::IoService::is_open() const
 	return file_handle != 0;
 }
 
-u32 IoService::read_page(Page_s & page)
+u32 IoService::read_buffer(char* buffer, u64 offset, u64 &size)
 {
 	if (!file_handle) {
 		return TABLE_FILE_NOT_EXISTS;
 	}
-	u32 offset = page->page_offset();
-	u32 size = page->page_size();
-	const Buffer_s& buffer = page->page_buffer();
-	
-	u64 value = get_real_page_offset(offset);
 	fpos_t real_offset;
-	SET_FILE_POS(real_offset, value);
+	SET_FILE_POS(real_offset, offset);
 	if (fsetpos(file_handle, &real_offset) != 0) {
-		LOG_ERR("set offset error when read page!");
+		LOG_ERR("set offset error when read buffer!");
 		return UNKNOWN_PAGE_OFFSET;
 	}
-	u32 ret = fread(buffer->buf, 1, size, file_handle);
-	if (ret != size) {
-		LOG_ERR("read page error", err_string(ret));
-		return BAD_PAGE_IN_FILE;
-	}
-	page->reset_page();
-	LOG_TRACE("read page success", K(offset), K(size));
+	size = fread(buffer, 1, size, file_handle);
+	LOG_TRACE("read buffer success", K(offset), K(size));
 	return SUCCESS;
 }
 
-u32 IoService::write_page(const Page_s & page)
-{
-	return write_page(page.get());
-}
-
-u32 IoService::write_page(const Page * page)
+u32 IoService::write_buffer(const char* buffer, u64 offset, u64 &size)
 {
 	if (!file_handle) {
 		return TABLE_FILE_NOT_EXISTS;
 	}
-	u32 offset = page->page_offset();
-	u32 size = page->page_size();
-	const Buffer_s& buffer = page->page_buffer();
-	u64 value = get_real_page_offset(offset);
 	fpos_t real_offset;
-	SET_FILE_POS(real_offset, value);
+	SET_FILE_POS(real_offset, offset);
 	if (fsetpos(file_handle, &real_offset) != 0) {
-		LOG_ERR("set offset error when write page!");
+		LOG_ERR("set offset error when write buffer!");
 		return UNKNOWN_PAGE_OFFSET;
 	}
-	u32 ret = fwrite(buffer->buf, 1, size, file_handle);
-	if (ret != size){
-		LOG_ERR("write page error", err_string(ret));
-		return WRITE_PAGE_ERROR;
-	}
-	LOG_TRACE("write page succees", K(offset), K(size));
+	size = fwrite(buffer, 1, size, file_handle);
+	LOG_TRACE("write buffer succees", K(offset), K(size));
 	return SUCCESS;
 }
 
-u32 IoService::end_offset(u32& offset)
+u32 IoService::read_buffer(char* buffer, u64 &size)
+{
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
+	size = fread(buffer, 1, size, file_handle);
+	LOG_TRACE("read buffer success", K(size));
+	return SUCCESS;
+}
+
+u32 IoService::write_buffer(const char* buffer, u64 &size)
+{
+	if (!file_handle) {
+		return TABLE_FILE_NOT_EXISTS;
+	}
+	fseek(file_handle, 0, SEEK_END);
+	size = fwrite(buffer, 1, size, file_handle);
+	LOG_TRACE("write buffer succees", K(size));
+	return SUCCESS;
+}
+
+u32 IoService::end_offset(u64& offset)
 {
 	if (!file_handle) {
 		return TABLE_FILE_NOT_EXISTS;
@@ -125,15 +121,8 @@ u32 IoService::end_offset(u32& offset)
 	fseek(file_handle, 0, SEEK_END);
 	fpos_t pos;
 	fgetpos(file_handle, &pos);
-	u64 size = 0;
-	GET_FILE_POS(size, pos);
-	if (size >= PAGE_SIZE){
-		offset = get_virtual_page_offset(size - PAGE_SIZE);
-		return SUCCESS;
-	}else{
-		offset = 0;
-		return EMPTY_TABLE_SPACE;
-	}
+	GET_FILE_POS(offset, pos);
+    return SUCCESS;
 }
 
 void IoService::close()
@@ -155,7 +144,7 @@ u32 IoService::delete_file(const String& table_file)
 	LOG_TRACE("delete table file", K(table_file));
 	if (remove(table_file.c_str()) == 0) {
 		return SUCCESS;
-	}else {
+	} else {
 		return TABLE_FILE_NOT_EXISTS;
 	}
 }
@@ -163,12 +152,12 @@ u32 IoService::delete_file(const String& table_file)
 u32 IoService::clear_file(const String& table_file)
 {
 	LOG_TRACE("clear table file", K(table_file));
-	file_handle = fopen(table_file.c_str(), "w");
+	FILE *file_handle = fopen(table_file.c_str(), "w");
 	if (file_handle) {
 		fclose(file_handle);
 		file_handle = 0;
 		return SUCCESS;
-	}else {
+	} else {
 		return TABLE_FILE_NOT_EXISTS;
 	}
 }
@@ -178,8 +167,7 @@ u64 IoService::get_file_size(const String & table_file)
 	FILE* fp = fopen(table_file.c_str(), "rb+");
 	if (!fp) {
 		return 0;
-	}
-	else {
+	} else {
 		fseek(fp, 0, SEEK_END);
 		fpos_t pos;
 		fgetpos(fp, &pos);

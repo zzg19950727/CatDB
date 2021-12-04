@@ -28,6 +28,14 @@ Varchar::Varchar(const String & str)
 	memcpy(this->data->buf, str.c_str(), obj_width);
 }
 
+Varchar::Varchar(const char* buf, u32 size)
+{
+	obj_width = size;
+	obj_type = T_VARCHAR;
+	data = Buffer::make_buffer(obj_width + 1);
+	memcpy(data->buf, buf, obj_width);
+}
+
 Object_s Varchar::make_object(const Buffer_s & buf)
 {
 	return Object_s(new Varchar(buf));
@@ -36,6 +44,11 @@ Object_s Varchar::make_object(const Buffer_s & buf)
 Object_s Varchar::make_object(const String & buf)
 {
 	return Object_s(new Varchar(buf));
+}
+
+Object_s Varchar::make_object(const char* buf, u32 size)
+{
+	return Object_s(new Varchar(buf, size));
 }
 
 u32 Varchar::serialization(u8* & buffer)

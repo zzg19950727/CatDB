@@ -2,9 +2,6 @@
 #define PAGE_H
 #include "type.h"
 #include "log.h"
-//PAGE_SIZE跟row_id的结构设计相关，改大后注意是否向前兼容row_id
-//详见row_id设计
-#define PAGE_SIZE 16384
 
 namespace CatDB {
 	namespace Common {
@@ -13,7 +10,7 @@ namespace CatDB {
 	}
 	namespace Storage {
 		DECLARE(Page);
-		DECLARE(IoService);
+		DECLARE(CatIoService);
 		using Common::Buffer_s;
 		using Common::Row_s;
 
@@ -83,8 +80,7 @@ namespace CatDB {
 		public:
 			~Page();
 			static Page_s make_page(
-				IoService_s& io_service,
-				u32 table_id,
+				CatIoService_s& io_service,
 				u32 page_offset,
 				u32 page_pre,
 				u32 page_next,
@@ -115,7 +111,7 @@ namespace CatDB {
 			);
 
 		private:
-			Page(const Buffer_s& buffer, IoService_s& io_service);
+			Page(const Buffer_s& buffer, CatIoService_s& io_service);
 			u32 fix_row_desc(RawRecord* record, Row_s& row, u32 table_id)const;
 			u32 deserialize_row(RowInfo* row_info, Row_s& row)const;
 			u32 update_none_fix_row(u32 row_id, Row_s& row);
@@ -135,7 +131,7 @@ namespace CatDB {
 			//用于快速扫描所有行数据
 			u32 row_idx_;
 			//保证脏数据写回表空间
-			IoService_s io_service_;
+			CatIoService_s io_service_;
 			bool is_dirty;
 
 		private:

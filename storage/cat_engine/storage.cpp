@@ -1,4 +1,4 @@
-#include "IoService.h"
+#include "cat_io_service.h"
 #include "storage.h"
 #include "error.h"
 #include "page.h"
@@ -7,7 +7,7 @@ using namespace CatDB::Storage;
 
 PageManager::PageManager(const String& database, const String& table_name)
 {
-	io = IoService::make_io_service();
+	io = CatIoService::make_cat_io_service();
 	io->open(table_name);
 }
 
@@ -45,13 +45,13 @@ u32 PageManager::get_page_from_offset(u32 page_offset, Page_s& page)
 
 u32 PageManager::read_page(u32 page_offset, Page_s& page)
 {
-	u32 offset = 0;
+	u64 offset = 0;
 	u32 ret = io->end_offset(offset);
 	if (ret == EMPTY_TABLE_SPACE || offset < page_offset) {
 		LOG_TRACE("page not in table space", K(page_offset));
 		return END_OF_TABLE_SPACE;
 	}
-	page = Page::make_page(io, get_table_id(), page_offset, 0, 0, page_offset);
+	page = Page::make_page(io, page_offset, 0, 0, page_offset);
 	ret = io->read_page(page);
 	if (ret != SUCCESS) {
 		return ret;
@@ -75,14 +75,14 @@ u32 PageManager::create_page(u32 page_offset, Page_s& page)
 		page_pre = page_offset - PAGE_SIZE;
 	page_next = page_offset + PAGE_SIZE;
 	u32 beg_row_id = get_beg_row_id_from_page_offset(page_offset);
-	page = Page::make_page(io, get_table_id(), page_offset, page_pre, page_next, beg_row_id);
+	page = Page::make_page(io, page_offset, page_pre, page_next, beg_row_id);
 	pages[page_offset] = page;
 	return SUCCESS;
 }
 
 u32 PageManager::get_last_page(Page_s& page)
 {
-	u32 offset = 0;
+	u64 offset = 0;
 	u32 ret = io->end_offset(offset);
 	
 	if (ret == EMPTY_TABLE_SPACE) {
@@ -135,12 +135,6 @@ u32 PageManager::clear()
 	pages_copy.clear();
 	LOG_TRACE("clear page manager", K(table_name));
 	return SUCCESS;
-}
-
-u32 PageManager::get_table_id() const
-{
-	Hash<String> hash;
-	return hash(database + "." + table_name);
 }
 
 void PageManager::reset_all_page()
