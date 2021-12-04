@@ -10,7 +10,7 @@
 #pragma once
 #include <cstddef>   
 #include "memory_monitor.h"
-#define MEM_TRACE
+//#define MEM_TRACE
 namespace CatDB {
     namespace Share {
     class shared_ptr_count

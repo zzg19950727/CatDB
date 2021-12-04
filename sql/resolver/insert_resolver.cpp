@@ -62,7 +62,7 @@ u32 InsertResolver::resolve_row(Vector<ExprStmt_s>& list, const RowDesc& row_des
         MY_ASSERT(column_id >= 0, column_id < list.size());
         ExprStmt_s new_value = OpExprStmt::make_op_expr_stmt(OP_CAST);
         Object_s const_value = Object::make_null_object();
-        CHECK(cast_to(col_desc.get_data_type(), const_value));
+        CHECK(Object::cast_to(col_desc.get_data_type(), const_value));
         ExprStmt_s const_stmt = ConstStmt::make_const_stmt(const_value);
 		new_value->add_param(list[column_id]);
         new_value->add_param(const_stmt);

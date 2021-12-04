@@ -38,9 +38,6 @@ namespace CatDB {
 			static RawData* make_row_data(void* ptr);
 		};
 
-		u8 string_to_type(const String& str);
-		u32 cast_to(u8 type, Object_s& obj);
-
 		class Object
 		{
 		protected:
@@ -62,6 +59,9 @@ namespace CatDB {
 			virtual Object_s copy();
 			String type() const;
 			operator bool () { return bool_value(); }
+
+			static u8 string_to_type(const String& str);
+			static u32 cast_to(u8 type, Object_s& obj);
 
 			//要求实现的类型支持一下所有运算
 			//不支持的类型返回对应的错误对象

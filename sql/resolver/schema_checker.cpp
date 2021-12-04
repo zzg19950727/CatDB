@@ -34,7 +34,7 @@ u32 SchemaChecker::get_row_desc(u32 ref_table_id, RowDesc& row_desc)
 		ColumnInfo_s column_info = iter->second;
 		ColumnDesc col_desc;
 		col_desc.set_tid_cid(column_info->table_id, column_info->column_id);
-		col_desc.set_data_type(string_to_type(column_info->column_type));
+		col_desc.set_data_type(Object::string_to_type(column_info->column_type));
 		row_desc.add_column_desc(col_desc);
 	}
 	return ret;
@@ -59,7 +59,7 @@ u32 SchemaChecker::get_column_desc(u32 ref_table_id, const String& column_name, 
 	ColumnInfo_s column_info;
 	CHECK(schema_guard->find_column_info(ref_table_id, column_name, column_info));
 	col_desc.set_tid_cid(column_info->table_id, column_info->column_id);
-	col_desc.set_data_type(string_to_type(column_info->column_type));
+	col_desc.set_data_type(Object::string_to_type(column_info->column_type));
 	return ret;
 }
 

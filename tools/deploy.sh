@@ -76,12 +76,12 @@ check_dir() {
 }
 
 find_pid() {
-    N=`ps -aux | grep -c ./CatDB`
+    N=`ps -ax | grep -c ./CatDB`
     if [ $N -lt 2 ]
     then
         return 0
     fi
-    PID=`ps -aux | grep ./CatDB | awk -F ' ' '{print $2}' | awk 'NR==1'`
+    PID=`ps -ax | grep ./CatDB | awk -F ' ' '{print $2}' | awk 'NR==1'`
     return 1
 }
 

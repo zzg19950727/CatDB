@@ -332,7 +332,7 @@ Object_s Operation::do_not_like(Object_s & first_obj, Object_s & second_obj)
 
 Object_s Operation::do_cast(Object_s& first_obj, Object_s& second_obj)
 {
-	cast_to(second_obj->get_type(), first_obj);
+	Object::cast_to(second_obj->get_type(), first_obj);
 	return first_obj;
 }
 

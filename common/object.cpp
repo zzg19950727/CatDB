@@ -217,43 +217,73 @@ void Object::accumulate(const Object_s& other)
 	LOG_ERR("object do not support accumulate operation", K(type()));
 }
 
-u8 CatDB::Common::string_to_type(const String & str)
+u8 Object::string_to_type(const String & str)
 {
 	u8 type = T_NULL;
 	if (str == "number") {
 		type = T_NUMBER;
-	}
-	else if (str == "datetime") {
+	} else if (str == "datetime") {
 		type = T_DATETIME;
-	}
-	else if (str == "varchar") {
+	} else if (str == "varchar") {
 		type = T_VARCHAR;
+	} else if (str == "bool") {
+		type = T_BOOL;
 	}
 	return type;
 }
 
 /*目前支持NULL值转换为对应类型的NULL，varchar转datetime*/
-u32 CatDB::Common::cast_to(u8 type, Object_s & obj)
+u32 Object::cast_to(u8 type, Object_s & obj)
 {
+	u32 ret = SUCCESS;
 	if (!obj) {
-		return CAST_DATA_ERROR;
-	}
-	else if (obj->get_type() == type) {
-		return SUCCESS;
-	}
-	else if (obj->is_null()) {
-		return SUCCESS;
-	}
-	else if (obj->get_type() == T_VARCHAR && type == T_DATETIME) {
-		obj = DateTime::make_object(obj->to_string());
-		if (!obj) {
-			return CAST_DATA_ERROR;
+		ret = CAST_DATA_ERROR;
+	} else if (obj->get_type() == type) {
+		//
+	} else if (obj->is_null()) {
+		obj->obj_type = type;
+	} else if (obj->get_type() == T_VARCHAR) {
+		if (type == T_BOOL) {
+			obj = Bool::make_object(obj->to_string());
+		} else if (type == T_NUMBER) {
+			obj = Number::make_object(obj->to_string());
+		} else if (type == T_DATETIME) {
+			obj = DateTime::make_object(obj->to_string());
+		} else {
+			ret = CAST_DATA_ERROR;
 		}
-		else {
-			return SUCCESS;
+	} else if (obj->get_type() == T_NUMBER) {
+		if (type == T_BOOL) {
+			obj = Bool::make_object(obj->to_string());
+		} else if (type == T_VARCHAR) {
+			obj = Varchar::make_object(obj->to_string());
+		} else if (type == T_DATETIME) {
+			obj = DateTime::make_object(obj->to_string());
+		} else {
+			ret = CAST_DATA_ERROR;
 		}
+	} else if (obj->get_type() == T_DATETIME) {
+		if (type == T_BOOL) {
+			obj = Bool::make_object(obj->to_string());
+		} else if (type == T_NUMBER) {
+			obj = Number::make_object(obj->to_string());
+		} else if (type == T_VARCHAR) {
+			obj = Varchar::make_object(obj->to_string());
+		} else {
+			ret = CAST_DATA_ERROR;
+		}
+	} else if (obj->get_type() == T_BOOL) {
+		if (type == T_VARCHAR) {
+			obj = Varchar::make_object(obj->to_string());
+		} else if (type == T_NUMBER) {
+			obj = Number::make_object(obj->to_string());
+		} else if (type == T_DATETIME) {
+			obj = DateTime::make_object(obj->to_string());
+		} else {
+			ret = CAST_DATA_ERROR;
+		}
+	} else {
+		ret = CAST_DATA_ERROR;
 	}
-	else {
-		return CAST_DATA_ERROR;
-	}
+	return ret;
 }
