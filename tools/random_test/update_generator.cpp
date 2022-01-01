@@ -8,11 +8,29 @@ UpdateGenerator::UpdateGenerator(Config &conf)
 void UpdateGenerator::generate_query(string &query)
 {
     ++conf.query_count;
-    update_table = generate_basic_table();
     generate_from_list();
     generate_where();
     generate_set_value();
     to_string(query);
+    query_select_table_data = "SELECT * FROM " + update_table;
+}
+
+void UpdateGenerator::generate_from_list()
+{
+	if (!tables.empty() && tables.size() >= conf.max_table_count) {
+        return;
+    }
+    int type = std::rand() % 2;    
+	if (!tables.empty()) {
+        from_list += ", ";
+		from_list += generate_table_item();
+    } else {
+		from_list += generate_basic_table();
+		update_table = tables[0];
+	}
+    if (1 == type || tables.size() < conf.min_table_count) {
+        generate_from_list();
+    }
 }
 
 void UpdateGenerator::generate_set_value()

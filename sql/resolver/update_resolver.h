@@ -12,6 +12,7 @@ namespace CatDB {
             ~UpdateResolver();
             u32 resolve_stmt();
         private:
+            u32 set_relation_for_assign_exprs();
             u32 check_assign_exprs();
             u32 check_assign_expr(ExprStmt_s &assign_expr,
                                   ColumnStmt_s &column_expr,

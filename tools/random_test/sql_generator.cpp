@@ -83,6 +83,9 @@ int main(int argc, char* argv[])
         generator->generate_query(query);
 		out << "EXPLAIN " << query << ";\n";
         out << query << ";\n";
+        if ("select" != type) {
+            out << generator->get_query_select_table_data() << ";\n";
+        }
         if (!generator) {
             delete generator;
             generator = NULL;

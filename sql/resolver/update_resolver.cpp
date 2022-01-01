@@ -39,8 +39,25 @@ u32 UpdateResolver::resolve_stmt()
         }
     }
     MY_ASSERT(find);
+    CHECK(set_relation_for_assign_exprs());
     CHECK(resolve_exprs(update_stmt->update_assign_stmt, resolve_ctx));
     CHECK(check_assign_exprs());
+    return ret;
+}
+
+u32 UpdateResolver::set_relation_for_assign_exprs()
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < update_stmt->update_assign_stmt.size(); ++i) {
+        ExprStmt_s assign_expr = update_stmt->update_assign_stmt[i];
+        ColumnStmt_s column_expr;
+        MY_ASSERT(assign_expr, OP_EXPR == assign_expr->expr_type());
+        OpExprStmt_s expr = assign_expr;
+        MY_ASSERT(OP_EQ == expr->op_type, 2 == expr->params.size());
+        MY_ASSERT(COLUMN == expr->params[0]->expr_type());
+        column_expr = expr->params[0];
+        column_expr->table = update_stmt->table->alias_name;   
+    }
     return ret;
 }
 

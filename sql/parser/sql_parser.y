@@ -213,6 +213,7 @@
 %token DATABASES
 %token DATE
 %token DATETIME
+%token DAY
 %token DECIMAL
 %token DELETE
 %token DESC
@@ -237,6 +238,7 @@
 %token GROUP
 %token HAVING
 %token IF
+%token IFNULL
 %token IN
 %token INDEX
 %token INFILE
@@ -244,6 +246,7 @@
 %token INSERT
 %token INT
 %token INTERSECT
+%token INTERVAL
 %token INTO
 %token IS
 %token JOIN
@@ -257,6 +260,7 @@
 %token MEDIUMINT
 %token MEMORY
 %token MINUS "-"
+%token MONTH
 %token MUL "*"
 %token NOT
 %token NO_REWRITE
@@ -286,12 +290,14 @@
 %token SPLIT
 %token STATIS
 %token STATUS
+%token SUBSTR
 %token TABLE
 %token TABLES
 %token THEN
 %token TIME
 %token TIMESTAMP_SYM
 %token TINYINT
+%token TO_CHAR
 %token TRUE
 %token UNION
 %token UPDATE
@@ -303,6 +309,7 @@
 %token VARCHAR
 %token WHEN
 %token WHERE
+%token YEAR
 %token END 0
 
 %type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
@@ -1149,6 +1156,33 @@ expr_const:
 		check(stmt);
 		$$ = stmt;
 	}
+  | INTERVAL string DAY
+  {
+	  //构建常量表达式
+		Object_s value = DateTime::make_object_from_day(std::stoi($2));
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
+  | INTERVAL string MONTH
+  {
+	  //构建常量表达式
+		Object_s value = DateTime::make_object_from_month(std::stoi($2));
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
+  | INTERVAL string YEAR
+  {
+	  //构建常量表达式
+		Object_s value = DateTime::make_object_from_year(std::stoi($2));
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
   | number
 	{
 		//构建常量表达式
@@ -1212,6 +1246,34 @@ func_expr:
 		aggr->set_aggr_expr($3);
 		$$ = aggr;
     }
+  | TO_CHAR "(" arith_expr ")"
+  {
+	make_unary_stmt($$, $3, OP_TO_CHAR);
+  }
+  | TO_CHAR "(" arith_expr "," string ")"
+  {
+	Object_s value = Varchar::make_object($5);
+	check(value);
+	ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+	check(stmt);
+	make_binary_stmt($$, $3, stmt, OP_TO_CHAR);
+  }
+  | SUBSTR "(" arith_expr "," number "," number ")"
+  {
+	Object_s value1 = Number::make_object($5);
+	check(value1);
+	ExprStmt_s stmt1 = ConstStmt::make_const_stmt(value1);
+	check(stmt1);
+	Object_s value2 = Number::make_object($7);
+	check(value2);
+	ExprStmt_s stmt2 = ConstStmt::make_const_stmt(value2);
+	check(stmt2);
+	make_ternary_stmt($$, $3, stmt1, stmt2, OP_SUBSTR);
+  }
+  | IFNULL "(" arith_expr "," arith_expr ")"
+  {
+	make_binary_stmt($$, $3, $5, OP_IFNULL);
+  }
   ;
 
 distinct_or_all:

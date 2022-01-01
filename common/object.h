@@ -197,6 +197,9 @@ namespace CatDB {
 			DateTime(const RawData& data);
 			static Object_s make_object(double value);
 			static Object_s make_object(const String& str);
+			static Object_s make_object_from_day(u32 day);
+			static Object_s make_object_from_month(u32 month);
+			static Object_s make_object_from_year(u32 year);
 			u32 serialization(u8*& buffer) override;
 			bool is_fixed_length() override;
 			bool bool_value() override;
@@ -207,6 +210,7 @@ namespace CatDB {
 			static time_t StringToDatetime(const String& str);
 			static String DatetimeToString(time_t t);
 			static String CurrentDatetime();
+			static String DatetimeToString(time_t t, const String &format);
 
 			Object_s operator+(const Object_s& other) override;
 			Object_s operator-(const Object_s& other) override;

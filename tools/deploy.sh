@@ -76,19 +76,22 @@ check_dir() {
 }
 
 find_pid() {
-    N=`ps -ax | grep -c ./CatDB`
-    if [ $N -lt 2 ]
+    N=`ps -ax | grep CatDB | grep -v "grep" | grep -c CatDB`
+    if [ $N -eq 1 ]
     then
-        return 0
+        PID=`ps -ax | grep CatDB | grep -v "grep" | awk -F ' ' '{print $1}'`
+        return 1
     fi
-    PID=`ps -ax | grep ./CatDB | awk -F ' ' '{print $2}' | awk 'NR==1'`
-    return 1
+    return 0
 }
 
 init_server() {
     mkdir -p $DATA_DIR
     mkdir -p $RECYCLE_DIR
     mkdir -p $DATA_DIR"/system"
+	touch $DATA_DIR"/system/sys_databases"
+	touch $DATA_DIR"/system/sys_tables"
+	touch $DATA_DIR"/system/sys_columns"
     touch $LOG_FILE
     start_server
     sleep 1

@@ -11,7 +11,7 @@ PhyHashGroup::PhyHashGroup(PhyOperator_s & child)
 	:SingleChildPhyOperator(child),
 	start_new_group(false)
 {
-	reset();
+	is_build_hash_table = false;
 }
 
 PhyHashGroup::~PhyHashGroup()

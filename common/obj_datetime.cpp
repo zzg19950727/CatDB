@@ -24,6 +24,52 @@ Object_s DateTime::make_object(double value)
 	return Object_s(new DateTime(value));
 }
 
+Object_s DateTime::make_object_from_day(u32 day)
+{
+	tm tm_;
+	tm_.tm_year = 1970 - 1900;
+	tm_.tm_mon = 1 - 1;
+	tm_.tm_mday = 1;
+	tm_.tm_hour = 8;
+	tm_.tm_min = 0;
+	tm_.tm_sec = 0;
+	tm_.tm_isdst = 0;
+	tm_.tm_sec += day * 24 * 60 * 60;
+	time_t t_ = mktime(&tm_);
+	return Object_s(new DateTime(double(t_)));
+}
+
+Object_s DateTime::make_object_from_month(u32 month)
+{
+	tm tm_;
+	tm_.tm_year = 1970 - 1900;
+	tm_.tm_mon = 1 - 1;
+	tm_.tm_mday = 1;
+	tm_.tm_hour = 8;
+	tm_.tm_min = 0;
+	tm_.tm_sec = 0;
+	tm_.tm_isdst = 0;
+	tm_.tm_mon = month % 12;
+	tm_.tm_year += month / 12;
+	time_t t_ = mktime(&tm_);
+	return Object_s(new DateTime(double(t_)));
+}
+
+Object_s DateTime::make_object_from_year(u32 year)
+{
+	tm tm_;
+	tm_.tm_year = 1970 - 1900;
+	tm_.tm_mon = 1 - 1;
+	tm_.tm_mday = 1;
+	tm_.tm_hour = 8;
+	tm_.tm_min = 0;
+	tm_.tm_sec = 0;
+	tm_.tm_isdst = 0;
+	tm_.tm_year += year;
+	time_t t_ = mktime(&tm_);
+	return Object_s(new DateTime(double(t_)));
+}
+
 time_t DateTime::StringToDatetime(const String& str)
 {
 	const char *cha = str.c_str();
@@ -72,6 +118,81 @@ String DateTime::CurrentDatetime()
 {
 	auto t = Clock::to_time_t(Clock::now());
 	return DatetimeToString(t);
+}
+
+String DateTime::DatetimeToString(time_t t, const String &format)
+{
+	char tmp[255] = {0};
+	bool next = false;
+	tm* time = localtime(&t);
+	if (time == NULL)
+	{
+		return "";
+	}
+	if(format.find('y') != String::npos) {
+		sprintf(tmp + strlen(tmp), "%04d",
+			time->tm_year + 1900
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	if(format.find('m') != String::npos) {
+		if (next) {
+			sprintf(tmp + strlen(tmp), "-");
+		}
+		sprintf(tmp + strlen(tmp), "%02d",
+			time->tm_mon + 1
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	if(format.find('d') != String::npos) {
+		if (next) {
+			sprintf(tmp + strlen(tmp), "-");
+		}
+		sprintf(tmp + strlen(tmp), "%02d",
+			time->tm_mday
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	if(format.find('h') != String::npos) {
+		if (next) {
+			sprintf(tmp + strlen(tmp), " ");
+		}
+		sprintf(tmp + strlen(tmp), "%02d",
+			time->tm_hour
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	if(format.find('i') != String::npos) {
+		if (next) {
+			sprintf(tmp + strlen(tmp), ":");
+		}
+		sprintf(tmp + strlen(tmp), "%02d",
+			time->tm_min
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	if(format.find('s') != String::npos) {
+		if (next) {
+			sprintf(tmp + strlen(tmp), ":");
+		}
+		sprintf(tmp + strlen(tmp), "%02d",
+			time->tm_sec
+		);
+		next = true;
+	} else {
+		next = false;
+	}
+	return String(tmp);
 }
 
 Object_s DateTime::make_object(const String & str)

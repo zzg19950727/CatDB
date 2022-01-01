@@ -1,6 +1,7 @@
 ﻿#ifndef CAT_TABLE_SPACE_H
 #define CAT_TABLE_SPACE_H
 #include "table_space.h"
+#include "page.h"
 #include "type.h"
 
 namespace CatDB {
@@ -12,6 +13,36 @@ namespace CatDB {
 		DECLARE(CatIoService);
 		DECLARE(CatTableSpace);
 		using Common::Row_s;
+
+		class LRUManger {
+		public:
+			LRUManger();
+			bool find_page(u32 offset, Page_s &page);
+			bool add_page(Page_s &new_page, Page_s &old_page);
+		private:
+			struct Node {
+				Node()
+				:pre(NULL),
+				next(NULL),
+				count(0)
+				{}
+
+				Node *pre;
+				Node *next;
+				u32 count;
+				Page_s page;
+			};
+
+			void visit_node(Node* node);
+			void del_node(Node* node);
+			void add_node_after(Node *head, Node *node);
+			void add_node_before(Node *tail, Node *node);
+
+			Node head;
+			Node tail;
+			static const u32 MAX_SIZE = 63;
+		};
+
 		/*简单存储引擎*/
 		class CatTableSpace : public TableSpace
 		{
@@ -22,7 +53,8 @@ namespace CatDB {
 			static TableSpace_s make_table_space(const String& table_name, 
 												 const String& database,
 												 const Vector<String> &args, 
-												 double sample_size = 1);
+												 double sample_size,
+												 bool read_only);
 			//对外获取记录接口
 			u32 open()override;
 			u32 get_next_row(Row_s& row)override;
@@ -36,19 +68,15 @@ namespace CatDB {
 
 		private:
 			u32 get_page_from_row_id(u32 row_id, Page_s& page);
-			u32 get_page_from_offset(u32 page_offset, Page_s& page);
-			u32 read_page(u32 page_offset, Page_s& page);
-			u32 create_page(u32 page_offset, Page_s& page);
-			u32 get_last_page(Page_s& page);
-			void reset_all_page();
+			u32 write_page_to_disk(const Page_s& page);
 
 		private:
-			//保证page有序析构
-			List<Page_s> pages_copy;
-			HashMap<u32, Page_s>  pages;
+			LRUManger page_manager;
 			CatIoService_s io;
-			u32 cur_page_offset;
+			Page_s cur_page;
 			u32 page_skip_size;
+			bool read_only;
+			bool is_empty_table_space;
 		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(CatTableSpace)

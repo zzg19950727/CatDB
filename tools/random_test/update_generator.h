@@ -8,6 +8,7 @@ public:
     ~UpdateGenerator() {}
     void generate_query(string &query);
 private:
+    void generate_from_list()override;
     void generate_set_value();
     void to_string(string &query);
 private:

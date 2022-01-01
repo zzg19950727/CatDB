@@ -43,21 +43,8 @@ u32 IoService::open(const String & table_file)
 	if (file_handle) {
 		return SUCCESS;
 	} else {
-		file_handle = fopen(table_file.c_str(), "wb+");
-		if (file_handle) {
-			fclose(file_handle);
-			file_handle = fopen(table_file.c_str(), "rb+");
-			return SUCCESS;
-		} else {
-			LOG_ERR("open table file failed!");
-			return TABLE_FILE_NOT_EXISTS;
-		}
+		return TABLE_FILE_NOT_EXISTS;
 	}
-}
-
-bool CatDB::Storage::IoService::is_open() const
-{
-	return file_handle != 0;
 }
 
 u32 IoService::read_buffer(char* buffer, u64 offset, u64 &size)
@@ -127,16 +114,31 @@ u32 IoService::end_offset(u64& offset)
 
 void IoService::close()
 {
-	fclose(file_handle);
+	if (file_handle) {
+		fclose(file_handle);
+	}
 	file_handle = 0;
 }
 
-bool IoService::eof() const
+u32 IoService::move_to_file_end()
 {
 	if (!file_handle) {
-		return true;
+		return TABLE_FILE_NOT_EXISTS;
 	}
-	return feof(file_handle) != 0;
+	fseek(file_handle, 0, SEEK_END);
+    return SUCCESS;
+}
+
+u32 IoService::create_file(const String& table_file)
+{
+	LOG_TRACE("create table", K(table_file));
+	FILE *file_handle = fopen(table_file.c_str(), "wb+");
+	if (file_handle) {
+		fclose(file_handle);
+		return SUCCESS;
+	} else {
+		return TABLE_FILE_NOT_EXISTS;
+	}
 }
 
 u32 IoService::delete_file(const String& table_file)

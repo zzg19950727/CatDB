@@ -19,6 +19,7 @@ namespace CatDB {
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
 			void set_distinct_exprs(const Vector<ExprStmt_s> &exprs) { distinct_exprs = exprs; }
+			void add_distinct_expr(const ExprStmt_s &expr) { distinct_exprs.push_back(expr); }
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
 		public:
 			Vector<ExprStmt_s> distinct_exprs;

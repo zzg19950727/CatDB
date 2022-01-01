@@ -15,13 +15,14 @@ namespace CatDB {
 		class CSVTableSpace : public TableSpace
 		{
 		private:
-			CSVTableSpace(const Vector<String> &args);
+			CSVTableSpace(const Vector<String> &args, bool read_only);
 		public:
 			~CSVTableSpace();
 			static TableSpace_s make_table_space(const String& table_name, 
 												 const String& database,
 												 const Vector<String> &args, 
-												 double sample_size = 1);
+												 double sample_size,
+												 bool read_only);
 			//对外获取记录接口
 			u32 open()override;
 			u32 get_next_row(Row_s& row)override;

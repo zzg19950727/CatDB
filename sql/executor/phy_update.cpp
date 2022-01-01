@@ -73,6 +73,9 @@ u32 PhyUpdate::inner_get_next_row(Row_s &row)
     u32 ret;
     while((ret = child->get_next_row(row)) == SUCCESS){
         Object_s result = row_id->get_result(row);
+        if (result->is_null()) {
+            continue;
+        }
         MY_ASSERT(T_NUMBER == result->get_type());
 		Number_s num = result;
         cur_row->set_row_id( num->value() );

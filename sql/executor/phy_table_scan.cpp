@@ -25,7 +25,11 @@ PhyOperator_s PhyTableScan::make_table_scan(const String&database,
 	const Vector<String> &engine_args,
 	double sample_size)
 {
-	TableSpace_s table_space = TableSpace::make_table_space(table, database, engine_args, sample_size);
+	TableSpace_s table_space = TableSpace::make_table_space(table, 
+															database, 
+															engine_args, 
+															sample_size, 
+															true);
 	PhyTableScan* scan = new PhyTableScan(table_space);
 	return PhyOperator_s(scan);
 }

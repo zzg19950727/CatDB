@@ -112,6 +112,8 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj)
 		return do_not_like(first_obj, second_obj);
 	case OP_CAST:
 		return do_cast(first_obj, second_obj);
+	case OP_IFNULL:
+		return do_ifnull(first_obj, second_obj);
 	default:
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
@@ -127,6 +129,8 @@ Object_s Operation::calc(Object_s & first_obj, Object_s & second_obj, Object_s &
 		return do_between(first_obj, second_obj, third_obj);
 	case OP_NOT_BETWEEN:
 		return do_not_between(first_obj, second_obj, third_obj);
+	case OP_SUBSTR:
+		return do_substr(first_obj, second_obj, third_obj);
 	default:
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
@@ -139,6 +143,8 @@ Object_s Operation::calcN(Vector<Object_s> &params)
 	{
 	case OP_CASE_WHEN:
 		return do_case_when(params);
+	case OP_TO_CHAR:
+		return do_to_char(params);
 	default:
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
@@ -336,6 +342,32 @@ Object_s Operation::do_cast(Object_s& first_obj, Object_s& second_obj)
 	return first_obj;
 }
 
+Object_s Operation::do_ifnull(Object_s& first_obj, Object_s& second_obj)
+{
+	if (first_obj->is_null()) {
+		return second_obj;
+	} else {
+		return first_obj;
+	}
+}
+
+Object_s Operation::do_substr(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj)
+{
+	double start = second_obj->value();
+	double len = third_obj->value();
+	return Varchar::make_object(String(first_obj->to_string(), start, len));
+}
+
+Object_s Operation::do_to_char(Vector<Object_s> &params)
+{
+	if (params.size() == 1) {
+		return Varchar::make_object(params[0]->to_string());
+	} else {
+		return Varchar::make_object(DateTime::DatetimeToString(params[0]->value(), 
+															   params[1]->to_string()));
+	}
+}
+
 Expression::Expression()
 {
 }
@@ -512,14 +544,16 @@ Object_s OpExpression::get_result(const Row_s & row)
 	case OP_LIKE:
 	case OP_NOT_LIKE:
 	case OP_CAST:
+	case OP_IFNULL:
 		return op.calc(param_result[0], param_result[1]);
 	case OP_BETWEEN:
 	case OP_NOT_BETWEEN:
+	case OP_SUBSTR:
 		return op.calc(param_result[0], param_result[1], param_result[2]);
 	case OP_CASE_WHEN:
+	case OP_TO_CHAR:
 		return op.calcN(param_result);
 	case OP_INVALID:
-	case OP_IFNULL:
 		return Error::make_object(OPERATION_NOT_SUPPORT);
 	}
 	return Error::make_object(OPERATION_NOT_SUPPORT);

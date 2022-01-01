@@ -43,6 +43,17 @@ u32 EstInfo::init_table_statis(u32 table_ref_id, u32 table_id)
             column_statis->null_count = manager->get_column_null_count(table_ref_id, column_statis->column_id);
             table_statis->columns_statis[column_statis->column_id] = column_statis;
         }
+        //for row id
+        {
+            ColumnEstInfo_s column_statis = ColumnEstInfo::make_column_est_info();
+            column_statis->column_id = ROWID_COLUMN_ID;
+            column_statis->max_value = table_statis->table_rows;
+            column_statis->min_value = 0;
+            column_statis->ndv = table_statis->table_rows;
+            column_statis->ori_ndv = column_statis->ndv;
+            column_statis->null_count = 0;
+            table_statis->columns_statis[column_statis->column_id] = column_statis;
+        }
     }
     return ret;
 }

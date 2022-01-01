@@ -19,7 +19,8 @@ namespace CatDB {
 			static TableSpace_s make_table_space(const String& table_name, 
                                                  const String& database,
                                                  const Vector<String> &args,
-                                                 double sample_size = 1);
+                                                 double sample_size = 1,
+												 bool read_only = false);
 			//对外获取记录接口
 			virtual u32 open() = 0;
 			virtual u32 get_next_row(Row_s& row) = 0;

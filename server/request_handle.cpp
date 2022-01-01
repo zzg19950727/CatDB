@@ -125,7 +125,7 @@ void RequestHandle::close_connection()
 	LOG_TRACE("RequestHandle close connection", K(m_fd));
 	net_close(m_fd);
 	m_server_service.m_net_service.unregister_io(m_fd, NetService::E_RW);
-	m_server_service.close_connection(m_fd);
+	m_server_service.close_connection(query_ctx->thread_id);
 	RequestHandle_s copy;
 	copy.swap(m_self);
 	m_fd = -1;

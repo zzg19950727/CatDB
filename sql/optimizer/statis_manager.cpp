@@ -248,17 +248,32 @@ u32 StatisManager::inner_analyze_table(const String& database, const String& tab
     u32 table_id = INVALID_ID;
     Vector<u32> column_ids;
     String query;
-    CHECK(generate_analyze_sql(database, table, query, table_id, column_ids));
+    CHECK(generate_analyze_sql(database, 
+                               table, 
+                               query, 
+                               table_id, 
+                               column_ids));
 	u64 file_size = TableSpace::table_space_size(database, table);
 	if (file_size / 16384 < 1.0 / sample_size) {
 		sample_size = 1;
 	}
+    if (sample_size > 1) {
+        sample_size = 1;
+    }
     QueryResult_s result;
     CHECK(execute_sys_sql(query, result, sample_size));
     TableStatis_s table_statis;
-    CHECK(generate_table_statis(table_id, file_size, column_ids, result, table_statis));
+    CHECK(generate_table_statis(table_id, 
+                                file_size, 
+                                sample_size, 
+                                column_ids, 
+                                result, 
+                                table_statis));
+                                
     String table_statis_query, column_statis_query;
-    CHECK(generate_load_sql(table_statis, table_statis_query, column_statis_query));
+    CHECK(generate_load_sql(table_statis, 
+                            table_statis_query, 
+                            column_statis_query));
     CHECK(execute_sys_sql(table_statis_query, result));
     CHECK(execute_sys_sql(column_statis_query, result));
 	return ret;
@@ -294,6 +309,7 @@ u32 StatisManager::generate_analyze_sql(const String& database,
 
 u32 StatisManager::generate_table_statis(u32 table_id,
                                         u32 space_size,
+                                        double sample_size,
                                         Vector<u32> &column_ids,
                                         QueryResult_s result,
                                         TableStatis_s &table_statis)
@@ -309,15 +325,15 @@ u32 StatisManager::generate_table_statis(u32 table_id,
     u32 pos = 0;
     Object_s cell;
     row->get_cell(pos++, cell);
-    table_statis->row_count = cell->value();
+    table_statis->row_count = cell->value() / sample_size;
     for (u32 i = 0; i < column_ids.size(); ++i) {
         ColumnStatis_s statis = ColumnStatis::make_column_statis();
         statis->tid = table_id;
         statis->cid = column_ids[i];
         row->get_cell(pos++, cell);
-        statis->ndv = cell->value();
+        statis->ndv = cell->value() / sample_size;
         row->get_cell(pos++, cell);
-        statis->null_count = cell->value();
+        statis->null_count = cell->value() / sample_size;
         row->get_cell(pos++, cell);
         statis->max_value = cell->value();
         row->get_cell(pos++, cell);

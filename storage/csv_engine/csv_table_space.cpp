@@ -8,7 +8,7 @@
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
-CSVTableSpace::CSVTableSpace(const Vector<String> &args)
+CSVTableSpace::CSVTableSpace(const Vector<String> &args, bool read_only)
 {
 	u32 i = 1;
 	if (i < args.size()) {
@@ -32,6 +32,9 @@ CSVTableSpace::CSVTableSpace(const Vector<String> &args)
 		field_count = std::stod(args[i++]);
 	}
 	io = IoService::make_io_service();
+	if (!read_only) {
+		io->move_to_file_end();
+	}
 	column_pos = new u32[field_count];
 	buffer = new char[buffer_size];
 	reset();
@@ -49,9 +52,10 @@ CSVTableSpace::~CSVTableSpace()
 TableSpace_s CSVTableSpace::make_table_space(const String& table_name, 
 											 const String & database, 
 											 const Vector<String> &args,
-											 double sample_size)
+											 double sample_size,
+											 bool read_only)
 {
-	CSVTableSpace* table_space = new CSVTableSpace(args);
+	CSVTableSpace* table_space = new CSVTableSpace(args, read_only);
 	table_space->database = database;
 	table_space->table_name = table_name;
 	if (sample_size > 0.99) {

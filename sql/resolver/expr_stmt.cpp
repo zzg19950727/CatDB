@@ -828,6 +828,38 @@ String OpExprStmt::to_string()const
 			}
 			break;
 		case OP_IFNULL:
+			if (params.size() == 2) {
+				ret += "IFNULL(";
+				ret += params[0]->to_string();
+				ret += " , ";
+				ret += params[1]->to_string();
+				ret += ")";
+			}
+			break;
+		case OP_TO_CHAR:
+			if (params.size() == 1) {
+				ret += "TO_CHAR(";
+				ret += params[0]->to_string();
+				ret += ")";
+			} else if (params.size() == 2) {
+				ret += "TO_CHAR(";
+				ret += params[0]->to_string();
+				ret += " , ";
+				ret += params[1]->to_string();
+				ret += ")";
+			}
+			break;
+		case OP_SUBSTR:
+			if (params.size() == 3) {
+				ret += "SUBSTR(";
+				ret += params[0]->to_string();
+				ret += " , ";
+				ret += params[1]->to_string();
+				ret += " , ";
+				ret += params[2]->to_string();
+				ret += ")";
+			}
+			break;
 		defualt: 
 			ret += "UNKNOWN";
 			break;
@@ -917,6 +949,8 @@ String OpExprStmt::op_string(OperationType op_type)
 		case OP_CAST: return N(OP_CAST);
 		case OP_CASE_WHEN: return N(OP_CASE_WHEN);
 		case OP_IFNULL: return N(OP_IFNULL);
+		case OP_TO_CHAR: return N(OP_TO_CHAR);
+		case OP_SUBSTR: return N(OP_SUBSTR);
 		defualt: return N(UNKNOWN);
 	}
 	return "";

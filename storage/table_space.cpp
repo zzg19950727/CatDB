@@ -21,12 +21,21 @@ TableSpace::~TableSpace()
 TableSpace_s TableSpace::make_table_space(const String& table_name, 
                                         const String& database, 
                                         const Vector<String> &args,
-                                        double sample_size)
+                                        double sample_size,
+										bool read_only)
 {
     if (!args.empty() && args[0] == "CSV") {
-        return CSVTableSpace::make_table_space(table_name, database, args, sample_size);
+        return CSVTableSpace::make_table_space(table_name, 
+											   database, 
+											   args, 
+											   sample_size,
+											   read_only);
     } else {
-        return CatTableSpace::make_table_space(table_name, database, args, sample_size);
+        return CatTableSpace::make_table_space(table_name, 
+											   database, 
+											   args, 
+											   sample_size, 
+											   read_only);
     }
 }
 
@@ -51,14 +60,12 @@ u32 TableSpace::delete_table(const String& database, const String& table_name)
 
 u32 TableSpace::create_table(const String& database, const String& table_name)
 {
-	IoService_s io = IoService::make_io_service();
 	String path = table_path(database, table_name);
-	u32 ret = io->open(path);
+	u32 ret = IoService::create_file(path);
 	if (ret != SUCCESS) {
 		LOG_ERR("create table error", K(table_name), err_string(ret));
 		return ret;
 	} else {
-		io->close();
 		return SUCCESS;
 	}
 }

@@ -65,6 +65,9 @@ namespace CatDB {
 			Object_s do_not_like(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_cast(Object_s& first_obj, Object_s& second_obj);
 			Object_s do_case_when(Vector<Object_s> &params);
+			Object_s do_ifnull(Object_s& first_obj, Object_s& second_obj);
+			Object_s do_substr(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
+			Object_s do_to_char(Vector<Object_s> &params);
 
 		private:
 			OperationType type;

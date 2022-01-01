@@ -75,6 +75,9 @@ u32 PhyDelete::inner_get_next_row(Row_s &row)
 	}
 	while ((ret = child->get_next_row(row)) == SUCCESS) {
 		Object_s result = row_id->get_result(row);
+		if (result->is_null()) {
+            continue;
+        }
 		if (T_NUMBER != result->get_type()) {
 			return INVALID_ARGUMENT;
 		}

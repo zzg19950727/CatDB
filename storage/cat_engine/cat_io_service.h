@@ -16,10 +16,13 @@ namespace CatDB {
 			~CatIoService();
 			static CatIoService_s make_cat_io_service();
 			u32 read_page(Page_s& page);
+			u32 read_next_page(Page_s& page);
+			u32 read_first_page(Page_s& page);
+			u32 read_last_page(Page_s& page);
 			u32 write_page(const Page_s& page);
-			u32 write_page(const Page* page);
-			u32 end_offset(u64& offset) override;
+			u32 write_next_page(const Page_s& page);
 		private:
+			u32 end_offset(u64& offset) override;
 			DISALLOW_COPY_AND_ASSIGN(CatIoService)
 		};
 	}

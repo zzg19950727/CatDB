@@ -83,6 +83,7 @@ namespace CatDB {
                                      Vector<u32> &column_ids);
             u32 generate_table_statis(u32 table_id,
                                       u32 space_size,
+                                      double sample_size,
                                       Vector<u32> &column_ids,
                                       QueryResult_s result,
                                       TableStatis_s &table_statis);  

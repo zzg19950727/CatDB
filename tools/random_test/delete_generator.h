@@ -6,8 +6,9 @@ class DeleteGenerator : public DMLGenerator {
 public:
     DeleteGenerator(Config &conf);
     ~DeleteGenerator() {}
-    void generate_query(string &query);
+    void generate_query(string &query)override;
 private:
+	void generate_from_list()override;
     void to_string(string &query);
 private:
     string delete_table;
