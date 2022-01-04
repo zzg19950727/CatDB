@@ -6,7 +6,7 @@ class SelectGenerator : public DMLGenerator {
 public:
     SelectGenerator(Config &conf);
     ~SelectGenerator() {}
-    void generate_query(string &query);
+    void generate_query(string &query)override;
     void set_is_single() { is_single_output = true; }
 private:
     void generate_group_by();
@@ -15,7 +15,7 @@ private:
     void generate_select_list();
     void generate_order_by();
     void generate_limit();
-    void to_string(string &query);
+    void to_string(string &query)override;
 protected:
     vector<string> group_by_exprs;
     string distinct;

@@ -860,6 +860,13 @@ String OpExprStmt::to_string()const
 				ret += ")";
 			}
 			break;
+		case OP_TO_NUMBER:
+			if (params.size() == 1) {
+				ret += "TO_NUMBER(";
+				ret += params[0]->to_string();
+				ret += ")";
+			}
+			break;
 		defualt: 
 			ret += "UNKNOWN";
 			break;
@@ -951,6 +958,7 @@ String OpExprStmt::op_string(OperationType op_type)
 		case OP_IFNULL: return N(OP_IFNULL);
 		case OP_TO_CHAR: return N(OP_TO_CHAR);
 		case OP_SUBSTR: return N(OP_SUBSTR);
+		case OP_TO_NUMBER: return N(OP_TO_NUMBER);
 		defualt: return N(UNKNOWN);
 	}
 	return "";

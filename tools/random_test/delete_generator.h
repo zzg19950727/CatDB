@@ -9,7 +9,7 @@ public:
     void generate_query(string &query)override;
 private:
 	void generate_from_list()override;
-    void to_string(string &query);
+    void to_string(string &query)override;
 private:
     string delete_table;
 };

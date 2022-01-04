@@ -244,6 +244,7 @@ namespace CatDB {
 			u32 hash() override;
 			String to_string()const override;
 			Object_s copy()override;
+			double value() const override;
 
 			Object_s operator==(const Object_s& other) override;
 			Object_s operator>(const Object_s& other) override;

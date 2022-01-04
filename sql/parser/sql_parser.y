@@ -298,6 +298,7 @@
 %token TIMESTAMP_SYM
 %token TINYINT
 %token TO_CHAR
+%token TO_NUMBER
 %token TRUE
 %token UNION
 %token UPDATE
@@ -1273,6 +1274,10 @@ func_expr:
   | IFNULL "(" arith_expr "," arith_expr ")"
   {
 	make_binary_stmt($$, $3, $5, OP_IFNULL);
+  }
+  | TO_NUMBER "(" arith_expr ")"
+  {
+	make_unary_stmt($$, $3, OP_TO_NUMBER);
   }
   ;
 

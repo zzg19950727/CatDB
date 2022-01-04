@@ -15,6 +15,8 @@ namespace CatDB {
         private:
             u32 resolve_select_list();
             u32 resolve_order_exprs(Vector<ExprStmt_s> &order_exprs);
+            u32 resolve_order_by_123(ExprStmt_s &order_expr, bool &is_valid);
+            u32 resolve_order_by_select_list(ExprStmt_s &order_expr, bool &is_valid);
             u32 resolve_all_column(ExprStmt_s &stmt, Vector<ExprStmt_s> &columns);
             u32 get_all_column_from_table(TableStmt_s &table, Vector<ExprStmt_s> &columns);
             u32 get_all_column_from_basic_table(BasicTableStmt_s table, Vector<ExprStmt_s> &columns);

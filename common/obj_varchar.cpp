@@ -95,6 +95,11 @@ Object_s Varchar::copy()
 	return Varchar::make_object(data);
 }
 
+double Varchar::value() const
+{
+	return std::stoi(String((char*)data->buf));
+}
+
 Object_s Varchar::operator==(const Object_s & other)
 {
 	if (is_null() || other->is_null()) {

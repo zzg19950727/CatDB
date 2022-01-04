@@ -70,7 +70,8 @@ enum OperationType {
 				OP_CASE_WHEN,
 				OP_CAST,
 				OP_TO_CHAR,
-				OP_SUBSTR
+				OP_SUBSTR,
+				OP_TO_NUMBER
 			};
 
 enum AggrType {

@@ -52,6 +52,8 @@ Object_s Operation::calc(Object_s & obj)
 		return do_is_null(obj);
 	case OP_IS_NOT_NULL:
 		return do_is_not_null(obj);
+	case OP_TO_NUMBER:
+		return do_to_number(obj);
 	default:
 		LOG_ERR("wrong calc function called for opertion");
 		return Error::make_object(WRONG_CALC_FOR_OP);
@@ -368,6 +370,11 @@ Object_s Operation::do_to_char(Vector<Object_s> &params)
 	}
 }
 
+Object_s Operation::do_to_number(Object_s& first_obj)
+{
+	return Number::make_object(first_obj->value());
+}
+
 Expression::Expression()
 {
 }
@@ -526,6 +533,7 @@ Object_s OpExpression::get_result(const Row_s & row)
 	case OP_NOT_EXISTS:
 	case OP_IS_NULL:
 	case OP_IS_NOT_NULL:
+	case OP_TO_NUMBER:
 		return op.calc(param_result[0]);
 	case OP_ADD:
 	case OP_SUB:

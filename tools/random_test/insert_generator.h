@@ -6,9 +6,9 @@ class InsertGenerator : public DMLGenerator {
 public:
     InsertGenerator(Config &conf);
     ~InsertGenerator() {}
-    void generate_query(string &query);
+    void generate_query(string &query)override;
 private:
-    void to_string(string &query);
+    void to_string(string &query)override;
 private:
     string insert_table;
     string select_value;

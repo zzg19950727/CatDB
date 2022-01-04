@@ -111,6 +111,7 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "table"			{ return CatDB::SqlParser::make_TABLE(loc); }
 "tables"		{ return CatDB::SqlParser::make_TABLES(loc); }
 "to_char"		{ return CatDB::SqlParser::make_TO_CHAR(loc); }
+"to_number"		{ return CatDB::SqlParser::make_TO_NUMBER(loc); }
 "update"		{ return CatDB::SqlParser::make_UPDATE(loc); }
 "use"			{ return CatDB::SqlParser::make_USING(loc); }
 "values"		{ return CatDB::SqlParser::make_VALUES(loc); }
