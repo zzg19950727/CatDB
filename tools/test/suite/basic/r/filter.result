@@ -29,11 +29,11 @@ SELECT * FROM T1
 EXPLAIN SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 100000    | 10410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c1], [t1.c3])
 access([t1.c3], [t1.c1])
@@ -65,11 +65,11 @@ SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1
 EXPLAIN SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C1 OR T1.C4 > T1.C3)
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c1], [t1.c1])
 filters([t1.c1 = t1.c1 OR t1.c4 > t1.c3])
@@ -102,11 +102,11 @@ SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE (T1.
 EXPLAIN SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c3], [t1.c4])
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
@@ -135,11 +135,11 @@ SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 13410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c1], [t1.c1])
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
@@ -168,11 +168,11 @@ SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C1 BETWEEN T1.C1 AND T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c4], [t1.c4], [t1.c2])
 filters([t1.c1 BETWEEN t1.c1 AND t1.c3])
@@ -201,11 +201,11 @@ SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C4 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C4 IS NULL
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 1000      | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c1], [t1.c3], [t1.c4])
 filters([t1.c4 IS NULL])
@@ -224,11 +224,11 @@ Empty set
 EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 99000     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c2], [t1.c4])
 filters([t1.c3 IS NOT NULL])
@@ -261,11 +261,11 @@ SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C3 IS NOT NULL
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 99000     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c4], [t1.c1], [t1.c1])
 filters([t1.c3 IS NOT NULL])
@@ -298,11 +298,11 @@ SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 99900     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c1], [t1.c1])
 filters([t1.c4 != t1.c1])
@@ -335,11 +335,11 @@ SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C4 != T1.C1
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 99900     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c2], [t1.c3], [t1.c1])
 filters([t1.c4 != t1.c1])
@@ -372,11 +372,11 @@ SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE (T1.C1 = T1.C4 AND T1.C4 <= T1.C2 OR T1.C4 IS NULL OR T1.C3 <= T1.C4)
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c2], [t1.c3], [t1.c4])
 filters([t1.c1 = t1.c4 AND t1.c4 <= t1.c2 OR t1.c4 IS NULL OR t1.c3 <= t1.c4])
@@ -404,11 +404,11 @@ SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE (T1.
 EXPLAIN SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c2], [t1.c4])
 filters([t1.c3 >= t1.c3])
@@ -441,11 +441,11 @@ SELECT  T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 23410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c2], [t1.c4])
 filters([t1.c3 >= t1.c3])
@@ -478,11 +478,11 @@ SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C3 >= T1.C3
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c2], [t1.c4], [t1.c4])
 filters([t1.c3 >= t1.c3])
@@ -515,11 +515,11 @@ SELECT  T1.C4 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1 WHERE T1.C
 EXPLAIN SELECT  T1.C3 AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1 WHERE TO_CHAR(T1.C4) LIKE TO_CHAR(T1.C3)
 
 Query Plan:
-+--------------------------------------------+
-| ID | OPERATOR   | NAME | ROW COUNT | COST  |
-+--------------------------------------------+
-| 0  | TABLE SCAN | T1   | 30000     | 18410 |
-+--------------------------------------------+
++-------------------------------------------+
+| ID | OPERATOR   | NAME | ROW COUNT | COST |
++-------------------------------------------+
+| 0  | TABLE SCAN | T1   | 1         | 4    |
++-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c2], [t1.c4], [t1.c2])
 filters([TO_CHAR(t1.c4) LIKE TO_CHAR(t1.c3)])

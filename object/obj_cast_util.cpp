@@ -72,9 +72,8 @@ u32 ObjCastUtil::get_result_type(const Vector<DataType>& src_types,
         if (src_types[i].is_datetime()) {
             if (!has_datetime) {
                 time_type = src_types[i].time_type;
-            } else if (time_type != src_types[i].time_type) {
-                ret = INVALID_CAST;
-                return ret;
+            } else if (time_type < src_types[i].time_type) {
+                time_type = src_types[i].time_type;
             }
             has_datetime = true;
         }
@@ -137,10 +136,6 @@ u32 ObjCastUtil::check_compare_type(const DataType& lhs,
             r_need_cast = true;
             r_dst_type = lhs;
         } else {
-            ret = INVALID_CAST;
-        }
-    } else if (lhs.is_datetime()) {
-        if (lhs.time_type != rhs.time_type) {
             ret = INVALID_CAST;
         }
     }

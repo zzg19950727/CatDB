@@ -28,6 +28,7 @@ u32 LogSort::est_row_count()
     } else {
         output_rows = child()->get_output_rows();
     }
+    set_output_rows(output_rows);
     return ret;
 }
 

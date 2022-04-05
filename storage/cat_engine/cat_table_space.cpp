@@ -8,7 +8,7 @@
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
-LRUManger::LRUManger()
+LRUManager::LRUManager()
 {
 	head.pre = &tail;
 	head.next = &tail;
@@ -16,7 +16,19 @@ LRUManger::LRUManger()
 	tail.next = &head;
 }
 
-bool LRUManger::find_page(u32 offset, Page_s &page)
+LRUManager::~LRUManager()
+{
+	Node *node = head.next;
+	while(node && node != &tail) {
+		if (node->page->is_page_dirty()) {
+			(io->write_page(node->page));
+			node->page->write_page_to_disk();
+		}
+		node = node->next;
+	}
+}
+
+bool LRUManager::find_page(u32 offset, Page_s &page)
 {
 	bool find = false;
 	Node *node = head.next;
@@ -34,14 +46,12 @@ bool LRUManger::find_page(u32 offset, Page_s &page)
 	return find;
 }
 
-bool LRUManger::add_page(Page_s &new_page, Page_s &old_page)
+bool LRUManager::add_page(Page_s &new_page, Page_s &old_page)
 {
 	if (head.count >= MAX_SIZE) {
 		Node *node = tail.pre;
 		old_page = node->page;
 		del_node(node);
-		delete node;
-		node = new Node;
 		node->page = new_page;
 		add_node_before(&tail, node);
 		visit_node(node);
@@ -55,7 +65,7 @@ bool LRUManger::add_page(Page_s &new_page, Page_s &old_page)
 	}
 }
 
-void LRUManger::visit_node(Node* node)
+void LRUManager::visit_node(Node* node)
 {
 	if (node == &head || node == &tail) {
 		return;
@@ -75,7 +85,7 @@ void LRUManger::visit_node(Node* node)
 	add_node_after(last_node, first_node);
 }
 
-void LRUManger::del_node(Node* node)
+void LRUManager::del_node(Node* node)
 {
 	if (node == &head || node == &tail) {
 		return;
@@ -86,7 +96,7 @@ void LRUManger::del_node(Node* node)
 	child->pre = parent;
 }
 
-void LRUManger::add_node_after(Node *head, Node *node)
+void LRUManager::add_node_after(Node *head, Node *node)
 {
 	Node *child = head->next;
 	node->pre = head;
@@ -95,7 +105,7 @@ void LRUManger::add_node_after(Node *head, Node *node)
 	child->pre = node;
 }
 
-void LRUManger::add_node_before(Node *tail, Node *node)
+void LRUManager::add_node_before(Node *tail, Node *node)
 {
 	Node *parent = tail->pre;
 	node->pre = parent;
@@ -109,6 +119,7 @@ CatTableSpace::CatTableSpace()
 	read_only(true)
 {
 	io = CatIoService::make_cat_io_service();
+	page_manager.io = io;
 }
 
 CatTableSpace::~CatTableSpace()

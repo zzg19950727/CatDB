@@ -166,6 +166,7 @@ u32 RequestHandle::send_ok_packet(u32 affected_rows)
 	int ret = SUCCESS;
 	OKPacket okpacket;
 	okpacket.set_affected_rows(affected_rows);
+	okpacket.set_message("trace_id = [ " + trace_id + " ]");
 	ret = post_packet(okpacket, ++seq);
 	if (SUCCESS != ret)
 	{
@@ -324,11 +325,13 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
+	set_trace_id(trace_id);
 	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {
 		String err_msg = ErrCodeString[ret];
 		err_msg += " " + query_ctx->get_error_msg();
+		err_msg += "\ntrace_id = [ " + trace_id + " ]";
 		ret = send_error_packet(ret, err_msg);
 	} else {
 		ResultSet_s result_set = engine->get_query_result();
@@ -336,6 +339,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			ret = ERR_UNEXPECTED;
 		} else if (result_set->is_explain_plan()) {
 			String plan_info = result_set->get_explain_info();
+			plan_info += "\ntrace_id = [ " + trace_id + " ]";
 			ret = (send_ok_packet(plan_info));
 		} else if (result_set->need_send_result()) {
 			ret = (send_result_set(result_set));
@@ -343,7 +347,9 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			ret = (send_ok_packet(query_ctx->get_affected_rows()));
 		}
 		if (FAIL(ret)) {
-			ret = send_error_packet(ret, ErrCodeString[ret]);
+			String err_msg = ErrCodeString[ret];
+			err_msg += "\ntrace_id = [ " + trace_id + " ]";
+			ret = send_error_packet(ret, err_msg);
 		}
 	}
 	return ret;

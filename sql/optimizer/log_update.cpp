@@ -28,6 +28,7 @@ u32 LogUpdate::est_row_count()
 {
     u32 ret = SUCCESS;
     output_rows = child()->get_output_rows();
+    set_output_rows(output_rows);
     return ret;
 }
 

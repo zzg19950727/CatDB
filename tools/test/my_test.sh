@@ -173,7 +173,7 @@ format_result() {
 		else
 			new_line=0
 		fi
-		is_remove=`echo "$line" | grep -E "Query OK.*|INSERT INTO.*VALUES.*|^--------------$"`
+		is_remove=`echo "$line" | grep -E "Query OK.*|INSERT INTO.*VALUES.*|^--------------$|trace_id = "`
 		if [ "$is_remove" == "" ]
 		then
 			echo "$line" >> $tmp_file

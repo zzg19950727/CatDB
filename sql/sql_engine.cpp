@@ -163,6 +163,7 @@ u32 SqlEngine::handle_query()
         if (lex_stmt->stmt_type() != DoCMD) {
             ResolveCtx resolve_ctx;
             CHECK(DMLResolver::resolve_stmt(lex_stmt, query_ctx, resolve_ctx));
+            query_ctx->set_error_msg("");
             CHECK(lex_stmt->formalize());
             CHECK(query_ctx->query_hint.init(resolve_ctx.all_hints, resolve_ctx.has_outline));
             Transformer transformer;

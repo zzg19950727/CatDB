@@ -251,6 +251,7 @@
 %token INT
 %token INTERSECT
 %token INTERVAL
+%token INTEGER
 %token INTO
 %token IS
 %token JOIN
@@ -277,6 +278,7 @@
 %token OR
 %token ORDER
 %token ORDERED
+%token OUTER
 %token PARALLEL
 %token PERIOD "."
 %token PLUS "+"
@@ -318,22 +320,28 @@
 %token YEAR
 %token END 0
 
-%type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
+%type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt 
+									delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt kill_stmt
-%type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
+%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt 
+									set_var_stmt kill_stmt
+%type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref 
+									expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
+									seconds_expr
 %type<OrderStmt_s>					order_by
 %type<LimitStmt_s>					opt_select_limit
 %type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
-%type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split
+%type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
 %type<int>							limit_expr int_value opt_char_length opt_time_precision
 %type<DataType>						data_type
 %type<double>						opt_sample_size
-%type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number opt_qb_name opt_qb_name_single 
+%type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name 
+									ident string datetime number opt_qb_name opt_qb_name_single 
 %type<Vector<TableStmt_s>>			from_list 
 %type<BasicTableStmt_s> 			relation_factor
 %type<Vector<OrderStmt_s>>			opt_order_by order_by_list
-%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list when_then_list1 when_then_list2
+%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list 
+									when_then_list1 when_then_list2
 %type<Vector<Vector<ExprStmt_s>>>	insert_value_list
 %type<ColumnDefineStmt_s>			column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
@@ -800,23 +808,34 @@ view_table_factor:
 	;
 
 joined_table_factor:
-   table_factor LEFT JOIN sub_table_factor ON logical_expr
+   table_factor LEFT opt_outer JOIN sub_table_factor ON logical_expr
    {
-	   $$ = JoinedTableStmt::make_joined_table($1, $4, LeftOuter, $6);
+	   $$ = JoinedTableStmt::make_joined_table($1, $5, LeftOuter, $7);
    }
-   | table_factor RIGHT JOIN sub_table_factor ON logical_expr
+   | table_factor RIGHT opt_outer JOIN sub_table_factor ON logical_expr
    {
-	   $$ = JoinedTableStmt::make_joined_table($1, $4, RightOuter, $6);
+	   $$ = JoinedTableStmt::make_joined_table($1, $5, RightOuter, $7);
    }
-   | table_factor FULL JOIN sub_table_factor ON logical_expr
+   | table_factor FULL opt_outer JOIN sub_table_factor ON logical_expr
    {
-	   $$ = JoinedTableStmt::make_joined_table($1, $4, FullOuter, $6);
+	   $$ = JoinedTableStmt::make_joined_table($1, $5, FullOuter, $7);
    }
    | table_factor INNER JOIN sub_table_factor ON logical_expr
    {
 	   $$ = JoinedTableStmt::make_joined_table($1, $4, Inner, $6);
    }
   ;
+
+opt_outer:
+	/*empty*/	
+	{
+
+	}
+	| OUTER
+	{
+
+	}
+	;
 
 sub_table_factor:
 	basic_table_factor
@@ -888,6 +907,39 @@ simple_expr:
     }
   ;
 
+seconds_expr:
+  INTERVAL string DAY
+  {
+	  //构建常量表达式
+		Number_s value;
+		DateTime::make_second_from_day(std::stoi($2), value);
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
+  | INTERVAL string MONTH
+  {
+	  //构建常量表达式
+		Number_s value;
+		DateTime::make_second_from_month(std::stoi($2), value);
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
+  | INTERVAL string YEAR
+  {
+	  //构建常量表达式
+		Number_s value;
+		DateTime::make_second_from_year(std::stoi($2), value);
+		check(value);
+		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
+		check(stmt);
+		$$ = stmt;
+  }
+  ;
+
 arith_expr:
     simple_expr   
 	{ 
@@ -923,10 +975,21 @@ arith_expr:
 		//构建二元表达式
 		make_binary_stmt($$, $1, $3, OP_DIV);
 	}
+  | arith_expr "+" seconds_expr
+  {
+	  	//构建二元表达式
+		make_binary_stmt($$, $1, $3, OP_DATE_ADD);
+  }
+  | arith_expr "-" seconds_expr
+  {
+	  	//构建二元表达式
+		make_binary_stmt($$, $1, $3, OP_DATE_SUB);
+  }
   | case_when_expr
 	{
 		$$ = $1;
 	}
+
   ;
 
 arith_expr_list:
@@ -1250,36 +1313,6 @@ expr_const:
 		check(stmt);
 		$$ = stmt;
 	}
-  | INTERVAL string DAY
-  {
-	  //构建常量表达式
-		Number_s value;
-		DateTime::make_second_from_day(std::stoi($2), value);
-		check(value);
-		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
-		check(stmt);
-		$$ = stmt;
-  }
-  | INTERVAL string MONTH
-  {
-	  //构建常量表达式
-		Number_s value;
-		DateTime::make_second_from_month(std::stoi($2), value);
-		check(value);
-		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
-		check(stmt);
-		$$ = stmt;
-  }
-  | INTERVAL string YEAR
-  {
-	  //构建常量表达式
-		Number_s value;
-		DateTime::make_second_from_year(std::stoi($2), value);
-		check(value);
-		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
-		check(stmt);
-		$$ = stmt;
-  }
   | number
 	{
 		//构建常量表达式
@@ -1575,13 +1608,24 @@ table_element_list:
   ;
 
 column_definition:
-    column_name data_type
+    column_name data_type opt_not_null
     {
 		ColumnDefineStmt_s stmt = ColumnDefineStmt::make_column_define_stmt($1, $2);
 		check(stmt);
 		$$ = stmt;
     }
   ;
+
+opt_not_null:
+	/*empty*/
+	{
+
+	}
+	| NOT NULLX
+	{
+		
+	}
+	;
 
 data_type:
   TINYINT
@@ -1591,6 +1635,8 @@ data_type:
   | MEDIUMINT
     { $$ = DataType(T_NUMBER, MAX_MEDIUMINT_PREC, 0); }
   | INT
+    { $$ = DataType(T_NUMBER, MAX_INT_PREC, 0); }
+  | INTEGER
     { $$ = DataType(T_NUMBER, MAX_INT_PREC, 0); }
   | BIGINT
     { $$ = DataType(T_NUMBER, MAX_BIGINT_PREC, 0); }

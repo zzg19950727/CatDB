@@ -56,6 +56,7 @@ u32 LogJoin::est_row_count()
             output_rows = right_child()->get_output_rows();
         }
     }
+    set_output_rows(output_rows);
     return ret;
 }
 

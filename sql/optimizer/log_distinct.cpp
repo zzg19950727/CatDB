@@ -20,6 +20,7 @@ u32 LogDistinct::est_row_count()
     if (output_rows > child()->get_output_rows()) {
         output_rows = child()->get_output_rows();
     }
+    set_output_rows(output_rows);
     return ret;
 }
 

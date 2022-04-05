@@ -26,6 +26,7 @@ u32 LogGroupBy::est_row_count()
     double sel = 0.0;
     CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
     output_rows = ndv * sel;
+    set_output_rows(output_rows);
     return ret;
 }
 

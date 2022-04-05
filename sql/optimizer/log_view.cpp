@@ -36,6 +36,7 @@ u32 LogView::est_row_count()
     double sel = 1.0;
     CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
     output_rows = child()->get_output_rows() * sel;
+    set_output_rows(output_rows);
     CHECK(est_info->set_table_output_rows(table_item->table_id, output_rows));
     return ret;
 }

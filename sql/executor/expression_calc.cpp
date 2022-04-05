@@ -67,6 +67,8 @@ u32 do_cast(const Vector<Expression_s> &params, ExecCtx_s &ctx);
 u32 do_to_char(const Vector<Expression_s> &params, ExecCtx_s &ctx);
 u32 do_substr(const Vector<Expression_s> &params, ExecCtx_s &ctx);
 u32 do_to_number(const Vector<Expression_s> &params, ExecCtx_s &ctx);
+u32 do_date_add(const Vector<Expression_s> &params, ExecCtx_s &ctx);
+u32 do_date_sub(const Vector<Expression_s> &params, ExecCtx_s &ctx);
 
 OpFuncType op_funcs[OP_MAX] = {
     do_nothing,
@@ -121,7 +123,10 @@ OpFuncType op_funcs[OP_MAX] = {
     do_to_char,
     do_substr,
     do_to_number,
-    do_nothing};
+    do_nothing,
+    
+    do_date_add,
+    do_date_sub};
 
 
 u32 do_minus(const Vector<Expression_s> &params, ExecCtx_s &ctx)
@@ -940,5 +945,31 @@ u32 do_case_when(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 		}
 		CHECK(params[params.size()-1]->get_result(ctx));
 	}
+    return ret;
+}
+
+u32 do_date_add(const Vector<Expression_s> &params, ExecCtx_s &ctx)
+{
+    u32 ret = SUCCESS;
+    CHECK(params[0]->get_result(ctx));
+	DateTime_s time = ctx->output_result;
+    CHECK(params[1]->get_result(ctx));
+	Number_s seconds = ctx->output_result;
+    DateTime_s res;
+    CHECK(DateTime::add_seconds(time, seconds, res));
+    ctx->output_result = res;
+    return ret;
+}
+
+u32 do_date_sub(const Vector<Expression_s> &params, ExecCtx_s &ctx)
+{
+    u32 ret = SUCCESS;
+    CHECK(params[0]->get_result(ctx));
+	DateTime_s time = ctx->output_result;
+    CHECK(params[1]->get_result(ctx));
+	Number_s seconds = ctx->output_result;
+    DateTime_s res;
+    CHECK(DateTime::sub_seconds(time, seconds, res));
+    ctx->output_result = res;
     return ret;
 }

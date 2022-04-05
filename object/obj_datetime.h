@@ -32,6 +32,7 @@ namespace CatDB {
 			static u32 current_datetime(DateTime_s &cur);
             static u32 format_datetime(const DateTime_s &time, const String &format, String &str);
             static u32 add_seconds(const DateTime_s &time, const Number_s& seconds, DateTime_s &res);
+			static u32 sub_seconds(const DateTime_s &time, const Number_s& seconds, DateTime_s &res);
 			static u32 make_second_from_day(u32 day, Number_s& seconds);
 			static u32 make_second_from_month(u32 month, Number_s& seconds);
 			static u32 make_second_from_year(u32 year, Number_s& seconds);
@@ -41,6 +42,7 @@ namespace CatDB {
 
 		private:
 			my_decimal data;
+			TimeType type;
 		};
 	}
 }

@@ -79,6 +79,7 @@ namespace CatDB {
 			void print_expr(ExprStmt_s &expr, String &out);
 			Vector<ConflictDetector_s> &get_used_conflict_detectors() 
 			{ return used_conflict_detectors; }
+			void set_output_rows(double rows);
 
 		public:
 			Vector<ConflictDetector_s> used_conflict_detectors;

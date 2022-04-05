@@ -1027,6 +1027,20 @@ String OpExprStmt::to_string()const
 				ret += ")";
 			}
 			break;
+		case OP_DATE_ADD:
+			if (params.size() == 2) {
+				ret += "DATE_ADD(";
+				ret += params[0]->to_string();
+				ret += ", ?)";
+			}
+			break;
+		case OP_DATE_SUB:
+			if (params.size() == 2) {
+				ret += "DATE_SUB(";
+				ret += params[0]->to_string();
+				ret += ", ?)";
+			}
+			break;
 		defualt: 
 			ret += "UNKNOWN";
 			break;
@@ -1119,7 +1133,7 @@ u32 OpExprStmt::deduce_type()
 				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
 			}
 			if (r_need_cast) {
-				CHECK(ObjCastUtil::add_cast(params[1], l_dst_type, params[1]));
+				CHECK(ObjCastUtil::add_cast(params[1], r_dst_type, params[1]));
 			}
 			CHECK(ObjCastUtil::get_result_type(params[0]->res_type,
 											   l_need_cast,
@@ -1133,7 +1147,7 @@ u32 OpExprStmt::deduce_type()
 				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
 			}
 			if (r_need_cast) {
-				CHECK(ObjCastUtil::add_cast(params[2], l_dst_type, params[2]));
+				CHECK(ObjCastUtil::add_cast(params[2], r_dst_type, params[2]));
 			}
 			CHECK(ObjCastUtil::get_result_type(params[1]->res_type,
 											   l_need_cast,
@@ -1147,7 +1161,7 @@ u32 OpExprStmt::deduce_type()
 				CHECK(ObjCastUtil::add_cast(params[1], l_dst_type, params[1]));
 			}
 			if (r_need_cast) {
-				CHECK(ObjCastUtil::add_cast(params[2], l_dst_type, params[2]));
+				CHECK(ObjCastUtil::add_cast(params[2], r_dst_type, params[2]));
 			}
 			break;
 		case OP_LIKE:
@@ -1256,6 +1270,17 @@ u32 OpExprStmt::deduce_type()
 				return ret;
 			}
 			dst_type = DataType::default_number_type();
+			break;
+		case OP_DATE_ADD:
+		case OP_DATE_SUB:
+			if (params[0]->res_type.is_datetime() ||
+				params[1]->res_type.is_number()) {
+				
+			} else {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			dst_type = params[0]->res_type;
 			break;
 		case OP_ADD:
 		case OP_SUB:

@@ -320,6 +320,7 @@ namespace CatDB {
 
       // projection
       // simple_expr
+      // seconds_expr
       // arith_expr
       // cmp_expr
       // query_ref_expr
@@ -418,7 +419,9 @@ namespace CatDB {
       // opt_split
       // opt_distinct
       // opt_asc_desc
+      // opt_outer
       // distinct_or_all
+      // opt_not_null
       // opt_if_exists
       char dummy21[sizeof(bool)];
 
@@ -547,65 +550,67 @@ namespace CatDB {
         TOKEN_INSERT = 330,
         TOKEN_INT = 331,
         TOKEN_INTERVAL = 332,
-        TOKEN_INTO = 333,
-        TOKEN_JOIN = 334,
-        TOKEN_KILL = 335,
-        TOKEN_LEADING = 336,
-        TOKEN_LEFT = 337,
-        TOKEN_LIMIT = 338,
-        TOKEN_LINE = 339,
-        TOKEN_LP = 340,
-        TOKEN_MEDIUMINT = 341,
-        TOKEN_MEMORY = 342,
-        TOKEN_MINUS = 343,
-        TOKEN_MONTH = 344,
-        TOKEN_MUL = 345,
-        TOKEN_NO_REWRITE = 346,
-        TOKEN_NO_UNNEST = 347,
-        TOKEN_NO_USE_HASH = 348,
-        TOKEN_NO_USE_NL = 349,
-        TOKEN_NUMERIC_SYM = 350,
-        TOKEN_ON = 351,
-        TOKEN_ORDER = 352,
-        TOKEN_ORDERED = 353,
-        TOKEN_PARALLEL = 354,
-        TOKEN_PERIOD = 355,
-        TOKEN_PLUS = 356,
-        TOKEN_PROCESSLIST = 357,
-        TOKEN_REAL = 358,
-        TOKEN_RIGHT = 359,
-        TOKEN_ROWID = 360,
-        TOKEN_RP = 361,
-        TOKEN_SAMPLE = 362,
-        TOKEN_SELECT = 363,
-        TOKEN_SEMICOLON = 364,
-        TOKEN_SET = 365,
-        TOKEN_SHOW = 366,
-        TOKEN_SIZE = 367,
-        TOKEN_SMALLINT = 368,
-        TOKEN_SPLIT = 369,
-        TOKEN_STATIS = 370,
-        TOKEN_STATUS = 371,
-        TOKEN_SUBSTR = 372,
-        TOKEN_TABLE = 373,
-        TOKEN_TABLES = 374,
-        TOKEN_THEN = 375,
-        TOKEN_TIME = 376,
-        TOKEN_TIMESTAMP_SYM = 377,
-        TOKEN_TINYINT = 378,
-        TOKEN_TO_CHAR = 379,
-        TOKEN_TO_NUMBER = 380,
-        TOKEN_UNNEST = 381,
-        TOKEN_UPDATE = 382,
-        TOKEN_USE_HASH = 383,
-        TOKEN_USE_NL = 384,
-        TOKEN_USING = 385,
-        TOKEN_VALUES = 386,
-        TOKEN_VARBINARY = 387,
-        TOKEN_VARCHAR = 388,
-        TOKEN_WHEN = 389,
-        TOKEN_WHERE = 390,
-        TOKEN_YEAR = 391
+        TOKEN_INTEGER = 333,
+        TOKEN_INTO = 334,
+        TOKEN_JOIN = 335,
+        TOKEN_KILL = 336,
+        TOKEN_LEADING = 337,
+        TOKEN_LEFT = 338,
+        TOKEN_LIMIT = 339,
+        TOKEN_LINE = 340,
+        TOKEN_LP = 341,
+        TOKEN_MEDIUMINT = 342,
+        TOKEN_MEMORY = 343,
+        TOKEN_MINUS = 344,
+        TOKEN_MONTH = 345,
+        TOKEN_MUL = 346,
+        TOKEN_NO_REWRITE = 347,
+        TOKEN_NO_UNNEST = 348,
+        TOKEN_NO_USE_HASH = 349,
+        TOKEN_NO_USE_NL = 350,
+        TOKEN_NUMERIC_SYM = 351,
+        TOKEN_ON = 352,
+        TOKEN_ORDER = 353,
+        TOKEN_ORDERED = 354,
+        TOKEN_OUTER = 355,
+        TOKEN_PARALLEL = 356,
+        TOKEN_PERIOD = 357,
+        TOKEN_PLUS = 358,
+        TOKEN_PROCESSLIST = 359,
+        TOKEN_REAL = 360,
+        TOKEN_RIGHT = 361,
+        TOKEN_ROWID = 362,
+        TOKEN_RP = 363,
+        TOKEN_SAMPLE = 364,
+        TOKEN_SELECT = 365,
+        TOKEN_SEMICOLON = 366,
+        TOKEN_SET = 367,
+        TOKEN_SHOW = 368,
+        TOKEN_SIZE = 369,
+        TOKEN_SMALLINT = 370,
+        TOKEN_SPLIT = 371,
+        TOKEN_STATIS = 372,
+        TOKEN_STATUS = 373,
+        TOKEN_SUBSTR = 374,
+        TOKEN_TABLE = 375,
+        TOKEN_TABLES = 376,
+        TOKEN_THEN = 377,
+        TOKEN_TIME = 378,
+        TOKEN_TIMESTAMP_SYM = 379,
+        TOKEN_TINYINT = 380,
+        TOKEN_TO_CHAR = 381,
+        TOKEN_TO_NUMBER = 382,
+        TOKEN_UNNEST = 383,
+        TOKEN_UPDATE = 384,
+        TOKEN_USE_HASH = 385,
+        TOKEN_USE_NL = 386,
+        TOKEN_USING = 387,
+        TOKEN_VALUES = 388,
+        TOKEN_VARBINARY = 389,
+        TOKEN_VARCHAR = 390,
+        TOKEN_WHEN = 391,
+        TOKEN_WHERE = 392,
+        TOKEN_YEAR = 393
       };
     };
 
@@ -1064,6 +1069,10 @@ namespace CatDB {
 
     static inline
     symbol_type
+    make_INTEGER (const location_type& l);
+
+    static inline
+    symbol_type
     make_INTO (const location_type& l);
 
     static inline
@@ -1145,6 +1154,10 @@ namespace CatDB {
     static inline
     symbol_type
     make_ORDERED (const location_type& l);
+
+    static inline
+    symbol_type
+    make_OUTER (const location_type& l);
 
     static inline
     symbol_type
@@ -1503,12 +1516,12 @@ namespace CatDB {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 946,     ///< Last index in yytable_.
-      yynnts_ = 90,  ///< Number of nonterminal symbols.
+      yylast_ = 982,     ///< Last index in yytable_.
+      yynnts_ = 93,  ///< Number of nonterminal symbols.
       yyfinal_ = 75, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 138  ///< Number of tokens.
+      yyntokens_ = 140  ///< Number of tokens.
     };
 
 
@@ -1530,7 +1543,7 @@ namespace CatDB {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,   137,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,   139,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1565,9 +1578,9 @@ namespace CatDB {
      105,   106,   107,   108,   109,   110,   111,   112,   113,   114,
      115,   116,   117,   118,   119,   120,   121,   122,   123,   124,
      125,   126,   127,   128,   129,   130,   131,   132,   133,   134,
-     135,   136
+     135,   136,   137,   138
     };
-    const unsigned int user_token_number_max_ = 391;
+    const unsigned int user_token_number_max_ = 393;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -1600,148 +1613,151 @@ namespace CatDB {
   {
       switch (other.type_get ())
     {
-      case 217: // relation_factor
+      case 222: // relation_factor
         value.copy< BasicTableStmt_s > (other.value);
         break;
 
-      case 202: // column_definition
+      case 206: // column_definition
         value.copy< ColumnDefineStmt_s > (other.value);
         break;
 
-      case 203: // data_type
+      case 208: // data_type
         value.copy< DataType > (other.value);
         break;
 
-      case 169: // projection
-      case 176: // simple_expr
-      case 177: // arith_expr
-      case 179: // cmp_expr
-      case 182: // query_ref_expr
-      case 183: // case_when_expr
-      case 186: // logical_expr
-      case 187: // column_ref
-      case 188: // expr_const
-      case 189: // func_expr
-      case 196: // update_asgn_factor
+      case 171: // projection
+      case 179: // simple_expr
+      case 180: // seconds_expr
+      case 181: // arith_expr
+      case 183: // cmp_expr
+      case 186: // query_ref_expr
+      case 187: // case_when_expr
+      case 190: // logical_expr
+      case 191: // column_ref
+      case 192: // expr_const
+      case 193: // func_expr
+      case 200: // update_asgn_factor
         value.copy< ExprStmt_s > (other.value);
         break;
 
-      case 147: // opt_hint
+      case 149: // opt_hint
         value.copy< Hint > (other.value);
         break;
 
-      case 150: // single_hint
+      case 152: // single_hint
         value.copy< HintStmt_s > (other.value);
         break;
 
-      case 155: // leading_hint_table
+      case 157: // leading_hint_table
         value.copy< LeadingTable_s > (other.value);
         break;
 
-      case 167: // opt_select_limit
+      case 169: // opt_select_limit
         value.copy< LimitStmt_s > (other.value);
         break;
 
-      case 180: // cmp_type
-      case 181: // sq_cmp_type
+      case 184: // cmp_type
+      case 185: // sq_cmp_type
         value.copy< OperationType > (other.value);
         break;
 
-      case 165: // order_by
+      case 167: // order_by
         value.copy< OrderStmt_s > (other.value);
         break;
 
-      case 139: // sql_stmt
-      case 140: // stmt
-      case 141: // cmd_stmt
-      case 142: // select_stmt
-      case 143: // set_select
-      case 144: // sub_set_select
-      case 145: // select_with_parens
-      case 146: // simple_select
-      case 191: // insert_stmt
-      case 194: // update_stmt
-      case 197: // delete_stmt
-      case 198: // explain_stmt
-      case 199: // explainable_stmt
-      case 200: // create_stmt
-      case 207: // drop_stmt
-      case 209: // show_stmt
-      case 211: // use_stmt
-      case 212: // desc_stmt
-      case 213: // analyze_stmt
-      case 215: // set_var_stmt
-      case 216: // kill_stmt
+      case 141: // sql_stmt
+      case 142: // stmt
+      case 143: // cmd_stmt
+      case 144: // select_stmt
+      case 145: // set_select
+      case 146: // sub_set_select
+      case 147: // select_with_parens
+      case 148: // simple_select
+      case 195: // insert_stmt
+      case 198: // update_stmt
+      case 201: // delete_stmt
+      case 202: // explain_stmt
+      case 203: // explainable_stmt
+      case 204: // create_stmt
+      case 212: // drop_stmt
+      case 214: // show_stmt
+      case 216: // use_stmt
+      case 217: // desc_stmt
+      case 218: // analyze_stmt
+      case 220: // set_var_stmt
+      case 221: // kill_stmt
         value.copy< Stmt_s > (other.value);
         break;
 
-      case 170: // basic_table_factor
-      case 171: // view_table_factor
-      case 172: // joined_table_factor
-      case 173: // sub_table_factor
-      case 174: // table_factor
+      case 172: // basic_table_factor
+      case 173: // view_table_factor
+      case 174: // joined_table_factor
+      case 176: // sub_table_factor
+      case 177: // table_factor
         value.copy< TableStmt_s > (other.value);
         break;
 
-      case 201: // table_element_list
+      case 205: // table_element_list
         value.copy< Vector<ColumnDefineStmt_s> > (other.value);
         break;
 
-      case 158: // select_expr_list
-      case 160: // opt_where
-      case 161: // opt_groupby
-      case 162: // opt_having
-      case 178: // arith_expr_list
-      case 184: // when_then_list1
-      case 185: // when_then_list2
-      case 193: // insert_value
-      case 195: // update_asgn_list
+      case 160: // select_expr_list
+      case 162: // opt_where
+      case 163: // opt_groupby
+      case 164: // opt_having
+      case 182: // arith_expr_list
+      case 188: // when_then_list1
+      case 189: // when_then_list2
+      case 197: // insert_value
+      case 199: // update_asgn_list
         value.copy< Vector<ExprStmt_s> > (other.value);
         break;
 
-      case 148: // opt_hint_list
-      case 149: // hint_list
+      case 150: // opt_hint_list
+      case 151: // hint_list
         value.copy< Vector<HintStmt_s> > (other.value);
         break;
 
-      case 156: // leading_hint_table_list
+      case 158: // leading_hint_table_list
         value.copy< Vector<LeadingTable_s> > (other.value);
         break;
 
-      case 163: // opt_order_by
-      case 164: // order_by_list
+      case 165: // opt_order_by
+      case 166: // order_by_list
         value.copy< Vector<OrderStmt_s> > (other.value);
         break;
 
-      case 153: // hint_table_list
-      case 206: // opt_engine_def
+      case 155: // hint_table_list
+      case 211: // opt_engine_def
         value.copy< Vector<String> > (other.value);
         break;
 
-      case 159: // from_list
+      case 161: // from_list
         value.copy< Vector<TableStmt_s> > (other.value);
         break;
 
-      case 192: // insert_value_list
+      case 196: // insert_value_list
         value.copy< Vector<Vector<ExprStmt_s>> > (other.value);
         break;
 
-      case 154: // opt_split
-      case 157: // opt_distinct
-      case 166: // opt_asc_desc
-      case 190: // distinct_or_all
-      case 208: // opt_if_exists
+      case 156: // opt_split
+      case 159: // opt_distinct
+      case 168: // opt_asc_desc
+      case 175: // opt_outer
+      case 194: // distinct_or_all
+      case 207: // opt_not_null
+      case 213: // opt_if_exists
         value.copy< bool > (other.value);
         break;
 
-      case 214: // opt_sample_size
+      case 219: // opt_sample_size
         value.copy< double > (other.value);
         break;
 
-      case 168: // limit_expr
-      case 204: // opt_time_precision
-      case 205: // opt_char_length
-      case 227: // int_value
+      case 170: // limit_expr
+      case 209: // opt_time_precision
+      case 210: // opt_char_length
+      case 232: // int_value
         value.copy< int > (other.value);
         break;
 
@@ -1749,19 +1765,19 @@ namespace CatDB {
       case 23: // IDENT
       case 24: // NUMERIC
       case 25: // QB_NAME_IDENT
-      case 151: // opt_qb_name
-      case 152: // opt_qb_name_single
-      case 175: // opt_alias
-      case 210: // op_from_database
-      case 218: // database_name
-      case 219: // relation_name
-      case 220: // column_name
-      case 221: // function_name
-      case 222: // column_label
-      case 223: // ident
-      case 224: // datetime
-      case 225: // string
-      case 226: // number
+      case 153: // opt_qb_name
+      case 154: // opt_qb_name_single
+      case 178: // opt_alias
+      case 215: // op_from_database
+      case 223: // database_name
+      case 224: // relation_name
+      case 225: // column_name
+      case 226: // function_name
+      case 227: // column_label
+      case 228: // ident
+      case 229: // datetime
+      case 230: // string
+      case 231: // number
         value.copy< std::string > (other.value);
         break;
 
@@ -1782,148 +1798,151 @@ namespace CatDB {
     (void) v;
       switch (this->type_get ())
     {
-      case 217: // relation_factor
+      case 222: // relation_factor
         value.copy< BasicTableStmt_s > (v);
         break;
 
-      case 202: // column_definition
+      case 206: // column_definition
         value.copy< ColumnDefineStmt_s > (v);
         break;
 
-      case 203: // data_type
+      case 208: // data_type
         value.copy< DataType > (v);
         break;
 
-      case 169: // projection
-      case 176: // simple_expr
-      case 177: // arith_expr
-      case 179: // cmp_expr
-      case 182: // query_ref_expr
-      case 183: // case_when_expr
-      case 186: // logical_expr
-      case 187: // column_ref
-      case 188: // expr_const
-      case 189: // func_expr
-      case 196: // update_asgn_factor
+      case 171: // projection
+      case 179: // simple_expr
+      case 180: // seconds_expr
+      case 181: // arith_expr
+      case 183: // cmp_expr
+      case 186: // query_ref_expr
+      case 187: // case_when_expr
+      case 190: // logical_expr
+      case 191: // column_ref
+      case 192: // expr_const
+      case 193: // func_expr
+      case 200: // update_asgn_factor
         value.copy< ExprStmt_s > (v);
         break;
 
-      case 147: // opt_hint
+      case 149: // opt_hint
         value.copy< Hint > (v);
         break;
 
-      case 150: // single_hint
+      case 152: // single_hint
         value.copy< HintStmt_s > (v);
         break;
 
-      case 155: // leading_hint_table
+      case 157: // leading_hint_table
         value.copy< LeadingTable_s > (v);
         break;
 
-      case 167: // opt_select_limit
+      case 169: // opt_select_limit
         value.copy< LimitStmt_s > (v);
         break;
 
-      case 180: // cmp_type
-      case 181: // sq_cmp_type
+      case 184: // cmp_type
+      case 185: // sq_cmp_type
         value.copy< OperationType > (v);
         break;
 
-      case 165: // order_by
+      case 167: // order_by
         value.copy< OrderStmt_s > (v);
         break;
 
-      case 139: // sql_stmt
-      case 140: // stmt
-      case 141: // cmd_stmt
-      case 142: // select_stmt
-      case 143: // set_select
-      case 144: // sub_set_select
-      case 145: // select_with_parens
-      case 146: // simple_select
-      case 191: // insert_stmt
-      case 194: // update_stmt
-      case 197: // delete_stmt
-      case 198: // explain_stmt
-      case 199: // explainable_stmt
-      case 200: // create_stmt
-      case 207: // drop_stmt
-      case 209: // show_stmt
-      case 211: // use_stmt
-      case 212: // desc_stmt
-      case 213: // analyze_stmt
-      case 215: // set_var_stmt
-      case 216: // kill_stmt
+      case 141: // sql_stmt
+      case 142: // stmt
+      case 143: // cmd_stmt
+      case 144: // select_stmt
+      case 145: // set_select
+      case 146: // sub_set_select
+      case 147: // select_with_parens
+      case 148: // simple_select
+      case 195: // insert_stmt
+      case 198: // update_stmt
+      case 201: // delete_stmt
+      case 202: // explain_stmt
+      case 203: // explainable_stmt
+      case 204: // create_stmt
+      case 212: // drop_stmt
+      case 214: // show_stmt
+      case 216: // use_stmt
+      case 217: // desc_stmt
+      case 218: // analyze_stmt
+      case 220: // set_var_stmt
+      case 221: // kill_stmt
         value.copy< Stmt_s > (v);
         break;
 
-      case 170: // basic_table_factor
-      case 171: // view_table_factor
-      case 172: // joined_table_factor
-      case 173: // sub_table_factor
-      case 174: // table_factor
+      case 172: // basic_table_factor
+      case 173: // view_table_factor
+      case 174: // joined_table_factor
+      case 176: // sub_table_factor
+      case 177: // table_factor
         value.copy< TableStmt_s > (v);
         break;
 
-      case 201: // table_element_list
+      case 205: // table_element_list
         value.copy< Vector<ColumnDefineStmt_s> > (v);
         break;
 
-      case 158: // select_expr_list
-      case 160: // opt_where
-      case 161: // opt_groupby
-      case 162: // opt_having
-      case 178: // arith_expr_list
-      case 184: // when_then_list1
-      case 185: // when_then_list2
-      case 193: // insert_value
-      case 195: // update_asgn_list
+      case 160: // select_expr_list
+      case 162: // opt_where
+      case 163: // opt_groupby
+      case 164: // opt_having
+      case 182: // arith_expr_list
+      case 188: // when_then_list1
+      case 189: // when_then_list2
+      case 197: // insert_value
+      case 199: // update_asgn_list
         value.copy< Vector<ExprStmt_s> > (v);
         break;
 
-      case 148: // opt_hint_list
-      case 149: // hint_list
+      case 150: // opt_hint_list
+      case 151: // hint_list
         value.copy< Vector<HintStmt_s> > (v);
         break;
 
-      case 156: // leading_hint_table_list
+      case 158: // leading_hint_table_list
         value.copy< Vector<LeadingTable_s> > (v);
         break;
 
-      case 163: // opt_order_by
-      case 164: // order_by_list
+      case 165: // opt_order_by
+      case 166: // order_by_list
         value.copy< Vector<OrderStmt_s> > (v);
         break;
 
-      case 153: // hint_table_list
-      case 206: // opt_engine_def
+      case 155: // hint_table_list
+      case 211: // opt_engine_def
         value.copy< Vector<String> > (v);
         break;
 
-      case 159: // from_list
+      case 161: // from_list
         value.copy< Vector<TableStmt_s> > (v);
         break;
 
-      case 192: // insert_value_list
+      case 196: // insert_value_list
         value.copy< Vector<Vector<ExprStmt_s>> > (v);
         break;
 
-      case 154: // opt_split
-      case 157: // opt_distinct
-      case 166: // opt_asc_desc
-      case 190: // distinct_or_all
-      case 208: // opt_if_exists
+      case 156: // opt_split
+      case 159: // opt_distinct
+      case 168: // opt_asc_desc
+      case 175: // opt_outer
+      case 194: // distinct_or_all
+      case 207: // opt_not_null
+      case 213: // opt_if_exists
         value.copy< bool > (v);
         break;
 
-      case 214: // opt_sample_size
+      case 219: // opt_sample_size
         value.copy< double > (v);
         break;
 
-      case 168: // limit_expr
-      case 204: // opt_time_precision
-      case 205: // opt_char_length
-      case 227: // int_value
+      case 170: // limit_expr
+      case 209: // opt_time_precision
+      case 210: // opt_char_length
+      case 232: // int_value
         value.copy< int > (v);
         break;
 
@@ -1931,19 +1950,19 @@ namespace CatDB {
       case 23: // IDENT
       case 24: // NUMERIC
       case 25: // QB_NAME_IDENT
-      case 151: // opt_qb_name
-      case 152: // opt_qb_name_single
-      case 175: // opt_alias
-      case 210: // op_from_database
-      case 218: // database_name
-      case 219: // relation_name
-      case 220: // column_name
-      case 221: // function_name
-      case 222: // column_label
-      case 223: // ident
-      case 224: // datetime
-      case 225: // string
-      case 226: // number
+      case 153: // opt_qb_name
+      case 154: // opt_qb_name_single
+      case 178: // opt_alias
+      case 215: // op_from_database
+      case 223: // database_name
+      case 224: // relation_name
+      case 225: // column_name
+      case 226: // function_name
+      case 227: // column_label
+      case 228: // ident
+      case 229: // datetime
+      case 230: // string
+      case 231: // number
         value.copy< std::string > (v);
         break;
 
@@ -2156,148 +2175,151 @@ namespace CatDB {
     // Type destructor.
     switch (yytype)
     {
-      case 217: // relation_factor
+      case 222: // relation_factor
         value.template destroy< BasicTableStmt_s > ();
         break;
 
-      case 202: // column_definition
+      case 206: // column_definition
         value.template destroy< ColumnDefineStmt_s > ();
         break;
 
-      case 203: // data_type
+      case 208: // data_type
         value.template destroy< DataType > ();
         break;
 
-      case 169: // projection
-      case 176: // simple_expr
-      case 177: // arith_expr
-      case 179: // cmp_expr
-      case 182: // query_ref_expr
-      case 183: // case_when_expr
-      case 186: // logical_expr
-      case 187: // column_ref
-      case 188: // expr_const
-      case 189: // func_expr
-      case 196: // update_asgn_factor
+      case 171: // projection
+      case 179: // simple_expr
+      case 180: // seconds_expr
+      case 181: // arith_expr
+      case 183: // cmp_expr
+      case 186: // query_ref_expr
+      case 187: // case_when_expr
+      case 190: // logical_expr
+      case 191: // column_ref
+      case 192: // expr_const
+      case 193: // func_expr
+      case 200: // update_asgn_factor
         value.template destroy< ExprStmt_s > ();
         break;
 
-      case 147: // opt_hint
+      case 149: // opt_hint
         value.template destroy< Hint > ();
         break;
 
-      case 150: // single_hint
+      case 152: // single_hint
         value.template destroy< HintStmt_s > ();
         break;
 
-      case 155: // leading_hint_table
+      case 157: // leading_hint_table
         value.template destroy< LeadingTable_s > ();
         break;
 
-      case 167: // opt_select_limit
+      case 169: // opt_select_limit
         value.template destroy< LimitStmt_s > ();
         break;
 
-      case 180: // cmp_type
-      case 181: // sq_cmp_type
+      case 184: // cmp_type
+      case 185: // sq_cmp_type
         value.template destroy< OperationType > ();
         break;
 
-      case 165: // order_by
+      case 167: // order_by
         value.template destroy< OrderStmt_s > ();
         break;
 
-      case 139: // sql_stmt
-      case 140: // stmt
-      case 141: // cmd_stmt
-      case 142: // select_stmt
-      case 143: // set_select
-      case 144: // sub_set_select
-      case 145: // select_with_parens
-      case 146: // simple_select
-      case 191: // insert_stmt
-      case 194: // update_stmt
-      case 197: // delete_stmt
-      case 198: // explain_stmt
-      case 199: // explainable_stmt
-      case 200: // create_stmt
-      case 207: // drop_stmt
-      case 209: // show_stmt
-      case 211: // use_stmt
-      case 212: // desc_stmt
-      case 213: // analyze_stmt
-      case 215: // set_var_stmt
-      case 216: // kill_stmt
+      case 141: // sql_stmt
+      case 142: // stmt
+      case 143: // cmd_stmt
+      case 144: // select_stmt
+      case 145: // set_select
+      case 146: // sub_set_select
+      case 147: // select_with_parens
+      case 148: // simple_select
+      case 195: // insert_stmt
+      case 198: // update_stmt
+      case 201: // delete_stmt
+      case 202: // explain_stmt
+      case 203: // explainable_stmt
+      case 204: // create_stmt
+      case 212: // drop_stmt
+      case 214: // show_stmt
+      case 216: // use_stmt
+      case 217: // desc_stmt
+      case 218: // analyze_stmt
+      case 220: // set_var_stmt
+      case 221: // kill_stmt
         value.template destroy< Stmt_s > ();
         break;
 
-      case 170: // basic_table_factor
-      case 171: // view_table_factor
-      case 172: // joined_table_factor
-      case 173: // sub_table_factor
-      case 174: // table_factor
+      case 172: // basic_table_factor
+      case 173: // view_table_factor
+      case 174: // joined_table_factor
+      case 176: // sub_table_factor
+      case 177: // table_factor
         value.template destroy< TableStmt_s > ();
         break;
 
-      case 201: // table_element_list
+      case 205: // table_element_list
         value.template destroy< Vector<ColumnDefineStmt_s> > ();
         break;
 
-      case 158: // select_expr_list
-      case 160: // opt_where
-      case 161: // opt_groupby
-      case 162: // opt_having
-      case 178: // arith_expr_list
-      case 184: // when_then_list1
-      case 185: // when_then_list2
-      case 193: // insert_value
-      case 195: // update_asgn_list
+      case 160: // select_expr_list
+      case 162: // opt_where
+      case 163: // opt_groupby
+      case 164: // opt_having
+      case 182: // arith_expr_list
+      case 188: // when_then_list1
+      case 189: // when_then_list2
+      case 197: // insert_value
+      case 199: // update_asgn_list
         value.template destroy< Vector<ExprStmt_s> > ();
         break;
 
-      case 148: // opt_hint_list
-      case 149: // hint_list
+      case 150: // opt_hint_list
+      case 151: // hint_list
         value.template destroy< Vector<HintStmt_s> > ();
         break;
 
-      case 156: // leading_hint_table_list
+      case 158: // leading_hint_table_list
         value.template destroy< Vector<LeadingTable_s> > ();
         break;
 
-      case 163: // opt_order_by
-      case 164: // order_by_list
+      case 165: // opt_order_by
+      case 166: // order_by_list
         value.template destroy< Vector<OrderStmt_s> > ();
         break;
 
-      case 153: // hint_table_list
-      case 206: // opt_engine_def
+      case 155: // hint_table_list
+      case 211: // opt_engine_def
         value.template destroy< Vector<String> > ();
         break;
 
-      case 159: // from_list
+      case 161: // from_list
         value.template destroy< Vector<TableStmt_s> > ();
         break;
 
-      case 192: // insert_value_list
+      case 196: // insert_value_list
         value.template destroy< Vector<Vector<ExprStmt_s>> > ();
         break;
 
-      case 154: // opt_split
-      case 157: // opt_distinct
-      case 166: // opt_asc_desc
-      case 190: // distinct_or_all
-      case 208: // opt_if_exists
+      case 156: // opt_split
+      case 159: // opt_distinct
+      case 168: // opt_asc_desc
+      case 175: // opt_outer
+      case 194: // distinct_or_all
+      case 207: // opt_not_null
+      case 213: // opt_if_exists
         value.template destroy< bool > ();
         break;
 
-      case 214: // opt_sample_size
+      case 219: // opt_sample_size
         value.template destroy< double > ();
         break;
 
-      case 168: // limit_expr
-      case 204: // opt_time_precision
-      case 205: // opt_char_length
-      case 227: // int_value
+      case 170: // limit_expr
+      case 209: // opt_time_precision
+      case 210: // opt_char_length
+      case 232: // int_value
         value.template destroy< int > ();
         break;
 
@@ -2305,19 +2327,19 @@ namespace CatDB {
       case 23: // IDENT
       case 24: // NUMERIC
       case 25: // QB_NAME_IDENT
-      case 151: // opt_qb_name
-      case 152: // opt_qb_name_single
-      case 175: // opt_alias
-      case 210: // op_from_database
-      case 218: // database_name
-      case 219: // relation_name
-      case 220: // column_name
-      case 221: // function_name
-      case 222: // column_label
-      case 223: // ident
-      case 224: // datetime
-      case 225: // string
-      case 226: // number
+      case 153: // opt_qb_name
+      case 154: // opt_qb_name_single
+      case 178: // opt_alias
+      case 215: // op_from_database
+      case 223: // database_name
+      case 224: // relation_name
+      case 225: // column_name
+      case 226: // function_name
+      case 227: // column_label
+      case 228: // ident
+      case 229: // datetime
+      case 230: // string
+      case 231: // number
         value.template destroy< std::string > ();
         break;
 
@@ -2344,148 +2366,151 @@ namespace CatDB {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 217: // relation_factor
+      case 222: // relation_factor
         value.move< BasicTableStmt_s > (s.value);
         break;
 
-      case 202: // column_definition
+      case 206: // column_definition
         value.move< ColumnDefineStmt_s > (s.value);
         break;
 
-      case 203: // data_type
+      case 208: // data_type
         value.move< DataType > (s.value);
         break;
 
-      case 169: // projection
-      case 176: // simple_expr
-      case 177: // arith_expr
-      case 179: // cmp_expr
-      case 182: // query_ref_expr
-      case 183: // case_when_expr
-      case 186: // logical_expr
-      case 187: // column_ref
-      case 188: // expr_const
-      case 189: // func_expr
-      case 196: // update_asgn_factor
+      case 171: // projection
+      case 179: // simple_expr
+      case 180: // seconds_expr
+      case 181: // arith_expr
+      case 183: // cmp_expr
+      case 186: // query_ref_expr
+      case 187: // case_when_expr
+      case 190: // logical_expr
+      case 191: // column_ref
+      case 192: // expr_const
+      case 193: // func_expr
+      case 200: // update_asgn_factor
         value.move< ExprStmt_s > (s.value);
         break;
 
-      case 147: // opt_hint
+      case 149: // opt_hint
         value.move< Hint > (s.value);
         break;
 
-      case 150: // single_hint
+      case 152: // single_hint
         value.move< HintStmt_s > (s.value);
         break;
 
-      case 155: // leading_hint_table
+      case 157: // leading_hint_table
         value.move< LeadingTable_s > (s.value);
         break;
 
-      case 167: // opt_select_limit
+      case 169: // opt_select_limit
         value.move< LimitStmt_s > (s.value);
         break;
 
-      case 180: // cmp_type
-      case 181: // sq_cmp_type
+      case 184: // cmp_type
+      case 185: // sq_cmp_type
         value.move< OperationType > (s.value);
         break;
 
-      case 165: // order_by
+      case 167: // order_by
         value.move< OrderStmt_s > (s.value);
         break;
 
-      case 139: // sql_stmt
-      case 140: // stmt
-      case 141: // cmd_stmt
-      case 142: // select_stmt
-      case 143: // set_select
-      case 144: // sub_set_select
-      case 145: // select_with_parens
-      case 146: // simple_select
-      case 191: // insert_stmt
-      case 194: // update_stmt
-      case 197: // delete_stmt
-      case 198: // explain_stmt
-      case 199: // explainable_stmt
-      case 200: // create_stmt
-      case 207: // drop_stmt
-      case 209: // show_stmt
-      case 211: // use_stmt
-      case 212: // desc_stmt
-      case 213: // analyze_stmt
-      case 215: // set_var_stmt
-      case 216: // kill_stmt
+      case 141: // sql_stmt
+      case 142: // stmt
+      case 143: // cmd_stmt
+      case 144: // select_stmt
+      case 145: // set_select
+      case 146: // sub_set_select
+      case 147: // select_with_parens
+      case 148: // simple_select
+      case 195: // insert_stmt
+      case 198: // update_stmt
+      case 201: // delete_stmt
+      case 202: // explain_stmt
+      case 203: // explainable_stmt
+      case 204: // create_stmt
+      case 212: // drop_stmt
+      case 214: // show_stmt
+      case 216: // use_stmt
+      case 217: // desc_stmt
+      case 218: // analyze_stmt
+      case 220: // set_var_stmt
+      case 221: // kill_stmt
         value.move< Stmt_s > (s.value);
         break;
 
-      case 170: // basic_table_factor
-      case 171: // view_table_factor
-      case 172: // joined_table_factor
-      case 173: // sub_table_factor
-      case 174: // table_factor
+      case 172: // basic_table_factor
+      case 173: // view_table_factor
+      case 174: // joined_table_factor
+      case 176: // sub_table_factor
+      case 177: // table_factor
         value.move< TableStmt_s > (s.value);
         break;
 
-      case 201: // table_element_list
+      case 205: // table_element_list
         value.move< Vector<ColumnDefineStmt_s> > (s.value);
         break;
 
-      case 158: // select_expr_list
-      case 160: // opt_where
-      case 161: // opt_groupby
-      case 162: // opt_having
-      case 178: // arith_expr_list
-      case 184: // when_then_list1
-      case 185: // when_then_list2
-      case 193: // insert_value
-      case 195: // update_asgn_list
+      case 160: // select_expr_list
+      case 162: // opt_where
+      case 163: // opt_groupby
+      case 164: // opt_having
+      case 182: // arith_expr_list
+      case 188: // when_then_list1
+      case 189: // when_then_list2
+      case 197: // insert_value
+      case 199: // update_asgn_list
         value.move< Vector<ExprStmt_s> > (s.value);
         break;
 
-      case 148: // opt_hint_list
-      case 149: // hint_list
+      case 150: // opt_hint_list
+      case 151: // hint_list
         value.move< Vector<HintStmt_s> > (s.value);
         break;
 
-      case 156: // leading_hint_table_list
+      case 158: // leading_hint_table_list
         value.move< Vector<LeadingTable_s> > (s.value);
         break;
 
-      case 163: // opt_order_by
-      case 164: // order_by_list
+      case 165: // opt_order_by
+      case 166: // order_by_list
         value.move< Vector<OrderStmt_s> > (s.value);
         break;
 
-      case 153: // hint_table_list
-      case 206: // opt_engine_def
+      case 155: // hint_table_list
+      case 211: // opt_engine_def
         value.move< Vector<String> > (s.value);
         break;
 
-      case 159: // from_list
+      case 161: // from_list
         value.move< Vector<TableStmt_s> > (s.value);
         break;
 
-      case 192: // insert_value_list
+      case 196: // insert_value_list
         value.move< Vector<Vector<ExprStmt_s>> > (s.value);
         break;
 
-      case 154: // opt_split
-      case 157: // opt_distinct
-      case 166: // opt_asc_desc
-      case 190: // distinct_or_all
-      case 208: // opt_if_exists
+      case 156: // opt_split
+      case 159: // opt_distinct
+      case 168: // opt_asc_desc
+      case 175: // opt_outer
+      case 194: // distinct_or_all
+      case 207: // opt_not_null
+      case 213: // opt_if_exists
         value.move< bool > (s.value);
         break;
 
-      case 214: // opt_sample_size
+      case 219: // opt_sample_size
         value.move< double > (s.value);
         break;
 
-      case 168: // limit_expr
-      case 204: // opt_time_precision
-      case 205: // opt_char_length
-      case 227: // int_value
+      case 170: // limit_expr
+      case 209: // opt_time_precision
+      case 210: // opt_char_length
+      case 232: // int_value
         value.move< int > (s.value);
         break;
 
@@ -2493,19 +2518,19 @@ namespace CatDB {
       case 23: // IDENT
       case 24: // NUMERIC
       case 25: // QB_NAME_IDENT
-      case 151: // opt_qb_name
-      case 152: // opt_qb_name_single
-      case 175: // opt_alias
-      case 210: // op_from_database
-      case 218: // database_name
-      case 219: // relation_name
-      case 220: // column_name
-      case 221: // function_name
-      case 222: // column_label
-      case 223: // ident
-      case 224: // datetime
-      case 225: // string
-      case 226: // number
+      case 153: // opt_qb_name
+      case 154: // opt_qb_name_single
+      case 178: // opt_alias
+      case 215: // op_from_database
+      case 223: // database_name
+      case 224: // relation_name
+      case 225: // column_name
+      case 226: // function_name
+      case 227: // column_label
+      case 228: // ident
+      case 229: // datetime
+      case 230: // string
+      case 231: // number
         value.move< std::string > (s.value);
         break;
 
@@ -2577,7 +2602,7 @@ namespace CatDB {
      355,   356,   357,   358,   359,   360,   361,   362,   363,   364,
      365,   366,   367,   368,   369,   370,   371,   372,   373,   374,
      375,   376,   377,   378,   379,   380,   381,   382,   383,   384,
-     385,   386,   387,   388,   389,   390,   391,    44
+     385,   386,   387,   388,   389,   390,   391,   392,   393,    44
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -3039,6 +3064,12 @@ namespace CatDB {
   }
 
   parser::symbol_type
+  parser::make_INTEGER (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_INTEGER, l);
+  }
+
+  parser::symbol_type
   parser::make_INTO (const location_type& l)
   {
     return symbol_type (token::TOKEN_INTO, l);
@@ -3162,6 +3193,12 @@ namespace CatDB {
   parser::make_ORDERED (const location_type& l)
   {
     return symbol_type (token::TOKEN_ORDERED, l);
+  }
+
+  parser::symbol_type
+  parser::make_OUTER (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_OUTER, l);
   }
 
   parser::symbol_type
@@ -3395,7 +3432,7 @@ namespace CatDB {
 
 #line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:377
 } // CatDB
-#line 3399 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
+#line 3436 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
 
 
 

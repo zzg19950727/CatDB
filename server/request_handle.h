@@ -56,6 +56,7 @@ namespace CatDB {
 			Loginer::LoginInfo login_info;
 			QueryCtx_s query_ctx;
 			String session_status;
+			String trace_id;
 			
 			bool is_com_field_list;
 			int seq;

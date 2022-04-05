@@ -102,7 +102,7 @@ namespace CatDB {
 					return String(obj_type_str[res_type]) + "(" +
 							std::to_string(length) + ")";
 				} else if (T_DATETIME == res_type) {
-					return String(obj_type_str[res_type]);
+					return String(TimeTypeString[time_type]);
 				} else if (T_BOOL == res_type) {
 					return String(obj_type_str[res_type]);
 				} else {

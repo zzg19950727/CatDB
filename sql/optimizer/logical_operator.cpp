@@ -47,14 +47,15 @@ u32 LogicalOperator::compute_property()
 u32 LogicalOperator::est_row_count()
 {
     u32 ret = SUCCESS;
-    output_rows = 0.0;
+    output_rows = 1.0;
+    set_output_rows(output_rows);
     return ret;
 }
 
 u32 LogicalOperator::est_cost()
 {
     u32 ret = SUCCESS;
-    cost = 0.0;
+    cost = 1.0;
     return ret;
 }
 
@@ -271,4 +272,13 @@ void LogicalOperator::print_exprs(Vector<ExprStmt_s> &exprs,
 void LogicalOperator::print_expr(ExprStmt_s &expr, String &out)
 {
     out += expr->to_string();
+}
+
+void LogicalOperator::set_output_rows(double rows)
+{
+    if (rows < 1) {
+        output_rows = 1;
+    } else {
+        output_rows = rows;
+    }
 }

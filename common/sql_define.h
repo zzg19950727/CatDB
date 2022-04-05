@@ -121,6 +121,8 @@ ENUM_DEFINE(OperationType,
 			OP_SUBSTR,
 			OP_TO_NUMBER,
 			OP_ASSIGN,
+			OP_DATE_ADD,
+			OP_DATE_SUB,
 			OP_MAX
 		);
 
@@ -194,7 +196,12 @@ ENUM_DEFINE(LogOperatorType,
 			LOG_SUBQUERY_EVALUATE
 		);
 
-enum TimeType {TIME = 0, DATE, DATETIME, TIMESTAMP};
+ENUM_DEFINE(TimeType,
+			TIME, 
+			DATE, 
+			DATETIME, 
+			TIMESTAMP
+			);
 enum OBJ_TYPE {T_NUMBER = 0, T_VARCHAR, T_DATETIME, T_BOOL, T_MAX_TYPE};
 static const char* obj_type_str[] = {"NUMBER", "VARCHAR", "DATETIME", "BOOL", "INVALID_TYPE"};
 #endif //SQL_DEFINE_H

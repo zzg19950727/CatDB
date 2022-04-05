@@ -25,6 +25,8 @@ namespace CatDB {
 		void set_debug_level(int level);
 		void set_debug_module(const String &module);
 		void log_output(int log_level, const char* file, int line, const char* function, const String& msg);
+		void set_trace_id(String &trace_id);
+		void get_trace_id(String &trace_id);
 	}
 }
 #endif	//LOG_H

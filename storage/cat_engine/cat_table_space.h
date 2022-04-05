@@ -12,9 +12,10 @@ namespace CatDB {
 		DECLARE(CatTableSpace);
 		using Common::Row_s;
 
-		class LRUManger {
+		class LRUManager {
 		public:
-			LRUManger();
+			LRUManager();
+			~LRUManager();
 			bool find_page(u32 offset, Page_s &page);
 			bool add_page(Page_s &new_page, Page_s &old_page);
 		private:
@@ -39,11 +40,14 @@ namespace CatDB {
 			Node head;
 			Node tail;
 			static const u32 MAX_SIZE = 63;
+		public:
+			CatIoService_s io;
 		};
 
 		/*简单存储引擎*/
 		class CatTableSpace : public TableSpace
 		{
+			friend class LRUManager;
 		private:
 			CatTableSpace();
 		public:
@@ -72,7 +76,7 @@ namespace CatDB {
 			u32 write_page_to_disk(const Page_s& page);
 
 		private:
-			LRUManger page_manager;
+			LRUManager page_manager;
 			CatIoService_s io;
 			Page_s cur_page;
 			bool read_only;

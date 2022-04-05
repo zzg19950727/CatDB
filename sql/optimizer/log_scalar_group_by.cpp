@@ -18,6 +18,7 @@ u32 LogScalarGroupBy::est_row_count()
 {
     u32 ret = SUCCESS;
     output_rows = 1.0;
+    set_output_rows(output_rows);
     return ret;
 }
 

@@ -4,11 +4,43 @@
 #include <string>
 #include <chrono>
 #include <cstdarg>
+#include <thread>
+#include "timer_manager.h"
 #include "type.h"
 #include "log.h"
 
 static int LOG_SET_LEVEL = LOG_LEVEL_TRACE;
 static String LOG_MODULE = "";
+HashMap<std::thread::id, String> trace_ids;
+
+using namespace CatDB::Common;
+
+void CatDB::Common::get_trace_id(String &trace_id)
+{
+	std::thread::id id = std::this_thread::get_id();
+	if (trace_ids.find(id) != trace_ids.cend()) {
+		trace_id = trace_ids[id];
+	} else {
+		trace_id = "000000000";
+	}
+}
+
+void CatDB::Common::set_trace_id(String &trace_id)
+{
+	std::thread::id id = std::this_thread::get_id();
+	CatDB::Server::DateTime::TimePoint tp = std::chrono::steady_clock::now();
+	CatDB::Server::DateTime::NanoSeconds nano(tp.time_since_epoch());
+	Hash<CatDB::Server::DateTime::Rep> func;
+	u64 value = func(nano.count());
+	static const char *hex_map = "0123456789ABCDEF";
+	trace_id.clear();
+	for (u32 i = 0; i < 16; ++i) {
+		trace_id += hex_map[value & 0xf];
+		value >>= 4;
+	}
+	trace_ids[id] = trace_id;
+}
+
 class LogStream
 {
 public:
@@ -82,12 +114,14 @@ String get_module_name(const char* function)
 void LogStream::print_msg(int log_level, const char* file, int line, const char* function, const String& msg)
 {
 	String module = get_module_name(function);
+	String trace_id;
 	if (log_level > LOG_SET_LEVEL || 
 		(LOG_MODULE.find(module) == LOG_MODULE.npos &&
 		LOG_MODULE != "ALL"))
 		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	*os << "[" << put_time(t) <<"] ";
+	get_trace_id(trace_id);
+	*os << "[" << put_time(t) <<"] " << "[" << trace_id << "] ";
 	if (log_level == LOG_LEVEL_INFO)
 		*os << "[INFO ] ";
 	else if (log_level == LOG_LEVEL_ERR)

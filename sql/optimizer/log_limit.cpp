@@ -21,6 +21,7 @@ u32 LogLimit::est_row_count()
     u32 ret = SUCCESS;
     output_rows = child()->get_output_rows();
     output_rows = output_rows > (limit_value + offset) ? (limit_value + offset) : output_rows;
+    set_output_rows(output_rows);
     return ret;
 }
 

@@ -51,7 +51,7 @@ double StatisManager::get_table_row_count(u32 tid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 100000;
+        return 1;
     } else {
         return iter->second->row_count;
     }
@@ -71,7 +71,7 @@ double StatisManager::get_table_block_count(u32 tid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 100;
+        return 1;
     } else {
         return iter->second->space_size / PAGE_SIZE;
     }
@@ -81,11 +81,11 @@ double StatisManager::get_column_ndv(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 1000;
+        return 1;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 1000;
+            return 1;
         } else {
             return iter2->second->ndv;
         }
@@ -96,11 +96,11 @@ double StatisManager::get_column_max_value(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 1000;
+        return 1;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 1000;
+            return 1;
         } else {
             return iter2->second->max_value;
         }
@@ -126,11 +126,11 @@ double StatisManager::get_column_null_count(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 1000;
+        return 0;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 1000;
+            return 0;
         } else {
             return iter2->second->null_count;
         }

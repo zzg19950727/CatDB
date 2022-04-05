@@ -53,26 +53,31 @@ long long DateTime::get_seconds(const char* str, u32 size)
 }
 
 DateTime::DateTime(const my_decimal& data)
-	:data(data)
+	:data(data),
+	type(DATETIME)
 {
 
 }
 
 DateTime::DateTime(long long seconds)
-	:data(seconds)
+	:data(seconds),
+	type(DATETIME)
 {
 }
 
 DateTime::DateTime(const u8 *data, u32 size, const DataType& type)
-	:data(data, size, type.precision, type.scale)
+	:data(data, size, type.precision, type.scale),
+	type(DATETIME)
 {
-
+	this->type = type.time_type;
 }
 
 DateTime::DateTime(const char *data, u32 size, const DataType& type)
+	:type(DATETIME)
 {
 	long long seconds = get_seconds(data, size);
 	this->data = my_decimal(seconds);
+	this->type = type.time_type;
 }
 
 DateTime_s DateTime::make_object(const String & str)
@@ -105,14 +110,42 @@ String DateTime::to_string() const
 		time_t value = (time_t)data.to_longlong();
 		tm* time = localtime(&value);
 		if (time != NULL) {
-			sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
-				time->tm_year,
-				time->tm_mon + 1,
-				time->tm_mday,
-				time->tm_hour,
-				time->tm_min,
-				time->tm_sec
-			);
+			switch (type) {
+				case TIME:
+					sprintf(tmp, "%02d:%02d:%02d",
+						time->tm_hour,
+						time->tm_min,
+						time->tm_sec
+					);
+					break;
+				case DATE:
+					sprintf(tmp, "%04d-%02d-%02d",
+						time->tm_year,
+						time->tm_mon + 1,
+						time->tm_mday
+					);
+					break;
+				case DATETIME:
+					sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
+						time->tm_year,
+						time->tm_mon + 1,
+						time->tm_mday,
+						time->tm_hour,
+						time->tm_min,
+						time->tm_sec
+					);
+					break;
+				case TIMESTAMP:
+					sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
+						time->tm_year,
+						time->tm_mon + 1,
+						time->tm_mday,
+						time->tm_hour,
+						time->tm_min,
+						time->tm_sec
+					);
+					break;
+			}
 			ret = String(tmp);
 		}
 	}
@@ -267,6 +300,21 @@ u32 DateTime::add_seconds(const DateTime_s &time, const Number_s &seconds, DateT
 	return ret;
 }
 
+u32 DateTime::sub_seconds(const DateTime_s &time, const Number_s &seconds, DateTime_s &res)
+{
+	u32 ret = SUCCESS;
+	if (time->is_null() || seconds->is_null()) {
+		res = DateTime_s(new DateTime(0));
+		res->set_null();
+	} else {
+		my_decimal dst;
+		int r = my_decimal::my_decimal_sub(dst, time->data, seconds->data);
+		MY_ASSERT(0 == r);
+		res = DateTime_s(new DateTime(dst));
+	}
+	return ret;
+}
+
 u32 DateTime::make_second_from_day(u32 day, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
@@ -277,34 +325,13 @@ u32 DateTime::make_second_from_day(u32 day, Number_s& seconds)
 u32 DateTime::make_second_from_month(u32 month, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
-	tm tm_;
-	tm_.tm_year = 0;
-	tm_.tm_mon = 0;
-	tm_.tm_mday = 0;
-	tm_.tm_hour = 0;
-	tm_.tm_min = 0;
-	tm_.tm_sec = 0;
-	tm_.tm_isdst = 0;
-	tm_.tm_mon = month % 12;
-	tm_.tm_year += month / 12;
-	time_t t_ = mktime(&tm_);
-	seconds = Number::make_object((longlong)t_);
+	seconds = Number::make_object((longlong)(month * 31 * 24 * 60 * 60));
 	return ret;
 }
 
 u32 DateTime::make_second_from_year(u32 year, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
-	tm tm_;
-	tm_.tm_year = 0;
-	tm_.tm_mon = 0;
-	tm_.tm_mday = 0;
-	tm_.tm_hour = 0;
-	tm_.tm_min = 0;
-	tm_.tm_sec = 0;
-	tm_.tm_isdst = 0;
-	tm_.tm_year += year;
-	time_t t_ = mktime(&tm_);
-	seconds = Number::make_object((longlong)t_);
+	seconds = Number::make_object((longlong)(year * 365 * 24 * 60 * 60));
 	return ret;
 }

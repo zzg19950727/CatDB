@@ -90,6 +90,7 @@ end_comment		\*\/
 "inner"			{ return CatDB::SqlParser::make_INNER(loc); }
 "int"			{ return CatDB::SqlParser::make_INT(loc); }
 "interval"		{ return CatDB::SqlParser::make_INTERVAL(loc); }
+"integer"		{ return CatDB::SqlParser::make_INTEGER(loc); }
 "into"			{ return CatDB::SqlParser::make_INTO(loc); }
 "join"			{ return CatDB::SqlParser::make_JOIN(loc); }
 "left"			{ return CatDB::SqlParser::make_LEFT(loc); }
@@ -98,6 +99,7 @@ end_comment		\*\/
 "month"			{ return CatDB::SqlParser::make_MONTH(loc); }
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
+"outer"			{ return CatDB::SqlParser::make_OUTER(loc); }
 "processlist"	{ return CatDB::SqlParser::make_PROCESSLIST(loc); }
 "right"			{ return CatDB::SqlParser::make_RIGHT(loc); }
 "rowid"			{ return CatDB::SqlParser::make_ROWID(loc); }

@@ -22,6 +22,7 @@ u32 LogExprValue::est_row_count()
 {
     u32 ret = SUCCESS;
     output_rows = values.size();
+    set_output_rows(output_rows);
     return ret;
 }
 

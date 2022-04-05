@@ -385,6 +385,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
                 column->table = resolve_ctx.parent_tables[i]->alias_name;
                 u32 param_index = query_ctx->generate_param_index();
                 ExecParamStmt_s exec_param = ExecParamStmt::make_exec_param_stmt(param_index);
+                exec_param->res_type = column->res_type;
                 ExecParamHelper helper;
                 helper.exec_param = exec_param;
                 helper.ref_expr = column;
@@ -433,9 +434,11 @@ u32 DMLResolver::resolve_column_from_basic_table(BasicTableStmt_s table, ColumnS
         column->res_type = DataType::default_int_type();
     } else {
         ColumnDesc col_desc;
-        CHECK(checker->get_column_desc(table->ref_table_id,
+        if (FAIL(checker->get_column_desc(table->ref_table_id,
                                         column->column,
-                                        col_desc));
+                                        col_desc))) {
+            return ret;                                
+        }
         u32 cid = col_desc.get_cid();
         column->table_id = table->table_id;
         column->column_id = cid;
@@ -458,6 +461,9 @@ u32 DMLResolver::resolve_column_from_view(ViewTableStmt_s table, ColumnStmt_s &c
             column->column_id = i;
             column->res_type = query->select_expr_list[i]->res_type;
         }
+    }
+    if (!find) {
+        ret = COLUMN_NOT_EXISTS;
     }
     return ret;
 }

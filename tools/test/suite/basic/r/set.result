@@ -51,15 +51,15 @@ SELECT * FROM T2
 EXPLAIN (SELECT  T1.C4 AS C1, T1.C1 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T2.C2 AS C1, T2.C2 AS C2, T2.C1 AS C3, T2.C3 AS C4 FROM T1 T2    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION_ALL    |      | 200000    | 316130 |
-| 1  |  SORT        |      | 100000    | 158565 |
-| 2  |   TABLE SCAN | T1   | 100000    | 20410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T2   | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION_ALL    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T1   | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T2   | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t1.c4], [t1.c1], [t1.c3], [t1.c2])
@@ -84,12 +84,12 @@ END_OUTLINE_DATA
 +------+------+------+------+
 | 1    | 0    | 1    | 9    |
 | 1    | 0    | 1    | 0    |
-| 4    | 3    | 5    | 3    |
-| 4    | 1    | 5    | 3    |
-| 4    | 9    | 9    | 0    |
 | 4    | 1    | 9    | 8    |
-| 5    | 5    | 2    | 4    |
+| 4    | 1    | 5    | 3    |
+| 4    | 3    | 5    | 3    |
+| 4    | 9    | 9    | 0    |
 | 5    | 0    | 0    | 8    |
+| 5    | 5    | 2    | 4    |
 | 8    | 8    | 0    | 4    |
 | 9    | 8    | 5    | 3    |
 | 9    | 9    | 0    | 1    |
@@ -97,26 +97,26 @@ END_OUTLINE_DATA
 | 8    | 8    | 1    | 9    |
 | 4    | 4    | 5    | 2    |
 | 4    | 4    | 8    | 0    |
-| 3    | 3    | 8    | 5    |
-| 3    | 3    | 3    | 5    |
 | 3    | 3    | 1    | 5    |
-| 0    | 0    | 9    | 9    |
+| 3    | 3    | 3    | 5    |
+| 3    | 3    | 8    | 5    |
 | 0    | 0    | 0    | 1    |
+| 0    | 0    | 9    | 9    |
 +------+------+------+------+
 20 rows in set
 
 EXPLAIN (SELECT  T3.C2 AS C1, T3.C4 AS C2, T3.C3 AS C3, T3.C3 AS C4 FROM T1 T3    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  ) UNION (SELECT  T4.C3 AS C1, T4.C1 AS C2, T4.C3 AS C3, T4.C3 AS C4 FROM T1 T4    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION        |      | 200000    | 320130 |
-| 1  |  SORT        |      | 100000    | 153565 |
-| 2  |   TABLE SCAN | T3   | 100000    | 15410  |
-| 3  |  SORT        |      | 100000    | 148565 |
-| 4  |   TABLE SCAN | T4   | 100000    | 10410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION        |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T3   | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T4   | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t3.c2], [t3.c4], [t3.c3], [t3.c3])
@@ -142,36 +142,36 @@ END_OUTLINE_DATA
 | 9    | 1    | 1    | 1    |
 | 8    | 5    | 0    | 0    |
 | 8    | 4    | 9    | 9    |
-| 4    | 5    | 2    | 2    |
 | 4    | 8    | 0    | 0    |
+| 4    | 5    | 2    | 2    |
 | 3    | 9    | 5    | 5    |
 | 3    | 4    | 5    | 5    |
 | 0    | 4    | 9    | 9    |
 | 0    | 1    | 1    | 1    |
-| 0    | 8    | 0    | 0    |
 | 0    | 0    | 0    | 0    |
+| 0    | 8    | 0    | 0    |
 | 1    | 0    | 1    | 1    |
 | 2    | 5    | 2    | 2    |
-| 5    | 8    | 5    | 5    |
-| 5    | 3    | 5    | 5    |
 | 5    | 1    | 5    | 5    |
-| 9    | 9    | 9    | 9    |
+| 5    | 3    | 5    | 5    |
+| 5    | 8    | 5    | 5    |
 | 9    | 1    | 9    | 9    |
+| 9    | 9    | 9    | 9    |
 +------+------+------+------+
 18 rows in set
 
 EXPLAIN (SELECT  T5.C1 AS C1, T5.C1 AS C2, T5.C1 AS C3, T5.C1 AS C4 FROM T1 T5    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  ) EXCEPT (SELECT  T6.C3 AS C1, T6.C4 AS C2, T6.C4 AS C3, T6.C4 AS C4 FROM T2 T6    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | EXCEPT       |      | 200000    | 303130 |
-| 1  |  SORT        |      | 100000    | 143565 |
-| 2  |   TABLE SCAN | T5   | 100000    | 5410   |
-| 3  |  SORT        |      | 100000    | 148565 |
-| 4  |   TABLE SCAN | T6   | 100000    | 10410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | EXCEPT       |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T5   | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T6   | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([EXCEPT(0)], [EXCEPT(1)], [EXCEPT(2)], [EXCEPT(3)])
 1 - output([t5.c1], [t5.c1], [t5.c1], [t5.c1])
@@ -196,30 +196,30 @@ Empty set
 EXPLAIN (SELECT  T7.C4 AS C1, T7.C3 AS C2, T7.C2 AS C3, T7.C3 AS C4 FROM T2 T7    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) UNION ALL (((SELECT  T8.C3 AS C1, T8.C3 AS C2, T8.C2 AS C3, T8.C2 AS C4 FROM T1 T8    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) UNION (SELECT  T9.C2 AS C1, T9.C3 AS C2, T9.C3 AS C3, T9.C2 AS C4 FROM T2 T9    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  )) UNION ((SELECT  T10.C1 AS C1, T10.C4 AS C2, T10.C1 AS C3, T10.C1 AS C4 FROM T2 T10    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) INTERSECT ((SELECT  T11.C2 AS C1, T11.C2 AS C2, T11.C3 AS C3, T11.C4 AS C4 FROM T2 T11    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) UNION ((SELECT  T12.C4 AS C1, T12.C4 AS C2, T12.C4 AS C3, T12.C3 AS C4 FROM T2 T12    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ) UNION (SELECT  T13.C2 AS C1, T13.C4 AS C2, T13.C2 AS C3, T13.C1 AS C4 FROM T2 T13    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  )))))
 
 Query Plan:
-+------------------------------------------------------+
-| ID | OPERATOR         | NAME | ROW COUNT | COST      |
-+------------------------------------------------------+
-| 0  | UNION_ALL        |      | 700000    | 1.213e+06 |
-| 1  |  SORT            |      | 100000    | 153565    |
-| 2  |   TABLE SCAN     | T7   | 100000    | 15410     |
-| 3  |  UNION           |      | 600000    | 1.045e+06 |
-| 4  |   UNION          |      | 200000    | 315130    |
-| 5  |    SORT          |      | 100000    | 148565    |
-| 6  |     TABLE SCAN   | T8   | 100000    | 10410     |
-| 7  |    SORT          |      | 100000    | 148565    |
-| 8  |     TABLE SCAN   | T9   | 100000    | 10410     |
-| 9  |   INTERSECT      |      | 400000    | 676260    |
-| 10 |    SORT          |      | 100000    | 148565    |
-| 11 |     TABLE SCAN   | T10  | 100000    | 10410     |
-| 12 |    UNION         |      | 300000    | 500695    |
-| 13 |     SORT         |      | 100000    | 153565    |
-| 14 |      TABLE SCAN  | T11  | 100000    | 15410     |
-| 15 |     UNION        |      | 200000    | 320130    |
-| 16 |      SORT        |      | 100000    | 148565    |
-| 17 |       TABLE SCAN | T12  | 100000    | 10410     |
-| 18 |      SORT        |      | 100000    | 153565    |
-| 19 |       TABLE SCAN | T13  | 100000    | 15410     |
-+------------------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR         | NAME | ROW COUNT | COST |
++-------------------------------------------------+
+| 0  | UNION_ALL        |      | 7         | 31   |
+| 1  |  SORT            |      | 1         | 4    |
+| 2  |   TABLE SCAN     | T7   | 1         | 4    |
+| 3  |  UNION           |      | 6         | 26   |
+| 4  |   UNION          |      | 2         | 8    |
+| 5  |    SORT          |      | 1         | 4    |
+| 6  |     TABLE SCAN   | T8   | 1         | 4    |
+| 7  |    SORT          |      | 1         | 4    |
+| 8  |     TABLE SCAN   | T9   | 1         | 4    |
+| 9  |   INTERSECT      |      | 4         | 17   |
+| 10 |    SORT          |      | 1         | 4    |
+| 11 |     TABLE SCAN   | T10  | 1         | 4    |
+| 12 |    UNION         |      | 3         | 13   |
+| 13 |     SORT         |      | 1         | 4    |
+| 14 |      TABLE SCAN  | T11  | 1         | 4    |
+| 15 |     UNION        |      | 2         | 8    |
+| 16 |      SORT        |      | 1         | 4    |
+| 17 |       TABLE SCAN | T12  | 1         | 4    |
+| 18 |      SORT        |      | 1         | 4    |
+| 19 |       TABLE SCAN | T13  | 1         | 4    |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t7.c4], [t7.c3], [t7.c2], [t7.c3])
@@ -275,8 +275,8 @@ END_OUTLINE_DATA
 | 4    | 9    | 1    | 9    |
 | 4    | 6    | 0    | 6    |
 | 3    | 2    | 0    | 2    |
-| 2    | 3    | 6    | 3    |
 | 2    | 4    | 5    | 4    |
+| 2    | 3    | 6    | 3    |
 | 9    | 9    | 0    | 0    |
 | 9    | 9    | 8    | 8    |
 | 5    | 5    | 3    | 3    |
@@ -285,36 +285,36 @@ END_OUTLINE_DATA
 | 1    | 1    | 9    | 9    |
 | 0    | 0    | 4    | 4    |
 | 0    | 0    | 8    | 8    |
-| 0    | 6    | 6    | 0    |
 | 0    | 2    | 2    | 0    |
-| 1    | 9    | 9    | 1    |
+| 0    | 6    | 6    | 0    |
 | 1    | 1    | 1    | 1    |
+| 1    | 9    | 9    | 1    |
 | 5    | 4    | 4    | 5    |
 | 6    | 3    | 3    | 6    |
 | 6    | 5    | 5    | 6    |
-| 7    | 6    | 6    | 7    |
 | 7    | 2    | 2    | 7    |
+| 7    | 6    | 6    | 7    |
 +------+------+------+------+
 27 rows in set
 
 EXPLAIN (((SELECT  T14.C4 AS C1, T14.C3 AS C2, T14.C3 AS C3, T14.C4 AS C4 FROM T2 T14    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T15.C4 AS C1, T15.C3 AS C2, T15.C2 AS C3, T15.C1 AS C4 FROM T1 T15    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )) UNION ALL (SELECT  T16.C1 AS C1, T16.C2 AS C2, T16.C3 AS C3, T16.C1 AS C4 FROM T1 T16    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T17.C4 AS C1, T17.C2 AS C2, T17.C4 AS C3, T17.C3 AS C4 FROM T2 T17    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  )
 
 Query Plan:
-+-------------------------------------------------+
-| ID | OPERATOR       | NAME | ROW COUNT | COST   |
-+-------------------------------------------------+
-| 0  | INTERSECT      |      | 400000    | 641260 |
-| 1  |  UNION_ALL     |      | 300000    | 470695 |
-| 2  |   UNION_ALL    |      | 200000    | 311130 |
-| 3  |    SORT        |      | 100000    | 148565 |
-| 4  |     TABLE SCAN | T14  | 100000    | 10410  |
-| 5  |    SORT        |      | 100000    | 158565 |
-| 6  |     TABLE SCAN | T15  | 100000    | 20410  |
-| 7  |   SORT         |      | 100000    | 153565 |
-| 8  |    TABLE SCAN  | T16  | 100000    | 15410  |
-| 9  |  SORT          |      | 100000    | 153565 |
-| 10 |   TABLE SCAN   | T17  | 100000    | 15410  |
-+-------------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST |
++-----------------------------------------------+
+| 0  | INTERSECT      |      | 4         | 17   |
+| 1  |  UNION_ALL     |      | 3         | 12   |
+| 2  |   UNION_ALL    |      | 2         | 8    |
+| 3  |    SORT        |      | 1         | 4    |
+| 4  |     TABLE SCAN | T14  | 1         | 4    |
+| 5  |    SORT        |      | 1         | 4    |
+| 6  |     TABLE SCAN | T15  | 1         | 4    |
+| 7  |   SORT         |      | 1         | 4    |
+| 8  |    TABLE SCAN  | T16  | 1         | 4    |
+| 9  |  SORT          |      | 1         | 4    |
+| 10 |   TABLE SCAN   | T17  | 1         | 4    |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([INTERSECT(0)], [INTERSECT(1)], [INTERSECT(2)], [INTERSECT(3)])
 1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
@@ -349,21 +349,21 @@ Empty set
 EXPLAIN (SELECT  T18.C4 AS C1, T18.C1 AS C2, T18.C3 AS C3, T18.C4 AS C4 FROM T2 T18    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ) UNION (((SELECT  T19.C3 AS C1, T19.C2 AS C2, T19.C3 AS C3, T19.C3 AS C4 FROM T1 T19    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  ) INTERSECT (SELECT  T20.C3 AS C1, T20.C4 AS C2, T20.C3 AS C3, T20.C4 AS C4 FROM T1 T20    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T21.C3 AS C1, T21.C4 AS C2, T21.C2 AS C3, T21.C2 AS C4 FROM T1 T21    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ))
 
 Query Plan:
-+-------------------------------------------------+
-| ID | OPERATOR       | NAME | ROW COUNT | COST   |
-+-------------------------------------------------+
-| 0  | UNION          |      | 400000    | 665260 |
-| 1  |  SORT          |      | 100000    | 153565 |
-| 2  |   TABLE SCAN   | T18  | 100000    | 15410  |
-| 3  |  INTERSECT     |      | 300000    | 475695 |
-| 4  |   INTERSECT    |      | 200000    | 308130 |
-| 5  |    SORT        |      | 100000    | 148565 |
-| 6  |     TABLE SCAN | T19  | 100000    | 10410  |
-| 7  |    SORT        |      | 100000    | 148565 |
-| 8  |     TABLE SCAN | T20  | 100000    | 10410  |
-| 9  |   SORT         |      | 100000    | 153565 |
-| 10 |    TABLE SCAN  | T21  | 100000    | 15410  |
-+-------------------------------------------------+
++-----------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST |
++-----------------------------------------------+
+| 0  | UNION          |      | 4         | 17   |
+| 1  |  SORT          |      | 1         | 4    |
+| 2  |   TABLE SCAN   | T18  | 1         | 4    |
+| 3  |  INTERSECT     |      | 3         | 12   |
+| 4  |   INTERSECT    |      | 2         | 8    |
+| 5  |    SORT        |      | 1         | 4    |
+| 6  |     TABLE SCAN | T19  | 1         | 4    |
+| 7  |    SORT        |      | 1         | 4    |
+| 8  |     TABLE SCAN | T20  | 1         | 4    |
+| 9  |   SORT         |      | 1         | 4    |
+| 10 |    TABLE SCAN  | T21  | 1         | 4    |
++-----------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t18.c4], [t18.c1], [t18.c3], [t18.c4])
@@ -404,23 +404,23 @@ END_OUTLINE_DATA
 | 4    | 0    | 9    | 4    |
 | 4    | 0    | 6    | 4    |
 | 3    | 9    | 2    | 3    |
-| 2    | 2    | 3    | 2    |
 | 2    | 2    | 4    | 2    |
+| 2    | 2    | 3    | 2    |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN (SELECT  T22.C1 AS C1, T22.C2 AS C2, T22.C3 AS C3, T22.C1 AS C4 FROM T1 T22    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  ) INTERSECT (SELECT  T23.C2 AS C1, T23.C4 AS C2, T23.C1 AS C3, T23.C2 AS C4 FROM T2 T23    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | INTERSECT    |      | 200000    | 318130 |
-| 1  |  SORT        |      | 100000    | 153565 |
-| 2  |   TABLE SCAN | T22  | 100000    | 15410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T23  | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | INTERSECT    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T22  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T23  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([INTERSECT(0)], [INTERSECT(1)], [INTERSECT(2)], [INTERSECT(3)])
 1 - output([t22.c1], [t22.c2], [t22.c3], [t22.c1])
@@ -445,15 +445,15 @@ Empty set
 EXPLAIN (SELECT  T24.C2 AS C1, T24.C4 AS C2, T24.C3 AS C3, T24.C1 AS C4 FROM T2 T24    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T25.C4 AS C1, T25.C2 AS C2, T25.C1 AS C3, T25.C3 AS C4 FROM T1 T25    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION_ALL    |      | 200000    | 321130 |
-| 1  |  SORT        |      | 100000    | 158565 |
-| 2  |   TABLE SCAN | T24  | 100000    | 20410  |
-| 3  |  SORT        |      | 100000    | 158565 |
-| 4  |   TABLE SCAN | T25  | 100000    | 20410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION_ALL    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T24  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T25  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t24.c2], [t24.c4], [t24.c3], [t24.c1])
@@ -476,8 +476,8 @@ END_OUTLINE_DATA
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 0    | 4    | 6    | 0    |
 | 0    | 3    | 2    | 9    |
+| 0    | 4    | 6    | 0    |
 | 1    | 4    | 9    | 0    |
 | 1    | 8    | 1    | 6    |
 | 5    | 2    | 4    | 2    |
@@ -488,32 +488,32 @@ END_OUTLINE_DATA
 | 7    | 5    | 2    | 8    |
 | 9    | 3    | 8    | 5    |
 | 8    | 4    | 8    | 0    |
-| 5    | 8    | 0    | 0    |
 | 5    | 4    | 5    | 2    |
-| 4    | 3    | 3    | 5    |
-| 4    | 3    | 1    | 5    |
+| 5    | 8    | 0    | 0    |
 | 4    | 0    | 9    | 9    |
+| 4    | 3    | 1    | 5    |
+| 4    | 3    | 3    | 5    |
 | 4    | 8    | 1    | 9    |
-| 1    | 9    | 0    | 1    |
 | 1    | 0    | 0    | 1    |
+| 1    | 9    | 0    | 1    |
 +------+------+------+------+
 20 rows in set
 
 EXPLAIN ((SELECT  T26.C3 AS C1, T26.C4 AS C2, T26.C4 AS C3, T26.C4 AS C4 FROM T2 T26    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  ) EXCEPT (SELECT  T27.C4 AS C1, T27.C1 AS C2, T27.C4 AS C3, T27.C1 AS C4 FROM T1 T27    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  )) EXCEPT (SELECT  T28.C4 AS C1, T28.C1 AS C2, T28.C3 AS C3, T28.C3 AS C4 FROM T1 T28    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  )
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR      | NAME | ROW COUNT | COST   |
-+------------------------------------------------+
-| 0  | EXCEPT        |      | 300000    | 475695 |
-| 1  |  EXCEPT       |      | 200000    | 308130 |
-| 2  |   SORT        |      | 100000    | 148565 |
-| 3  |    TABLE SCAN | T26  | 100000    | 10410  |
-| 4  |   SORT        |      | 100000    | 148565 |
-| 5  |    TABLE SCAN | T27  | 100000    | 10410  |
-| 6  |  SORT         |      | 100000    | 153565 |
-| 7  |   TABLE SCAN  | T28  | 100000    | 15410  |
-+------------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR      | NAME | ROW COUNT | COST |
++----------------------------------------------+
+| 0  | EXCEPT        |      | 3         | 12   |
+| 1  |  EXCEPT       |      | 2         | 8    |
+| 2  |   SORT        |      | 1         | 4    |
+| 3  |    TABLE SCAN | T26  | 1         | 4    |
+| 4  |   SORT        |      | 1         | 4    |
+| 5  |    TABLE SCAN | T27  | 1         | 4    |
+| 6  |  SORT         |      | 1         | 4    |
+| 7  |   TABLE SCAN  | T28  | 1         | 4    |
++----------------------------------------------+
 Outputs & filters:
 0 - output([EXCEPT(0)], [EXCEPT(1)], [EXCEPT(2)], [EXCEPT(3)])
 1 - output([EXCEPT(0)], [EXCEPT(1)], [EXCEPT(2)], [EXCEPT(3)])
@@ -543,69 +543,69 @@ Empty set
 EXPLAIN ((SELECT  T29.C2 AS C1, T29.C3 AS C2, T29.C1 AS C3, T29.C2 AS C4 FROM T2 T29    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) UNION ALL ((SELECT  T30.C1 AS C1, T30.C3 AS C2, T30.C3 AS C3, T30.C3 AS C4 FROM T2 T30    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ) INTERSECT ((SELECT  T31.C1 AS C1, T31.C3 AS C2, T31.C2 AS C3, T31.C3 AS C4 FROM T1 T31    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ) UNION ((SELECT  T32.C2 AS C1, T32.C2 AS C2, T32.C3 AS C3, T32.C3 AS C4 FROM T1 T32    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  ) EXCEPT (((SELECT  T33.C3 AS C1, T33.C1 AS C2, T33.C1 AS C3, T33.C2 AS C4 FROM T1 T33    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) UNION ALL (SELECT  T34.C4 AS C1, T34.C3 AS C2, T34.C1 AS C3, T34.C4 AS C4 FROM T1 T34    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )) UNION ((((((SELECT  T35.C2 AS C1, T35.C2 AS C2, T35.C3 AS C3, T35.C3 AS C4 FROM T2 T35    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) UNION (SELECT  T36.C3 AS C1, T36.C3 AS C2, T36.C1 AS C3, T36.C2 AS C4 FROM T1 T36    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )) UNION ALL (SELECT  T37.C3 AS C1, T37.C3 AS C2, T37.C4 AS C3, T37.C1 AS C4 FROM T2 T37    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  )) UNION ((SELECT  T38.C1 AS C1, T38.C1 AS C2, T38.C2 AS C3, T38.C1 AS C4 FROM T2 T38    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T39.C1 AS C1, T39.C4 AS C2, T39.C3 AS C3, T39.C1 AS C4 FROM T2 T39    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ))) INTERSECT ((SELECT  T40.C4 AS C1, T40.C1 AS C2, T40.C3 AS C3, T40.C2 AS C4 FROM T1 T40    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) UNION (SELECT  T41.C2 AS C1, T41.C3 AS C2, T41.C4 AS C3, T41.C4 AS C4 FROM T2 T41    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ))) INTERSECT (((SELECT  T42.C2 AS C1, T42.C3 AS C2, T42.C4 AS C3, T42.C2 AS C4 FROM T1 T42    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ) EXCEPT ((SELECT  T43.C2 AS C1, T43.C3 AS C2, T43.C3 AS C3, T43.C2 AS C4 FROM T1 T43    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  ) UNION ALL (SELECT  T44.C2 AS C1, T44.C1 AS C2, T44.C2 AS C3, T44.C3 AS C4 FROM T1 T44    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ))) UNION (SELECT  T45.C2 AS C1, T45.C2 AS C2, T45.C3 AS C3, T45.C1 AS C4 FROM T2 T45    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  )))))))) UNION ALL (((SELECT  T46.C1 AS C1, T46.C3 AS C2, T46.C2 AS C3, T46.C4 AS C4 FROM T1 T46    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  ) INTERSECT (SELECT  T47.C2 AS C1, T47.C2 AS C2, T47.C1 AS C3, T47.C2 AS C4 FROM T1 T47    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  )) INTERSECT (SELECT  T48.C2 AS C1, T48.C2 AS C2, T48.C2 AS C3, T48.C2 AS C4 FROM T1 T48    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ))
 
 Query Plan:
-+------------------------------------------------------------+
-| ID | OPERATOR               | NAME | ROW COUNT | COST      |
-+------------------------------------------------------------+
-| 0  | UNION_ALL              |      | 2.000e+06 | 3.860e+06 |
-| 1  |  UNION_ALL             |      | 1.700e+06 | 3.345e+06 |
-| 2  |   SORT                 |      | 100000    | 153565    |
-| 3  |    TABLE SCAN          | T29  | 100000    | 15410     |
-| 4  |   INTERSECT            |      | 1.600e+06 | 3.157e+06 |
-| 5  |    SORT                |      | 100000    | 148565    |
-| 6  |     TABLE SCAN         | T30  | 100000    | 10410     |
-| 7  |    UNION               |      | 1.500e+06 | 2.885e+06 |
-| 8  |     SORT               |      | 100000    | 153565    |
-| 9  |      TABLE SCAN        | T31  | 100000    | 15410     |
-| 10 |     EXCEPT             |      | 1.400e+06 | 2.597e+06 |
-| 11 |      SORT              |      | 100000    | 148565    |
-| 12 |       TABLE SCAN       | T32  | 100000    | 10410     |
-| 13 |      UNION             |      | 1.300e+06 | 2.341e+06 |
-| 14 |       UNION_ALL        |      | 200000    | 311130    |
-| 15 |        SORT            |      | 100000    | 153565    |
-| 16 |         TABLE SCAN     | T33  | 100000    | 15410     |
-| 17 |        SORT            |      | 100000    | 153565    |
-| 18 |         TABLE SCAN     | T34  | 100000    | 15410     |
-| 19 |       INTERSECT        |      | 1.100e+06 | 1.913e+06 |
-| 20 |        INTERSECT       |      | 700000    | 1.192e+06 |
-| 21 |         UNION          |      | 500000    | 830825    |
-| 22 |          UNION_ALL     |      | 300000    | 479695    |
-| 23 |           UNION        |      | 200000    | 320130    |
-| 24 |            SORT        |      | 100000    | 148565    |
-| 25 |             TABLE SCAN | T35  | 100000    | 10410     |
-| 26 |            SORT        |      | 100000    | 153565    |
-| 27 |             TABLE SCAN | T36  | 100000    | 15410     |
-| 28 |           SORT         |      | 100000    | 153565    |
-| 29 |            TABLE SCAN  | T37  | 100000    | 15410     |
-| 30 |          UNION_ALL     |      | 200000    | 306130    |
-| 31 |           SORT         |      | 100000    | 148565    |
-| 32 |            TABLE SCAN  | T38  | 100000    | 10410     |
-| 33 |           SORT         |      | 100000    | 153565    |
-| 34 |            TABLE SCAN  | T39  | 100000    | 15410     |
-| 35 |         UNION          |      | 200000    | 330130    |
-| 36 |          SORT          |      | 100000    | 158565    |
-| 37 |           TABLE SCAN   | T40  | 100000    | 20410     |
-| 38 |          SORT          |      | 100000    | 153565    |
-| 39 |           TABLE SCAN   | T41  | 100000    | 15410     |
-| 40 |        UNION           |      | 400000    | 668260    |
-| 41 |         EXCEPT         |      | 300000    | 478695    |
-| 42 |          SORT          |      | 100000    | 153565    |
-| 43 |           TABLE SCAN   | T42  | 100000    | 15410     |
-| 44 |          UNION_ALL     |      | 200000    | 306130    |
-| 45 |           SORT         |      | 100000    | 148565    |
-| 46 |            TABLE SCAN  | T43  | 100000    | 10410     |
-| 47 |           SORT         |      | 100000    | 153565    |
-| 48 |            TABLE SCAN  | T44  | 100000    | 15410     |
-| 49 |         SORT           |      | 100000    | 153565    |
-| 50 |          TABLE SCAN    | T45  | 100000    | 15410     |
-| 51 |  INTERSECT             |      | 300000    | 475695    |
-| 52 |   INTERSECT            |      | 200000    | 318130    |
-| 53 |    SORT                |      | 100000    | 158565    |
-| 54 |     TABLE SCAN         | T46  | 100000    | 20410     |
-| 55 |    SORT                |      | 100000    | 148565    |
-| 56 |     TABLE SCAN         | T47  | 100000    | 10410     |
-| 57 |   SORT                 |      | 100000    | 143565    |
-| 58 |    TABLE SCAN          | T48  | 100000    | 5410      |
-+------------------------------------------------------------+
++-------------------------------------------------------+
+| ID | OPERATOR               | NAME | ROW COUNT | COST |
++-------------------------------------------------------+
+| 0  | UNION_ALL              |      | 20        | 92   |
+| 1  |  UNION_ALL             |      | 17        | 79   |
+| 2  |   SORT                 |      | 1         | 4    |
+| 3  |    TABLE SCAN          | T29  | 1         | 4    |
+| 4  |   INTERSECT            |      | 16        | 75   |
+| 5  |    SORT                |      | 1         | 4    |
+| 6  |     TABLE SCAN         | T30  | 1         | 4    |
+| 7  |    UNION               |      | 15        | 69   |
+| 8  |     SORT               |      | 1         | 4    |
+| 9  |      TABLE SCAN        | T31  | 1         | 4    |
+| 10 |     EXCEPT             |      | 14        | 63   |
+| 11 |      SORT              |      | 1         | 4    |
+| 12 |       TABLE SCAN       | T32  | 1         | 4    |
+| 13 |      UNION             |      | 13        | 58   |
+| 14 |       UNION_ALL        |      | 2         | 8    |
+| 15 |        SORT            |      | 1         | 4    |
+| 16 |         TABLE SCAN     | T33  | 1         | 4    |
+| 17 |        SORT            |      | 1         | 4    |
+| 18 |         TABLE SCAN     | T34  | 1         | 4    |
+| 19 |       INTERSECT        |      | 11        | 48   |
+| 20 |        INTERSECT       |      | 7         | 30   |
+| 21 |         UNION          |      | 5         | 21   |
+| 22 |          UNION_ALL     |      | 3         | 12   |
+| 23 |           UNION        |      | 2         | 8    |
+| 24 |            SORT        |      | 1         | 4    |
+| 25 |             TABLE SCAN | T35  | 1         | 4    |
+| 26 |            SORT        |      | 1         | 4    |
+| 27 |             TABLE SCAN | T36  | 1         | 4    |
+| 28 |           SORT         |      | 1         | 4    |
+| 29 |            TABLE SCAN  | T37  | 1         | 4    |
+| 30 |          UNION_ALL     |      | 2         | 8    |
+| 31 |           SORT         |      | 1         | 4    |
+| 32 |            TABLE SCAN  | T38  | 1         | 4    |
+| 33 |           SORT         |      | 1         | 4    |
+| 34 |            TABLE SCAN  | T39  | 1         | 4    |
+| 35 |         UNION          |      | 2         | 8    |
+| 36 |          SORT          |      | 1         | 4    |
+| 37 |           TABLE SCAN   | T40  | 1         | 4    |
+| 38 |          SORT          |      | 1         | 4    |
+| 39 |           TABLE SCAN   | T41  | 1         | 4    |
+| 40 |        UNION           |      | 4         | 17   |
+| 41 |         EXCEPT         |      | 3         | 12   |
+| 42 |          SORT          |      | 1         | 4    |
+| 43 |           TABLE SCAN   | T42  | 1         | 4    |
+| 44 |          UNION_ALL     |      | 2         | 8    |
+| 45 |           SORT         |      | 1         | 4    |
+| 46 |            TABLE SCAN  | T43  | 1         | 4    |
+| 47 |           SORT         |      | 1         | 4    |
+| 48 |            TABLE SCAN  | T44  | 1         | 4    |
+| 49 |         SORT           |      | 1         | 4    |
+| 50 |          TABLE SCAN    | T45  | 1         | 4    |
+| 51 |  INTERSECT             |      | 3         | 12   |
+| 52 |   INTERSECT            |      | 2         | 8    |
+| 53 |    SORT                |      | 1         | 4    |
+| 54 |     TABLE SCAN         | T46  | 1         | 4    |
+| 55 |    SORT                |      | 1         | 4    |
+| 56 |     TABLE SCAN         | T47  | 1         | 4    |
+| 57 |   SORT                 |      | 1         | 4    |
+| 58 |    TABLE SCAN          | T48  | 1         | 4    |
++-------------------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
@@ -724,25 +724,25 @@ END_OUTLINE_DATA
 | 6    | 3    | 2    | 6    |
 | 6    | 3    | 2    | 6    |
 | 5    | 4    | 2    | 5    |
-| 1    | 1    | 6    | 1    |
 | 1    | 9    | 0    | 1    |
-| 0    | 2    | 9    | 0    |
+| 1    | 1    | 6    | 1    |
 | 0    | 6    | 0    | 0    |
+| 0    | 2    | 9    | 0    |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN (SELECT  T49.C3 AS C1, T49.C4 AS C2, T49.C1 AS C3, T49.C2 AS C4 FROM T2 T49    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ) UNION (SELECT  T50.C2 AS C1, T50.C3 AS C2, T50.C2 AS C3, T50.C4 AS C4 FROM T2 T50    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION        |      | 200000    | 330130 |
-| 1  |  SORT        |      | 100000    | 158565 |
-| 2  |   TABLE SCAN | T49  | 100000    | 20410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T50  | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION        |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T49  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T50  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t49.c3], [t49.c4], [t49.c1], [t49.c2])
@@ -766,136 +766,136 @@ END_OUTLINE_DATA
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
 | 9    | 4    | 0    | 1    |
-| 6    | 4    | 0    | 0    |
 | 6    | 5    | 7    | 7    |
+| 6    | 4    | 0    | 0    |
 | 5    | 6    | 5    | 6    |
 | 4    | 2    | 2    | 5    |
-| 3    | 2    | 2    | 6    |
 | 3    | 7    | 2    | 6    |
-| 2    | 3    | 9    | 0    |
+| 3    | 2    | 2    | 6    |
 | 2    | 5    | 8    | 7    |
+| 2    | 3    | 9    | 0    |
 | 1    | 8    | 6    | 1    |
-| 0    | 6    | 0    | 4    |
 | 0    | 2    | 0    | 3    |
-| 1    | 9    | 1    | 4    |
+| 0    | 6    | 0    | 4    |
 | 1    | 1    | 1    | 8    |
+| 1    | 9    | 1    | 4    |
 | 5    | 4    | 5    | 2    |
+| 6    | 3    | 6    | 7    |
 | 6    | 3    | 6    | 2    |
 | 6    | 5    | 6    | 6    |
-| 6    | 3    | 6    | 7    |
-| 7    | 6    | 7    | 5    |
 | 7    | 2    | 7    | 5    |
+| 7    | 6    | 7    | 5    |
 +------+------+------+------+
 20 rows in set
 
 EXPLAIN (((((SELECT  T51.C2 AS C1, T51.C3 AS C2, T51.C2 AS C3, T51.C4 AS C4 FROM T2 T51    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  ) EXCEPT ((SELECT  T52.C1 AS C1, T52.C2 AS C2, T52.C4 AS C3, T52.C1 AS C4 FROM T2 T52    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) UNION (SELECT  T53.C4 AS C1, T53.C1 AS C2, T53.C3 AS C3, T53.C2 AS C4 FROM T2 T53    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  ))) INTERSECT (SELECT  T54.C2 AS C1, T54.C2 AS C2, T54.C2 AS C3, T54.C2 AS C4 FROM T1 T54    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  )) EXCEPT (((SELECT  T55.C1 AS C1, T55.C4 AS C2, T55.C1 AS C3, T55.C2 AS C4 FROM T2 T55    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) EXCEPT (SELECT  T56.C2 AS C1, T56.C4 AS C2, T56.C1 AS C3, T56.C3 AS C4 FROM T2 T56    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  )) UNION ((SELECT  T57.C1 AS C1, T57.C3 AS C2, T57.C1 AS C3, T57.C2 AS C4 FROM T2 T57    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  ) EXCEPT (SELECT  T58.C4 AS C1, T58.C4 AS C2, T58.C3 AS C3, T58.C1 AS C4 FROM T1 T58    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  )))) EXCEPT (((((SELECT  T59.C3 AS C1, T59.C1 AS C2, T59.C2 AS C3, T59.C3 AS C4 FROM T2 T59    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) EXCEPT (((SELECT  T60.C3 AS C1, T60.C3 AS C2, T60.C1 AS C3, T60.C1 AS C4 FROM T1 T60    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) UNION ((SELECT  T61.C2 AS C1, T61.C2 AS C2, T61.C4 AS C3, T61.C2 AS C4 FROM T1 T61    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ) UNION ((SELECT  T62.C4 AS C1, T62.C4 AS C2, T62.C1 AS C3, T62.C1 AS C4 FROM T1 T62    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  ) UNION (SELECT  T63.C2 AS C1, T63.C2 AS C2, T63.C4 AS C3, T63.C1 AS C4 FROM T2 T63    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  )))) EXCEPT (SELECT  T64.C1 AS C1, T64.C4 AS C2, T64.C1 AS C3, T64.C1 AS C4 FROM T1 T64    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  ))) UNION (SELECT  T65.C4 AS C1, T65.C3 AS C2, T65.C2 AS C3, T65.C4 AS C4 FROM T2 T65    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T66.C1 AS C1, T66.C3 AS C2, T66.C4 AS C3, T66.C4 AS C4 FROM T2 T66    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  )) INTERSECT ((((((SELECT  T67.C4 AS C1, T67.C4 AS C2, T67.C3 AS C3, T67.C4 AS C4 FROM T2 T67    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) EXCEPT (((SELECT  T68.C4 AS C1, T68.C2 AS C2, T68.C4 AS C3, T68.C3 AS C4 FROM T2 T68    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) UNION ALL ((SELECT  T69.C3 AS C1, T69.C4 AS C2, T69.C3 AS C3, T69.C3 AS C4 FROM T2 T69    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) UNION ALL (SELECT  T70.C2 AS C1, T70.C2 AS C2, T70.C3 AS C3, T70.C4 AS C4 FROM T1 T70    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  ))) UNION ALL (SELECT  T71.C1 AS C1, T71.C4 AS C2, T71.C1 AS C3, T71.C3 AS C4 FROM T2 T71    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  ))) UNION ((SELECT  T72.C4 AS C1, T72.C4 AS C2, T72.C1 AS C3, T72.C4 AS C4 FROM T2 T72    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) INTERSECT (SELECT  T73.C1 AS C1, T73.C3 AS C2, T73.C1 AS C3, T73.C4 AS C4 FROM T2 T73    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  ))) UNION ALL (SELECT  T74.C2 AS C1, T74.C3 AS C2, T74.C4 AS C3, T74.C2 AS C4 FROM T2 T74    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )) UNION ALL ((SELECT  T75.C4 AS C1, T75.C3 AS C2, T75.C3 AS C3, T75.C4 AS C4 FROM T2 T75    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ) INTERSECT (SELECT  T76.C2 AS C1, T76.C2 AS C2, T76.C4 AS C3, T76.C3 AS C4 FROM T1 T76    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ))) INTERSECT (((((SELECT  T77.C3 AS C1, T77.C2 AS C2, T77.C1 AS C3, T77.C4 AS C4 FROM T2 T77    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) EXCEPT ((SELECT  T78.C1 AS C1, T78.C3 AS C2, T78.C3 AS C3, T78.C2 AS C4 FROM T1 T78    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) INTERSECT (SELECT  T79.C4 AS C1, T79.C3 AS C2, T79.C2 AS C3, T79.C2 AS C4 FROM T2 T79    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ))) UNION ALL (SELECT  T80.C1 AS C1, T80.C1 AS C2, T80.C4 AS C3, T80.C1 AS C4 FROM T2 T80    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T81.C2 AS C1, T81.C3 AS C2, T81.C3 AS C3, T81.C2 AS C4 FROM T2 T81    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  )) INTERSECT ((SELECT  T82.C3 AS C1, T82.C4 AS C2, T82.C3 AS C3, T82.C2 AS C4 FROM T1 T82    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  ) UNION (SELECT  T83.C3 AS C1, T83.C4 AS C2, T83.C2 AS C3, T83.C1 AS C4 FROM T2 T83    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  )))))) UNION ALL (SELECT  T84.C4 AS C1, T84.C1 AS C2, T84.C3 AS C3, T84.C3 AS C4 FROM T2 T84    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  )
 
 Query Plan:
-+-------------------------------------------------------------+
-| ID  | OPERATOR               | NAME | ROW COUNT | COST      |
-+-------------------------------------------------------------+
-| 0   | UNION_ALL              |      | 3.400e+06 | 6.392e+06 |
-| 1   |  EXCEPT                |      | 3.300e+06 | 6.171e+06 |
-| 2   |   EXCEPT               |      | 800000    | 1.385e+06 |
-| 3   |    INTERSECT           |      | 400000    | 663260    |
-| 4   |     EXCEPT             |      | 300000    | 502695    |
-| 5   |      SORT              |      | 100000    | 153565    |
-| 6   |       TABLE SCAN       | T51  | 100000    | 15410     |
-| 7   |      UNION             |      | 200000    | 330130    |
-| 8   |       SORT             |      | 100000    | 153565    |
-| 9   |        TABLE SCAN      | T52  | 100000    | 15410     |
-| 10  |       SORT             |      | 100000    | 158565    |
-| 11  |        TABLE SCAN      | T53  | 100000    | 20410     |
-| 12  |     SORT               |      | 100000    | 143565    |
-| 13  |      TABLE SCAN        | T54  | 100000    | 5410      |
-| 14  |    UNION               |      | 400000    | 677260    |
-| 15  |     EXCEPT             |      | 200000    | 323130    |
-| 16  |      SORT              |      | 100000    | 153565    |
-| 17  |       TABLE SCAN       | T55  | 100000    | 15410     |
-| 18  |      SORT              |      | 100000    | 158565    |
-| 19  |       TABLE SCAN       | T56  | 100000    | 20410     |
-| 20  |     EXCEPT             |      | 200000    | 318130    |
-| 21  |      SORT              |      | 100000    | 153565    |
-| 22  |       TABLE SCAN       | T57  | 100000    | 15410     |
-| 23  |      SORT              |      | 100000    | 153565    |
-| 24  |       TABLE SCAN       | T58  | 100000    | 15410     |
-| 25  |   INTERSECT            |      | 2.500e+06 | 4.562e+06 |
-| 26  |    INTERSECT           |      | 800000    | 1.445e+06 |
-| 27  |     UNION              |      | 700000    | 1.262e+06 |
-| 28  |      EXCEPT            |      | 600000    | 1.045e+06 |
-| 29  |       SORT             |      | 100000    | 153565    |
-| 30  |        TABLE SCAN      | T59  | 100000    | 15410     |
-| 31  |       EXCEPT           |      | 500000    | 848825    |
-| 32  |        UNION           |      | 400000    | 680260    |
-| 33  |         SORT           |      | 100000    | 148565    |
-| 34  |          TABLE SCAN    | T60  | 100000    | 10410     |
-| 35  |         UNION          |      | 300000    | 495695    |
-| 36  |          SORT          |      | 100000    | 148565    |
-| 37  |           TABLE SCAN   | T61  | 100000    | 10410     |
-| 38  |          UNION         |      | 200000    | 320130    |
-| 39  |           SORT         |      | 100000    | 148565    |
-| 40  |            TABLE SCAN  | T62  | 100000    | 10410     |
-| 41  |           SORT         |      | 100000    | 153565    |
-| 42  |            TABLE SCAN  | T63  | 100000    | 15410     |
-| 43  |        SORT            |      | 100000    | 148565    |
-| 44  |         TABLE SCAN     | T64  | 100000    | 10410     |
-| 45  |      SORT              |      | 100000    | 153565    |
-| 46  |       TABLE SCAN       | T65  | 100000    | 15410     |
-| 47  |     SORT               |      | 100000    | 153565    |
-| 48  |      TABLE SCAN        | T66  | 100000    | 15410     |
-| 49  |    INTERSECT           |      | 1.700e+06 | 2.958e+06 |
-| 50  |     UNION_ALL          |      | 1.000e+06 | 1.690e+06 |
-| 51  |      UNION_ALL         |      | 800000    | 1.357e+06 |
-| 52  |       UNION            |      | 700000    | 1.187e+06 |
-| 53  |        EXCEPT          |      | 500000    | 810825    |
-| 54  |         SORT           |      | 100000    | 148565    |
-| 55  |          TABLE SCAN    | T67  | 100000    | 10410     |
-| 56  |         UNION_ALL      |      | 400000    | 627260    |
-| 57  |          UNION_ALL     |      | 300000    | 465695    |
-| 58  |           SORT         |      | 100000    | 153565    |
-| 59  |            TABLE SCAN  | T68  | 100000    | 15410     |
-| 60  |           UNION_ALL    |      | 200000    | 306130    |
-| 61  |            SORT        |      | 100000    | 148565    |
-| 62  |             TABLE SCAN | T69  | 100000    | 10410     |
-| 63  |            SORT        |      | 100000    | 153565    |
-| 64  |             TABLE SCAN | T70  | 100000    | 15410     |
-| 65  |          SORT          |      | 100000    | 153565    |
-| 66  |           TABLE SCAN   | T71  | 100000    | 15410     |
-| 67  |        INTERSECT       |      | 200000    | 313130    |
-| 68  |         SORT           |      | 100000    | 148565    |
-| 69  |          TABLE SCAN    | T72  | 100000    | 10410     |
-| 70  |         SORT           |      | 100000    | 153565    |
-| 71  |          TABLE SCAN    | T73  | 100000    | 15410     |
-| 72  |       SORT             |      | 100000    | 153565    |
-| 73  |        TABLE SCAN      | T74  | 100000    | 15410     |
-| 74  |      INTERSECT         |      | 200000    | 313130    |
-| 75  |       SORT             |      | 100000    | 148565    |
-| 76  |        TABLE SCAN      | T75  | 100000    | 10410     |
-| 77  |       SORT             |      | 100000    | 153565    |
-| 78  |        TABLE SCAN      | T76  | 100000    | 15410     |
-| 79  |     INTERSECT          |      | 700000    | 1.182e+06 |
-| 80  |      INTERSECT         |      | 500000    | 820825    |
-| 81  |       UNION_ALL        |      | 400000    | 652260    |
-| 82  |        EXCEPT          |      | 300000    | 495695    |
-| 83  |         SORT           |      | 100000    | 158565    |
-| 84  |          TABLE SCAN    | T77  | 100000    | 20410     |
-| 85  |         INTERSECT      |      | 200000    | 318130    |
-| 86  |          SORT          |      | 100000    | 153565    |
-| 87  |           TABLE SCAN   | T78  | 100000    | 15410     |
-| 88  |          SORT          |      | 100000    | 153565    |
-| 89  |           TABLE SCAN   | T79  | 100000    | 15410     |
-| 90  |        SORT            |      | 100000    | 148565    |
-| 91  |         TABLE SCAN     | T80  | 100000    | 10410     |
-| 92  |       SORT             |      | 100000    | 148565    |
-| 93  |        TABLE SCAN      | T81  | 100000    | 10410     |
-| 94  |      UNION             |      | 200000    | 330130    |
-| 95  |       SORT             |      | 100000    | 153565    |
-| 96  |        TABLE SCAN      | T82  | 100000    | 15410     |
-| 97  |       SORT             |      | 100000    | 158565    |
-| 98  |        TABLE SCAN      | T83  | 100000    | 20410     |
-| 99  |  SORT                  |      | 100000    | 153565    |
-| 100 |   TABLE SCAN           | T84  | 100000    | 15410     |
-+-------------------------------------------------------------+
++--------------------------------------------------------+
+| ID  | OPERATOR               | NAME | ROW COUNT | COST |
++--------------------------------------------------------+
+| 0   | UNION_ALL              |      | 34        | 156  |
+| 1   |  EXCEPT                |      | 33        | 151  |
+| 2   |   EXCEPT               |      | 8         | 35   |
+| 3   |    INTERSECT           |      | 4         | 17   |
+| 4   |     EXCEPT             |      | 3         | 13   |
+| 5   |      SORT              |      | 1         | 4    |
+| 6   |       TABLE SCAN       | T51  | 1         | 4    |
+| 7   |      UNION             |      | 2         | 8    |
+| 8   |       SORT             |      | 1         | 4    |
+| 9   |        TABLE SCAN      | T52  | 1         | 4    |
+| 10  |       SORT             |      | 1         | 4    |
+| 11  |        TABLE SCAN      | T53  | 1         | 4    |
+| 12  |     SORT               |      | 1         | 4    |
+| 13  |      TABLE SCAN        | T54  | 1         | 4    |
+| 14  |    UNION               |      | 4         | 17   |
+| 15  |     EXCEPT             |      | 2         | 8    |
+| 16  |      SORT              |      | 1         | 4    |
+| 17  |       TABLE SCAN       | T55  | 1         | 4    |
+| 18  |      SORT              |      | 1         | 4    |
+| 19  |       TABLE SCAN       | T56  | 1         | 4    |
+| 20  |     EXCEPT             |      | 2         | 8    |
+| 21  |      SORT              |      | 1         | 4    |
+| 22  |       TABLE SCAN       | T57  | 1         | 4    |
+| 23  |      SORT              |      | 1         | 4    |
+| 24  |       TABLE SCAN       | T58  | 1         | 4    |
+| 25  |   INTERSECT            |      | 25        | 113  |
+| 26  |    INTERSECT           |      | 8         | 36   |
+| 27  |     UNION              |      | 7         | 31   |
+| 28  |      EXCEPT            |      | 6         | 26   |
+| 29  |       SORT             |      | 1         | 4    |
+| 30  |        TABLE SCAN      | T59  | 1         | 4    |
+| 31  |       EXCEPT           |      | 5         | 22   |
+| 32  |        UNION           |      | 4         | 17   |
+| 33  |         SORT           |      | 1         | 4    |
+| 34  |          TABLE SCAN    | T60  | 1         | 4    |
+| 35  |         UNION          |      | 3         | 13   |
+| 36  |          SORT          |      | 1         | 4    |
+| 37  |           TABLE SCAN   | T61  | 1         | 4    |
+| 38  |          UNION         |      | 2         | 8    |
+| 39  |           SORT         |      | 1         | 4    |
+| 40  |            TABLE SCAN  | T62  | 1         | 4    |
+| 41  |           SORT         |      | 1         | 4    |
+| 42  |            TABLE SCAN  | T63  | 1         | 4    |
+| 43  |        SORT            |      | 1         | 4    |
+| 44  |         TABLE SCAN     | T64  | 1         | 4    |
+| 45  |      SORT              |      | 1         | 4    |
+| 46  |       TABLE SCAN       | T65  | 1         | 4    |
+| 47  |     SORT               |      | 1         | 4    |
+| 48  |      TABLE SCAN        | T66  | 1         | 4    |
+| 49  |    INTERSECT           |      | 17        | 75   |
+| 50  |     UNION_ALL          |      | 10        | 44   |
+| 51  |      UNION_ALL         |      | 8         | 35   |
+| 52  |       UNION            |      | 7         | 30   |
+| 53  |        EXCEPT          |      | 5         | 21   |
+| 54  |         SORT           |      | 1         | 4    |
+| 55  |          TABLE SCAN    | T67  | 1         | 4    |
+| 56  |         UNION_ALL      |      | 4         | 17   |
+| 57  |          UNION_ALL     |      | 3         | 12   |
+| 58  |           SORT         |      | 1         | 4    |
+| 59  |            TABLE SCAN  | T68  | 1         | 4    |
+| 60  |           UNION_ALL    |      | 2         | 8    |
+| 61  |            SORT        |      | 1         | 4    |
+| 62  |             TABLE SCAN | T69  | 1         | 4    |
+| 63  |            SORT        |      | 1         | 4    |
+| 64  |             TABLE SCAN | T70  | 1         | 4    |
+| 65  |          SORT          |      | 1         | 4    |
+| 66  |           TABLE SCAN   | T71  | 1         | 4    |
+| 67  |        INTERSECT       |      | 2         | 8    |
+| 68  |         SORT           |      | 1         | 4    |
+| 69  |          TABLE SCAN    | T72  | 1         | 4    |
+| 70  |         SORT           |      | 1         | 4    |
+| 71  |          TABLE SCAN    | T73  | 1         | 4    |
+| 72  |       SORT             |      | 1         | 4    |
+| 73  |        TABLE SCAN      | T74  | 1         | 4    |
+| 74  |      INTERSECT         |      | 2         | 8    |
+| 75  |       SORT             |      | 1         | 4    |
+| 76  |        TABLE SCAN      | T75  | 1         | 4    |
+| 77  |       SORT             |      | 1         | 4    |
+| 78  |        TABLE SCAN      | T76  | 1         | 4    |
+| 79  |     INTERSECT          |      | 7         | 30   |
+| 80  |      INTERSECT         |      | 5         | 21   |
+| 81  |       UNION_ALL        |      | 4         | 17   |
+| 82  |        EXCEPT          |      | 3         | 13   |
+| 83  |         SORT           |      | 1         | 4    |
+| 84  |          TABLE SCAN    | T77  | 1         | 4    |
+| 85  |         INTERSECT      |      | 2         | 8    |
+| 86  |          SORT          |      | 1         | 4    |
+| 87  |           TABLE SCAN   | T78  | 1         | 4    |
+| 88  |          SORT          |      | 1         | 4    |
+| 89  |           TABLE SCAN   | T79  | 1         | 4    |
+| 90  |        SORT            |      | 1         | 4    |
+| 91  |         TABLE SCAN     | T80  | 1         | 4    |
+| 92  |       SORT             |      | 1         | 4    |
+| 93  |        TABLE SCAN      | T81  | 1         | 4    |
+| 94  |      UNION             |      | 2         | 8    |
+| 95  |       SORT             |      | 1         | 4    |
+| 96  |        TABLE SCAN      | T82  | 1         | 4    |
+| 97  |       SORT             |      | 1         | 4    |
+| 98  |        TABLE SCAN      | T83  | 1         | 4    |
+| 99  |  SORT                  |      | 1         | 4    |
+| 100 |   TABLE SCAN           | T84  | 1         | 4    |
++--------------------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([EXCEPT(0)], [EXCEPT(1)], [EXCEPT(2)], [EXCEPT(3)])
@@ -1081,37 +1081,37 @@ END_OUTLINE_DATA
 | 8    | 6    | 1    | 1    |
 | 7    | 2    | 3    | 3    |
 | 6    | 5    | 5    | 5    |
-| 5    | 7    | 6    | 6    |
 | 5    | 8    | 2    | 2    |
+| 5    | 7    | 6    | 6    |
 | 4    | 0    | 9    | 9    |
 | 4    | 0    | 6    | 6    |
 | 3    | 9    | 2    | 2    |
-| 2    | 2    | 3    | 3    |
 | 2    | 2    | 4    | 4    |
+| 2    | 2    | 3    | 3    |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN (SELECT  T85.C2 AS C1, T85.C3 AS C2, T85.C4 AS C3, T85.C2 AS C4 FROM T2 T85    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  ) UNION ((((SELECT  T86.C2 AS C1, T86.C2 AS C2, T86.C2 AS C3, T86.C3 AS C4 FROM T2 T86    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) UNION (SELECT  T87.C1 AS C1, T87.C1 AS C2, T87.C3 AS C3, T87.C1 AS C4 FROM T1 T87    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T88.C4 AS C1, T88.C4 AS C2, T88.C3 AS C3, T88.C3 AS C4 FROM T1 T88    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  )) UNION (SELECT  T89.C3 AS C1, T89.C2 AS C2, T89.C2 AS C3, T89.C3 AS C4 FROM T2 T89    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ))
 
 Query Plan:
-+--------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST   |
-+--------------------------------------------------+
-| 0  | UNION           |      | 500000    | 860825 |
-| 1  |  SORT           |      | 100000    | 153565 |
-| 2  |   TABLE SCAN    | T85  | 100000    | 15410  |
-| 3  |  UNION          |      | 400000    | 662260 |
-| 4  |   INTERSECT     |      | 300000    | 477695 |
-| 5  |    UNION        |      | 200000    | 315130 |
-| 6  |     SORT        |      | 100000    | 148565 |
-| 7  |      TABLE SCAN | T86  | 100000    | 10410  |
-| 8  |     SORT        |      | 100000    | 148565 |
-| 9  |      TABLE SCAN | T87  | 100000    | 10410  |
-| 10 |    SORT         |      | 100000    | 148565 |
-| 11 |     TABLE SCAN  | T88  | 100000    | 10410  |
-| 12 |   SORT          |      | 100000    | 148565 |
-| 13 |    TABLE SCAN   | T89  | 100000    | 10410  |
-+--------------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | UNION           |      | 5         | 22   |
+| 1  |  SORT           |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T85  | 1         | 4    |
+| 3  |  UNION          |      | 4         | 17   |
+| 4  |   INTERSECT     |      | 3         | 12   |
+| 5  |    UNION        |      | 2         | 8    |
+| 6  |     SORT        |      | 1         | 4    |
+| 7  |      TABLE SCAN | T86  | 1         | 4    |
+| 8  |     SORT        |      | 1         | 4    |
+| 9  |      TABLE SCAN | T87  | 1         | 4    |
+| 10 |    SORT         |      | 1         | 4    |
+| 11 |     TABLE SCAN  | T88  | 1         | 4    |
+| 12 |   SORT          |      | 1         | 4    |
+| 13 |    TABLE SCAN   | T89  | 1         | 4    |
++------------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t85.c2], [t85.c3], [t85.c4], [t85.c2])
@@ -1149,16 +1149,16 @@ END_OUTLINE_DATA
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 0    | 6    | 4    | 0    |
 | 0    | 2    | 3    | 0    |
-| 1    | 9    | 4    | 1    |
+| 0    | 6    | 4    | 0    |
 | 1    | 1    | 8    | 1    |
+| 1    | 9    | 4    | 1    |
 | 5    | 4    | 2    | 5    |
 | 6    | 3    | 2    | 6    |
-| 6    | 5    | 6    | 6    |
 | 6    | 3    | 7    | 6    |
-| 7    | 6    | 5    | 7    |
+| 6    | 5    | 6    | 6    |
 | 7    | 2    | 5    | 7    |
+| 7    | 6    | 5    | 7    |
 | 9    | 1    | 1    | 9    |
 | 1    | 1    | 1    | 1    |
 | 6    | 0    | 0    | 6    |
@@ -1174,15 +1174,15 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T90.C4 AS C1, T90.C4 AS C2, T90.C4 AS C3, T90.C3 AS C4 FROM T2 T90    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) UNION ALL (SELECT  T91.C2 AS C1, T91.C1 AS C2, T91.C4 AS C3, T91.C3 AS C4 FROM T1 T91    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION_ALL    |      | 200000    | 311130 |
-| 1  |  SORT        |      | 100000    | 148565 |
-| 2  |   TABLE SCAN | T90  | 100000    | 10410  |
-| 3  |  SORT        |      | 100000    | 158565 |
-| 4  |   TABLE SCAN | T91  | 100000    | 20410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION_ALL    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T90  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T91  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t90.c4], [t90.c4], [t90.c4], [t90.c3])
@@ -1208,20 +1208,20 @@ END_OUTLINE_DATA
 | 8    | 8    | 8    | 1    |
 | 7    | 7    | 7    | 3    |
 | 6    | 6    | 6    | 5    |
-| 5    | 5    | 5    | 6    |
 | 5    | 5    | 5    | 2    |
-| 4    | 4    | 4    | 9    |
+| 5    | 5    | 5    | 6    |
 | 4    | 4    | 4    | 6    |
+| 4    | 4    | 4    | 9    |
 | 3    | 3    | 3    | 2    |
 | 2    | 2    | 2    | 3    |
 | 2    | 2    | 2    | 4    |
 | 0    | 0    | 1    | 1    |
 | 0    | 9    | 4    | 9    |
 | 3    | 1    | 4    | 5    |
-| 3    | 8    | 9    | 5    |
 | 3    | 3    | 4    | 5    |
-| 4    | 8    | 8    | 0    |
+| 3    | 8    | 9    | 5    |
 | 4    | 5    | 5    | 2    |
+| 4    | 8    | 8    | 0    |
 | 8    | 0    | 5    | 0    |
 | 8    | 1    | 4    | 9    |
 | 9    | 0    | 1    | 1    |
@@ -1231,15 +1231,15 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T92.C2 AS C1, T92.C4 AS C2, T92.C2 AS C3, T92.C3 AS C4 FROM T1 T92    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T93.C2 AS C1, T93.C1 AS C2, T93.C3 AS C3, T93.C1 AS C4 FROM T2 T93    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION_ALL    |      | 200000    | 311130 |
-| 1  |  SORT        |      | 100000    | 153565 |
-| 2  |   TABLE SCAN | T92  | 100000    | 15410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T93  | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION_ALL    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T92  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T93  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t92.c2], [t92.c4], [t92.c2], [t92.c3])
@@ -1263,40 +1263,40 @@ END_OUTLINE_DATA
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
 | 9    | 1    | 9    | 1    |
-| 8    | 5    | 8    | 0    |
 | 8    | 4    | 8    | 9    |
+| 8    | 5    | 8    | 0    |
 | 4    | 5    | 4    | 2    |
 | 4    | 8    | 4    | 0    |
+| 3    | 4    | 3    | 5    |
+| 3    | 4    | 3    | 5    |
 | 3    | 9    | 3    | 5    |
-| 3    | 4    | 3    | 5    |
-| 3    | 4    | 3    | 5    |
-| 0    | 4    | 0    | 9    |
 | 0    | 1    | 0    | 1    |
-| 0    | 0    | 6    | 0    |
+| 0    | 4    | 0    | 9    |
 | 0    | 9    | 2    | 9    |
-| 1    | 0    | 9    | 0    |
+| 0    | 0    | 6    | 0    |
 | 1    | 6    | 1    | 6    |
+| 1    | 0    | 9    | 0    |
 | 5    | 2    | 4    | 2    |
-| 6    | 2    | 3    | 2    |
 | 6    | 5    | 5    | 5    |
 | 6    | 2    | 3    | 2    |
-| 7    | 7    | 6    | 7    |
+| 6    | 2    | 3    | 2    |
 | 7    | 8    | 2    | 8    |
+| 7    | 7    | 6    | 7    |
 +------+------+------+------+
 20 rows in set
 
 EXPLAIN (SELECT  T94.C4 AS C1, T94.C3 AS C2, T94.C4 AS C3, T94.C1 AS C4 FROM T2 T94    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) UNION (SELECT  T95.C2 AS C1, T95.C2 AS C2, T95.C3 AS C3, T95.C4 AS C4 FROM T1 T95    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION        |      | 200000    | 325130 |
-| 1  |  SORT        |      | 100000    | 153565 |
-| 2  |   TABLE SCAN | T94  | 100000    | 15410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T95  | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION        |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T94  | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T95  | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t94.c4], [t94.c3], [t94.c4], [t94.c1])
@@ -1327,16 +1327,16 @@ END_OUTLINE_DATA
 | 4    | 9    | 4    | 0    |
 | 4    | 6    | 4    | 0    |
 | 3    | 2    | 3    | 9    |
-| 2    | 3    | 2    | 2    |
 | 2    | 4    | 2    | 2    |
-| 0    | 0    | 1    | 1    |
+| 2    | 3    | 2    | 2    |
 | 0    | 0    | 9    | 4    |
+| 0    | 0    | 1    | 1    |
 | 3    | 3    | 5    | 4    |
 | 3    | 3    | 5    | 9    |
-| 4    | 4    | 0    | 8    |
 | 4    | 4    | 2    | 5    |
-| 8    | 8    | 0    | 5    |
+| 4    | 4    | 0    | 8    |
 | 8    | 8    | 9    | 4    |
+| 8    | 8    | 0    | 5    |
 | 9    | 9    | 1    | 1    |
 +------+------+------+------+
 19 rows in set
@@ -1344,66 +1344,66 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T96.C3 AS C1, T96.C3 AS C2, T96.C3 AS C3, T96.C1 AS C4 FROM T1 T96    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  ) UNION ALL ((SELECT  T97.C3 AS C1, T97.C4 AS C2, T97.C1 AS C3, T97.C1 AS C4 FROM T2 T97    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  ) INTERSECT ((SELECT  T98.C3 AS C1, T98.C2 AS C2, T98.C3 AS C3, T98.C4 AS C4 FROM T2 T98    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) UNION ALL ((SELECT  T99.C4 AS C1, T99.C2 AS C2, T99.C3 AS C3, T99.C4 AS C4 FROM T1 T99    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ) UNION (((((((SELECT  T100.C2 AS C1, T100.C2 AS C2, T100.C1 AS C3, T100.C3 AS C4 FROM T2 T100    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) EXCEPT ((((SELECT  T101.C1 AS C1, T101.C4 AS C2, T101.C1 AS C3, T101.C2 AS C4 FROM T1 T101    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  ) INTERSECT ((SELECT  T102.C2 AS C1, T102.C2 AS C2, T102.C2 AS C3, T102.C1 AS C4 FROM T1 T102    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  ) UNION (SELECT  T103.C2 AS C1, T103.C1 AS C2, T103.C2 AS C3, T103.C4 AS C4 FROM T2 T103    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ))) EXCEPT (SELECT  T104.C3 AS C1, T104.C1 AS C2, T104.C4 AS C3, T104.C2 AS C4 FROM T1 T104    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  )) UNION (SELECT  T105.C2 AS C1, T105.C4 AS C2, T105.C4 AS C3, T105.C1 AS C4 FROM T2 T105    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  ))) INTERSECT (SELECT  T106.C3 AS C1, T106.C4 AS C2, T106.C3 AS C3, T106.C4 AS C4 FROM T1 T106    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC  )) UNION (SELECT  T107.C3 AS C1, T107.C3 AS C2, T107.C3 AS C3, T107.C1 AS C4 FROM T1 T107    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  )) INTERSECT ((SELECT  T108.C1 AS C1, T108.C3 AS C2, T108.C1 AS C3, T108.C3 AS C4 FROM T1 T108    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  ) INTERSECT (SELECT  T109.C2 AS C1, T109.C2 AS C2, T109.C1 AS C3, T109.C4 AS C4 FROM T2 T109    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  ))) UNION (((SELECT  T110.C3 AS C1, T110.C2 AS C2, T110.C3 AS C3, T110.C4 AS C4 FROM T2 T110    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) EXCEPT (SELECT  T111.C4 AS C1, T111.C1 AS C2, T111.C2 AS C3, T111.C2 AS C4 FROM T2 T111    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T112.C2 AS C1, T112.C3 AS C2, T112.C4 AS C3, T112.C1 AS C4 FROM T1 T112    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  ))) UNION ((SELECT  T113.C4 AS C1, T113.C1 AS C2, T113.C1 AS C3, T113.C2 AS C4 FROM T1 T113    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) UNION ALL (SELECT  T114.C3 AS C1, T114.C4 AS C2, T114.C1 AS C3, T114.C3 AS C4 FROM T1 T114    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ))))))
 
 Query Plan:
-+---------------------------------------------------------------+
-| ID | OPERATOR                  | NAME | ROW COUNT | COST      |
-+---------------------------------------------------------------+
-| 0  | UNION_ALL                 |      | 1.900e+06 | 3.830e+06 |
-| 1  |  SORT                     |      | 100000    | 148565    |
-| 2  |   TABLE SCAN              | T96  | 100000    | 10410     |
-| 3  |  INTERSECT                |      | 1.800e+06 | 3.643e+06 |
-| 4  |   SORT                    |      | 100000    | 153565    |
-| 5  |    TABLE SCAN             | T97  | 100000    | 15410     |
-| 6  |   UNION_ALL               |      | 1.700e+06 | 3.351e+06 |
-| 7  |    SORT                   |      | 100000    | 153565    |
-| 8  |     TABLE SCAN            | T98  | 100000    | 15410     |
-| 9  |    UNION                  |      | 1.600e+06 | 3.163e+06 |
-| 10 |     SORT                  |      | 100000    | 153565    |
-| 11 |      TABLE SCAN           | T99  | 100000    | 15410     |
-| 12 |     UNION                 |      | 1.500e+06 | 2.865e+06 |
-| 13 |      UNION                |      | 1.300e+06 | 2.419e+06 |
-| 14 |       INTERSECT           |      | 1.000e+06 | 1.812e+06 |
-| 15 |        UNION              |      | 800000    | 1.459e+06 |
-| 16 |         INTERSECT         |      | 700000    | 1.238e+06 |
-| 17 |          EXCEPT           |      | 600000    | 1.063e+06 |
-| 18 |           SORT            |      | 100000    | 153565    |
-| 19 |            TABLE SCAN     | T100 | 100000    | 15410     |
-| 20 |           UNION           |      | 500000    | 866825    |
-| 21 |            EXCEPT         |      | 400000    | 668260    |
-| 22 |             INTERSECT     |      | 300000    | 492695    |
-| 23 |              SORT         |      | 100000    | 153565    |
-| 24 |               TABLE SCAN  | T101 | 100000    | 15410     |
-| 25 |              UNION        |      | 200000    | 320130    |
-| 26 |               SORT        |      | 100000    | 148565    |
-| 27 |                TABLE SCAN | T102 | 100000    | 10410     |
-| 28 |               SORT        |      | 100000    | 153565    |
-| 29 |                TABLE SCAN | T103 | 100000    | 15410     |
-| 30 |             SORT          |      | 100000    | 158565    |
-| 31 |              TABLE SCAN   | T104 | 100000    | 20410     |
-| 32 |            SORT           |      | 100000    | 153565    |
-| 33 |             TABLE SCAN    | T105 | 100000    | 15410     |
-| 34 |          SORT             |      | 100000    | 148565    |
-| 35 |           TABLE SCAN      | T106 | 100000    | 10410     |
-| 36 |         SORT              |      | 100000    | 148565    |
-| 37 |          TABLE SCAN       | T107 | 100000    | 10410     |
-| 38 |        INTERSECT          |      | 200000    | 313130    |
-| 39 |         SORT              |      | 100000    | 148565    |
-| 40 |          TABLE SCAN       | T108 | 100000    | 10410     |
-| 41 |         SORT              |      | 100000    | 153565    |
-| 42 |          TABLE SCAN       | T109 | 100000    | 15410     |
-| 43 |       INTERSECT           |      | 300000    | 490695    |
-| 44 |        EXCEPT             |      | 200000    | 318130    |
-| 45 |         SORT              |      | 100000    | 153565    |
-| 46 |          TABLE SCAN       | T110 | 100000    | 15410     |
-| 47 |         SORT              |      | 100000    | 153565    |
-| 48 |          TABLE SCAN       | T111 | 100000    | 15410     |
-| 49 |        SORT               |      | 100000    | 158565    |
-| 50 |         TABLE SCAN        | T112 | 100000    | 20410     |
-| 51 |      UNION_ALL            |      | 200000    | 311130    |
-| 52 |       SORT                |      | 100000    | 153565    |
-| 53 |        TABLE SCAN         | T113 | 100000    | 15410     |
-| 54 |       SORT                |      | 100000    | 153565    |
-| 55 |        TABLE SCAN         | T114 | 100000    | 15410     |
-+---------------------------------------------------------------+
++----------------------------------------------------------+
+| ID | OPERATOR                  | NAME | ROW COUNT | COST |
++----------------------------------------------------------+
+| 0  | UNION_ALL                 |      | 19        | 89   |
+| 1  |  SORT                     |      | 1         | 4    |
+| 2  |   TABLE SCAN              | T96  | 1         | 4    |
+| 3  |  INTERSECT                |      | 18        | 85   |
+| 4  |   SORT                    |      | 1         | 4    |
+| 5  |    TABLE SCAN             | T97  | 1         | 4    |
+| 6  |   UNION_ALL               |      | 17        | 79   |
+| 7  |    SORT                   |      | 1         | 4    |
+| 8  |     TABLE SCAN            | T98  | 1         | 4    |
+| 9  |    UNION                  |      | 16        | 75   |
+| 10 |     SORT                  |      | 1         | 4    |
+| 11 |      TABLE SCAN           | T99  | 1         | 4    |
+| 12 |     UNION                 |      | 15        | 69   |
+| 13 |      UNION                |      | 13        | 59   |
+| 14 |       INTERSECT           |      | 10        | 45   |
+| 15 |        UNION              |      | 8         | 36   |
+| 16 |         INTERSECT         |      | 7         | 31   |
+| 17 |          EXCEPT           |      | 6         | 26   |
+| 18 |           SORT            |      | 1         | 4    |
+| 19 |            TABLE SCAN     | T100 | 1         | 4    |
+| 20 |           UNION           |      | 5         | 22   |
+| 21 |            EXCEPT         |      | 4         | 17   |
+| 22 |             INTERSECT     |      | 3         | 13   |
+| 23 |              SORT         |      | 1         | 4    |
+| 24 |               TABLE SCAN  | T101 | 1         | 4    |
+| 25 |              UNION        |      | 2         | 8    |
+| 26 |               SORT        |      | 1         | 4    |
+| 27 |                TABLE SCAN | T102 | 1         | 4    |
+| 28 |               SORT        |      | 1         | 4    |
+| 29 |                TABLE SCAN | T103 | 1         | 4    |
+| 30 |             SORT          |      | 1         | 4    |
+| 31 |              TABLE SCAN   | T104 | 1         | 4    |
+| 32 |            SORT           |      | 1         | 4    |
+| 33 |             TABLE SCAN    | T105 | 1         | 4    |
+| 34 |          SORT             |      | 1         | 4    |
+| 35 |           TABLE SCAN      | T106 | 1         | 4    |
+| 36 |         SORT              |      | 1         | 4    |
+| 37 |          TABLE SCAN       | T107 | 1         | 4    |
+| 38 |        INTERSECT          |      | 2         | 8    |
+| 39 |         SORT              |      | 1         | 4    |
+| 40 |          TABLE SCAN       | T108 | 1         | 4    |
+| 41 |         SORT              |      | 1         | 4    |
+| 42 |          TABLE SCAN       | T109 | 1         | 4    |
+| 43 |       INTERSECT           |      | 3         | 13   |
+| 44 |        EXCEPT             |      | 2         | 8    |
+| 45 |         SORT              |      | 1         | 4    |
+| 46 |          TABLE SCAN       | T110 | 1         | 4    |
+| 47 |         SORT              |      | 1         | 4    |
+| 48 |          TABLE SCAN       | T111 | 1         | 4    |
+| 49 |        SORT               |      | 1         | 4    |
+| 50 |         TABLE SCAN        | T112 | 1         | 4    |
+| 51 |      UNION_ALL            |      | 2         | 8    |
+| 52 |       SORT                |      | 1         | 4    |
+| 53 |        TABLE SCAN         | T113 | 1         | 4    |
+| 54 |       SORT                |      | 1         | 4    |
+| 55 |        TABLE SCAN         | T114 | 1         | 4    |
++----------------------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t96.c3], [t96.c3], [t96.c3], [t96.c1])
@@ -1527,54 +1527,54 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T115.C2 AS C1, T115.C3 AS C2, T115.C1 AS C3, T115.C1 AS C4 FROM T1 T115    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  ) UNION (((SELECT  T116.C2 AS C1, T116.C1 AS C2, T116.C2 AS C3, T116.C3 AS C4 FROM T2 T116    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  ) EXCEPT ((((((SELECT  T117.C3 AS C1, T117.C2 AS C2, T117.C4 AS C3, T117.C3 AS C4 FROM T1 T117    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) INTERSECT (SELECT  T118.C1 AS C1, T118.C4 AS C2, T118.C4 AS C3, T118.C3 AS C4 FROM T1 T118    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  )) INTERSECT ((SELECT  T119.C3 AS C1, T119.C4 AS C2, T119.C2 AS C3, T119.C1 AS C4 FROM T1 T119    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  ) EXCEPT (SELECT  T120.C2 AS C1, T120.C2 AS C2, T120.C1 AS C3, T120.C4 AS C4 FROM T1 T120    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  ))) INTERSECT (SELECT  T121.C1 AS C1, T121.C2 AS C2, T121.C1 AS C3, T121.C3 AS C4 FROM T1 T121    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  )) INTERSECT (SELECT  T122.C2 AS C1, T122.C3 AS C2, T122.C1 AS C3, T122.C4 AS C4 FROM T2 T122    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC  )) EXCEPT ((((SELECT  T123.C3 AS C1, T123.C4 AS C2, T123.C1 AS C3, T123.C1 AS C4 FROM T1 T123    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  ) UNION ALL ((SELECT  T124.C2 AS C1, T124.C1 AS C2, T124.C3 AS C3, T124.C4 AS C4 FROM T2 T124    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  ) EXCEPT (SELECT  T125.C2 AS C1, T125.C1 AS C2, T125.C1 AS C3, T125.C2 AS C4 FROM T1 T125    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  ))) UNION ALL (SELECT  T126.C4 AS C1, T126.C3 AS C2, T126.C4 AS C3, T126.C1 AS C4 FROM T2 T126    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  )) UNION ((SELECT  T127.C3 AS C1, T127.C4 AS C2, T127.C3 AS C3, T127.C2 AS C4 FROM T2 T127    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  ) UNION (SELECT  T128.C1 AS C1, T128.C4 AS C2, T128.C1 AS C3, T128.C1 AS C4 FROM T2 T128    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  ))))) UNION (SELECT  T129.C4 AS C1, T129.C4 AS C2, T129.C4 AS C3, T129.C1 AS C4 FROM T2 T129    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  ))
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST      |
-+---------------------------------------------------------+
-| 0  | UNION               |      | 1.500e+06 | 2.913e+06 |
-| 1  |  SORT               |      | 100000    | 153565    |
-| 2  |   TABLE SCAN        | T115 | 100000    | 15410     |
-| 3  |  UNION              |      | 1.400e+06 | 2.625e+06 |
-| 4  |   EXCEPT            |      | 1.300e+06 | 2.350e+06 |
-| 5  |    SORT             |      | 100000    | 153565    |
-| 6  |     TABLE SCAN      | T116 | 100000    | 15410     |
-| 7  |    EXCEPT           |      | 1.200e+06 | 2.098e+06 |
-| 8  |     INTERSECT       |      | 600000    | 1.018e+06 |
-| 9  |      INTERSECT      |      | 500000    | 836825    |
-| 10 |       INTERSECT     |      | 400000    | 663260    |
-| 11 |        INTERSECT    |      | 200000    | 318130    |
-| 12 |         SORT        |      | 100000    | 153565    |
-| 13 |          TABLE SCAN | T117 | 100000    | 15410     |
-| 14 |         SORT        |      | 100000    | 153565    |
-| 15 |          TABLE SCAN | T118 | 100000    | 15410     |
-| 16 |        EXCEPT       |      | 200000    | 323130    |
-| 17 |         SORT        |      | 100000    | 158565    |
-| 18 |          TABLE SCAN | T119 | 100000    | 20410     |
-| 19 |         SORT        |      | 100000    | 153565    |
-| 20 |          TABLE SCAN | T120 | 100000    | 15410     |
-| 21 |       SORT          |      | 100000    | 153565    |
-| 22 |        TABLE SCAN   | T121 | 100000    | 15410     |
-| 23 |      SORT           |      | 100000    | 158565    |
-| 24 |       TABLE SCAN    | T122 | 100000    | 20410     |
-| 25 |     UNION           |      | 600000    | 1.013e+06 |
-| 26 |      UNION_ALL      |      | 400000    | 639260    |
-| 27 |       UNION_ALL     |      | 300000    | 477695    |
-| 28 |        SORT         |      | 100000    | 153565    |
-| 29 |         TABLE SCAN  | T123 | 100000    | 15410     |
-| 30 |        EXCEPT       |      | 200000    | 318130    |
-| 31 |         SORT        |      | 100000    | 158565    |
-| 32 |          TABLE SCAN | T124 | 100000    | 20410     |
-| 33 |         SORT        |      | 100000    | 148565    |
-| 34 |          TABLE SCAN | T125 | 100000    | 10410     |
-| 35 |       SORT          |      | 100000    | 153565    |
-| 36 |        TABLE SCAN   | T126 | 100000    | 15410     |
-| 37 |      UNION          |      | 200000    | 320130    |
-| 38 |       SORT          |      | 100000    | 153565    |
-| 39 |        TABLE SCAN   | T127 | 100000    | 15410     |
-| 40 |       SORT          |      | 100000    | 148565    |
-| 41 |        TABLE SCAN   | T128 | 100000    | 10410     |
-| 42 |   SORT              |      | 100000    | 148565    |
-| 43 |    TABLE SCAN       | T129 | 100000    | 10410     |
-+---------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | UNION               |      | 15        | 69   |
+| 1  |  SORT               |      | 1         | 4    |
+| 2  |   TABLE SCAN        | T115 | 1         | 4    |
+| 3  |  UNION              |      | 14        | 64   |
+| 4  |   EXCEPT            |      | 13        | 58   |
+| 5  |    SORT             |      | 1         | 4    |
+| 6  |     TABLE SCAN      | T116 | 1         | 4    |
+| 7  |    EXCEPT           |      | 12        | 53   |
+| 8  |     INTERSECT       |      | 6         | 26   |
+| 9  |      INTERSECT      |      | 5         | 21   |
+| 10 |       INTERSECT     |      | 4         | 17   |
+| 11 |        INTERSECT    |      | 2         | 8    |
+| 12 |         SORT        |      | 1         | 4    |
+| 13 |          TABLE SCAN | T117 | 1         | 4    |
+| 14 |         SORT        |      | 1         | 4    |
+| 15 |          TABLE SCAN | T118 | 1         | 4    |
+| 16 |        EXCEPT       |      | 2         | 8    |
+| 17 |         SORT        |      | 1         | 4    |
+| 18 |          TABLE SCAN | T119 | 1         | 4    |
+| 19 |         SORT        |      | 1         | 4    |
+| 20 |          TABLE SCAN | T120 | 1         | 4    |
+| 21 |       SORT          |      | 1         | 4    |
+| 22 |        TABLE SCAN   | T121 | 1         | 4    |
+| 23 |      SORT           |      | 1         | 4    |
+| 24 |       TABLE SCAN    | T122 | 1         | 4    |
+| 25 |     UNION           |      | 6         | 26   |
+| 26 |      UNION_ALL      |      | 4         | 17   |
+| 27 |       UNION_ALL     |      | 3         | 12   |
+| 28 |        SORT         |      | 1         | 4    |
+| 29 |         TABLE SCAN  | T123 | 1         | 4    |
+| 30 |        EXCEPT       |      | 2         | 8    |
+| 31 |         SORT        |      | 1         | 4    |
+| 32 |          TABLE SCAN | T124 | 1         | 4    |
+| 33 |         SORT        |      | 1         | 4    |
+| 34 |          TABLE SCAN | T125 | 1         | 4    |
+| 35 |       SORT          |      | 1         | 4    |
+| 36 |        TABLE SCAN   | T126 | 1         | 4    |
+| 37 |      UNION          |      | 2         | 8    |
+| 38 |       SORT          |      | 1         | 4    |
+| 39 |        TABLE SCAN   | T127 | 1         | 4    |
+| 40 |       SORT          |      | 1         | 4    |
+| 41 |        TABLE SCAN   | T128 | 1         | 4    |
+| 42 |   SORT              |      | 1         | 4    |
+| 43 |    TABLE SCAN       | T129 | 1         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([UNION(0)], [UNION(1)], [UNION(2)], [UNION(3)])
 1 - output([t115.c2], [t115.c3], [t115.c1], [t115.c1])
@@ -1665,16 +1665,16 @@ END_OUTLINE_DATA
 | 9    | 1    | 0    | 0    |
 | 8    | 0    | 0    | 0    |
 | 8    | 9    | 1    | 1    |
-| 4    | 2    | 5    | 5    |
 | 4    | 0    | 8    | 8    |
-| 3    | 5    | 8    | 8    |
-| 3    | 5    | 3    | 3    |
+| 4    | 2    | 5    | 5    |
 | 3    | 5    | 1    | 1    |
-| 0    | 9    | 9    | 9    |
+| 3    | 5    | 3    | 3    |
+| 3    | 5    | 8    | 8    |
 | 0    | 1    | 0    | 0    |
+| 0    | 9    | 9    | 9    |
 | 2    | 2    | 2    | 2    |
-| 7    | 7    | 7    | 6    |
 | 7    | 8    | 7    | 2    |
+| 7    | 7    | 7    | 6    |
 | 6    | 5    | 6    | 5    |
 | 6    | 2    | 6    | 3    |
 | 5    | 2    | 5    | 4    |
@@ -1684,8 +1684,8 @@ END_OUTLINE_DATA
 | 0    | 0    | 0    | 6    |
 | 3    | 3    | 3    | 9    |
 | 4    | 4    | 4    | 0    |
-| 5    | 5    | 5    | 7    |
 | 5    | 5    | 5    | 8    |
+| 5    | 5    | 5    | 7    |
 | 6    | 6    | 6    | 5    |
 | 7    | 7    | 7    | 2    |
 | 8    | 8    | 8    | 6    |
@@ -1695,15 +1695,15 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T130.C3 AS C1, T130.C2 AS C2, T130.C1 AS C3, T130.C2 AS C4 FROM T1 T130    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  ) UNION ALL (SELECT  T131.C1 AS C1, T131.C2 AS C2, T131.C3 AS C3, T131.C2 AS C4 FROM T2 T131    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC  )
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | UNION_ALL    |      | 200000    | 311130 |
-| 1  |  SORT        |      | 100000    | 153565 |
-| 2  |   TABLE SCAN | T130 | 100000    | 15410  |
-| 3  |  SORT        |      | 100000    | 153565 |
-| 4  |   TABLE SCAN | T131 | 100000    | 15410  |
-+-----------------------------------------------+
++---------------------------------------------+
+| ID | OPERATOR     | NAME | ROW COUNT | COST |
++---------------------------------------------+
+| 0  | UNION_ALL    |      | 2         | 8    |
+| 1  |  SORT        |      | 1         | 4    |
+| 2  |   TABLE SCAN | T130 | 1         | 4    |
+| 3  |  SORT        |      | 1         | 4    |
+| 4  |   TABLE SCAN | T131 | 1         | 4    |
++---------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t130.c3], [t130.c2], [t130.c1], [t130.c2])
@@ -1736,11 +1736,11 @@ END_OUTLINE_DATA
 | 5    | 3    | 1    | 3    |
 | 9    | 0    | 9    | 0    |
 | 9    | 8    | 1    | 8    |
-| 0    | 0    | 6    | 0    |
 | 0    | 1    | 9    | 1    |
+| 0    | 0    | 6    | 0    |
+| 2    | 6    | 3    | 6    |
+| 2    | 6    | 3    | 6    |
 | 2    | 5    | 4    | 5    |
-| 2    | 6    | 3    | 6    |
-| 2    | 6    | 3    | 6    |
 | 5    | 6    | 5    | 6    |
 | 6    | 1    | 1    | 1    |
 | 7    | 7    | 6    | 7    |
@@ -1752,18 +1752,18 @@ END_OUTLINE_DATA
 EXPLAIN (SELECT  T132.C2 AS C1, T132.C4 AS C2, T132.C2 AS C3, T132.C1 AS C4 FROM T2 T132    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  ) UNION ALL ((SELECT  T133.C2 AS C1, T133.C4 AS C2, T133.C3 AS C3, T133.C3 AS C4 FROM T1 T133    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  ) EXCEPT (SELECT  T134.C2 AS C1, T134.C2 AS C2, T134.C2 AS C3, T134.C1 AS C4 FROM T1 T134    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  ))
 
 Query Plan:
-+------------------------------------------------+
-| ID | OPERATOR      | NAME | ROW COUNT | COST   |
-+------------------------------------------------+
-| 0  | UNION_ALL     |      | 300000    | 472695 |
-| 1  |  SORT         |      | 100000    | 153565 |
-| 2  |   TABLE SCAN  | T132 | 100000    | 15410  |
-| 3  |  EXCEPT       |      | 200000    | 313130 |
-| 4  |   SORT        |      | 100000    | 153565 |
-| 5  |    TABLE SCAN | T133 | 100000    | 15410  |
-| 6  |   SORT        |      | 100000    | 148565 |
-| 7  |    TABLE SCAN | T134 | 100000    | 10410  |
-+------------------------------------------------+
++----------------------------------------------+
+| ID | OPERATOR      | NAME | ROW COUNT | COST |
++----------------------------------------------+
+| 0  | UNION_ALL     |      | 3         | 12   |
+| 1  |  SORT         |      | 1         | 4    |
+| 2  |   TABLE SCAN  | T132 | 1         | 4    |
+| 3  |  EXCEPT       |      | 2         | 8    |
+| 4  |   SORT        |      | 1         | 4    |
+| 5  |    TABLE SCAN | T133 | 1         | 4    |
+| 6  |   SORT        |      | 1         | 4    |
+| 7  |    TABLE SCAN | T134 | 1         | 4    |
++----------------------------------------------+
 Outputs & filters:
 0 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 1 - output([t132.c2], [t132.c4], [t132.c2], [t132.c1])
@@ -1793,12 +1793,12 @@ END_OUTLINE_DATA
 +------+------+------+------+
 | 7    | 5    | 7    | 7    |
 | 7    | 5    | 7    | 8    |
-| 6    | 6    | 6    | 5    |
 | 6    | 2    | 6    | 2    |
+| 6    | 6    | 6    | 5    |
 | 6    | 7    | 6    | 2    |
 | 5    | 2    | 5    | 2    |
-| 1    | 8    | 1    | 6    |
 | 1    | 4    | 1    | 0    |
+| 1    | 8    | 1    | 6    |
 | 0    | 3    | 0    | 9    |
 | 0    | 4    | 0    | 0    |
 +------+------+------+------+

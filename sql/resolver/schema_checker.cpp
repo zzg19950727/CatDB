@@ -61,7 +61,9 @@ u32 SchemaChecker::get_column_desc(u32 ref_table_id, const String& column_name, 
 {
 	u32 ret = SUCCESS;
 	ColumnInfo_s column_info;
-	CHECK(schema_guard->find_column_info(ref_table_id, column_name, column_info));
+	if (FAIL(schema_guard->find_column_info(ref_table_id, column_name, column_info))) {
+		return ret;
+	}
 	col_desc.set_cid(column_info->column_id);
 	col_desc.set_data_type(column_info->column_type);
 	return ret;
