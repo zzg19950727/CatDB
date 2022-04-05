@@ -1,4 +1,5 @@
 #include "update_resolver.h"
+#include "obj_cast_util.h"
 #include "update_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -53,7 +54,7 @@ u32 UpdateResolver::set_relation_for_assign_exprs()
         ColumnStmt_s column_expr;
         MY_ASSERT(assign_expr, OP_EXPR == assign_expr->expr_type());
         OpExprStmt_s expr = assign_expr;
-        MY_ASSERT(OP_EQ == expr->op_type, 2 == expr->params.size());
+        MY_ASSERT(OP_ASSIGN == expr->op_type, 2 == expr->params.size());
         MY_ASSERT(COLUMN == expr->params[0]->expr_type());
         column_expr = expr->params[0];
         column_expr->table = update_stmt->table->alias_name;   
@@ -79,12 +80,16 @@ u32 UpdateResolver::check_assign_expr(ExprStmt_s &assign_expr,
                                       ExprStmt_s &value_expr)
 {
     u32 ret = SUCCESS;
+    bool need_cast = false;
     MY_ASSERT(assign_expr, OP_EXPR == assign_expr->expr_type());
     OpExprStmt_s expr = assign_expr;
-    MY_ASSERT(OP_EQ == expr->op_type, 2 == expr->params.size());
+    MY_ASSERT(OP_ASSIGN == expr->op_type, 2 == expr->params.size());
     MY_ASSERT(COLUMN == expr->params[0]->expr_type());
     column_expr = expr->params[0];
     MY_ASSERT(column_expr->table_id == update_stmt->table->table_id);
     value_expr = expr->params[1];
+    CHECK(ObjCastUtil::check_need_cast(value_expr->res_type, column_expr->res_type, need_cast));
+    CHECK(ObjCastUtil::add_cast(value_expr, column_expr->res_type, value_expr));
+    expr->params[1] = value_expr;
     return ret;
 }

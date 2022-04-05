@@ -11,11 +11,15 @@ namespace CatDB {
 	namespace Sql {
 		DECLARE(ResultSet);
 	}
+	namespace Common {
+		DECLARE(Object);
+	}
 	namespace Optimizer {
 		DECLARE(Plan);
 		DECLARE(CMDPlan);
 		using Sql::ResultSet_s;
 		using Parser::Stmt_s;
+		using Common::Object_s;
 
 		class CMDPlan : public Plan
 		{
@@ -43,6 +47,10 @@ namespace CatDB {
 			u32 do_show_processlist(ResultSet_s &query_result);
 			u32 do_kill_process();
 			u32 do_show_memory(ResultSet_s &query_result);
+
+		private:
+			u32 init_command_result_head(const Vector<String> &title, ResultSet_s &query_result);
+			u32 add_objects_to_result_set(Vector<Object_s> &objs, ResultSet_s &query_result);
 		};
 	}
 }

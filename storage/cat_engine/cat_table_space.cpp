@@ -1,5 +1,6 @@
 ﻿#include "cat_table_space.h"
 #include "cat_io_service.h"
+#include "object.h"
 #include "error.h"
 #include "page.h"
 #include "row.h"
@@ -104,12 +105,10 @@ void LRUManger::add_node_before(Node *tail, Node *node)
 }
 
 CatTableSpace::CatTableSpace()
-	:page_skip_size(0),
-	is_empty_table_space(false),
+	:is_empty_table_space(false),
 	read_only(true)
 {
 	io = CatIoService::make_cat_io_service();
-	cur_page = Page::make_page(0);
 }
 
 CatTableSpace::~CatTableSpace()
@@ -140,6 +139,7 @@ u32 CatTableSpace::open()
 	String path = table_path(database, table_name);
 	u32 ret = SUCCESS;
 	CHECK(io->open(path));
+	cur_page = Page::make_page(0, access_desc);
 	if (read_only) {
 		ret = io->read_first_page(cur_page);
 		if (ret == END_OF_TABLE_SPACE) {
@@ -163,7 +163,7 @@ u32 CatTableSpace::get_next_row(Row_s & row)
 	}
 	u32 ret = SUCCESS;
 	MY_ASSERT(cur_page);
-	while (!cur_page->have_row()) {
+	while (NO_MORE_ROWS == cur_page->get_next_row(row)) {
 		LOG_TRACE("page have read end, load next page", K(cur_page));
 		//读取下一页
 		if (0 == page_skip_size) {
@@ -176,14 +176,14 @@ u32 CatTableSpace::get_next_row(Row_s & row)
 		if (ret == END_OF_TABLE_SPACE) {
 			return ret;
 		} else if (ret != SUCCESS) {
-			LOG_ERR("get page failed", err_string(ret));
+			LOG_ERR("get page failed", K(ret));
 			return ret;
 		} else {
 			CHECK(cur_page->open());
 		}
 	}
 	//TODO filter 放这还是下压到page层面？
-	return cur_page->get_next_row(row);
+	return ret;
 }
 
 u32 CatTableSpace::reset()
@@ -214,10 +214,10 @@ u32 CatTableSpace::insert_row(const Row_s & row)
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(cur_page);
+	ret = cur_page->insert_row(row);
 	//当前页能够存放下行
-	if (cur_page->have_free_space_insert(row)) {
-		CHECK(cur_page->insert_row(row));
-	} else {//创建新的页存放
+	if (NO_MORE_PAGE_FREE_SPACE == ret) {
+		//创建新的页存放
 		LOG_TRACE("page have no free space to insert row", K(cur_page));
 		CHECK(write_page_to_disk(cur_page));
 		cur_page->clear_page(cur_page->next_page_offset());
@@ -227,18 +227,12 @@ u32 CatTableSpace::insert_row(const Row_s & row)
 	return ret;
 }
 
-u32 CatTableSpace::update_row(const Row_s & row)
+u32 CatTableSpace::get_row(u32 row_id, Row_s & row)
 {
 	u32 ret = SUCCESS;
-	u32 row_id = row->get_row_id();
 	Page_s page;
 	CHECK(get_page_from_row_id(row_id, page));
-	Row_s old_row = row;
-	ret = page->update_row(row_id, old_row);
-	if (ret == ROW_DATA_TOO_LONG) {
-		CHECK(page->delete_row(row_id));
-		CHECK(insert_row(old_row));
-	}
+	CHECK(page->get_row(row_id, row));
 	return ret;
 }
 
@@ -259,6 +253,27 @@ u32 CatTableSpace::delete_all_row()
 	return ret;
 }
 
+u32 CatTableSpace::update_row(u32 row_id, 
+							  const Row_s& update_row, 
+							  const Row_s& access_row)
+{
+	u32 ret = SUCCESS;
+	Object_s cell;
+	u32 column_id = 0;
+	ColumnDesc col_desc;
+	Row_s old_row = access_row;
+	CHECK(get_row(row_id, old_row));
+	for (u32 i = 0; i < update_desc.get_column_num(); ++i) {
+		CHECK(update_row->get_cell(i, cell));
+		CHECK(update_desc.get_column_desc(i, col_desc));
+		column_id = col_desc.get_cid();
+		CHECK(old_row->set_cell(column_id, cell));
+	}
+	CHECK(delete_row(row_id));
+	CHECK(insert_row(old_row));
+	return ret;
+}
+
 u32 CatTableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
 {
 	u32 ret = SUCCESS;
@@ -266,7 +281,7 @@ u32 CatTableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
 	if (page_offset == cur_page->page_offset()) {
 		page = cur_page;
 	} else if (!page_manager.find_page(page_offset, page)) {
-		page = Page::make_page(page_offset);
+		page = Page::make_page(page_offset, access_desc);
 		CHECK(io->read_page(page));
 		CHECK(page->open());
 		Page_s rm_page;

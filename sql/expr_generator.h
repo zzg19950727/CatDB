@@ -13,6 +13,7 @@ namespace CatDB {
         DECLARE(LogicalOperator);
     }
     namespace Sql {
+        DECLARE(ExecCtx);
         DECLARE(Expression);
         DECLARE(ColumnExpression);
         DECLARE(PhyOperator);
@@ -25,11 +26,11 @@ namespace CatDB {
         struct ExprGenerateCtx {
             ExprGenerateCtx();
             ~ExprGenerateCtx();
-            HashMap<ExprStmt_s, Expression_s> exec_param_map;
             HashMap<ExprStmt_s, LogicalOperator_s> subplan_map;
             HashMap<ExprStmt_s, Expression_s> access_expr_map;
             Vector<PhyOperator_s> child_ops;
             Vector<PhyOperator_s> phy_subplans;
+            ExecCtx_s exec_ctx;
         };
 
         class ExprGenerator {
@@ -42,7 +43,9 @@ namespace CatDB {
         protected:
             static u32 inner_generate_expr(ExprGenerateCtx &ctx, const ExprStmt_s &expr, Expression_s &rt_expr);
             static u32 generate_subquery_expr(ExprGenerateCtx &ctx, const SubQueryStmt_s &expr, Expression_s &rt_expr);
-            static u32 generate_exec_params(ExprGenerateCtx &ctx, Vector<ExecParamStmt_s> &exprs, Vector<ExecParamExpression_s> &rt_exprs);
+            static u32 generate_exec_params(ExprGenerateCtx &ctx, 
+                                            Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> &exprs, 
+                                            Vector<std::pair<ExecParamExpression_s, Expression_s>> &rt_exprs);
         };
     }
 }

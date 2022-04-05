@@ -13,6 +13,6 @@ create table `engine`(`engine` varchar(20),support bool,comment varchar(64),tran
 insert into `engine` values('catdb',1,'test db',0,0,0);
 create table collation(collation varchar(20),charset varchar(20), id int, default bool,complied bool, sortlen int);
 insert into collation values('utf8mb4_bin','utf8mb4',46,0,0,1);
-create table memory_use(mode varchar(1024), use_count int);
-create table memory_trace(mode varchar(1024), ptr varchar(64), release bool, trace_info varchar(1024));
+create table memory_use(mode varchar(102), use_count int);
+create table memory_trace(mode varchar(102), ptr varchar(64), release bool, trace_info varchar(102));
 create database test;

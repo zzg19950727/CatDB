@@ -27,7 +27,7 @@ namespace CatDB {
                                    		 const Vector<ExprStmt_s> &new_exprs)override;
 		public:
 			KV_STRING_OVERRIDE(
-				KV(stmt_type, N(UPDATE)),
+				KV(stmt_type, StmtTypeString[stmt_type()]),
 				K(is_explain),
 				K(stmt_hint),
 				K(table),

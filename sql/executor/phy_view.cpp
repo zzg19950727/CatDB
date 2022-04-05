@@ -1,5 +1,6 @@
 #include "phy_view.h"
 #include "phy_expression.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 #include "row.h"
@@ -32,11 +33,13 @@ u32 PhyView::reset()
 	return child->reset();
 }
 
-u32 PhyView::inner_get_next_row(Row_s & row)
+u32 PhyView::inner_get_next_row()
 {
 	u32 ret = SUCCESS;
-	while ((ret=child->get_next_row(row)) == SUCCESS) {
-		return SUCCESS;
+	Row_s row;
+	while (SUCC(child->get_next_row(row))) {
+		set_input_rows(row);
+		return ret;
 	}
 	return ret;
 }

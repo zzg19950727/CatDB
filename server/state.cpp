@@ -35,10 +35,10 @@ const char *State::get_odbc_state(int err) const
     {
       LOG_ERR("error code out of range", K(err));
     }
-    else if (NULL != maps_[err].odbc_state && maps_[err].odbc_state[0] != '\0')
+    /*else if (NULL != maps_[err].odbc_state && maps_[err].odbc_state[0] != '\0')
     {
       state = maps_[err].odbc_state;
-    }
+    }*/
   }
   return state;
 }

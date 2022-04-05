@@ -6,8 +6,10 @@
 namespace CatDB
 {
 	namespace Common {
-		DECLARE(Row);
 		DECLARE(Object);
+	}
+	namespace Common {
+		DECLARE(Row);
 	}
 	namespace Server
 	{
@@ -21,88 +23,88 @@ namespace CatDB
 			virtual uint64_t get_serialize_size();
 		private:
 			/**
-		 * ÐòÁÐ»¯Ò»¸öcellµ½buf + posµÄÎ»ÖÃ¡£
+		 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 		 *
-		 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-		 * @param [in] buf Êä³öµÄbuf
-		 * @param [in] len bufµÄ´óÐ¡
-		 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+		 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+		 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+		 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+		 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 		 * @param [in] cell index for binary protocol
 		 *
-		 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+		 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 		 */
 			int cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos, int64_t cell_index) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸önullÀàÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½nullï¿½ï¿½ï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 * @param [in] field index
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int null_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos, int64_t cell_index) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸öÕûÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 * (ObBoolType, ObIntType)
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int int_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 			int bool_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸ö¶¨µãÊýÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 * (ObDecimalType)
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int decimal_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸ödatetimeÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½datetimeï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 * (ObDateTimeType, ObPreciseDateTimeType, ObCreateTimeType, ObModifyTimeType)
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int datetime_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸ö×Ö·û´®ÀàÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 * (ObVarcharType)
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int varchar_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 			/**
-			 * ÐòÁÐ»¯Ò»¸ö¸¡µãÊýÐÍµÄcellµ½buf + posµÄÎ»ÖÃ¡£
+			 * ï¿½ï¿½ï¿½Ð»ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½cellï¿½ï¿½buf + posï¿½ï¿½Î»ï¿½Ã¡ï¿½
 			 * (ObFloatType, ObDoubleType)
 			 *
-			 * @param [in] obj ÐèÒªÐòÁÐ»¯µÄcell
-			 * @param [in] buf Êä³öµÄbuf
-			 * @param [in] len bufµÄ´óÐ¡
-			 * @param [in,out] pos Ð´ÈëbufµÄÎ»ÖÃ
+			 * @param [in] obj ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½cell
+			 * @param [in] buf ï¿½ï¿½ï¿½ï¿½ï¿½buf
+			 * @param [in] len bufï¿½Ä´ï¿½Ð¡
+			 * @param [in,out] pos Ð´ï¿½ï¿½bufï¿½ï¿½Î»ï¿½ï¿½
 			 *
-			 * @return ³É¹¦·µ»ØOB_SUCCESS£¬ Ê§°Ü·µ»Øoceanbase error code
+			 * @return ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½OB_SUCCESSï¿½ï¿½ Ê§ï¿½Ü·ï¿½ï¿½ï¿½oceanbase error code
 			 */
 			int number_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 		private:

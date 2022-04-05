@@ -14,7 +14,7 @@ namespace CatDB {
 			LogSet(const LogicalOperator_s& left, const LogicalOperator_s& right)
                 :DoubleChildLogicalOperator(left, right) {}
 			virtual ~LogSet() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_SET;}
+			virtual u32 type() const override{return LOG_SET;}
 			static LogicalOperator_s make_set_op(const LogicalOperator_s& left,
 												 const LogicalOperator_s& right,
 												 SetOpType set_type);

@@ -14,9 +14,9 @@ DeleteStmt::~DeleteStmt()
 {
 }
 
-Stmt::StmtType DeleteStmt::stmt_type() const
+StmtType DeleteStmt::stmt_type() const
 {
-	return Stmt::Delete;
+	return Delete;
 }
 
 Stmt_s DeleteStmt::make_delete_stmt()

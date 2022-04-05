@@ -1,5 +1,6 @@
 #include "phy_insert.h"
 #include "table_space.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 
@@ -52,10 +53,11 @@ u32 PhyInsert::reopen(const Row_s& row)
     return SUCCESS;
 }
 
-u32 PhyInsert::inner_get_next_row(Row_s &row)
+u32 PhyInsert::inner_get_next_row()
 {
     u32 ret = SUCCESS;
-	while ((ret = child->get_next_row(row)) == SUCCESS) {
+    Row_s row;
+	while (SUCC(child->get_next_row(row))) {
         increase_affected_rows();
 		return table_space->insert_row(row);
 	}

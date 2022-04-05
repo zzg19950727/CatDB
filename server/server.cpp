@@ -4,6 +4,7 @@
 #include "table_space.h"
 #include "query_ctx.h"
 #include "loginer.h"
+#include "object.h"
 #include "server.h"
 #include "error.h"
 #include "log.h"

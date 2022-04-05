@@ -16,6 +16,7 @@
 #include <cassert>
 #include "shared_ptr.hpp"
 #include "sql_define.h"
+#include "data_type.h"
 
 template<typename T>
 using shared_ptr = CatDB::Share::shared_ptr<T>;
@@ -68,6 +69,18 @@ void append(Vector<shared_ptr<T>> & lhs, const Vector<shared_ptr<U>> &rhs)
 {
     for (u32 i = 0; i < rhs.size(); ++i) {
         lhs.push_back(rhs.at(i));
+    }
+}
+
+template<typename T, typename U>
+void intersect(const Vector<T> & lhs, const Vector<U> &rhs, Vector<T> & res)
+{
+    for (u32 i = 0; i < rhs.size(); ++i) {
+        for (u32 j = 0; j < lhs.size(); ++j) {
+            if (rhs[i] == lhs[j]) {
+                res.push_back(rhs[i]);
+            }
+        }
     }
 }
 

@@ -5,6 +5,7 @@
 #include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
+#include "obj_number.h"
 #include "object.h"
 #include "error.h"
 using namespace CatDB::Parser;
@@ -67,6 +68,8 @@ u32 SelectResolver::resolve_select_list()
             CHECK(resolve_all_column(old_select_exprs[i], new_select_exprs));
         } else if (SUCCESS == ret) {
             new_select_exprs.push_back(old_select_exprs[i]);
+        } else {
+            return ret;
         }
     }
     old_select_exprs.clear();
@@ -121,18 +124,20 @@ u32 SelectResolver::get_all_column_from_basic_table(BasicTableStmt_s table, Vect
 {
     u32 ret = SUCCESS;
     if (table->is_dual_table()) {
-        columns.push_back(ConstStmt::make_const_stmt(Number::make_object(1, -1)));
+        ExprStmt_s expr = ConstStmt::make_const_stmt(Number::make_object((longlong)1));
+        expr->alias_name = "X";
+        columns.push_back(expr);
     } else {
         SchemaChecker_s checker = SchemaChecker::make_schema_checker();
         MY_ASSERT(checker);
         Vector<ColumnInfo_s> column_infos;
         CHECK(checker->get_all_columns(table->ref_table_id, column_infos));
-        std::sort(column_infos.begin(), column_infos.end(), [](const ColumnInfo_s& lhs, const ColumnInfo_s& rhs){ return lhs->column_id < rhs->column_id; } );
         for (u32 i = 0; i < column_infos.size(); ++i) {
             ColumnStmt_s col = ColumnStmt::make_column_stmt(table->alias_name, column_infos[i]->column_name);
             col->table_id = table->table_id;
             col->column_id = column_infos[i]->column_id;
             col->alias_name = column_infos[i]->column_name;
+            col->res_type = column_infos[i]->column_type;
             columns.push_back(col);
         }
     }
@@ -232,8 +237,11 @@ u32 SetResolver::resolve_stmt()
     CHECK(DMLResolver::resolve_stmt(set_stmt->right_query, query_ctx, resolve_ctx));
     MY_ASSERT(set_stmt->left_query->select_expr_list.size() == set_stmt->right_query->select_expr_list.size());
     for (u32 i = 0; i < set_stmt->left_query->select_expr_list.size(); ++i) {
+        CHECK(set_stmt->left_query->select_expr_list[i]->formalize());
+        CHECK(set_stmt->right_query->select_expr_list[i]->formalize());
         ExprStmt_s select_expr = SetExprStmt::make_set_expr(set_stmt->set_op, i);
         select_expr->alias_name = set_stmt->left_query->select_expr_list[i]->alias_name;
+        select_expr->res_type = set_stmt->left_query->select_expr_list[i]->res_type;
         set_stmt->select_expr_list.push_back(select_expr);
     }
     return ret;

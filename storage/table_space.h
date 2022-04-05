@@ -1,14 +1,13 @@
 #ifndef TABLE_SPACE_H
 #define TABLE_SPACE_H
 #include "type.h"
+#include "row.h"
 
 namespace CatDB {
-	namespace Common{
-		DECLARE(Row);
-	}
 	namespace Storage {
 		DECLARE(TableSpace);
 		using Common::Row_s;
+		using Common::RowDesc;
 		/*简单存储引擎*/
 		class TableSpace
 		{
@@ -28,9 +27,13 @@ namespace CatDB {
 			virtual u32 close() = 0;
 
 			virtual u32 insert_row(const Row_s& row) = 0;
-			virtual u32 update_row(const Row_s& row) = 0;
+			virtual u32 get_row(u32 row_id, Row_s& row) = 0;
 			virtual u32 delete_row(u32 row_id) = 0;
 			virtual u32 delete_all_row() = 0;
+			virtual u32 update_row(u32 row_id, const Row_s& update_row, const Row_s& access_row) = 0;
+
+			void set_access_desc(const RowDesc& desc) { access_desc = desc; }
+			void set_update_desc(const RowDesc& desc) { update_desc = desc; }
 
 			static u64 table_space_size(const String& database, const String& table_name);
 			static u32 delete_table(const String& database, const String& table_name);
@@ -49,6 +52,9 @@ namespace CatDB {
 		protected:
 			String database;
 			String table_name;
+			RowDesc access_desc;
+			RowDesc update_desc;
+			u32 page_skip_size;
 		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)

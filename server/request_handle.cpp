@@ -1,7 +1,5 @@
 #include "request_handle.h"
-#include "query_result.h"
 #include "sql_engine.h"
-#include <algorithm>
 #include "resheader_packet.h"
 #include "field_packet.h"
 #include "error_packet.h"
@@ -19,8 +17,8 @@
 #define BLOCK_SIZE	2048
 
 using namespace CatDB::Server;
-using namespace CatDB::Sql;
 using namespace CatDB::Common;
+using namespace CatDB::Sql;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
@@ -209,9 +207,7 @@ u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 		{
 				LOG_ERR("process row eof packet failed", K(ret));
 		}
-		return ret;
-	}
-	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
+	} else if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
 	{
 		LOG_ERR("process resheasder packet failed", K(ret));
 	}
@@ -231,11 +227,6 @@ u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 	{
 		LOG_ERR("process row eof packet failed", K(ret));
 	}
-	if (SUCCESS == ret)
-	{
-		LOG_TRACE( "send result set to client");
-		
-	}
 	return ret;
 }
 
@@ -243,7 +234,7 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 {
 	int ret = SUCCESS;
 	ResheaderPacket header;
-	header.set_field_count(result_set->get_column_num());
+	header.set_field_count(result_set->get_column_count());
 	header.set_seq(static_cast<uint8_t>(seq+1));
 	ret = process_single_packet(buff, buff_pos, header);
 	if (SUCCESS != ret)
@@ -256,7 +247,7 @@ u32 RequestHandle::process_resheader_packet(Common::Buffer_s & buff, int64_t & b
 u32 RequestHandle::process_field_packets(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
-	for (u32 i = 0; i < result_set->get_column_num(); ++i){
+	for (u32 i = 0; i < result_set->get_column_count(); ++i){
 		FieldPacket packet(result_set->get_result_title(i));
 		packet.set_type(result_set->get_result_type(i));
 		packet.set_seq(seq + 1);
@@ -283,16 +274,19 @@ u32 RequestHandle::process_eof_packets(Common::Buffer_s & buff, int64_t & buff_p
 u32 RequestHandle::process_row_packets(Common::Buffer_s & buff, int64_t & buff_pos, const ResultSet_s &result_set)
 {
 	int ret = SUCCESS;
-	QueryResult_s query_result = result_set->get_query_result();
-	u32 row_size = query_result->size();
-	for (u32 i = 0; i < row_size; ++i)
-	{
-		Row_s row;
-		query_result->get_row(i, row);
+	Row_s row;
+	CHECK(result_set->open());
+	while (SUCC(result_set->get_next_row(row))) {
 		RowPacket packet(row);
 		packet.set_seq(seq + 1);
 		process_single_packet(buff, buff_pos, packet);
 	}
+	int temp_ret = ret;
+	if (NO_MORE_ROWS == ret) {
+		temp_ret = SUCCESS;
+	}
+	CHECK(result_set->close());
+	ret = temp_ret;
 	return ret;
 }
 
@@ -330,33 +324,32 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
-	query_ctx->reset();
-	cur_query = query;
-	SqlEngine_s engine = SqlEngine::make_sql_engine(cur_query, query_ctx);
+	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {
-		String err_msg = err_string(ret);
+		String err_msg = ErrCodeString[ret];
 		err_msg += " " + query_ctx->get_error_msg();
-		ret = send_error_packet(ERR_UNEXPECTED, err_msg);
+		ret = send_error_packet(ret, err_msg);
 	} else {
 		ResultSet_s result_set = engine->get_query_result();
-		MY_ASSERT(result_set);
-		if (result_set->need_send_result()) {
-			String explain_info = result_set->get_explain_info();
-			if (!explain_info.empty()) {
-				ret = send_explain_info(explain_info);
-			} else {
-				ret = send_result_set(result_set);
-			}
+		if (!result_set) {
+			ret = ERR_UNEXPECTED;
+		} else if (result_set->is_explain_plan()) {
+			String plan_info = result_set->get_explain_info();
+			ret = (send_ok_packet(plan_info));
+		} else if (result_set->need_send_result()) {
+			ret = (send_result_set(result_set));
 		} else {
-			ret = send_ok_packet(query_ctx->get_affected_rows());
+			ret = (send_ok_packet(query_ctx->get_affected_rows()));
+		}
+		if (FAIL(ret)) {
+			ret = send_error_packet(ret, ErrCodeString[ret]);
 		}
 	}
-	cur_query = "SLEEP";
 	return ret;
 }
 
-u32 RequestHandle::send_explain_info(String& explain_info)
+u32 RequestHandle::send_ok_packet(const String& explain_info)
 {
 	int ret = SUCCESS;
 	OKPacket okpacket;
@@ -375,10 +368,12 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
 	is_com_field_list = false;
+	query_ctx->reset();
 	switch (command)
 	{
 		case COM_INIT_DB:
 		{
+			session_status = "INIT DB";
 			String db(buf + 1, len - 1);
 			String query = "use "+db;
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
@@ -388,7 +383,8 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_QUERY:
 		{
 			String query(buf + 1, len - 1);
-			LOG_INFO("handle client command", K(query));
+			session_status = query;
+			LOG_TRACE("handle client command", K(query));
 			if (query.find("SHOW SESSION") != String::npos)
 					query = "select * from system.sys_vars";
 			else if (query.find("SELECT CURRENT_USER") != String::npos)
@@ -415,11 +411,13 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		}
 		case COM_PING:
 		{
+			session_status = "PING";
 			send_ok_packet();
 			break;
 		}
 		case COM_FIELD_LIST:
 		{
+			session_status = "CMD FIELD LIST";
 			is_com_field_list = true;
 			String query = "select * from "+String(buf+1,len-1) + " limit 1";
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
@@ -427,7 +425,11 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			break;
 		}
 		default:
+		{
+			session_status = "OTHER COMMAND";
 			do_not_support();
+		}
 	}
+	session_status = "SLEEP";
 }
 

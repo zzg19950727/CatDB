@@ -15,7 +15,7 @@ namespace CatDB {
                 :SingleChildLogicalOperator(child),
 				is_delete_all(false) {}
 			virtual ~LogDelete() {}
-			virtual u32 type() const override {return LogicalOperator::LOG_DELETE;}
+			virtual u32 type() const override {return LOG_DELETE;}
 			static LogicalOperator_s make_delete(LogicalOperator_s &child,
 												BasicTableStmt_s &delete_table,
 												ColumnStmt_s& row_id,

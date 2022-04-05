@@ -1,4 +1,5 @@
 #include "phy_dual_table.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 
@@ -37,10 +38,10 @@ u32 PhyDualTable::reset()
 	return SUCCESS;
 }
 
-u32 PhyDualTable::inner_get_next_row(Row_s & row)
+u32 PhyDualTable::inner_get_next_row()
 {
     if (!is_start) {
-        row = cur_row;
+        set_input_rows(cur_row);
         is_start = true;
         return SUCCESS;
     } else {

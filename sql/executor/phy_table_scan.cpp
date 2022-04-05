@@ -1,7 +1,6 @@
 #include "table_space.h"
 #include "phy_table_scan.h"
 #include "phy_expression.h"
-#include "phy_filter.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
@@ -36,6 +35,8 @@ PhyOperator_s PhyTableScan::make_table_scan(const String&database,
 
 u32 PhyTableScan::inner_open()
 {
+	store_row = Row::make_row(access_desc.get_column_num());
+	store_row->set_op_id(operator_id);
 	return table_space->open();
 }
 
@@ -51,17 +52,19 @@ u32 PhyTableScan::reset()
 
 void PhyTableScan::set_access_desc(const RowDesc &desc)
 {
-	access_row = Row::make_row(desc);
+	access_desc = desc;
+	table_space->set_access_desc(desc);
 }
 
-u32 PhyTableScan::inner_get_next_row(Row_s & row)
+u32 PhyTableScan::inner_get_next_row()
 {
 	u32 ret;
-	row = access_row;
-	for(;;){
-		ret = table_space->get_next_row(row);
-		if (ret == END_OF_TABLE_SPACE){
+	for (;;) {
+		ret = table_space->get_next_row(store_row);
+		if (ret == END_OF_TABLE_SPACE) {
 			ret = NO_MORE_ROWS;
+		} else {
+			set_input_rows(store_row);
 		}
 		return ret;
 	} 

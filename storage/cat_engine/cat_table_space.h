@@ -3,11 +3,9 @@
 #include "table_space.h"
 #include "page.h"
 #include "type.h"
+#include "row.h"
 
 namespace CatDB {
-	namespace Common{
-		DECLARE(Row);
-	}
 	namespace Storage {
 		DECLARE(Page);
 		DECLARE(CatIoService);
@@ -62,9 +60,12 @@ namespace CatDB {
 			u32 close()override;
 
 			u32 insert_row(const Row_s& row)override;
-			u32 update_row(const Row_s& row)override;
+			u32 get_row(u32 row_id, Row_s& row)override;
 			u32 delete_row(u32 row_id)override;
 			u32 delete_all_row()override;
+			u32 update_row(u32 row_id, 
+						   const Row_s& update_row, 
+						   const Row_s& access_row)override;
 
 		private:
 			u32 get_page_from_row_id(u32 row_id, Page_s& page);
@@ -74,7 +75,6 @@ namespace CatDB {
 			LRUManger page_manager;
 			CatIoService_s io;
 			Page_s cur_page;
-			u32 page_skip_size;
 			bool read_only;
 			bool is_empty_table_space;
 		

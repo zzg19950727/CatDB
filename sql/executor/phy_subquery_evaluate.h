@@ -17,7 +17,7 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		};
 	}

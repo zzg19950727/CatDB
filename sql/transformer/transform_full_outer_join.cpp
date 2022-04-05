@@ -123,7 +123,7 @@ u32 TransformFullOuterJoin::do_transform(DMLStmt_s &stmt, TableStmt_s &table)
     left_join_view->select_expr_list = columns;
     CHECK(TransformUtils::deep_copy_stmt(left_join_view, 
                                          right_anti_view, 
-                                         ctx));
+                                         ctx->query_ctx));
     MY_ASSERT(left_join_view->from_stmts.size() == 1);
     MY_ASSERT(right_anti_view->from_stmts.size() == 1);
     MY_ASSERT(left_join_view->from_stmts[0]->is_joined_table());
@@ -156,11 +156,12 @@ u32 TransformFullOuterJoin::output_null_for_anti(SelectStmt_s &view)
     MY_ASSERT(view->from_stmts[0]->is_joined_table());
     JoinedTableStmt_s right_anti = view->from_stmts[0];
     BitSet &left_table_ids = right_anti->left_table->table_ids;
-    ExprStmt_s null_value = ConstStmt::make_const_stmt(Common::Object::make_null_object());
     for (u32 i = 0; i < view->select_expr_list.size(); ++i) {
         MY_ASSERT(COLUMN == view->select_expr_list[i]->expr_type());
         ColumnStmt_s column = view->select_expr_list[i];
         if (left_table_ids.has_member(column->table_id)) {
+            ExprStmt_s null_value = ConstStmt::make_const_stmt(Common::Object::make_null_object());
+            CHECK(null_value->formalize());
             view->select_expr_list[i] = null_value;
         }
     }

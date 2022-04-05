@@ -10,6 +10,7 @@
 #include "cmd_stmt.h"
 #include "request_handle.h"
 #include "memory_monitor.h"
+#include "obj_varchar.h"
 #include "query_ctx.h"
 #include "server.h"
 #include "stmt.h"
@@ -44,46 +45,46 @@ Plan_s CMDPlan::make_cmd_plan(const Stmt_s& lex_create_stmt)
 u32 CMDPlan::execute(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
-	MY_ASSERT(lex_stmt, Stmt::DoCMD == lex_stmt->stmt_type());
+	MY_ASSERT(lex_stmt, DoCMD == lex_stmt->stmt_type());
 	CMDStmt_s lex = lex_stmt;
 	switch (lex->cmd_type) {
-        case CMDStmt::CreateTable:
+        case CreateTable:
 			CHECK(do_cmd_create_table());
 			break;
-		case CMDStmt::DropTable:
+		case DropTable:
 			CHECK(do_cmd_drop_table());
 			break;
-		case CMDStmt::CreateDatabase:
+		case CreateDatabase:
 			CHECK(do_cmd_create_database());
 			break;
-		case CMDStmt::DropDatabase:
+		case DropDatabase:
 			CHECK(do_cmd_drop_database());
 			break;
-		case CMDStmt::ShowTables:
+		case ShowTables:
 			CHECK(do_cmd_show_tables(query_result));
 			break;
-		case CMDStmt::ShowDatabases:
+		case ShowDatabases:
 			CHECK(do_cmd_show_databases(query_result));
 			break;
-		case CMDStmt::DescTable:
+		case DescTable:
 			CHECK(do_cmd_desc_table(query_result));
 			break;
-		case CMDStmt::UseDatabase:
+		case UseDatabase:
 			CHECK(do_cmd_use_database());
 			break;
-		case CMDStmt::Analyze:
+		case Analyze:
 			CHECK(do_cmd_analyze());
 			break;
-		case CMDStmt::SetVar:
+		case SetVar:
 			CHECK(do_set_var());
 			break;
-		case CMDStmt::ShowProcesslist:
+		case ShowProcesslist:
 			CHECK(do_show_processlist(query_result));
 			break;
-		case CMDStmt::Kill:
+		case Kill:
 			CHECK(do_kill_process());
 			break;
-		case CMDStmt::ShowMemory:
+		case ShowMemory:
 			CHECK(do_show_memory(query_result));
 			break;
         default:
@@ -108,7 +109,7 @@ u32 CMDPlan::do_cmd_create_table()
 	CMDStmt_s stmt = lex_stmt;
 	String database;
 	String table;
-	Vector<Pair<String, String>> columns;
+	Vector<ColumnDefineStmt_s> columns;
 	Vector<String> engine_args;
 	
 	CHECK(stmt->get_create_table_params(database, table, columns, engine_args));
@@ -216,13 +217,15 @@ u32 CMDPlan::do_cmd_show_tables(ResultSet_s &query_result)
 	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_table(database, tables));
-	String title = String("tables_in_") + database;
-	query_result->set_column_num(1);
-	query_result->set_result_title(0, title);
-	query_result->set_result_type(0, T_VARCHAR);
+
+	Vector<String> title;
+	title.push_back(String("tables_in_") + database);
+	CHECK(init_command_result_head(title, query_result));
 	for (u32 i = 0; i < tables.size(); ++i) {
 		Object_s table = Varchar::make_object(tables[i]);
-		query_result->add_row(table);
+		Vector<Object_s> objs;
+		objs.push_back(table);
+		CHECK(add_objects_to_result_set(objs, query_result));
 	}
 	return ret;
 }
@@ -239,21 +242,22 @@ u32 CMDPlan::do_cmd_show_databases(ResultSet_s &query_result)
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_database(databases));
 	if (is_select_current_database) {
-		String title = String("database()");
-		query_result->set_column_num(1);
-		query_result->set_result_title(0, title);
-		query_result->set_result_type(0, T_VARCHAR);
+		Vector<String> title;
+		title.push_back(String("cur_database()"));
+		CHECK(init_command_result_head(title, query_result));
 		Object_s database = Varchar::make_object(query_ctx->cur_database);
-		query_result->add_row(database);
-	}
-	else {
-		String title = String("databases");
-		query_result->set_column_num(1);
-		query_result->set_result_title(0, title);
-		query_result->set_result_type(0, T_VARCHAR);
+		Vector<Object_s> objs;
+		objs.push_back(database);
+		CHECK(add_objects_to_result_set(objs, query_result));
+	} else {
+		Vector<String> title;
+		title.push_back(String("databases"));
+		CHECK(init_command_result_head(title, query_result));
 		for (u32 i = 0; i < databases.size(); ++i) {
 			Object_s database = Varchar::make_object(databases[i]);
-			query_result->add_row(database);
+			Vector<Object_s> objs;
+			objs.push_back(database);
+			CHECK(add_objects_to_result_set(objs, query_result));
 		}
 	}
 	return ret;
@@ -288,16 +292,6 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 	return ret;
 }
 
-String change_to_mysql_type(const String& type)
-{
-	if (type == "number") {
-		return "double";
-	}
-	else {
-		return type;
-	}
-}
-
 u32 CMDPlan::desc_table(const String &database, const String &table, ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
@@ -307,32 +301,21 @@ u32 CMDPlan::desc_table(const String &database, const String &table, ResultSet_s
 	u32 table_id = INVALID_ID;
 	CHECK(checker->get_table_id(database, table, table_id));
 	CHECK(checker->get_all_columns(table_id, columns));
-	query_result->set_column_num(6);
 	
-	String name = String("Field");
-	query_result->set_result_title(0, name);
-	query_result->set_result_type(0, T_VARCHAR);
-	String type = String("type");
-	query_result->set_result_title(1, type);
-	query_result->set_result_type(1, T_VARCHAR);
-	String Null = String("Null");
-	query_result->set_result_title(2, Null);
-	query_result->set_result_type(2, T_VARCHAR);
-	String key = String("Key");
-	query_result->set_result_title(3, key);
-	query_result->set_result_type(3, T_VARCHAR);
-	String Default = String("Default");
-	query_result->set_result_title(4, Default);
-	query_result->set_result_type(4, T_VARCHAR);
-	String extra = String("Extra");
-	query_result->set_result_title(5, extra);
-	query_result->set_result_type(5, T_VARCHAR);
+	Vector<String> title;
+	title.push_back(String("Field"));
+	title.push_back(String("Type"));
+	title.push_back(String("Null"));
+	title.push_back(String("Key"));
+	title.push_back(String("Default"));
+	title.push_back(String("Extra"));
+	CHECK(init_command_result_head(title, query_result));
 
 	for (u32 i = 0; i < columns.size(); ++i) {
 		Vector<Object_s> cells;
-		Object_s name = Varchar::make_object(change_to_mysql_type(columns[i]->column_name));
+		Object_s name = Varchar::make_object(columns[i]->column_name);
 		cells.push_back(name);
-		Object_s type = Varchar::make_object(change_to_mysql_type(columns[i]->column_type));
+		Object_s type = Varchar::make_object(columns[i]->column_type.to_kv_string());
 		cells.push_back(type);
 		Object_s Null = Varchar::make_object("YES");
 		cells.push_back(Null);
@@ -342,7 +325,7 @@ u32 CMDPlan::desc_table(const String &database, const String &table, ResultSet_s
 		cells.push_back(Default);
 		Object_s extra = Varchar::make_object("");
 		cells.push_back(extra);
-		query_result->add_row(cells);
+		CHECK(add_objects_to_result_set(cells, query_result));
 	}
 	return ret;
 }
@@ -463,21 +446,17 @@ u32 CMDPlan::do_set_var()
 u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
-	String title = String("PID");
-	u32 pos = 0;
-	query_result->set_column_num(2);
-	query_result->set_result_title(pos, title);
-	query_result->set_result_type(pos++, T_VARCHAR);
-	title = String("SQL");
-	query_result->set_result_title(pos, title);
-	query_result->set_result_type(pos++, T_VARCHAR);
+	Vector<String> title;
+	title.push_back(String("PID"));
+	title.push_back(String("Status"));
+	CHECK(init_command_result_head(title, query_result));
 	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
 		Vector<Object_s> cells;
 		Object_s thread_id = Varchar::make_object(std::to_string(iter->first));
 		cells.push_back(thread_id);
-		Object_s sql=Varchar::make_object(iter->second->get_current_query());
+		Object_s sql=Varchar::make_object(iter->second->get_session_status());
 		cells.push_back(sql);
-		query_result->add_row(cells);
+		CHECK(add_objects_to_result_set(cells, query_result));
 	}
 	return ret;
 }
@@ -569,5 +548,25 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 	query = "select * from system.memory_use order by 2;";
 	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
 	MemoryMonitor::make_memory_monitor().set_trace_mode(mode);
+	return ret;
+}
+
+u32 CMDPlan::init_command_result_head(const Vector<String> &title, ResultSet_s &query_result)
+{
+	u32 ret = SUCCESS;
+    for (u32 i = 0; i < title.size(); ++i) {
+		query_result->add_result_title(title[i], T_VARCHAR);
+	}
+    return ret;
+}
+
+u32 CMDPlan::add_objects_to_result_set(Vector<Object_s> &objs, ResultSet_s &query_result)
+{
+	u32 ret = SUCCESS;
+	Row_s row = Row::make_row(objs.size());
+	for (u32 i = 0; i < objs.size(); ++i) {
+		row->set_cell(i, objs[i]);
+	}
+	query_result->add_row(row);
 	return ret;
 }

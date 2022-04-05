@@ -2,13 +2,19 @@
 #define EXPR_STMT_H
 #include "bit_set.h"
 #include "object.h"
+#include "type.h"
 
 namespace CatDB {
 	namespace Common {
 		DECLARE(Object);
 	}
+	namespace Sql {
+		DECLARE(QueryCtx);
+	}
 	namespace Parser {
 		using Common::Object_s;
+		using Sql::QueryCtx_s;
+		using Common::DataType;
 		DECLARE(Stmt);
 		DECLARE(SelectStmt);
 		DECLARE(ExprStmt);
@@ -28,7 +34,8 @@ namespace CatDB {
 			virtual ExprType expr_type()const = 0;
 			virtual String to_string()const = 0;
 			virtual u32 formalize() = 0;
-			virtual u32 deep_copy(ExprStmt_s &expr, u32 flag)const = 0;
+			virtual u32 deduce_type();
+			virtual u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const;
 			virtual bool same_as(const ExprStmt_s &other) { return false;}
 			//expr flag interface
 			bool has_flag(StmtFlag flag) const { return flag == is_flag || flags.has_member(u32(flag)); }
@@ -38,15 +45,16 @@ namespace CatDB {
 			const BitSet &get_flags() const { return flags; }
 			void add_flags(const BitSet &other) { flags.add_members(other); }
 			void clear_flag() { is_flag = INVALID_FLAG; flags.clear(); }
-			String flag_to_string(u32 flag) const;
 			String flags_to_string() const;
 			//public function
 			bool is_and_expr();
 			void add_param(const ExprStmt_s& param) { params.push_back(param); }
 			const BitSet& get_table_ids() const { return table_ids; }
 			Vector<ExprStmt_s> &get_params() { return params; }
+			String get_alias_name() const;
 			//json print
 			VIRTUAL_KV_STRING(
+				K(res_type),
 				K(alias_name)
 			);
 		public:
@@ -55,7 +63,9 @@ namespace CatDB {
 			Vector<ExprStmt_s> params;
 			String alias_name;	//表达式的别名
 			BitSet table_ids;
+			DataType res_type;
 		};
+
 		//单个常量表达式
 		DECLARE(ConstStmt);
 		class ConstStmt : public ExprStmt
@@ -67,17 +77,20 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_const_stmt(const Object_s& value);
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			u32 formalize() override;
+			u32 deduce_type() override;
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
+				K(res_type),
 				K(value)
 			);
 
 		public:
 			Object_s value;
 		};
+
 		DECLARE(ExecParamStmt);
 		class ExecParamStmt : public ExprStmt
 		{
@@ -86,19 +99,21 @@ namespace CatDB {
 		public:
 			~ExecParamStmt();
 			ExprType expr_type()const override;
-			static ExprStmt_s make_exec_param_stmt(const ExprStmt_s& ref_expr);
+			static ExprStmt_s make_exec_param_stmt(u32 index);
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			u32 formalize() override;
-			ExprStmt_s& get_ref_expr() { return ref_expr; }
+			u32 get_param_index() const { return param_index; }
+			void set_param_index(u32 index) { param_index = index; }
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
-				K(ref_expr)
+				K(res_type),
+				K(param_index)
 			);
 
 		public:
-			ExprStmt_s ref_expr;
+			u32 param_index;
 		};
 
 		/*单列表达式
@@ -118,10 +133,11 @@ namespace CatDB {
 			u32 formalize() override;
 			bool is_all_column()const;
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
+				K(res_type),
 				K(table),
 				K(column),
 				K(table_id),
@@ -149,10 +165,11 @@ namespace CatDB {
 			void set_index(u32 idx) { index = idx; }
 			u32 get_index() const { return index; }
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(type, SetOpTypeString[type]),
+				K(res_type),
 				K(index)
 			);
 
@@ -173,22 +190,21 @@ namespace CatDB {
 			static ExprStmt_s make_query_stmt();
 			String to_string()const override;
 			u32 formalize() override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deduce_type() override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override { return false;}
-			Vector<ExecParamStmt_s>& get_corrected_exprs() { return exec_params; }
-			void add_corrected_exprs(ExecParamStmt_s expr);
+			void add_related_exprs(ExprStmt_s &related_expr, ExecParamStmt_s &exec_param);
 			void set_subquery_id(u32 id) { subquery_id = id; }
 			u32 get_subquery_id() const { return subquery_id; }
+			u32 get_all_exec_params(Vector< std::pair<ExecParamStmt_s, ExprStmt_s> > &all_exec_params);
 			DECLARE_KV_STRING_OVERRIDE;
 
 		public:
 			SelectStmt_s query_stmt;
-			bool is_any;
-			bool is_all;
 			Vector<ExecParamStmt_s> exec_params;
 			u32 subquery_id;
-			bool output_one_row;
 		};
+
 		//表达式列表
 		DECLARE(ListStmt);
 		class ListStmt : public ExprStmt
@@ -200,17 +216,20 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_list_stmt();
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			u32 size() const { return params.size(); }
 			ExprStmt_s& at(u32 i) { return params[i]; }
 			void push_back(const ExprStmt_s &expr) { params.push_back(expr); }
 			void clear() { params.clear(); }
 			u32 formalize() override;
+			u32 deduce_type() override;
 			bool same_as(const ExprStmt_s &other) override;
 			KV_STRING_OVERRIDE(
+				K(res_type),
 				V(params)
 			);
 		};
+
 		//聚合函数语句
 		DECLARE(AggrStmt);
 		class AggrStmt : public ExprStmt
@@ -222,16 +241,17 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_aggr_stmt();
 			String to_string()const override;
-			String aggr_func_name()const;
 			u32 formalize() override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deduce_type() override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
 
 			KV_STRING_OVERRIDE(
+				KV(aggr_func, AggrTypeString[aggr_func]),
 				KV(flags, flags_to_string()),
-				KV(aggr_func, aggr_func_name()),
+				K(res_type),
 				K(table_ids),
 				KV(aggr_expr, get_aggr_expr()),
 				K(distinct)
@@ -253,14 +273,14 @@ namespace CatDB {
 			static ExprStmt_s make_op_expr_stmt(OperationType op_type);
 			String to_string()const override;
 			u32 formalize() override;
-			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
+			u32 deduce_type() override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
-			//json print
-			static String op_string(OperationType op_type);
 			
 			KV_STRING_OVERRIDE(
+				KV(op_type, OperationTypeString[op_type]),
 				KV(flags, flags_to_string()),
-				KV(op_type, op_string(op_type)),
+				K(res_type),
 				K(table_ids),
 				K(params)
 			);

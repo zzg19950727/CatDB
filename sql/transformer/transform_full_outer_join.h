@@ -22,8 +22,8 @@ namespace CatDB {
         public:
             TransformFullOuterJoin();
             ~TransformFullOuterJoin();
-            virtual bool need_rewrite(DMLStmt_s stmt) const override;
             virtual u32 transform_one_stmt(DMLStmt_s &stmt)override;
+            virtual bool need_rewrite(DMLStmt_s stmt) const override;
         private:
             u32 transform_one_table(DMLStmt_s &stmt, TableStmt_s &table);
             u32 check_table_need_transform(JoinedTableStmt_s &table, bool &is_valid);

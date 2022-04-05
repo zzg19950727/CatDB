@@ -2,6 +2,7 @@
 #include "error.h"
 
 using namespace CatDB::Sql;
+using namespace CatDB::Parser;
 
 QueryCtx_s QueryCtx::make_query_ctx()
 {
@@ -21,6 +22,7 @@ void QueryCtx::reset()
     cur_view_id = 1;
     affected_rows = 0;
     err_msg.clear(); 
+    query_hint.reset();
 }
 
 u32 QueryCtx::check_query_status() 

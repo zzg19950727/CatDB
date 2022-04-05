@@ -100,12 +100,13 @@ u32 ExprUtils::replace_exprs(const Vector<ExprStmt_s> &old_exprs,
 
 u32 ExprUtils::deep_copy_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                Vector<ExprStmt_s> &new_exprs,
+                               QueryCtx_s &ctx,
                                u32 flag)
 {
     u32 ret = SUCCESS;
     ExprStmt_s expr;
     for (u32 i = 0; i < old_exprs.size(); ++i) {
-        CHECK(deep_copy_expr(old_exprs[i], expr, flag));
+        CHECK(deep_copy_expr(old_exprs[i], expr, ctx, flag));
         new_exprs.push_back(expr);
     }
     return ret;
@@ -113,14 +114,18 @@ u32 ExprUtils::deep_copy_exprs(const Vector<ExprStmt_s> &old_exprs,
 
 u32 ExprUtils::deep_copy_expr(const ExprStmt_s &old_expr, 
                               ExprStmt_s &new_expr,
+                              QueryCtx_s &ctx,
                               u32 flag)
 {
     u32 ret = SUCCESS;
     if (old_expr->has_flag(IS_COLUMN) &&
        !ENABLE_COPY_SHARE(flag)) {
         new_expr = old_expr;
+    } else if (old_expr->has_flag(IS_EXEC_PARAM) ||
+               CONST == old_expr->expr_type()) {
+        new_expr = old_expr;
     } else {
-        CHECK(old_expr->deep_copy(new_expr, flag));
+        CHECK(old_expr->deep_copy(new_expr, ctx, flag));
     }
     return ret;
 }

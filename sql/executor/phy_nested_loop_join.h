@@ -22,22 +22,21 @@ namespace CatDB {
 			static PhyOperator_s make_nested_loop_join(const PhyOperator_s& left_child,
 				const PhyOperator_s& right_child,
 				const Vector<Expression_s>& join_cond);
-			u32 set_join_condition(const Vector<Expression_s>& join_cond);
 			
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
 			
 			u32 cache_right_table();
-			u32 inner_join(Row_s &row);
-			u32 left_semi_join(Row_s &row);
-			u32 left_anti_join(Row_s &row);
-			u32 left_outer_join(Row_s &row);
+			u32 inner_join();
+			u32 left_semi_join();
+			u32 left_anti_join();
+			u32 left_outer_join();
 		private:
-			PhyFilter_s join_condition;
+			Vector<Expression_s> join_condition;
 			Vector<Row_s> right_cache;
 			bool is_start;
 			u32 right_pos;

@@ -39,10 +39,10 @@ u32 CatDB::Sql::PhyExprValue::reset()
 	return SUCCESS;
 }
 
-u32 CatDB::Sql::PhyExprValue::inner_get_next_row(Row_s & row)
+u32 CatDB::Sql::PhyExprValue::inner_get_next_row()
 {
     while(pos < value_list.size()) {
-        row = cur_row;
+        set_input_rows(cur_row);
         output_exprs = value_list[pos];
         ++pos;
         return SUCCESS;

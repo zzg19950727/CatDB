@@ -27,7 +27,7 @@ namespace CatDB {
 			void set_delete_handle(RequestHandle_s& self);
 			void set_login_info(const Loginer::LoginInfo& info, int thread_id);
 			QueryCtx_s &get_query_ctx() { return query_ctx; }
-			const String &get_current_query() const { return cur_query; }
+			const String &get_session_status() const { return session_status; }
 
 		private:
 			void notify_socket(int fd, NetService::Event e);
@@ -46,7 +46,7 @@ namespace CatDB {
 
 			u32 do_not_support();
 			u32 do_cmd_query(const String& query);
-			u32 send_explain_info(String& explain_info);
+			u32 send_ok_packet(const String& explain_info);
 			void handle_request(char* buf, size_t len);
 
 			RequestHandle_s m_self;//delete self when no connection
@@ -55,7 +55,8 @@ namespace CatDB {
 			BufferCache m_write_cache;
 			Loginer::LoginInfo login_info;
 			QueryCtx_s query_ctx;
-			String cur_query;
+			String session_status;
+			
 			bool is_com_field_list;
 			int seq;
 			int m_fd;

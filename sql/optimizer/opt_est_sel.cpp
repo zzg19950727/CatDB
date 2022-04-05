@@ -129,11 +129,6 @@ u32 EstSelUtil::calc_bwt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doub
     ColumnStmt_s column = expr->params[0];
     ConstStmt_s l_const = expr->params[1];
     ConstStmt_s r_const = expr->params[2];
-    if (l_const->value->get_type() != T_NUMBER ||
-        r_const->value->get_type() != T_NUMBER) {
-        selectivity = 0.3;
-        return ret;
-    }
     double l_band = l_const->value->value();
     double r_band = r_const->value->value();
     ColumnEstInfo_s column_statis;
@@ -157,10 +152,6 @@ u32 EstSelUtil::calc_lt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         CONST == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[0];
         ConstStmt_s r_const = expr->params[1];
-        if (r_const->value->get_type() != T_NUMBER) {
-            selectivity = 0.3;
-            return ret;
-        }
         double r_band = r_const->value->value();
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));
@@ -169,10 +160,6 @@ u32 EstSelUtil::calc_lt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         COLUMN == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[1];
         ConstStmt_s l_const = expr->params[0]; 
-        if (l_const->value->get_type() != T_NUMBER) {
-            selectivity = 0.3;
-            return ret;
-        }
         double l_band = l_const->value->value();
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));
@@ -196,10 +183,6 @@ u32 EstSelUtil::calc_gt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         CONST == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[0];
         ConstStmt_s r_const = expr->params[1];
-        if (r_const->value->get_type() != T_NUMBER) {
-            selectivity = 0.3;
-            return ret;
-        }
         double r_band = r_const->value->value();
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));
@@ -208,10 +191,6 @@ u32 EstSelUtil::calc_gt_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, doubl
         COLUMN == expr->params[1]->expr_type()) {
         ColumnStmt_s column = expr->params[1];
         ConstStmt_s l_const = expr->params[0]; 
-        if (l_const->value->get_type() != T_NUMBER) {
-            selectivity = 0.3;
-            return ret;
-        }
         double l_band = l_const->value->value();
         ColumnEstInfo_s column_statis;
         CHECK(est_info->get_column_statis(column->table_id, column->column_id, column_statis));

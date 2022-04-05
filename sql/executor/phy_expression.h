@@ -6,85 +6,34 @@
 
 namespace CatDB {
 	namespace Common {
-		DECLARE(Row);
 		DECLARE(Object);
-		DECLARE(QueryResult);
+		DECLARE(Number);
 	}
 	namespace Sql {
-		using Common::ColumnDesc;
-		using Common::Row_s;
 		using Common::Object_s;
-		using Common::QueryResult_s;
+		using Common::Number_s;
 		DECLARE(PhyOperator);
 		DECLARE(Expression);
+		DECLARE(ColumnExpression);
 		DECLARE(SetExpression);
 		DECLARE(AggregateExpression);
 		DECLARE(ExecParamExpression);
+		DECLARE(ListExpression);
 		DECLARE(OpExpression);
 		DECLARE(SubplanExpression);
+		DECLARE(ExecCtx);
 
-		class Operation
-		{
-		private:
-			Operation() = delete;
-		protected:
-			Operation(OperationType type);
-		public:
-			~Operation();
-			void set_type(OperationType type);
-			OperationType get_type()const;
-			Object_s calc(Object_s& obj);
-			Object_s calc(Object_s& first_obj, Object_s& second_obj);
-			Object_s calc(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
-			Object_s calcN(Vector<Object_s> &params);
-		private:
-			Object_s do_add(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_sub(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_mul(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_div(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_equal(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_anti_equal(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_not_equal(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_greater(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_GE(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_less(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_LE(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_between(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
-			Object_s do_not_between(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
-			Object_s do_is_null(Object_s& first_obj);
-			Object_s do_is_not_null(Object_s& first_obj);
-			Object_s do_in(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_not_in(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_exists(Object_s& first_obj);
-			Object_s do_not_exists(Object_s& first_obj);
-			Object_s do_and(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_or(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_not(Object_s& first_obj);
-			Object_s do_minus(Object_s& first_obj);
-			Object_s do_like(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_not_like(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_cast(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_case_when(Vector<Object_s> &params);
-			Object_s do_ifnull(Object_s& first_obj, Object_s& second_obj);
-			Object_s do_substr(Object_s& first_obj, Object_s& second_obj, Object_s& third_obj);
-			Object_s do_to_char(Vector<Object_s> &params);
-			Object_s do_to_number(Object_s& first_obj);
-
-		private:
-			OperationType type;
-			friend class AggregateExpression;
-			friend class OpExpression;
-		};
-
+		u32 expr_filter(Vector<Expression_s> &filters, ExecCtx_s &ctx);
 		class Expression
 		{
 		protected:
 			Expression();
 		public:
 			virtual ~Expression();
-			virtual Object_s get_result(const Row_s& row) = 0;
+			virtual u32 get_result(ExecCtx_s &ctx) = 0;
 			virtual ExprType get_type()const = 0;
-
+		public:
+			Common::DataType res_type;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Expression)
 		};
@@ -97,39 +46,38 @@ namespace CatDB {
 			virtual ~ConstExpression()=default;
 		public:
 			static Expression_s make_const_expression(const Object_s& object);
-			u32 set_object(Object_s& object);
-			Object_s get_result(const Row_s& row);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
 		private:
 			Object_s const_object;
 		};
 
-		class ExecParamExpression : public ConstExpression
+		class ExecParamExpression : public Expression
 		{
 		private:
 			ExecParamExpression() = delete;
-			ExecParamExpression(const Expression_s& ref_expr);
+			ExecParamExpression(u32 param_index);
 		public:
-			static Expression_s make_exec_param_expression(const Expression_s& ref_expr);
-			u32 set_value(const Row_s& row);
+			static Expression_s make_exec_param_expression(u32 param_index);
+			u32 set_value(ExecCtx_s &ctx, Object_s &value);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
 		private:
-			Expression_s ref_expr;
+			u32 param_index;
 		};
 
 		class ColumnExpression : public Expression
 		{
 		private:
 			ColumnExpression() = delete;
-			ColumnExpression(const ColumnDesc& desc);
+			ColumnExpression(u32 op_id, u32 column_id);
 		public:
-			static Expression_s make_column_expression(const ColumnDesc& desc);
-			u32 set_column_desc(ColumnDesc& desc);
-			const ColumnDesc& get_column_desc()const;
-			Object_s get_result(const Row_s& row);
+			static Expression_s make_column_expression(u32 op_id, u32 column_id);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
 		public:
-			Common::ColumnDesc col_desc;
+			u32 op_id;
+			u32 column_id;
 		};
 
 		class SetExpression : public Expression
@@ -139,27 +87,42 @@ namespace CatDB {
 			SetExpression(u32 idx);
 		public:
 			static Expression_s make_set_expression(u32 idx);
-			Object_s get_result(const Row_s& row);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
 		public:
 			u32 index;
+		};
+
+		class ListExpression : public Expression
+		{
+		private:
+			ListExpression();
+		public:
+			~ListExpression();
+			static Expression_s make_list_expression();
+			u32 get_result(ExecCtx_s &ctx) override;
+			ExprType get_type()const;
+			void add_param_expr(Expression_s& expr);
+
+		public:
+			Vector<Expression_s> param_exprs;	
 		};
 
 		class OpExpression : public Expression
 		{
 		private:
 			OpExpression() = delete;
-			OpExpression(const Operation& op);
+			OpExpression(OperationType op);
 		public:
 			~OpExpression();
 			static Expression_s make_op_expression(OperationType op);
-			Object_s get_result(const Row_s& row);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
 			void add_param_expr(Expression_s& expr);
 
 		public:
 			Vector<Expression_s> param_exprs;
-			Operation op;
+			OperationType op_type;
 		};
 
 		//注意：目前还没有支持聚合函数聚合函数嵌套
@@ -171,21 +134,21 @@ namespace CatDB {
 		public:
 			~AggregateExpression();
 			static Expression_s make_aggregate_expression(const Expression_s& expr, AggrType op, bool is_distinct);
-			Object_s get_result(const Row_s& row);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
-			u32 add_row(const Row_s& row);
+			u32 add_row(ExecCtx_s &ctx);
+			void set_exec_ctx(ExecCtx_s &ctx) { hash_table.set_exec_ctx(ctx); }
 			void reset();
 		private:
-			u32 sum(const Row_s& row);
-			u32 count(const Row_s& row);
-			u32 avg(const Row_s& row);
-			u32 max(const Row_s& row);
-			u32 min(const Row_s& row);
+			u32 sum(Object_s &value);
+			u32 count(Object_s &value);
+			u32 max(Object_s &value);
+			u32 min(Object_s &value);
 
 			AggrType op;
 			Object_s result;
 			u32 row_count;
-			Common::HashTable hash_table;
+			Sql::HashTable hash_table;
 		public:
 			Expression_s expr;
 			bool is_distinct;
@@ -198,17 +161,15 @@ namespace CatDB {
 			SubplanExpression(PhyOperator_s& subplan);
 		public:
 			static Expression_s make_subplan_expression(PhyOperator_s& subplan);
-			Object_s get_result(const Row_s& row);
+			u32 get_result(ExecCtx_s &ctx) override;
 			ExprType get_type()const;
-			u32 evaluate_subplan(QueryResult_s &query_result);
+			u32 set_exec_param(ExecCtx_s &ctx);
+			u32 get_next_result(Object_s &res);
 			
 		public:
 			Object_s result;
 			PhyOperator_s subplan;
-			Vector<ExecParamExpression_s> exec_params;
-			bool output_one_row;
-			bool is_any;
-			bool is_all;
+			Vector<std::pair<ExecParamExpression_s, Expression_s>> exec_params;
 		};
 	}
 }

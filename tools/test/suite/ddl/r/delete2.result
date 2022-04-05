@@ -6,7 +6,7 @@ CREATE DATABASE RANDOM_TEST
 
 DROP TABLE IF EXISTS T1
 
-CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+CREATE TABLE T1(C1 INT, C2 INT, C3 INT, C4 INT)
 
 SELECT * FROM T1
 
@@ -28,7 +28,7 @@ SELECT * FROM T1
 
 DROP TABLE IF EXISTS T2
 
-CREATE TABLE T2(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+CREATE TABLE T2(C1 INT, C2 INT, C3 INT, C4 INT)
 
 SELECT * FROM T2
 
@@ -55,7 +55,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -68,8 +68,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T1 T2
@@ -99,7 +101,7 @@ Query Plan:
 | ID | OPERATOR                       | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------------+
 | 0  | DELETE                         | T1   | 100000    | 8.440e+42 |
-| 1  |  DISTINCT                      |      | 100000    | 8.440e+42 |
+| 1  |  HASH DISTINCT                 |      | 100000    | 8.440e+42 |
 | 2  |   NESTED LOOP Inner JOIN       |      | 6.294e+43 | 2.580e+41 |
 | 3  |    NESTED LOOP Inner JOIN      |      | 6.294e+18 | 1.764e+18 |
 | 4  |     NESTED LOOP LeftOuter JOIN |      | 2.098e+09 | 1.941e+09 |
@@ -121,12 +123,12 @@ Query Plan:
 Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
-4 - other_join_conditions([t4.c1!=t5.c3], [t4.c1>t4.c2], [t4.c4 NOT BETWEEN t5.c4 AND t5.c4])
-5 - output([t4.c1], [t4.c1>t4.c2], [t4.c4])
+4 - other_join_conditions([t4.c1 != t5.c3], [t4.c1 > t4.c2], [t4.c4 NOT BETWEEN t5.c4 AND t5.c4])
+5 - output([t4.c1], [t4.c1 > t4.c2], [t4.c4])
 access([t4.c1], [t4.c2], [t4.c4])
 6 - output([t5.c3], [t5.c4])
 access([t5.c3], [t5.c4])
-7 - other_join_conditions([t3.c1<t2.c4 OR t3.c2 IS NULL OR t2.c4 IS NULL])
+7 - other_join_conditions([t3.c1 < t2.c4 OR t3.c2 IS NULL OR t2.c4 IS NULL])
 8 - output([t3.c1], [t3.c2])
 access([t3.c1], [t3.c2])
 9 - output([t2.c4])
@@ -140,6 +142,8 @@ access([t1.ROWID])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 ((t4, t5), (t3, t2)), ((((t1, t6), t7), t8), t9))
 USE_NL(@SEL1 t5)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3, t2)
@@ -148,7 +152,7 @@ USE_NL(@SEL1 t7)
 USE_NL(@SEL1 t8)
 USE_NL(@SEL1 t9)
 USE_NL(@SEL1 t1, t6, t7, t8, t9)
-LEADING(@SEL1 ((t4, t5), (t3, t2)), ((((t1, t6), t7), t8), t9))
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T2 T2 RIGHT JOIN T1 T3 ON ((T3.C1 < T2.C4 OR T3.C2 IS NULL) OR (T2.C4) IS NULL), T1 T4 LEFT JOIN T2 T5 ON (T4.C1 != T5.C3 AND T4.C1 > T4.C2 AND (T4.C4) NOT BETWEEN T5.C4 AND T5.C4), T2 T6, T2 T7, T2 T8, T1 T9
@@ -178,7 +182,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -191,8 +195,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T2 T2
@@ -215,28 +221,28 @@ SELECT * FROM T1
 +------+------+------+------+
 10 rows in set
 
-EXPLAIN DELETE T1 FROM T2 T1, T1 T2, T1 T3, T2 T4 FULL JOIN (T1 T5 INNER JOIN T1 T6 ON T6.C3 IS NULL INNER JOIN T1 T7 ON T6.C1 IS NULL) ON (T7.C3) != (T7.C1) AND (T6.C3) LIKE T7.C3 RIGHT JOIN T1 T8 ON (T8.C1) IS NULL
+EXPLAIN DELETE T1 FROM T2 T1, T1 T2, T1 T3, T2 T4 FULL JOIN (T1 T5 INNER JOIN T1 T6 ON T6.C3 IS NULL INNER JOIN T1 T7 ON T6.C1 IS NULL) ON (T7.C3) != (T7.C1) AND (T6.C3) = T7.C3 RIGHT JOIN T1 T8 ON (T8.C1) IS NULL
 
 Query Plan:
 +-------------------------------------------------------------------------+
 | ID | OPERATOR                           | NAME  | ROW COUNT | COST      |
 +-------------------------------------------------------------------------+
-| 0  | DELETE                             | T1    | 100000    | 4.019e+32 |
-| 1  |  DISTINCT                          |       | 100000    | 4.019e+32 |
-| 2  |   NESTED LOOP Inner JOIN           |       | 2.997e+33 | 1.229e+31 |
-| 3  |    NESTED LOOP Inner JOIN          |       | 2.997e+28 | 1.229e+26 |
-| 4  |     NESTED LOOP Inner JOIN         |       | 2.997e+23 | 1.623e+22 |
-| 5  |      NESTED LOOP LeftOuter JOIN    |       | 2.997e+18 | 1.622e+19 |
+| 0  | DELETE                             | T1    | 100000    | 1.340e+33 |
+| 1  |  HASH DISTINCT                     |       | 100000    | 1.340e+33 |
+| 2  |   NESTED LOOP Inner JOIN           |       | 9.990e+33 | 4.096e+31 |
+| 3  |    NESTED LOOP Inner JOIN          |       | 9.990e+28 | 4.096e+26 |
+| 4  |     NESTED LOOP Inner JOIN         |       | 9.990e+23 | 5.410e+22 |
+| 5  |      NESTED LOOP LeftOuter JOIN    |       | 9.990e+18 | 4.995e+19 |
 | 6  |       TABLE SCAN                   | T8    | 100000    | 5410      |
-| 7  |       VIEW                         | VIEW1 | 2.997e+15 | 7.226e+13 |
-| 8  |        UNION_ALL                   |       | 2.997e+15 | 7.226e+13 |
-| 9  |         NESTED LOOP LeftOuter JOIN |       | 2.997e+15 | 1.231e+13 |
+| 7  |       VIEW                         | VIEW1 | 9.990e+15 | 1.998e+14 |
+| 8  |        UNION_ALL                   |       | 9.990e+15 | 1.998e+14 |
+| 9  |         NESTED LOOP LeftOuter JOIN |       | 9.990e+15 | 1.163e+10 |
 | 10 |          TABLE SCAN                | T4    | 100000    | 409       |
-| 11 |          NESTED LOOP Inner JOIN    |       | 2.997e+10 | 1.231e+08 |
-| 12 |           NESTED LOOP Inner JOIN   |       | 299700    | 193890    |
-| 13 |            TABLE SCAN              | T6    | 10        | 16410     |
-| 14 |            TABLE SCAN              | T7    | 99900     | 13410     |
-| 15 |           TABLE SCAN               | T5    | 100000    | 409       |
+| 11 |          HASH Inner JOIN           |       | 9.990e+10 | 116318    |
+| 12 |           TABLE SCAN               | T7    | 99900     | 13410     |
+| 13 |           NESTED LOOP Inner JOIN   |       | 1.000e+06 | 20920     |
+| 14 |            TABLE SCAN              | T6    | 10        | 16410     |
+| 15 |            TABLE SCAN              | T5    | 100000    | 409       |
 | 16 |         NESTED LOOP Inner JOIN     |       | 1.000e+11 | 6.820e+09 |
 | 17 |          NESTED LOOP LeftAnti JOIN |       | 1.000e+06 | 6.410e+09 |
 | 18 |           NESTED LOOP Inner JOIN   |       | 1.000e+06 | 130920    |
@@ -259,44 +265,46 @@ access([t8.c1])
 8 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
 9 - output([t6.c3], [t6.c1], [t7.c3], [t7.c1])
 11 - output([t6.c3], [t6.c1], [t7.c3], [t7.c1])
-12 - output([t6.c3], [t6.c1], [t7.c3], [t7.c1])
-other_join_conditions([t6.c3 LIKE t7.c3])
+equal_join_conditions([t6.c3 = t7.c3])
+12 - output([t7.c3], [t7.c1])
+filters([t7.c3 != t7.c1])
+access([t7.c3], [t7.c1])
 13 - output([t6.c3], [t6.c1])
+14 - output([t6.c3], [t6.c1])
 filters([t6.c1 IS NULL], [t6.c3 IS NULL])
 access([t6.c3], [t6.c1])
-14 - output([t7.c3], [t7.c1])
-filters([t7.c3!=t7.c1])
-access([t7.c3], [t7.c1])
 16 - output([t6.c3], [t6.c1], [t7.c3], [t7.c1])
 17 - output([t6.c3], [t6.c1], [t7.c3], [t7.c1])
-other_join_conditions([t7.c3!=t7.c1], [t6.c3 LIKE t7.c3])
-18 - output([t7.c3!=t7.c1], [t6.c3 LIKE t7.c3], [t6.c3], [t6.c1], [t7.c3], [t7.c1])
+other_join_conditions([t6.c3 = t7.c3], [t7.c3 != t7.c1])
+18 - output([t6.c3 = t7.c3], [t7.c3 != t7.c1], [t6.c3], [t6.c1], [t7.c3], [t7.c1])
 19 - output([t6.c3], [t6.c1])
 filters([t6.c1 IS NULL], [t6.c3 IS NULL])
 access([t6.c3], [t6.c1])
-20 - output([t7.c3!=t7.c1], [t7.c3], [t7.c1])
+20 - output([t7.c3], [t7.c3 != t7.c1], [t7.c1])
 access([t7.c3], [t7.c1])
 23 - output([t1.ROWID])
 access([t1.ROWID])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (((t8, VIEW1), t1), t2), t3)
 USE_NL(@SEL1 VIEW1)
 USE_NL(@SEL1 t1)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
-LEADING(@SEL1 (((t8, VIEW1), t1), t2), t3)
-USE_NL(@SEL2 t7)
-USE_NL(@SEL2 t5)
-USE_NL(@SEL2 t6, t7, t5)
-LEADING(@SEL2 t4, ((t6, t7), t5))
+LEADING(@SEL3 ((t6, t7), t4), t5)
 USE_NL(@SEL3 t7)
 USE_NL(@SEL3 t4)
 USE_NL(@SEL3 t5)
-LEADING(@SEL3 ((t6, t7), t4), t5)
+LEADING(@SEL2 t4, (t7, (t6, t5)))
+USE_NL(@SEL2 t5)
+USE_HASH(@SEL2 t6, t5)
+USE_NL(@SEL2 t7, t6, t5)
+END_OUTLINE_DATA
 */
 
-DELETE T1 FROM T2 T1, T1 T2, T1 T3, T2 T4 FULL JOIN (T1 T5 INNER JOIN T1 T6 ON T6.C3 IS NULL INNER JOIN T1 T7 ON T6.C1 IS NULL) ON (T7.C3) != (T7.C1) AND (T6.C3) LIKE T7.C3 RIGHT JOIN T1 T8 ON (T8.C1) IS NULL
+DELETE T1 FROM T2 T1, T1 T2, T1 T3, T2 T4 FULL JOIN (T1 T5 INNER JOIN T1 T6 ON T6.C3 IS NULL INNER JOIN T1 T7 ON T6.C1 IS NULL) ON (T7.C3) != (T7.C1) AND (T6.C3) = T7.C3 RIGHT JOIN T1 T8 ON (T8.C1) IS NULL
 
 SELECT * FROM T1
 
@@ -323,7 +331,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 1         | 1.342e+07 |
-| 1  |  DISTINCT                |      | 1         | 1.342e+07 |
+| 1  |  HASH DISTINCT           |      | 1         | 1.342e+07 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+08 | 423819    |
 | 3  |    TABLE SCAN            | T1   | 1000      | 13410     |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -337,8 +345,10 @@ access([t1.c4], [t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T1 T2 WHERE T1.C4 IS NULL
@@ -368,7 +378,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -381,8 +391,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T1 T2
@@ -412,7 +424,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -425,8 +437,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T1 T2
@@ -456,7 +470,7 @@ Query Plan:
 | ID | OPERATOR                    | NAME | ROW COUNT | COST      |
 +-----------------------------------------------------------------+
 | 0  | DELETE                      | T1   | 100000    | 4.023e+23 |
-| 1  |  DISTINCT                   |      | 100000    | 4.023e+23 |
+| 1  |  HASH DISTINCT              |      | 100000    | 4.023e+23 |
 | 2  |   NESTED LOOP Inner JOIN    |      | 3.000e+24 | 1.230e+22 |
 | 3  |    NESTED LOOP Inner JOIN   |      | 3.000e+19 | 1.230e+17 |
 | 4  |     NESTED LOOP Inner JOIN  |      | 3.000e+14 | 1.231e+12 |
@@ -473,7 +487,7 @@ Outputs & filters:
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
 5 - output([t1.ROWID])
-other_join_conditions([t1.c1>=t2.c2])
+other_join_conditions([t1.c1 >= t2.c2])
 6 - output([t1.c1], [t1.ROWID])
 access([t1.c1], [t1.ROWID])
 7 - output([t2.c2])
@@ -481,11 +495,13 @@ access([t2.c2])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (((t1, t2), t3), t4), t5)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
 USE_NL(@SEL1 t4)
 USE_NL(@SEL1 t5)
-LEADING(@SEL1 (((t1, t2), t3), t4), t5)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T1 T2, T1 T3, T1 T4, T1 T5 WHERE (T1.C1) >= T2.C2
@@ -515,7 +531,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -528,8 +544,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T2 T2
@@ -552,41 +570,41 @@ SELECT * FROM T1
 +------+------+------+------+
 10 rows in set
 
-EXPLAIN DELETE T1 FROM T1 T1, T2 T2 RIGHT JOIN T1 T3 ON ((T3.C4) LIKE T3.C1 OR (T2.C4) BETWEEN T3.C4 AND (T3.C1)), T2 T4 INNER JOIN (T2 T5 FULL JOIN T2 T6 ON T5.C3 < T6.C2) ON T4.C3 NOT BETWEEN T4.C3 AND T6.C1 OR T4.C3 NOT BETWEEN T6.C2 AND (T5.C2), T1 T7, T1 T8 INNER JOIN (T1 T9 FULL JOIN T1 T10 ON T10.C2 IS NULL) ON (T10.C2) NOT LIKE (T8.C1)
+EXPLAIN DELETE T1 FROM T1 T1, T2 T2 RIGHT JOIN T1 T3 ON ((T3.C4) = T3.C1 OR (T2.C4) BETWEEN T3.C4 AND (T3.C1)), T2 T4 INNER JOIN (T2 T5 FULL JOIN T2 T6 ON T5.C3 < T6.C2) ON T4.C3 NOT BETWEEN T4.C3 AND T6.C1 OR T4.C3 NOT BETWEEN T6.C2 AND (T5.C2), T1 T7, T1 T8 INNER JOIN (T1 T9 FULL JOIN T1 T10 ON T10.C2 IS NULL) ON (T10.C2) = (T8.C1)
 
 Query Plan:
 +--------------------------------------------------------------------------+
 | ID | OPERATOR                            | NAME  | ROW COUNT | COST      |
 +--------------------------------------------------------------------------+
-| 0  | DELETE                              | T1    | 100000    | 1.087e+45 |
-| 1  |  DISTINCT                           |       | 100000    | 1.087e+45 |
-| 2  |   NESTED LOOP Inner JOIN            |       | 8.108e+45 | 3.325e+43 |
-| 3  |    NESTED LOOP Inner JOIN           |       | 8.108e+40 | 4.387e+39 |
-| 4  |     NESTED LOOP Inner JOIN          |       | 8.108e+35 | 2.273e+35 |
-| 5  |      NESTED LOOP Inner JOIN         |       | 2.703e+26 | 7.577e+25 |
-| 6  |       NESTED LOOP Inner JOIN        |       | 3.003e+12 | 8.430e+11 |
-| 7  |        VIEW                         | VIEW2 | 1.001e+08 | 1.184e+09 |
-| 8  |         UNION_ALL                   |       | 1.001e+08 | 1.184e+09 |
-| 9  |          NESTED LOOP LeftOuter JOIN |       | 1.000e+08 | 8.410e+08 |
-| 10 |           TABLE SCAN                | T9    | 100000    | 409       |
-| 11 |           TABLE SCAN                | T10   | 1000      | 8410      |
-| 12 |          NESTED LOOP LeftAnti JOIN  |       | 100000    | 3.410e+08 |
-| 13 |           TABLE SCAN                | T10   | 100000    | 5410      |
-| 14 |           TABLE SCAN                | T9    | 100000    | 409       |
-| 15 |        TABLE SCAN                   | T8    | 100000    | 5410      |
-| 16 |       NESTED LOOP Inner JOIN        |       | 9.000e+13 | 2.523e+13 |
-| 17 |        VIEW                         | VIEW1 | 3.000e+09 | 2.242e+09 |
-| 18 |         UNION_ALL                   |       | 3.000e+09 | 2.242e+09 |
-| 19 |          NESTED LOOP LeftOuter JOIN |       | 3.000e+09 | 1.341e+09 |
-| 20 |           TABLE SCAN                | T5    | 100000    | 10410     |
-| 21 |           TABLE SCAN                | T6    | 100000    | 10410     |
-| 22 |          NESTED LOOP LeftAnti JOIN  |       | 100000    | 8.410e+08 |
-| 23 |           TABLE SCAN                | T6    | 100000    | 10410     |
-| 24 |           TABLE SCAN                | T5    | 100000    | 5410      |
-| 25 |        TABLE SCAN                   | T4    | 100000    | 5410      |
-| 26 |      NESTED LOOP LeftOuter JOIN     |       | 3.000e+09 | 8.410e+08 |
-| 27 |       TABLE SCAN                    | T3    | 100000    | 10410     |
-| 28 |       TABLE SCAN                    | T2    | 100000    | 5410      |
+| 0  | DELETE                              | T1    | 100000    | 3.624e+42 |
+| 1  |  HASH DISTINCT                      |       | 100000    | 3.624e+42 |
+| 2  |   NESTED LOOP Inner JOIN            |       | 2.703e+43 | 1.108e+41 |
+| 3  |    NESTED LOOP Inner JOIN           |       | 2.703e+38 | 1.462e+37 |
+| 4  |     NESTED LOOP Inner JOIN          |       | 2.703e+33 | 3.216e+32 |
+| 5  |      NESTED LOOP Inner JOIN         |       | 2.700e+23 | 7.569e+22 |
+| 6  |       NESTED LOOP Inner JOIN        |       | 9.000e+13 | 2.523e+13 |
+| 7  |        VIEW                         | VIEW1 | 3.000e+09 | 2.242e+09 |
+| 8  |         UNION_ALL                   |       | 3.000e+09 | 2.242e+09 |
+| 9  |          NESTED LOOP LeftOuter JOIN |       | 3.000e+09 | 1.341e+09 |
+| 10 |           TABLE SCAN                | T5    | 100000    | 10410     |
+| 11 |           TABLE SCAN                | T6    | 100000    | 10410     |
+| 12 |          NESTED LOOP LeftAnti JOIN  |       | 100000    | 8.410e+08 |
+| 13 |           TABLE SCAN                | T6    | 100000    | 10410     |
+| 14 |           TABLE SCAN                | T5    | 100000    | 5410      |
+| 15 |        TABLE SCAN                   | T4    | 100000    | 5410      |
+| 16 |       NESTED LOOP LeftOuter JOIN    |       | 3.000e+09 | 8.410e+08 |
+| 17 |        TABLE SCAN                   | T3    | 100000    | 10410     |
+| 18 |        TABLE SCAN                   | T2    | 100000    | 5410      |
+| 19 |      HASH Inner JOIN                |       | 1.001e+10 | 1.191e+09 |
+| 20 |       TABLE SCAN                    | T8    | 100000    | 5410      |
+| 21 |       VIEW                          | VIEW2 | 1.001e+08 | 1.184e+09 |
+| 22 |        UNION_ALL                    |       | 1.001e+08 | 1.184e+09 |
+| 23 |         NESTED LOOP LeftOuter JOIN  |       | 1.000e+08 | 8.410e+08 |
+| 24 |          TABLE SCAN                 | T9    | 100000    | 409       |
+| 25 |          TABLE SCAN                 | T10   | 1000      | 8410      |
+| 26 |         NESTED LOOP LeftAnti JOIN   |       | 100000    | 3.410e+08 |
+| 27 |          TABLE SCAN                 | T10   | 100000    | 5410      |
+| 28 |          TABLE SCAN                 | T9    | 100000    | 409       |
 | 29 |     TABLE SCAN                      | T1    | 100000    | 5410      |
 | 30 |    TABLE SCAN                       | T7    | 100000    | 409       |
 +--------------------------------------------------------------------------+
@@ -594,65 +612,67 @@ Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
-6 - other_join_conditions([VIEW2.C0 NOT LIKE t8.c1])
-7 - output([VIEW2.C0])
-8 - output([UNION_ALL(0)])
-9 - output([t10.c2])
-11 - output([t10.c2])
+6 - other_join_conditions([t4.c3 NOT BETWEEN t4.c3 AND VIEW1. OR t4.c3 NOT BETWEEN VIEW1. AND VIEW1.])
+7 - output([VIEW1.], [VIEW1.], [VIEW1.])
+8 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+9 - output([t5.c2], [t5.c3], [t6.c1], [t6.c2])
+other_join_conditions([t5.c3 < t6.c2])
+10 - output([t5.c3], [t5.c2])
+access([t5.c3], [t5.c2])
+11 - output([t6.c2], [t6.c1])
+access([t6.c2], [t6.c1])
+12 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [t6.c1], [t6.c2])
+other_join_conditions([t5.c3 < t6.c2])
+13 - output([t6.c2], [t6.c1])
+access([t6.c2], [t6.c1])
+14 - output([t5.c3])
+access([t5.c3])
+15 - output([t4.c3])
+access([t4.c3])
+16 - other_join_conditions([t3.c4 = t3.c1 OR t2.c4 BETWEEN t3.c4 AND t3.c1])
+17 - output([t3.c4], [t3.c1])
+access([t3.c4], [t3.c1])
+18 - output([t2.c4])
+access([t2.c4])
+19 - equal_join_conditions([VIEW2. = t8.c1])
+20 - output([t8.c1])
+access([t8.c1])
+21 - output([VIEW2.])
+22 - output([UNION_ALL(0)])
+23 - output([t10.c2])
+25 - output([t10.c2])
 filters([t10.c2 IS NULL])
 access([t10.c2])
-12 - output([t10.c2])
+26 - output([t10.c2])
 other_join_conditions([t10.c2 IS NULL])
-13 - output([t10.c2 IS NULL], [t10.c2])
+27 - output([t10.c2 IS NULL], [t10.c2])
 access([t10.c2])
-15 - output([t8.c1])
-access([t8.c1])
-16 - other_join_conditions([t4.c3 NOT BETWEEN t4.c3 AND VIEW1.C2 OR t4.c3 NOT BETWEEN VIEW1.C3 AND VIEW1.C0])
-17 - output([VIEW1.C2], [VIEW1.C3], [VIEW1.C0])
-18 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
-19 - output([t5.c2], [t5.c3], [t6.c1], [t6.c2])
-other_join_conditions([t5.c3<t6.c2])
-20 - output([t5.c3], [t5.c2])
-access([t5.c3], [t5.c2])
-21 - output([t6.c2], [t6.c1])
-access([t6.c2], [t6.c1])
-22 - output([NULL], [NULL], [t6.c1], [t6.c2])
-other_join_conditions([t5.c3<t6.c2])
-23 - output([t6.c2], [t6.c1])
-access([t6.c2], [t6.c1])
-24 - output([t5.c3])
-access([t5.c3])
-25 - output([t4.c3])
-access([t4.c3])
-26 - other_join_conditions([t3.c4 LIKE t3.c1 OR t2.c4 BETWEEN t3.c4 AND t3.c1])
-27 - output([t3.c4], [t3.c1])
-access([t3.c4], [t3.c1])
-28 - output([t2.c4])
-access([t2.c4])
 29 - output([t1.ROWID])
 access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t8)
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 ((((VIEW1, t4), (t3, t2)), (t8, VIEW2)), t1), t7)
 USE_NL(@SEL1 t4)
-USE_NL(@SEL1 VIEW1, t4)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3, t2)
+USE_HASH(@SEL1 VIEW2)
+USE_NL(@SEL1 t8, VIEW2)
 USE_NL(@SEL1 t1)
 USE_NL(@SEL1 t7)
-LEADING(@SEL1 ((((VIEW2, t8), (VIEW1, t4)), (t3, t2)), t1), t7)
-USE_NL(@SEL2 t6)
 LEADING(@SEL2 t5, t6)
-USE_NL(@SEL3 t5)
+USE_NL(@SEL2 t6)
 LEADING(@SEL3 t6, t5)
-USE_NL(@SEL5 t10)
-LEADING(@SEL5 t9, t10)
-USE_NL(@SEL6 t9)
+USE_NL(@SEL3 t5)
 LEADING(@SEL6 t10, t9)
+USE_NL(@SEL6 t9)
+LEADING(@SEL5 t9, t10)
+USE_NL(@SEL5 t10)
+END_OUTLINE_DATA
 */
 
-DELETE T1 FROM T1 T1, T2 T2 RIGHT JOIN T1 T3 ON ((T3.C4) LIKE T3.C1 OR (T2.C4) BETWEEN T3.C4 AND (T3.C1)), T2 T4 INNER JOIN (T2 T5 FULL JOIN T2 T6 ON T5.C3 < T6.C2) ON T4.C3 NOT BETWEEN T4.C3 AND T6.C1 OR T4.C3 NOT BETWEEN T6.C2 AND (T5.C2), T1 T7, T1 T8 INNER JOIN (T1 T9 FULL JOIN T1 T10 ON T10.C2 IS NULL) ON (T10.C2) NOT LIKE (T8.C1)
+DELETE T1 FROM T1 T1, T2 T2 RIGHT JOIN T1 T3 ON ((T3.C4) = T3.C1 OR (T2.C4) BETWEEN T3.C4 AND (T3.C1)), T2 T4 INNER JOIN (T2 T5 FULL JOIN T2 T6 ON T5.C3 < T6.C2) ON T4.C3 NOT BETWEEN T4.C3 AND T6.C1 OR T4.C3 NOT BETWEEN T6.C2 AND (T5.C2), T1 T7, T1 T8 INNER JOIN (T1 T9 FULL JOIN T1 T10 ON T10.C2 IS NULL) ON (T10.C2) = (T8.C1)
 
 SELECT * FROM T1
 
@@ -679,7 +699,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -692,8 +712,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T2 T2
@@ -723,7 +745,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -736,8 +758,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T2 T2
@@ -767,7 +791,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 3.054e+07 |
-| 1  |  DISTINCT                |      | 100000    | 3.053e+07 |
+| 1  |  HASH DISTINCT           |      | 100000    | 3.053e+07 |
 | 2  |   NESTED LOOP Inner JOIN |      | 6.993e+07 | 2.144e+07 |
 | 3  |    TABLE SCAN            | T2   | 1000      | 18410     |
 | 4  |    TABLE SCAN            | T1   | 100000    | 15410     |
@@ -775,7 +799,7 @@ Query Plan:
 Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
-other_join_conditions([t1.c1!=t2.c1], [t2.c3 NOT BETWEEN t1.c4 AND t1.c1])
+other_join_conditions([t1.c1 != t2.c1], [t2.c3 NOT BETWEEN t1.c4 AND t1.c1])
 3 - output([t2.c1], [t2.c3])
 filters([t2.c4 IS NULL])
 access([t2.c1], [t2.c4], [t2.c3])
@@ -784,8 +808,10 @@ access([t1.c1], [t1.c4], [t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t1)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t2, t1)
+USE_NL(@SEL1 t1)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T1 T2 WHERE ((T1.C1 != (T2.C1) AND (T2.C4) IS NULL) AND (T2.C3) NOT BETWEEN T1.C4 AND T1.C1)
@@ -808,50 +834,53 @@ SELECT * FROM T1
 +------+------+------+------+
 10 rows in set
 
-EXPLAIN DELETE T1 FROM T2 T1, T2 T2, T1 T3, T2 T4 INNER JOIN T1 T5 ON (T5.C1) NOT BETWEEN (T4.C2) AND (T4.C2) OR (T4.C1) LIKE (T5.C3) OR (T5.C4) < T4.C1 AND T4.C3 LIKE (T4.C4) WHERE (T5.C1) LIKE T2.C2
+EXPLAIN DELETE T1 FROM T2 T1, T2 T2, T1 T3, T2 T4 INNER JOIN T1 T5 ON (T5.C1) NOT BETWEEN (T4.C2) AND (T4.C2) OR (T4.C1) = (T5.C3) OR (T5.C4) < T4.C1 AND T4.C3 = (T4.C4) WHERE (T5.C1) = T2.C2
 
 Query Plan:
-+-----------------------------------------------------------------+
-| ID | OPERATOR                    | NAME | ROW COUNT | COST      |
-+-----------------------------------------------------------------+
-| 0  | DELETE                      | T1   | 100000    | 1.207e+23 |
-| 1  |  DISTINCT                   |      | 100000    | 1.207e+23 |
-| 2  |   NESTED LOOP Inner JOIN    |      | 9.000e+23 | 3.690e+21 |
-| 3  |    NESTED LOOP Inner JOIN   |      | 9.000e+18 | 4.869e+17 |
-| 4  |     NESTED LOOP Inner JOIN  |      | 9.000e+13 | 2.523e+13 |
-| 5  |      NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.841e+09 |
-| 6  |       TABLE SCAN            | T4   | 100000    | 20410     |
-| 7  |       TABLE SCAN            | T5   | 100000    | 15410     |
-| 8  |      TABLE SCAN             | T2   | 100000    | 5410      |
-| 9  |     TABLE SCAN              | T1   | 100000    | 5410      |
-| 10 |    TABLE SCAN               | T3   | 100000    | 409       |
-+-----------------------------------------------------------------+
++----------------------------------------------------------------+
+| ID | OPERATOR                   | NAME | ROW COUNT | COST      |
++----------------------------------------------------------------+
+| 0  | DELETE                     | T1   | 100000    | 3.900e+20 |
+| 1  |  HASH DISTINCT             |      | 100000    | 3.900e+20 |
+| 2  |   HASH Inner JOIN          |      | 3.000e+21 | 2.223e+13 |
+| 3  |    NESTED LOOP Inner JOIN  |      | 1.000e+10 | 5.410e+08 |
+| 4  |     TABLE SCAN             | T1   | 100000    | 5410      |
+| 5  |     TABLE SCAN             | T2   | 100000    | 5410      |
+| 6  |    NESTED LOOP Inner JOIN  |      | 3.000e+14 | 1.232e+12 |
+| 7  |     NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.841e+09 |
+| 8  |      TABLE SCAN            | T4   | 100000    | 20410     |
+| 9  |      TABLE SCAN            | T5   | 100000    | 15410     |
+| 10 |     TABLE SCAN             | T3   | 100000    | 409       |
++----------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
-3 - output([t1.ROWID])
-4 - other_join_conditions([t5.c1 LIKE t2.c2])
-5 - output([t5.c1])
-other_join_conditions([t5.c1 NOT BETWEEN t4.c2 AND t4.c2 OR t4.c1 LIKE t5.c3 OR t5.c4<t4.c1 AND t4.c3 LIKE t4.c4])
-6 - output([t4.c2], [t4.c1], [t4.c3], [t4.c4])
-access([t4.c2], [t4.c1], [t4.c3], [t4.c4])
-7 - output([t5.c1], [t5.c3], [t5.c4])
-access([t5.c1], [t5.c3], [t5.c4])
-8 - output([t2.c2])
-access([t2.c2])
-9 - output([t1.ROWID])
+equal_join_conditions([t5.c1 = t2.c2])
+3 - output([t2.c2], [t1.ROWID])
+4 - output([t1.ROWID])
 access([t1.ROWID])
+5 - output([t2.c2])
+access([t2.c2])
+6 - output([t5.c1])
+7 - output([t5.c1])
+other_join_conditions([t5.c1 NOT BETWEEN t4.c2 AND t4.c2 OR t4.c1 = t5.c3 OR t5.c4 < t4.c1 AND t4.c3 = t4.c4])
+8 - output([t4.c2], [t4.c1], [t4.c3], [t4.c4])
+access([t4.c2], [t4.c1], [t4.c3], [t4.c4])
+9 - output([t5.c1], [t5.c3], [t5.c4])
+access([t5.c1], [t5.c3], [t5.c4])
 
 outline:
 /*+
-USE_NL(@SEL1 t5)
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (t1, t2), ((t4, t5), t3))
 USE_NL(@SEL1 t2)
-USE_NL(@SEL1 t1)
+USE_NL(@SEL1 t5)
 USE_NL(@SEL1 t3)
-LEADING(@SEL1 (((t4, t5), t2), t1), t3)
+USE_HASH(@SEL1 t4, t5, t3)
+END_OUTLINE_DATA
 */
 
-DELETE T1 FROM T2 T1, T2 T2, T1 T3, T2 T4 INNER JOIN T1 T5 ON (T5.C1) NOT BETWEEN (T4.C2) AND (T4.C2) OR (T4.C1) LIKE (T5.C3) OR (T5.C4) < T4.C1 AND T4.C3 LIKE (T4.C4) WHERE (T5.C1) LIKE T2.C2
+DELETE T1 FROM T2 T1, T2 T2, T1 T3, T2 T4 INNER JOIN T1 T5 ON (T5.C1) NOT BETWEEN (T4.C2) AND (T4.C2) OR (T4.C1) = (T5.C3) OR (T5.C4) < T4.C1 AND T4.C3 = (T4.C4) WHERE (T5.C1) = T2.C2
 
 SELECT * FROM T1
 
@@ -878,7 +907,7 @@ Query Plan:
 | ID | OPERATOR                  | NAME | ROW COUNT | COST      |
 +---------------------------------------------------------------+
 | 0  | DELETE                    | T1   | 100000    | 1.341e+14 |
-| 1  |  DISTINCT                 |      | 100000    | 1.341e+14 |
+| 1  |  HASH DISTINCT            |      | 100000    | 1.341e+14 |
 | 2  |   NESTED LOOP Inner JOIN  |      | 1.000e+15 | 4.100e+12 |
 | 3  |    NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 4  |     TABLE SCAN            | T1   | 100000    | 5410      |
@@ -894,9 +923,11 @@ access([t1.ROWID])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (t1, t2), t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
-LEADING(@SEL1 (t1, t2), t3)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T1 T2, T1 T3
@@ -912,7 +943,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -925,8 +956,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T1 T2
@@ -935,27 +968,27 @@ SELECT * FROM T1
 
 Empty set
 
-EXPLAIN DELETE T1 FROM T2 T1, T2 T2 INNER JOIN T2 T3 ON (T3.C2 LIKE (T3.C1) AND T3.C2 = T2.C4 AND T2.C2 BETWEEN T2.C3 AND (T3.C2))
+EXPLAIN DELETE T1 FROM T2 T1, T2 T2 INNER JOIN T2 T3 ON (T3.C2 = (T3.C1) AND T3.C2 = T2.C4 AND T2.C2 BETWEEN T2.C3 AND (T3.C2))
 
 Query Plan:
 +--------------------------------------------------------------+
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
-| 0  | DELETE                   | T1   | 100000    | 1.657e+10 |
-| 1  |  DISTINCT                |      | 100000    | 1.657e+10 |
-| 2  |   NESTED LOOP Inner JOIN |      | 9.000e+10 | 4.869e+09 |
-| 3  |    HASH Inner JOIN       |      | 899999    | 66420     |
-| 4  |     TABLE SCAN           | T3   | 30000     | 13410     |
+| 0  | DELETE                   | T1   | 100000    | 5.527e+07 |
+| 1  |  HASH DISTINCT           |      | 100000    | 5.527e+07 |
+| 2  |   NESTED LOOP Inner JOIN |      | 3.000e+08 | 1.627e+07 |
+| 3  |    HASH Inner JOIN       |      | 2999      | 35922     |
+| 4  |     TABLE SCAN           | T3   | 100       | 13410     |
 | 5  |     TABLE SCAN           | T2   | 100000    | 15410     |
 | 6  |    TABLE SCAN            | T1   | 100000    | 5410      |
 +--------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
-3 - equal_join_conditions([t3.c2=t2.c4])
+3 - equal_join_conditions([t3.c2 = t2.c4])
 other_join_conditions([t2.c2 BETWEEN t2.c3 AND t3.c2])
 4 - output([t3.c2])
-filters([t3.c2 LIKE t3.c1])
+filters([t3.c2 = t3.c1])
 access([t3.c2], [t3.c1])
 5 - output([t2.c4], [t2.c2], [t2.c3])
 access([t2.c4], [t2.c2], [t2.c3])
@@ -964,12 +997,14 @@ access([t1.ROWID])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (t3, t2), t1)
 USE_HASH(@SEL1 t2)
 USE_NL(@SEL1 t1)
-LEADING(@SEL1 (t3, t2), t1)
+END_OUTLINE_DATA
 */
 
-DELETE T1 FROM T2 T1, T2 T2 INNER JOIN T2 T3 ON (T3.C2 LIKE (T3.C1) AND T3.C2 = T2.C4 AND T2.C2 BETWEEN T2.C3 AND (T3.C2))
+DELETE T1 FROM T2 T1, T2 T2 INNER JOIN T2 T3 ON (T3.C2 = (T3.C1) AND T3.C2 = T2.C4 AND T2.C2 BETWEEN T2.C3 AND (T3.C2))
 
 SELECT * FROM T1
 
@@ -982,7 +1017,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 1.341e+09 |
-| 1  |  DISTINCT                |      | 100000    | 1.341e+09 |
+| 1  |  HASH DISTINCT           |      | 100000    | 1.341e+09 |
 | 2  |   NESTED LOOP Inner JOIN |      | 1.000e+10 | 4.101e+07 |
 | 3  |    TABLE SCAN            | T1   | 100000    | 5410      |
 | 4  |    TABLE SCAN            | T2   | 100000    | 409       |
@@ -995,8 +1030,10 @@ access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t2)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t1, t2)
+USE_NL(@SEL1 t2)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T2 T1, T2 T2
@@ -1012,7 +1049,7 @@ Query Plan:
 | ID | OPERATOR                  | NAME | ROW COUNT | COST      |
 +---------------------------------------------------------------+
 | 0  | DELETE                    | T1   | 100000    | 1.341e+11 |
-| 1  |  DISTINCT                 |      | 100000    | 1.341e+11 |
+| 1  |  HASH DISTINCT            |      | 100000    | 1.341e+11 |
 | 2  |   NESTED LOOP Inner JOIN  |      | 1.000e+12 | 4.101e+09 |
 | 3  |    NESTED LOOP Inner JOIN |      | 1.000e+07 | 554820    |
 | 4  |     TABLE SCAN            | T2   | 100       | 8410      |
@@ -1023,16 +1060,18 @@ Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
-4 - filters([t2.c3=t2.c3])
+4 - filters([t2.c3 = t2.c3])
 access([t2.c3])
 5 - output([t1.ROWID])
 access([t1.ROWID])
 
 outline:
 /*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 (t2, t1), t3)
 USE_NL(@SEL1 t1)
 USE_NL(@SEL1 t3)
-LEADING(@SEL1 (t2, t1), t3)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T2 T2, T2 T3 WHERE T2.C3 = T2.C3
@@ -1048,7 +1087,7 @@ Query Plan:
 | ID | OPERATOR                 | NAME | ROW COUNT | COST      |
 +--------------------------------------------------------------+
 | 0  | DELETE                   | T1   | 100000    | 5.523e+08 |
-| 1  |  DISTINCT                |      | 100000    | 5.523e+08 |
+| 1  |  HASH DISTINCT           |      | 100000    | 5.523e+08 |
 | 2  |   NESTED LOOP Inner JOIN |      | 3.000e+09 | 1.623e+08 |
 | 3  |    TABLE SCAN            | T2   | 30000     | 13410     |
 | 4  |    TABLE SCAN            | T1   | 100000    | 5410      |
@@ -1056,15 +1095,17 @@ Query Plan:
 Outputs & filters:
 1 - output([t1.ROWID])
 2 - output([t1.ROWID])
-3 - filters([t2.c3>t2.c1])
+3 - filters([t2.c3 > t2.c1])
 access([t2.c3], [t2.c1])
 4 - output([t1.ROWID])
 access([t1.ROWID])
 
 outline:
 /*+
-USE_NL(@SEL1 t1)
+BEGIN_OUTLINE_DATA
 LEADING(@SEL1 t2, t1)
+USE_NL(@SEL1 t1)
+END_OUTLINE_DATA
 */
 
 DELETE T1 FROM T1 T1, T1 T2 WHERE T2.C3 > (T2.C1)

@@ -1,5 +1,6 @@
 #include "csv_table_space.h"
 #include "io_service.h"
+#include "obj_number.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -108,7 +109,7 @@ u32 CSVTableSpace::insert_row(const Row_s & row)
 	return ret;
 }
 
-u32 CSVTableSpace::update_row(const Row_s & row)
+u32 CSVTableSpace::get_row(u32 row_id, Row_s & row)
 {
 	return OPERATION_NOT_SUPPORT;
 }
@@ -119,6 +120,11 @@ u32 CSVTableSpace::delete_row(u32 row_id)
 }
 
 u32 CSVTableSpace::delete_all_row()
+{
+	return OPERATION_NOT_SUPPORT;
+}
+
+u32 CSVTableSpace::update_row(u32 row_id, const Row_s& update_row, const Row_s& access_row)
 {
 	return OPERATION_NOT_SUPPORT;
 }
@@ -183,34 +189,30 @@ u32 CSVTableSpace::buffer_move()
 u32 CSVTableSpace::read_row(Row_s& row)
 {
 	u32 ret = SUCCESS;
-	const RowDesc& desc = row->get_row_desc();
 	//反序列化所需的列
 	u32 column_id;
-	for (u32 i = 0; i < desc.get_column_num(); ++i)
+	for (u32 i = 0; i < row->get_cell_num(); ++i)
 	{
 		ColumnDesc col_desc;
-		if (desc.get_column_desc(i, col_desc) == SUCCESS) {
-			column_id = col_desc.get_cid();
-			if (column_id < column_cnt) {
-				u32 start = buf_start;
-				u32 end = column_pos[ column_id ];
-				if (column_id > 0) {
-					start = column_pos[ column_id-1 ] + 1;
-				}
-				Object_s value = Varchar::make_object(buffer + start, end - start);
-				row->set_cell(i, value);
-			} else if (column_id == ROWID_COLUMN_ID) {
-				row->set_cell(i, Number::make_object(row_id, -1));
-			} else {
-				LOG_ERR("row desc error when project row", K(column_cnt), K(col_desc));
-				return ERR_ROW_DESC;
+		CHECK(access_desc.get_column_desc(i, col_desc));
+		column_id = col_desc.get_cid();
+		if (column_id < column_cnt) {
+			u32 start = buf_start;
+			u32 end = column_pos[ column_id ];
+			if (column_id > 0) {
+				start = column_pos[ column_id-1 ] + 1;
 			}
+			Object_s value = Object::make_object(buffer + start, end - start, col_desc.get_data_type());
+			//TODO cast object
+			row->set_cell(i, value);
+		} else if (column_id == ROWID_COLUMN_ID) {
+			Object_s row_id_value = Number::make_object((longlong)row_id);
+			row->set_cell(i, row_id_value);
 		} else {
-			LOG_ERR("row desc error when project row", K(desc));
+			LOG_ERR("row desc error when project row", K(column_cnt), K(col_desc));
 			return ERR_ROW_DESC;
 		}
 	}
-	row->set_row_id(row_id);
 	column_cnt = 0;
 	buf_start = buf_read_pos;
 	++row_id;
@@ -220,9 +222,8 @@ u32 CSVTableSpace::read_row(Row_s& row)
 u32 CSVTableSpace::write_row(const Row_s& row)
 {
 	u32 ret = SUCCESS;
-	const RowDesc& desc = row->get_row_desc();
 	//序列化所有的列
-	for (u32 i = 0; i < desc.get_column_num(); ++i)
+	for (u32 i = 0; i < row->get_cell_num(); ++i)
 	{
 		Object_s value;
 		row->get_cell(i, value);

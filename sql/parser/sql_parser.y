@@ -20,6 +20,10 @@
 	#include "cmd_stmt.h"
 	#include "expr_stmt.h"
 	#include "table_stmt.h"
+	#include "object.h"
+	#include "obj_number.h"
+	#include "obj_varchar.h"
+	#include "obj_datetime.h"
 	#include "stmt.h"
 	#include "type.h"
 	/*避免包含头文件时冲突*/
@@ -181,7 +185,6 @@
 %token<std::string>	STRING
 %token<std::string>	IDENT
 %token<std::string>	NUMERIC
-%token<std::string>	TIMESTAMP
 %token<std::string>	QB_NAME_IDENT
 
 %token ALL
@@ -191,6 +194,7 @@
 %token AS
 %token ASC
 %token BEGIN_HINT
+%token BEGIN_OUTLINE_DATA
 %token BETWEEN
 %token BIGINT
 %token BINARY
@@ -225,12 +229,12 @@
 %token DUAL
 %token ELSE
 %token END_HINT
+%token END_OUTLINE_DATA
 %token END_SYM
 %token ENGINE
 %token EXCEPT
 %token EXISTS
 %token EXPLAIN
-%token FALSE
 %token FIELD
 %token FLOAT
 %token FROM
@@ -264,8 +268,10 @@
 %token MUL "*"
 %token NOT
 %token NO_REWRITE
+%token NO_UNNEST
+%token NO_USE_HASH
+%token NO_USE_NL
 %token NULLX
-%token NUMBER
 %token NUMERIC_SYM
 %token ON
 %token OR
@@ -275,7 +281,6 @@
 %token PERIOD "."
 %token PLUS "+"
 %token PROCESSLIST
-%token QB_NAME
 %token REAL
 %token RIGHT
 %token ROWID
@@ -299,8 +304,8 @@
 %token TINYINT
 %token TO_CHAR
 %token TO_NUMBER
-%token TRUE
 %token UNION
+%token UNNEST
 %token UPDATE
 %token USE_HASH
 %token USE_NL
@@ -316,27 +321,29 @@
 %type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt delete_stmt explain_stmt explainable_stmt
 %type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
 %type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt set_var_stmt kill_stmt
-%type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr in_expr column_ref expr_const func_expr query_ref_expr insert_value update_asgn_factor case_when_expr
+%type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
 %type<OrderStmt_s>					order_by
 %type<LimitStmt_s>					opt_select_limit
 %type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
 %type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split
-%type<int>							limit_expr data_type int_value
+%type<int>							limit_expr int_value opt_char_length opt_time_precision
+%type<DataType>						data_type
 %type<double>						opt_sample_size
 %type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name ident string datetime number opt_qb_name opt_qb_name_single 
 %type<Vector<TableStmt_s>>			from_list 
 %type<BasicTableStmt_s> 			relation_factor
 %type<Vector<OrderStmt_s>>			opt_order_by order_by_list
-%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value_list update_asgn_list when_then_list1 when_then_list2
+%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list when_then_list1 when_then_list2
+%type<Vector<Vector<ExprStmt_s>>>	insert_value_list
 %type<ColumnDefineStmt_s>			column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
 %type<Hint> 						opt_hint
-%type<Vector<HintStmt_s>> 			hint_list
+%type<Vector<HintStmt_s>> 			opt_hint_list hint_list
 %type<HintStmt_s> 					single_hint
 %type<Vector<String>> 				hint_table_list opt_engine_def
 %type<Vector<LeadingTable_s>> 		leading_hint_table_list
 %type<LeadingTable_s> 				leading_hint_table
-%type<OperationType> 				cmp_type
+%type<OperationType> 				cmp_type sq_cmp_type
 %start sql_stmt
 %%
 
@@ -469,14 +476,28 @@ simple_select:
 
 opt_hint:
 	/*empty*/ { $$ = Hint(); }
-	| BEGIN_HINT hint_list END_HINT
+	| BEGIN_HINT opt_hint_list END_HINT
 	{
 		$$ = Hint();
 		$$.all_hints = $2;
+		$$.is_outline = false;
 	}
-	| BEGIN_HINT END_HINT
+	| BEGIN_HINT BEGIN_OUTLINE_DATA opt_hint_list END_OUTLINE_DATA END_HINT
 	{
 		$$ = Hint();
+		$$.all_hints = $3;
+		$$.is_outline = true;
+	}
+	;
+
+opt_hint_list:
+	/*empty*/ 
+	{
+		$$ = Vector<HintStmt_s>();
+	}
+	| hint_list
+	{
+		$$ = $1;
 	}
 	;
 
@@ -498,26 +519,34 @@ hint_list:
 	;
 
 single_hint:
-	QB_NAME "(" ident ")"
+/*transformer hint*/
+	NO_REWRITE opt_qb_name_single
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::QB_NAME);
-		$$->set_qb_name($3);
-	}
-	| NO_REWRITE opt_qb_name_single
-	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::NO_REWRITE);
+		$$ = HintStmt::make_hint_stmt(NO_REWRITE);
 		$$->set_qb_name($2);
 	}
-	| ORDERED opt_qb_name_single
+	| UNNEST opt_qb_name_single
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::LEADING);
+		$$ = HintStmt::make_hint_stmt(UNNEST, true);
 		$$->set_qb_name($2);
-		LeadingHintStmt_s leading = $$;
-		leading->set_is_ordered();
 	}
+	| NO_UNNEST opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(UNNEST, false);
+		$$->set_qb_name($2);
+	}
+/*optiizer hint*/
 	| USE_HASH "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::JOIN);
+		$$ = HintStmt::make_hint_stmt(JOIN, true);
+		$$->set_qb_name($3);
+		JoinHintStmt_s join_hint = $$;
+		join_hint->set_join_algo(HASH_JOIN);
+		join_hint->table_names = $4;
+	}
+	| NO_USE_HASH "(" opt_qb_name hint_table_list ")"
+	{
+		$$ = HintStmt::make_hint_stmt(JOIN, false);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(HASH_JOIN);
@@ -525,24 +554,40 @@ single_hint:
 	}
 	| USE_NL "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::JOIN);
+		$$ = HintStmt::make_hint_stmt(JOIN, true);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(NL_JOIN);
 		join_hint->table_names = $4;
 	}
+	| NO_USE_NL "(" opt_qb_name hint_table_list ")"
+	{
+		$$ = HintStmt::make_hint_stmt(JOIN, false);
+		$$->set_qb_name($3);
+		JoinHintStmt_s join_hint = $$;
+		join_hint->set_join_algo(NL_JOIN);
+		join_hint->table_names = $4;
+	}
+	| ORDERED opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(LEADING);
+		$$->set_qb_name($2);
+		LeadingHintStmt_s leading = $$;
+		leading->set_is_ordered();
+	}
 	| LEADING "(" opt_qb_name leading_hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::LEADING);
+		$$ = HintStmt::make_hint_stmt(LEADING);
 		$$->set_qb_name($3);
 		LeadingHintStmt_s leading = $$;
 		leading->tables = LeadingTable::make_leading_table();
 		leading->tables->is_base_table = false;
 		leading->tables->table_list = $4;
 	}
+/*global hint*/
 	| PARALLEL "(" int_value ")"
 	{
-		$$ = HintStmt::make_hint_stmt(HintStmt::PARALLEL);
+		$$ = HintStmt::make_hint_stmt(PARALLEL);
 		ParallelHintStmt_s hint = $$;
 		hint->parallel = $3;
 	}
@@ -558,6 +603,10 @@ opt_qb_name:
 
 opt_qb_name_single:
 	/*empty*/ { $$ = ""; }
+	| "(" ")"
+	{
+		$$ = "";
+	}
 	| "(" QB_NAME_IDENT ")"
 	{
 		$$ = $2;
@@ -901,22 +950,6 @@ cmp_expr:
 		//构建比较二元表达式 
 		make_binary_stmt($$, $1, $3, $2);
 	}
-  | arith_expr cmp_type ANY query_ref_expr 
-	{
-		SubQueryStmt_s query_expr = $4;
-		query_expr->is_any = true;
-		query_expr->output_one_row = false;
-		//构建比较二元表达式 
-		make_binary_stmt($$, $1, $4, $2);
-	}
-  | arith_expr cmp_type ALL query_ref_expr 
-	{
-		SubQueryStmt_s query_expr = $4;
-		query_expr->is_all = true;
-		query_expr->output_one_row = false;
-		//构建比较二元表达式 
-		make_binary_stmt($$, $1, $4, $2);
-	}
   | arith_expr IS NULLX
     {
 		//构建is null表达式
@@ -937,29 +970,52 @@ cmp_expr:
 		//构建not between and三元表达式
 		make_ternary_stmt($$, $1, $4, $6, OP_NOT_BETWEEN);
     }
-  | arith_expr IN in_expr
+  | arith_expr IN "(" arith_expr_list ")"
+    {
+		//构建in表达式
+		ExprStmt_s stmt = OpExprStmt::make_op_expr_stmt(OP_IN_LIST);
+		check(stmt);
+		stmt->params.push_back($1);
+		ExprStmt_s list = ListStmt::make_list_stmt();
+		list->params = $4;
+		stmt->params.push_back(list);
+		$$ = stmt;
+    }
+  | arith_expr NOT IN "(" arith_expr_list ")"
+    {
+		//构建not in表达式
+		ExprStmt_s stmt = OpExprStmt::make_op_expr_stmt(OP_NOT_IN_LIST);
+		check(stmt);
+		stmt->params.push_back($1);
+		ExprStmt_s list = ListStmt::make_list_stmt();
+		list->params = $5;
+		stmt->params.push_back(list);
+		$$ = stmt;
+    }
+  | arith_expr IN query_ref_expr
     {
 		//构建in表达式
 		make_binary_stmt($$, $1, $3, OP_IN);
     }
-  | arith_expr NOT IN in_expr
+  | arith_expr NOT IN query_ref_expr
     {
 		//构建not in表达式
 		make_binary_stmt($$, $1, $4, OP_NOT_IN);
     }
   | EXISTS query_ref_expr
     {
-		SubQueryStmt_s query_expr = $2;
-		query_expr->output_one_row = false;
     	make_unary_stmt($$, $2, OP_EXISTS);
     }
   | NOT EXISTS query_ref_expr
     {
-		SubQueryStmt_s query_expr = $3;
-		query_expr->output_one_row = false;
 		//构建not一元表达式
 		make_unary_stmt($$, $3, OP_NOT_EXISTS);
     }
+  | arith_expr sq_cmp_type query_ref_expr 
+	{
+		//构建比较二元表达式 
+		make_binary_stmt($$, $1, $3, $2);
+	}
   ;
 
 cmp_type:
@@ -997,23 +1053,56 @@ cmp_type:
 	}
 	;
 
-in_expr:
-    query_ref_expr
-    {
-		SubQueryStmt_s query_expr = $1;
-		query_expr->output_one_row = false;
-		$$ = $1;
-    }
-  | "(" arith_expr_list ")"
-    { 
-		ListStmt_s list_stmt = ListStmt::make_list_stmt();
-		Vector<ExprStmt_s> &exprs = $2;
-		for (u32 i = 0; i < exprs.size(); ++i) {
-			list_stmt->push_back(exprs[i]);
-		}
-		$$ = list_stmt;
+sq_cmp_type:
+	CMP_LE ANY
+	{
+		$$ = OP_LE_ANY;
 	}
-  ;
+  | CMP_LT ANY
+	{
+		$$ = OP_LT_ANY;
+	}
+  | CMP_EQ ANY
+	{
+		$$ = OP_EQ_ANY;
+	}
+  | CMP_GE ANY
+	{
+		$$ = OP_GE_ANY;
+	}
+  | CMP_GT ANY
+	{
+		$$ = OP_GT_ANY;
+	}
+  | CMP_NE ANY
+	{
+		$$ = OP_NE_ANY;
+	}
+  |	CMP_LE ALL
+	{
+		$$ = OP_LE_ALL;
+	}
+  | CMP_LT ALL
+	{
+		$$ = OP_LT_ALL;
+	}
+  | CMP_EQ ALL
+	{
+		$$ = OP_EQ_ALL;
+	}
+  | CMP_GE ALL
+	{
+		$$ = OP_GE_ALL;
+	}
+  | CMP_GT ALL
+	{
+		$$ = OP_GT_ALL;
+	}
+  | CMP_NE ALL
+	{
+		$$ = OP_NE_ALL;
+	}
+	;
 
 query_ref_expr:
 	select_with_parens
@@ -1151,6 +1240,10 @@ expr_const:
   | datetime
 	{
 		//构建常量表达式
+		if (!DateTime::is_valid_datetime($1)) {
+			yyerror("invalid datetime");
+			YYABORT;
+		}
 		Object_s value = DateTime::make_object($1);
 		check(value);
 		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
@@ -1160,7 +1253,8 @@ expr_const:
   | INTERVAL string DAY
   {
 	  //构建常量表达式
-		Object_s value = DateTime::make_object_from_day(std::stoi($2));
+		Number_s value;
+		DateTime::make_second_from_day(std::stoi($2), value);
 		check(value);
 		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
 		check(stmt);
@@ -1169,7 +1263,8 @@ expr_const:
   | INTERVAL string MONTH
   {
 	  //构建常量表达式
-		Object_s value = DateTime::make_object_from_month(std::stoi($2));
+		Number_s value;
+		DateTime::make_second_from_month(std::stoi($2), value);
 		check(value);
 		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
 		check(stmt);
@@ -1178,7 +1273,8 @@ expr_const:
   | INTERVAL string YEAR
   {
 	  //构建常量表达式
-		Object_s value = DateTime::make_object_from_year(std::stoi($2));
+		Number_s value;
+		DateTime::make_second_from_year(std::stoi($2), value);
 		check(value);
 		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
 		check(stmt);
@@ -1192,25 +1288,7 @@ expr_const:
 		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
 		check(stmt);
 		$$ = stmt;
-	}
-  | FALSE
-	{
-		//构建常量表达式
-		Object_s value = Bool::make_object(false);
-		check(value);
-		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
-		check(stmt);
-		$$ = stmt;
-	}
-  | TRUE
-	{
-		//构建常量表达式
-		Object_s value = Bool::make_object(true);
-		check(value);
-		ExprStmt_s stmt = ConstStmt::make_const_stmt(value);
-		check(stmt);
-		$$ = stmt;
-	}
+    }
   | NULLX
 	{
 		//构建常量表达式
@@ -1316,10 +1394,11 @@ insert_stmt:
 		$$ = insert_stmt;
     }
   ;
+
 insert_value_list:
     "(" insert_value ")"
     {
-		$$ = Vector<ExprStmt_s>();
+		$$ = Vector<Vector<ExprStmt_s>>();
 		$$.push_back($2);
     }
   | insert_value_list "," "(" insert_value ")" 
@@ -1332,13 +1411,13 @@ insert_value_list:
 insert_value:
     arith_expr 
 	{ 
-		//构建值列表
-		make_list($$, $1);
+		$$ = Vector<ExprStmt_s>();
+		$$.push_back($1);
 	}
   | insert_value "," arith_expr
     {
-		//将新的表达式加入到表达式列表
-		list_push($$, $1, $3);
+		$$ = $1;
+		$$.push_back($3);
     }
   ;
 
@@ -1393,7 +1472,7 @@ update_asgn_factor:
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt("", $1);
 		check(col);
-		make_binary_stmt($$, col, $3, OP_EQ);
+		make_binary_stmt($$, col, $3, OP_ASSIGN);
     }
   ;
 
@@ -1466,7 +1545,7 @@ explainable_stmt:
 create_stmt:
     CREATE TABLE relation_factor "(" table_element_list ")" opt_engine_def
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::CreateTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateTable);
 		check(cmd_stmt);
 		cmd_stmt->params.create_table_params.table = $3;
 		cmd_stmt->params.create_table_params.column_define_list = $5;
@@ -1475,7 +1554,7 @@ create_stmt:
     }
 	| CREATE DATABASE database_name
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::CreateDatabase);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateDatabase);
 		check(cmd_stmt);
 		cmd_stmt->params.create_database_params.database = $3;
 		$$ = cmd_stmt;
@@ -1506,64 +1585,71 @@ column_definition:
 
 data_type:
   TINYINT
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
   | SMALLINT
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
   | MEDIUMINT
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_MEDIUMINT_PREC, 0); }
   | INT
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_INT_PREC, 0); }
   | BIGINT
-    { $$ = ColumnDefineStmt::NUMBER; }
-  | DECIMAL opt_decimal
-    { $$ = ColumnDefineStmt::NUMBER; }
-  | NUMERIC_SYM opt_decimal
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_BIGINT_PREC, 0); }
+  | DECIMAL 
+    { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
+  | NUMERIC_SYM 
+    { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
+  | DECIMAL "(" int_value "," int_value ")"
+    { $$ = DataType(T_NUMBER, $3, $5); }
+  | NUMERIC_SYM "(" int_value "," int_value ")"
+    { $$ = DataType(T_NUMBER, $3, $5); }
   | BOOL
-    { $$ = ColumnDefineStmt::NUMBER; }
-  | FLOAT opt_float
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
+  | FLOAT
+    { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
   | REAL
-    { $$ = ColumnDefineStmt::NUMBER; }
-  | DOUBLE opt_decimal
-    { $$ = ColumnDefineStmt::NUMBER; }
+    { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
+  | DOUBLE
+    { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
   | CHAR opt_char_length
-    { $$ = ColumnDefineStmt::VARCHAR; }
+    { $$ = DataType(T_VARCHAR, $2); }
   | BINARY opt_char_length
-    { $$ = ColumnDefineStmt::VARCHAR; }
+    { $$ = DataType(T_VARCHAR, $2); }
   | VARCHAR opt_char_length
-    { $$ = ColumnDefineStmt::VARCHAR; }
+    { $$ = DataType(T_VARCHAR, $2); }
   | VARBINARY opt_char_length
-    { $$ = ColumnDefineStmt::VARCHAR; }
+    { $$ = DataType(T_VARCHAR, $2); }
   | TIMESTAMP_SYM opt_time_precision
-    { $$ = ColumnDefineStmt::DATETIME; }
+    { $$ = DataType(T_DATETIME, TIMESTAMP, $2); }
   | DATETIME
-    { $$ = ColumnDefineStmt::DATETIME; }
+    { $$ = DataType(T_DATETIME, DATETIME); }
   | DATE
-    { $$ = ColumnDefineStmt::DATETIME; }
+    { $$ = DataType(T_DATETIME, DATE); }
   | TIME opt_time_precision
-    { $$ = ColumnDefineStmt::DATETIME; }
-  ;
-  
-opt_decimal:
-    "(" number "," number ")" 	{ }
-  | "(" number ")" 				{ }
-  | /*EMPTY*/ 					{ }
-  ;
-
-opt_float:
-    "(" number ")"    { }
-  | /*EMPTY*/         { }
+    { $$ = DataType(T_DATETIME, TIME); }
   ;
 
 opt_time_precision:
-    "(" number ")"    { }
-  | /*EMPTY*/         { }
+	/*EMPTY*/         	{ $$ = MAX_TIME_SCALE; }
+  	| "(" int_value ")"   
+	{ 
+		if ($2 > MAX_TIME_SCALE) {
+			yyerror("max time prec:%d", MAX_TIME_SCALE);
+			YYABORT;
+		}
+		$$ = $2; 
+	}
   ;
 
 opt_char_length:
-    "(" number ")"    { }
-  | /*EMPTY*/         { }
+	/*EMPTY*/         	{ $$ = MAX_STR_LENGTH; }
+  	| "(" int_value ")"   
+	  { 
+		  if ($2 > MAX_STR_LENGTH) {
+			yyerror("max char length:%d", MAX_STR_LENGTH);
+			YYABORT;
+		}
+		$$ = $2; 
+	  }
   ;
 
 opt_engine_def:
@@ -1590,7 +1676,7 @@ opt_engine_def:
  drop_stmt:
     DROP TABLE opt_if_exists table_factor
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropTable);
 		check(cmd_stmt);
 		cmd_stmt->params.drop_table_params.ignore_not_exists = $3;
 		cmd_stmt->params.drop_table_params.table = $4;
@@ -1598,7 +1684,7 @@ opt_engine_def:
     }
 	| DROP DATABASE opt_if_exists database_name
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DropDatabase);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropDatabase);
 		check(cmd_stmt);
 		cmd_stmt->params.drop_database_params.ignore_not_exists = $3;
 		cmd_stmt->params.drop_database_params.database = $4;
@@ -1619,28 +1705,28 @@ opt_if_exists:
  show_stmt:
     SHOW DATABASES
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowDatabases);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);
 		cmd_stmt->params.show_databases_params.is_select_current_database = false;
 		$$ = cmd_stmt;
  	}
 	| SHOW FULL TABLES op_from_database
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowTables);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
 		cmd_stmt->params.show_tables_params.database = $4;
 		$$ = cmd_stmt;
 	}
 	| SHOW TABLES op_from_database
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowTables);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
 		cmd_stmt->params.show_tables_params.database = $3;
 		$$ = cmd_stmt;
 	}
 	| SHOW COLUMNS FROM relation_factor
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $4;
 		$$ = cmd_stmt;
@@ -1655,7 +1741,7 @@ opt_if_exists:
 	}
 	| SHOW TABLE STATIS relation_factor
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $4;
 		cmd_stmt->params.desc_table_params.is_show_table_statis = true;
@@ -1663,7 +1749,7 @@ opt_if_exists:
 	}
 	| SHOW COLUMN STATIS relation_factor
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $4;
 		cmd_stmt->params.desc_table_params.is_show_column_statis = true;
@@ -1671,13 +1757,13 @@ opt_if_exists:
 	}
 	| SHOW PROCESSLIST
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowProcesslist);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowProcesslist);
 		check(cmd_stmt);
 		$$ = cmd_stmt;
 	}
 	| SHOW MEMORY
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::ShowMemory);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowMemory);
 		check(cmd_stmt);
 		$$ = cmd_stmt;
 	}
@@ -1697,7 +1783,7 @@ op_from_database:
  use_stmt:
 	USING database_name
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::UseDatabase);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(UseDatabase);
 		check(cmd_stmt);
 		cmd_stmt->params.use_database_params.database = $2;
 		$$ = cmd_stmt;
@@ -1712,14 +1798,14 @@ op_from_database:
  desc_stmt:
     DESCRIBE relation_factor
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $2;
 		$$ = cmd_stmt;
     }
 	| DESC relation_factor
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::DescTable);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = $2;
 		$$ = cmd_stmt;
@@ -1733,7 +1819,7 @@ op_from_database:
  analyze_stmt:
     ANALYZE TABLE database_name "." relation_name opt_sample_size
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = $3;
 		cmd_stmt->params.analyze_params.table = $5;
@@ -1742,7 +1828,7 @@ op_from_database:
     }
   | ANALYZE TABLE database_name "." "*" opt_sample_size
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = $3;
 		cmd_stmt->params.analyze_params.table = "*";
@@ -1751,7 +1837,7 @@ op_from_database:
     }
   | ANALYZE TABLE "*" "." "*" opt_sample_size
     {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Analyze);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
 		cmd_stmt->params.analyze_params.database = "*";
 		cmd_stmt->params.analyze_params.table = "*";
@@ -1771,7 +1857,7 @@ opt_sample_size:
 set_var_stmt:
 	SET ident CMP_EQ string
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::SetVar);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(SetVar);
 		check(cmd_stmt);
 		cmd_stmt->params.set_var_params.var_name = $2;
 		cmd_stmt->params.set_var_params.var_value = $4;
@@ -1782,7 +1868,7 @@ set_var_stmt:
 kill_stmt:
 	KILL int_value
 	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CMDStmt::Kill);
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Kill);
 		check(cmd_stmt);
 		cmd_stmt->params.kill_params.thread_id = $2;
 		$$ = cmd_stmt;

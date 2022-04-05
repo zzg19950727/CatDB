@@ -25,11 +25,19 @@ namespace CatDB {
         DECLARE(HintStmt);
         using Sql::QueryCtx_s;
         
+        struct ExecParamHelper {
+            ExecParamStmt_s exec_param;
+            ExprStmt_s ref_expr;
+        };
+        
         struct ResolveCtx {
             Vector<TableStmt_s> parent_tables;
             Vector<TableStmt_s> cur_tables;
-            Vector<ExecParamStmt_s> columns_from_parent;
+            Vector<ExecParamHelper> columns_from_parent;
             Vector<HintStmt_s> all_hints;
+            bool has_outline;
+            ResolveCtx()
+            : has_outline(false) {}
         };
         class DMLResolver
         {

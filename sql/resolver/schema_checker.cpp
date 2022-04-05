@@ -1,5 +1,6 @@
 #include "schema_checker.h"
 #include "schema_guard.h"
+#include "object.h"
 #include "error.h"
 #include "row.h"
 #include "log.h"
@@ -28,13 +29,13 @@ u32 SchemaChecker::get_row_desc(u32 ref_table_id, RowDesc& row_desc)
 	u32 ret = SUCCESS;
 	TableInfo_s table_info;
 	CHECK(schema_guard->find_table_info(ref_table_id, table_info));
-	for (auto iter = table_info->id_column_infos.cbegin(); 
-		 iter != table_info->id_column_infos.cend(); 
-		 ++iter) {
-		ColumnInfo_s column_info = iter->second;
+	Vector<ColumnInfo_s> columns;
+	CHECK(get_all_columns(ref_table_id, columns));
+	for (u32 i = 0; i < columns.size(); ++i) {
+		ColumnInfo_s &column_info = columns[i];
 		ColumnDesc col_desc;
-		col_desc.set_tid_cid(column_info->table_id, column_info->column_id);
-		col_desc.set_data_type(Object::string_to_type(column_info->column_type));
+		col_desc.set_cid(column_info->column_id);
+		col_desc.set_data_type(column_info->column_type);
 		row_desc.add_column_desc(col_desc);
 	}
 	return ret;
@@ -50,6 +51,9 @@ u32 SchemaChecker::get_all_columns(u32 ref_table_id, Vector<ColumnInfo_s> &colum
 		 ++iter) {
 		columns.push_back(iter->second);
 	}
+	std::sort(columns.begin(), 
+			  columns.end(), 
+			  [](const ColumnInfo_s& lhs, const ColumnInfo_s& rhs) { return lhs->column_id < rhs->column_id; } );
 	return ret;
 }
 
@@ -58,8 +62,8 @@ u32 SchemaChecker::get_column_desc(u32 ref_table_id, const String& column_name, 
 	u32 ret = SUCCESS;
 	ColumnInfo_s column_info;
 	CHECK(schema_guard->find_column_info(ref_table_id, column_name, column_info));
-	col_desc.set_tid_cid(column_info->table_id, column_info->column_id);
-	col_desc.set_data_type(Object::string_to_type(column_info->column_type));
+	col_desc.set_cid(column_info->column_id);
+	col_desc.set_data_type(column_info->column_type);
 	return ret;
 }
 

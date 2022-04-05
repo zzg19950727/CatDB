@@ -14,9 +14,9 @@ UpdateStmt::~UpdateStmt()
 {
 }
 
-Stmt::StmtType UpdateStmt::stmt_type() const
+StmtType UpdateStmt::stmt_type() const
 {
-	return Stmt::Update;
+	return Update;
 }
 
 Stmt_s UpdateStmt::make_update_stmt()

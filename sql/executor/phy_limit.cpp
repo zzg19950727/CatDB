@@ -1,4 +1,5 @@
 #include "phy_limit.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 #include "row.h"
@@ -35,18 +36,21 @@ u32 CatDB::Sql::PhyLimit::reset()
 	return child->reset();
 }
 
-u32 CatDB::Sql::PhyLimit::inner_get_next_row(Row_s & row)
+u32 CatDB::Sql::PhyLimit::inner_get_next_row()
 {
+	u32 ret = SUCCESS;
+	Row_s row;
 	if ( cur_offset >= offset && cur_offset - offset >= size){
 		return NO_MORE_ROWS;
 	}
-	while (child->get_next_row(row) == SUCCESS){
+	while (SUCC(child->get_next_row(row))) {
 		if (cur_offset < offset){
 			++cur_offset;
 			continue;
 		}else{
 			++cur_offset;
-			return SUCCESS;
+			set_input_rows(row);
+			return ret;
 		}
 	}
 	return NO_MORE_ROWS;

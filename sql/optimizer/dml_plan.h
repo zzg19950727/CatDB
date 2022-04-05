@@ -24,6 +24,10 @@ namespace CatDB {
 		using Parser::LeadingTable_s;
 
 		struct JoinInfo {
+			JoinInfo()
+			:join_type(Inner)
+			{}
+			
 			Vector<ExprStmt_s> equal_join_condition;
 			Vector<ExprStmt_s> other_join_condition;
 			Vector<ExprStmt_s> outer_join_filter;
@@ -163,7 +167,6 @@ namespace CatDB {
 			u32 get_join_method(const BitSet &left_tables,
 								const BitSet &right_tables,
 								JoinInfo &join_info,
-								bool ignore_hint,
 								JoinAlgo &algo);
 			u32 add_join_order(LogicalOperator_s& join_order, u32 level);
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);

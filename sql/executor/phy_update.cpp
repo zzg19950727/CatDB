@@ -1,6 +1,5 @@
 #include "phy_update.h"
 #include "phy_expression.h"
-#include "phy_filter.h"
 #include "table_space.h"
 #include "object.h"
 #include "error.h"
@@ -37,8 +36,13 @@ PhyOperator_s PhyUpdate::make_update(PhyOperator_s& child,
 
 u32 PhyUpdate::inner_open()
 {
+    u32 ret = SUCCESS;
     u32 ret1 = table_space->open();
     u32 ret2 = child->open();
+    update_row = Row::make_row(update_desc.get_column_num());
+    update_row->set_op_id(operator_id);
+    access_row = Row::make_row(access_desc.get_column_num());
+    access_row->set_op_id(operator_id);
     if (FAIL(ret1)) {
         return ret1;
     } else {
@@ -48,6 +52,7 @@ u32 PhyUpdate::inner_open()
 
 u32 PhyUpdate::close()
 {
+    u32 ret = SUCCESS;
     u32 ret1 = table_space->close();
     u32 ret2 = child->close();
     if (FAIL(ret1)) {
@@ -59,6 +64,7 @@ u32 PhyUpdate::close()
 
 u32 PhyUpdate::reset()
 {
+    u32 ret = SUCCESS;
     u32 ret1 = table_space->reset();
     u32 ret2 = child->reset();
     if (FAIL(ret1)) {
@@ -68,22 +74,25 @@ u32 PhyUpdate::reset()
     }
 }
 
-u32 PhyUpdate::inner_get_next_row(Row_s &row)
+u32 PhyUpdate::inner_get_next_row()
 {
-    u32 ret;
-    while((ret = child->get_next_row(row)) == SUCCESS){
-        Object_s result = row_id->get_result(row);
+    u32 ret = SUCCESS;
+    Row_s row;
+    while(SUCC(child->get_next_row(row))){
+        exec_ctx->set_input_rows(row);
+        CHECK(row_id->get_result(exec_ctx));
+        Object_s &result = exec_ctx->output_result;
         if (result->is_null()) {
             continue;
         }
-        MY_ASSERT(T_NUMBER == result->get_type());
-		Number_s num = result;
-        cur_row->set_row_id( num->value() );
-        for (u32 i = 0; SUCC(ret) && i < value_exprs.size(); ++i) {
-            CHECK(cur_row->set_cell(i, value_exprs[i]->get_result(row)));
+        for (u32 i = 0; i < value_exprs.size(); ++i) {
+            CHECK(value_exprs[i]->get_result(exec_ctx));
+            CHECK(update_row->set_cell(i, exec_ctx->output_result));
         }
+        CHECK(table_space->update_row(result->value(), 
+                                      update_row, 
+                                      access_row));
         increase_affected_rows();
-        CHECK(table_space->update_row(cur_row));
     }
     return ret;
 }
@@ -91,4 +100,16 @@ u32 PhyUpdate::inner_get_next_row(Row_s &row)
 u32 PhyUpdate::type()const
 {
     return PhyOperator::UPDATE;
+}
+
+void PhyUpdate::set_update_desc(const RowDesc& desc) 
+{ 
+    update_desc = desc; 
+    table_space->set_update_desc(desc);
+}
+
+void PhyUpdate::set_access_desc(const RowDesc &desc) 
+{ 
+    access_desc = desc; 
+    table_space->set_access_desc(desc);
 }

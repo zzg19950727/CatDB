@@ -9,8 +9,12 @@ namespace CatDB {
         DECLARE(ExprStmt);
         DECLARE(ViewTableStmt);
     }
+    namespace Sql {
+        DECLARE(QueryCtx);
+    }
     namespace Transform {
         DECLARE(TransformCtx);
+        using Sql::QueryCtx_s;
         using Parser::SelectStmt_s;
         using Parser::TableStmt_s;
         using Parser::ExprStmt_s;
@@ -20,7 +24,7 @@ namespace CatDB {
         public:
             static u32 deep_copy_stmt(const SelectStmt_s &old_stmt, 
                                       SelectStmt_s &new_stmt, 
-                                      TransformCtx_s &ctx,
+                                      QueryCtx_s &ctx,
                                       u32 flag = COPY_ON_WRITE | COPY_SHARE);
         
             static u32 create_view_with_table_item(const TableStmt_s &table,

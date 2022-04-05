@@ -2,6 +2,7 @@
 #include "io_service.h"
 #include "cat_engine/cat_table_space.h"
 #include "csv_engine/csv_table_space.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 using namespace CatDB::Storage;
@@ -51,7 +52,7 @@ u32 TableSpace::delete_table(const String& database, const String& table_name)
 	String path = table_path(database, table_name);
 	u32 ret = IoService::delete_file(path);
 	if (ret != SUCCESS) {
-		LOG_ERR("delete table error", K(table_name), err_string(ret));
+		LOG_ERR("delete table error", K(table_name), K(ret));
 		return ret;
 	} else {
 		return SUCCESS;
@@ -63,7 +64,7 @@ u32 TableSpace::create_table(const String& database, const String& table_name)
 	String path = table_path(database, table_name);
 	u32 ret = IoService::create_file(path);
 	if (ret != SUCCESS) {
-		LOG_ERR("create table error", K(table_name), err_string(ret));
+		LOG_ERR("create table error", K(table_name), K(ret));
 		return ret;
 	} else {
 		return SUCCESS;

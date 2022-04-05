@@ -8,9 +8,7 @@ const uint64_t Util::null_value = UINT64_MAX;
 const TypeMap Util::type_maps_[T_MAX_TYPE] =
 {
 	/* MinType */
-	{ MYSQL_TYPE_NULL, 0 },
 	{ MYSQL_TYPE_TINY, 0 },
-	{ MYSQL_TYPE_DOUBLE, 0 },
 	{ MYSQL_TYPE_DATETIME, 0 },
 	{ MYSQL_TYPE_VAR_STRING, 0 },
 	/* MaxType */

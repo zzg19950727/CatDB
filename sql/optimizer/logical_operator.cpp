@@ -33,39 +33,7 @@ u32 LogicalOperator::init(QueryCtx_s &query_ctx, EstInfo_s& est_info)
 
 String LogicalOperator::get_op_name()
 {
-    switch(type()) {
-        case LOG_TABLE_SCAN:
-			return String(N(LOG_TABLE_SCAN));
-        case LOG_JOIN:
-			return String(N(LOG_JOIN));
-        case LOG_SORT:
-			return String(N(LOG_SORT));
-        case LOG_DISTINCT:
-			return String(N(LOG_DISTINCT));
-        case LOG_GROUP_BY:
-			return String(N(LOG_GROUP_BY));
-        case LOG_SCALAR_GROUP:
-			return String(N(LOG_SCALAR_GROUP));
-        case LOG_SET:
-			return String(N(LOG_SET));
-        case LOG_LIMIT:
-			return String(N(LOG_LIMIT));
-        case LOG_VIEW:
-			return String(N(LOG_VIEW));
-        case LOG_INSERT:
-			return String(N(LOG_INSERT));
-        case LOG_UPDATE:
-			return String(N(LOG_UPDATE));
-        case LOG_DELETE:
-			return String(N(LOG_DELETE));
-        case LOG_EXPR_VALUE:
-			return String(N(LOG_EXPR_VALUE));
-        case LOG_DUAL_TABLE:
-			return String(N(LOG_DUAL_TABLE));
-        case LOG_SUBQUERY_EVALUATE:
-			return String(N(LOG_SUBQUERY_EVALUATE));
-    }
-    return "";
+    return LogOperatorTypeString[type()];
 }
 
 u32 LogicalOperator::compute_property()
@@ -161,10 +129,6 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
         can_be = true;
     } else if (expr_consume->has_flag(IS_CONST)) {
         can_be = true;
-    } else if (expr_consume->has_flag(IS_EXEC_PARAM)) {
-        can_be = true;
-    } else if (expr_consume->has_flag(IS_SET_EXPR)) {
-        can_be = true;
     } else if (expr_consume->has_flag(IS_AGG) && 
 			   type() != LOG_SCALAR_GROUP && 
 			   type() != LOG_GROUP_BY) {
@@ -176,8 +140,9 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
                                        expr_produce, 
                                        can_be));
         }
-    } else if (expr_consume->has_flag(IS_SUBQUERY)) {
-        //onetime subquery
+    } else if (expr_consume->has_flag(IS_COLUMN)) {
+        can_be = false;
+    } else {
         can_be = true;
     }
     return ret;
@@ -229,7 +194,8 @@ u32 LogicalOperator::find_expr_will_use(ExprStmt_s& expr_consume,
 u32 LogicalOperator::generate_operator_id_pre(u32 &id)
 {
     u32 ret = SUCCESS;
-    operator_id = id++;
+    operator_id = id;
+    ++id;
     for (u32 i = 0; i < childs.size(); ++i) {
         CHECK(childs[i]->generate_operator_id_pre(id));
     }

@@ -13,7 +13,6 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		using Common::Object_s;
-		using Common::HashTable;
 		DECLARE(Filter);
 		DECLARE(Expression);
 
@@ -32,15 +31,16 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
 			u32 build_hash_table();
-			bool euqal(const Row_s& lhs, const Row_s& rhs);
+			u32 euqal(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
 			void reset_agg_func();
-			u32 add_row_to_agg_func(const Row_s& row);
+			void init_agg_func();
+			u32 add_row_to_agg_func(Row_s& row);
 		private:
-			Common::HashTable hash_table;
+			HashTable hash_table;
 			Vector<Expression_s> group_exprs;
 			Vector<Expression_s> agg_funcs;
 			//当前集合函数计算状态

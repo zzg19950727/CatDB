@@ -3,12 +3,10 @@
 #include "delete_plan.h"
 #include "update_plan.h"
 #include "select_plan.h"
-#include "query_result.h"
 #include "phy_operator.h"
 #include "cmd_plan.h"
 #include "stmt.h"
 #include "sql_driver.h"
-#include "query_result.h"
 #include "dml_resolver.h"
 #include "code_generator.h"
 #include "expr_generator.h"
@@ -26,14 +24,10 @@ using namespace CatDB::Transform;
 using namespace CatDB::Sql;
 using CatDB::SqlDriver;
 
-ResultSet::ResultSet(u32 column_count)
-    :result_title(column_count, ""),
-    result_type(column_count, T_NULL),
-    desc(column_count),
-    affect_rows(0),
-    have_user_data(false)
+ResultSet::ResultSet()
+    :have_user_data(false),
+    is_explain(false)
 {
-    query_result = QueryResult::make_query_result();
 }
 
 ResultSet::~ResultSet()
@@ -41,32 +35,18 @@ ResultSet::~ResultSet()
 
 }
 
-ResultSet_s ResultSet::make_result_set(u32 column_count)
+ResultSet_s ResultSet::make_result_set()
 {
-    return ResultSet_s(new ResultSet(column_count));
+    return ResultSet_s(new ResultSet());
 }
 
-u32 ResultSet::get_column_num() const
+u32 ResultSet::add_result_title(const String &title, OBJ_TYPE type)
 {
-    return desc.get_column_num();
-}
-
-void ResultSet::set_column_num(u32 column_count)
-{
-    result_title = Vector<String>(column_count, "");
-    result_type = Vector<u32>(column_count, T_NULL);
-    desc = RowDesc(column_count);
+    u32 ret = SUCCESS;
     have_user_data = true;
-}
-
-u32 ResultSet::set_result_title(u32 idx, const String &title)
-{
-    if (idx >= result_title.size()) {
-        return ERROR_INDEX;
-    } else {
-        result_title[idx] = title;
-        return SUCCESS;
-    }
+    result_title.push_back(title);
+    result_type.push_back(type);
+    return ret;
 }
 
 String ResultSet::get_result_title(u32 idx) const
@@ -78,63 +58,60 @@ String ResultSet::get_result_title(u32 idx) const
     }
 }
 
-u32 ResultSet::set_result_type(u32 idx, u32 type)
+OBJ_TYPE ResultSet::get_result_type(u32 idx) const
 {
     if (idx >= result_type.size()) {
-        return ERROR_INDEX;
-    } else {
-        result_type[idx] = type;
-        return SUCCESS;
-    }
-}
-
-u32 ResultSet::get_result_type(u32 idx) const
-{
-    if (idx >= result_type.size()) {
-        return T_NULL;
+        return T_VARCHAR;
     } else {
         return result_type[idx];
     }
 }
 
-u32 ResultSet::add_row(Row_s &row)
+void ResultSet::add_row(const Row_s& row)
 {
-    ++affect_rows;
-    return query_result->add_row(row);
+    cache_rows.push_back(row);
 }
 
-u32 ResultSet::add_row(Vector<Object_s> &cells)
+void ResultSet::set_op_root(PhyOperator_s &root)
+{
+    phy_root = root;
+}
+
+u32 ResultSet::open()
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(desc.get_column_num() == cells.size());
-    Row_s row = Row::make_row(desc);
-    for (u32 i = 0; i < cells.size(); ++i) {
-        CHECK(row->set_cell(i, cells[i]));
+    if (phy_root) {
+        CHECK(phy_root->open());
+    } else {
+        row_idx = 0;
     }
-    ++affect_rows;
-    CHECK(query_result->add_row(row));
     return ret;
 }
 
-u32 ResultSet::add_row(Object_s &cell)
+u32 ResultSet::get_next_row(Row_s &row)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(desc.get_column_num() == 1);
-    Row_s row = Row::make_row(desc);
-    CHECK(row->set_cell(0, cell));
-    ++affect_rows;
-    CHECK(query_result->add_row(row));
+    if (phy_root) {
+        CHECK(phy_root->get_next_row(row));
+    } else {
+        if (row_idx >= cache_rows.size()) {
+            ret = NO_MORE_ROWS;
+        } else {
+            row = cache_rows[row_idx++];
+        }
+    }
     return ret;
 }
 
-QueryResult_s ResultSet::get_query_result()
+u32 ResultSet::close()
 {
-    return query_result;
-}
-
-u32 ResultSet::get_affect_rows() const
-{
-    return affect_rows;
+    u32 ret = SUCCESS;
+    if (phy_root) {
+        CHECK(phy_root->close());
+    } else {
+        row_idx = 0;
+    }
+    return ret;
 }
 
 SqlEngine::SqlEngine(const String& query, QueryCtx_s &query_ctx)
@@ -157,28 +134,10 @@ SqlEngine_s SqlEngine::make_sql_engine(const String& query, QueryCtx_s &query_ct
 u32 SqlEngine::handle_inner_sql(const String &query, QueryCtx_s &query_ctx, ResultSet_s &result_set)
 {
     u32 ret = SUCCESS;
+    LOG_TRACE("inner sql:", K(query));
     SqlEngine engine(query, query_ctx);
     CHECK(engine.handle_query());
     result_set = engine.get_query_result();
-    return ret;
-}
-
-u32 SqlEngine::handle_subplan(PhyOperator_s root, Object_s &result)
-{
-    u32 ret = SUCCESS;
-    QueryResult_s query_result = QueryResult::make_query_result();
-    CHECK(root->open());
-    Row_s row;
-    while ((ret = root->get_next_row(row)) == SUCCESS) {
-        query_result->add_row(row);
-    }
-    if (ret == NO_MORE_ROWS) {
-        ret = SUCCESS;
-    } else {
-        return ret;
-    }
-    CHECK(root->close());
-    result = query_result;
     return ret;
 }
 
@@ -186,7 +145,6 @@ u32 SqlEngine::handle_query()
 {
     u32 ret = SUCCESS;
     SqlDriver parser;
-    ResolveCtx resolve_ctx;
 	parser.set_global_database(query_ctx->cur_database);
 	parser.parse_sql(query);
 	if (parser.is_sys_error()) {
@@ -202,9 +160,11 @@ u32 SqlEngine::handle_query()
         return ret;
 	} else {
         lex_stmt = parser.parse_result();
-        if (lex_stmt->stmt_type() !=  Stmt::DoCMD) {
+        if (lex_stmt->stmt_type() != DoCMD) {
+            ResolveCtx resolve_ctx;
             CHECK(DMLResolver::resolve_stmt(lex_stmt, query_ctx, resolve_ctx));
             CHECK(lex_stmt->formalize());
+            CHECK(query_ctx->query_hint.init(resolve_ctx.all_hints, resolve_ctx.has_outline));
             Transformer transformer;
             DMLStmt_s dml_stmt = lex_stmt;
             TransformCtx_s transform_ctx = TransformCtx::make_transform_ctx();
@@ -213,21 +173,26 @@ u32 SqlEngine::handle_query()
         }
 		plan = Plan::make_plan(lex_stmt, query_ctx);
 		MY_ASSERT(plan);
+        //optimizer
 		CHECK(plan->build_plan());
         query_result = ResultSet::make_result_set();
-        if (lex_stmt->stmt_type() ==  Stmt::DoCMD) {
+        if (lex_stmt->stmt_type() == DoCMD) {
             CMDPlan_s cmd = plan;
             CHECK(cmd->execute(query_result));
         } else {
             DMLPlan_s dml_plan = plan;
             DMLStmt_s dml_stmt = lex_stmt;
+            String plan_info;
+            CHECK(explain_plan(dml_plan->get_root_operator(), plan_info));
+            LOG_TRACE("logical plan:", K(plan_info));
             if (dml_stmt->is_explain) {
-                CHECK(explain_plan(dml_plan->get_root_operator()));
+                query_result->set_explain_info(plan_info);
             } else {
                 log_root = dml_plan->get_root_operator();
                 ExprGenerateCtx generate_ctx;
+                generate_ctx.exec_ctx = ExecCtx::make_exec_ctx();
                 CHECK(CodeGenerator::generate_phy_plan(generate_ctx, log_root, phy_root));
-                CHECK(execute_plan(phy_root));
+                CHECK(init_result_set());
             }
         }
 	}
@@ -239,50 +204,43 @@ ResultSet_s SqlEngine::get_query_result()
     return query_result;
 }
 
-u32 SqlEngine::execute_plan(PhyOperator_s root)
+u32 SqlEngine::init_result_set()
 {
     u32 ret = SUCCESS;
-    u32 column_count = 0;
-    if (Stmt::Select == lex_stmt->stmt_type() || 
-        Stmt::SetOperation == lex_stmt->stmt_type()) {
-        SelectStmt_s stmt = lex_stmt;   
-        column_count = stmt->select_expr_list.size(); 
-        query_result->set_column_num(column_count);
+    query_result->set_op_root(phy_root);
+    if (lex_stmt->is_select_stmt()) {
+        SelectStmt_s stmt = lex_stmt;
         for (u32 i = 0; i < stmt->select_expr_list.size(); ++i) {
-            query_result->set_result_title(i, stmt->select_expr_list[i]->alias_name);
-            query_result->set_result_type(i, T_VARCHAR);
+            query_result->add_result_title(stmt->select_expr_list[i]->get_alias_name(), T_VARCHAR);
         }
-    }
-    ret = root->open();
-    if (SUCC(ret)) {
+    } else {
         Row_s row;
-        while ((ret = root->get_next_row(row)) == SUCCESS) {
-            query_result->add_row(row);
+        CHECK(query_result->open());
+        while (SUCC(query_result->get_next_row(row))) {
         }
-        if (ret == NO_MORE_ROWS) {
-            ret = SUCCESS;
+        int temp_ret = ret;
+        if (NO_MORE_ROWS == ret) {
+            temp_ret = SUCCESS;
         }
+        CHECK(query_result->close());
+        ret = temp_ret;
     }
-    u32 execute_status = ret;
-    CHECK(root->close());
-    ret = execute_status;
     return ret;
 }
 
-u32 SqlEngine::explain_plan(LogicalOperator_s root)
+u32 SqlEngine::explain_plan(LogicalOperator_s root, String &plan_info)
 {
     u32 ret = SUCCESS;
     Vector<PlanInfo> plan_infos;
     String explain_info;
     root->print_plan(0, plan_infos);
-    query_result->set_column_num(5);
     PlanInfo::formalize_plan_info(plan_infos);
     PlanInfo::print_plan_info(plan_infos, explain_info);
     explain_info += "\noutline:\n";
     String outline;
     CHECK(print_outline(outline));
     explain_info += outline;
-    query_result->set_explain_info(explain_info);
+    plan_info = explain_info;
     return ret;
 }
 
@@ -291,19 +249,7 @@ u32 SqlEngine::print_outline(String &outline)
     u32 ret = SUCCESS;
     outline = "/*+\n";
     DMLStmt_s dml_stmt = lex_stmt;
-    CHECK(print_stmt_outline(dml_stmt, true, outline));
+    outline += query_ctx->query_hint.print_outline();
     outline += "*/";
-    return ret;
-}
-
-u32 SqlEngine::print_stmt_outline(DMLStmt_s stmt, bool print_global_hint, String &outline)
-{
-    u32 ret = SUCCESS;
-    outline += stmt->stmt_hint.print_outline(print_global_hint);
-    Vector<SelectStmt_s> child_stmts;
-    CHECK(stmt->get_child_stmts(child_stmts));
-    for (u32 i = 0; i < child_stmts.size(); ++i) {
-        CHECK(print_stmt_outline(child_stmts[i], false, outline));
-    }
     return ret;
 }

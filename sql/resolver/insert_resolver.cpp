@@ -5,6 +5,7 @@
 #include "insert_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
+#include "obj_cast_util.h"
 #include "error.h"
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
@@ -22,7 +23,7 @@ InsertResolver::~InsertResolver()
 
 }
 
-u32 InsertResolver::check_insert_value(BasicTableStmt_s &insert_table, Vector<ExprStmt_s> &value_list)
+u32 InsertResolver::check_insert_value(BasicTableStmt_s &insert_table, Vector<Vector<ExprStmt_s>> &value_list)
 {
     u32 ret = SUCCESS;
     SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -30,9 +31,7 @@ u32 InsertResolver::check_insert_value(BasicTableStmt_s &insert_table, Vector<Ex
 	RowDesc row_desc;
 	CHECK(checker->get_row_desc(insert_table->ref_table_id, row_desc));
 	for (u32 i = 0; i < value_list.size(); ++i) {
-        CHECK(value_list[i]->formalize());
-        MY_ASSERT(EXPR_LIST == value_list[i]->expr_type());
-		CHECK(resolve_row(value_list[i]->params, row_desc));
+		CHECK(resolve_row(value_list[i], row_desc));
 	}
 	return ret;
 }
@@ -54,19 +53,16 @@ u32 InsertResolver::resolve_row(Vector<ExprStmt_s>& list, const RowDesc& row_des
     u32 ret = SUCCESS;
     ColumnDesc col_desc;
     u32 column_id = INVALID_ID;
-    u32 table_id = INVALID_ID;
+    bool need_cast = false;
     MY_ASSERT(row_desc.get_column_num() == list.size());
 	for (u32 i = 0; i < list.size(); ++i) {
+        CHECK(list[i]->formalize());
 		CHECK(row_desc.get_column_desc(i, col_desc));
-        col_desc.get_tid_cid(table_id, column_id);
+        column_id = col_desc.get_cid();
         MY_ASSERT(column_id >= 0, column_id < list.size());
-        ExprStmt_s new_value = OpExprStmt::make_op_expr_stmt(OP_CAST);
-        Object_s const_value = Object::make_null_object();
-        CHECK(Object::cast_to(col_desc.get_data_type(), const_value));
-        ExprStmt_s const_stmt = ConstStmt::make_const_stmt(const_value);
-		new_value->add_param(list[column_id]);
-        new_value->add_param(const_stmt);
-        list[column_id] = new_value;
+        CHECK(list[column_id]->formalize());
+        CHECK(ObjCastUtil::check_need_cast(list[column_id]->res_type, col_desc.get_data_type(), need_cast));
+        CHECK(ObjCastUtil::add_cast(list[column_id], col_desc.get_data_type(), list[column_id]));
 	}
 	return SUCCESS;
 }
@@ -81,7 +77,9 @@ u32 InsertResolver::resolve_stmt()
     CHECK(resolve_basic_table_item(insert_table_item));
     MY_ASSERT(!insert_table_item->is_dual_table());
     if (insert_stmt->value_list.size() > 0) {
-        CHECK(resolve_exprs(insert_stmt->value_list, resolve_ctx));
+        for (u32 i = 0; i < insert_stmt->value_list.size(); ++i) {
+            CHECK(resolve_exprs(insert_stmt->value_list[i], resolve_ctx));
+        }
         CHECK(check_insert_value(insert_table_item, insert_stmt->value_list));
     } else if (insert_stmt->query_values && insert_stmt->query_values->is_select_stmt()) {
         CHECK(DMLResolver::resolve_stmt(insert_stmt->query_values, query_ctx, resolve_ctx));

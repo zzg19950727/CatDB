@@ -33,7 +33,6 @@
 #include "phy_update.h"
 #include "phy_view.h"
 #include "phy_expression.h"
-#include "phy_filter.h"
 #include "phy_subquery_evaluate.h"
 
 #include "schema_guard.h"
@@ -45,9 +44,11 @@
 #include "expr_utils.h"
 #include "error.h"
 #include "log.h"
+#include "row.h"
 
 using namespace CatDB::Storage;
 using namespace CatDB::Optimizer;
+using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
@@ -68,7 +69,7 @@ u32 CodeGenerator::generate_phy_plan_pre(ExprGenerateCtx &ctx, LogicalOperator_s
     //generate phy plan pre
     switch (log_root->type())
     {
-    case LogicalOperator::LOG_SUBQUERY_EVALUATE:
+    case LOG_SUBQUERY_EVALUATE:
         CHECK(generate_subquery_evaluate_op_pre(ctx, log_root));
         break;
     }
@@ -97,57 +98,59 @@ u32 CodeGenerator::generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_
     CHECK(generate_access_exprs(ctx, log_root));
     switch (log_root->type())
     {
-    case LogicalOperator::LOG_DELETE:
+    case LOG_DELETE:
         CHECK(generate_delete_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_DISTINCT:
+    case LOG_DISTINCT:
         CHECK(generate_distinct_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_DUAL_TABLE:
+    case LOG_DUAL_TABLE:
         CHECK(generate_dual_table_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_EXPR_VALUE:
+    case LOG_EXPR_VALUE:
         CHECK(generate_expr_value_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_GROUP_BY:
+    case LOG_GROUP_BY:
         CHECK(generate_group_by_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_INSERT:
+    case LOG_INSERT:
         CHECK(generate_insert_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_JOIN:
+    case LOG_JOIN:
         CHECK(generate_join_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_LIMIT:
+    case LOG_LIMIT:
         CHECK(generate_limit_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_SCALAR_GROUP:
+    case LOG_SCALAR_GROUP:
         CHECK(generate_scalar_group_by_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_SET:
+    case LOG_SET:
         CHECK(generate_set_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_SORT:
+    case LOG_SORT:
         CHECK(generate_sort_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_TABLE_SCAN:
+    case LOG_TABLE_SCAN:
         CHECK(generate_table_scan_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_UPDATE:
+    case LOG_UPDATE:
         CHECK(generate_update_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_VIEW:
+    case LOG_VIEW:
         CHECK(generate_view_op(ctx, log_root, phy_root));
         break;
-    case LogicalOperator::LOG_SUBQUERY_EVALUATE:
+    case LOG_SUBQUERY_EVALUATE:
         CHECK(generate_subquery_evaluate_op(ctx, log_root, phy_root));
         break;
     default:
         ret = ERR_UNEXPECTED;
-        break;
+        return ret;
     }
+    phy_root->set_operator_id(log_root->operator_id);
     CHECK(generate_output_exprs(ctx, log_root, phy_root));
     phy_root->set_query_ctx(log_root->query_ctx);
+    phy_root->set_exec_ctx(ctx.exec_ctx);
 	return ret;
 }
 
@@ -380,7 +383,7 @@ u32 CodeGenerator::generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op,
 u32 CodeGenerator::generate_subquery_evaluate_op_pre(ExprGenerateCtx &ctx, LogicalOperator_s &log_op)
 {
 	u32 ret = SUCCESS;
-    MY_ASSERT(LogicalOperator::LOG_SUBQUERY_EVALUATE == log_op->type(), 
+    MY_ASSERT(LOG_SUBQUERY_EVALUATE == log_op->type(), 
               log_op->childs.size() > 1);
     LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
     MY_ASSERT(log_op->childs.size()-1 == subquery_evaluate_op->subqueries.size());
@@ -399,7 +402,7 @@ u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOp
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
-    MY_ASSERT(LogicalOperator::LOG_SUBQUERY_EVALUATE == log_op->type());
+    MY_ASSERT(LOG_SUBQUERY_EVALUATE == log_op->type());
     LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
     PhySubqueryEvaluate_s phy_subquery_evaluate = PhySubqueryEvaluate::make_subquery_evaluate(ctx.child_ops[0]);
     phy_subquery_evaluate->add_children(ctx.phy_subplans);
@@ -418,17 +421,18 @@ u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s l
                                                         log_op->table_item->table_name, 
                                                         info->engine_args,
                                                         log_op->query_ctx->sample_size);
-	RowDesc row_desc;
+    phy_op = scan;
+    RowDesc row_desc;
     ColumnDesc col_desc;
     for (u32 i = 0; i < log_op->access_exprs.size(); ++i) {
         ExprStmt_s &expr = log_op->access_exprs[i];
         MY_ASSERT(COLUMN == expr->expr_type());
-        ColumnStmt_s col = expr;
-        col_desc.set_tid_cid(col->table_id, col->column_id);
-        CHECK(row_desc.add_column_desc(col_desc));
+        ColumnStmt_s col_expr = expr;
+        col_desc.set_cid(col_expr->column_id);
+        col_desc.set_data_type(col_expr->res_type);
+        row_desc.add_column_desc(col_desc);
     }
     scan->set_access_desc(row_desc);
-    phy_op = scan;
     return ret;
 }
 
@@ -438,13 +442,6 @@ u32 CodeGenerator::generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, 
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
     Vector<Expression_s> rt_value_exprs;
     Expression_s rt_row_id;
-    RowDesc row_desc;
-    ColumnDesc col_desc;
-    for (u32 i = 0; i < log_op->column_exprs.size(); ++i) {
-        ColumnStmt_s col = log_op->column_exprs[i];
-        col_desc.set_tid_cid(col->table_id, col->column_id);
-        CHECK(row_desc.add_column_desc(col_desc));
-    }
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->value_exprs, rt_value_exprs));
     CHECK(ExprGenerator::generate_expr(ctx, log_op->row_id, rt_row_id));
     SchemaGuard_s guard = SchemaGuard::make_schema_guard();
@@ -456,7 +453,9 @@ u32 CodeGenerator::generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, 
                                     info->engine_args,
                                     rt_row_id, 
                                     rt_value_exprs);
-	phy_op->set_row_desc(row_desc);
+    PhyUpdate_s update = phy_op;
+    update->set_access_desc(log_op->row_desc);
+    update->set_update_desc(log_op->update_desc);
     return ret;
 }
 
@@ -474,22 +473,19 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
     MY_ASSERT(log_root);
     ctx.access_expr_map.clear();
     if (!log_root->childs.empty() && !log_root->access_exprs.empty()) {
-        if (LogicalOperator::LOG_VIEW == log_root->type()) {
+        if (LOG_VIEW == log_root->type()) {
             MY_ASSERT(log_root->childs.size() == 1);
             LogicalOperator_s &child = log_root->childs[0];
             Expression_s rt_expr;
-            ColumnDesc desc;
             for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
                 ExprStmt_s &expr = log_root->access_exprs[i];
                 MY_ASSERT(COLUMN == expr->expr_type());
                 ColumnStmt_s col_expr = expr;
-                desc.set_tid_cid(child->operator_id, i);
-                rt_expr = ColumnExpression::make_column_expression(desc);
+                rt_expr = ColumnExpression::make_column_expression(child->operator_id, col_expr->column_id);
                 ctx.access_expr_map[expr] = rt_expr;
             }
         } else {
             Expression_s rt_expr;
-            ColumnDesc desc;
             for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
                 ExprStmt_s &expr = log_root->access_exprs[i];
                 u32 index;
@@ -497,17 +493,24 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
                 for (u32 j = 0; !find_expr && j < log_root->childs.size(); ++j) {
                     LogicalOperator_s &child = log_root->childs[j];
                     if (ExprUtils::find_item(child->output_exprs, expr, &index)) {
-                        desc.set_tid_cid(child->operator_id, index);
                         find_expr = true;
+                        rt_expr = ColumnExpression::make_column_expression(child->operator_id, index);
+                        ctx.access_expr_map[expr] = rt_expr;
                         break;
                     }
                 }
                 MY_ASSERT(find_expr);
-                rt_expr = ColumnExpression::make_column_expression(desc);
-                ctx.access_expr_map[expr] = rt_expr;
             }
         }
-    }
+    } else if (LOG_TABLE_SCAN == log_root->type()) {
+        Expression_s rt_expr;
+        for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
+            ExprStmt_s &expr = log_root->access_exprs[i];
+            MY_ASSERT(COLUMN == expr->expr_type());
+            rt_expr = ColumnExpression::make_column_expression(log_root->operator_id, i);
+            ctx.access_expr_map[expr] = rt_expr;
+        }
+    } 
     return ret;
 }
 
@@ -519,9 +522,9 @@ u32 CodeGenerator::generate_output_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
     Vector<Expression_s> rt_filters;
     CHECK(ExprGenerator::generate_exprs(ctx, log_root->output_exprs, rt_output_exprs));
     CHECK(ExprGenerator::generate_exprs(ctx, log_root->filters, rt_filters));
-    phy_root->set_output_exprs(log_root->operator_id, rt_output_exprs);
+    phy_root->set_output_exprs(rt_output_exprs);
     if (!rt_filters.empty()) {
-        phy_root->set_filter(PhyFilter::make_filter(rt_filters));
+        phy_root->set_filter(rt_filters);
     }
     return ret;
 }

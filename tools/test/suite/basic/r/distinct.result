@@ -6,7 +6,7 @@ CREATE DATABASE RANDOM_TEST
 
 DROP TABLE IF EXISTS T1
 
-CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+CREATE TABLE T1(C1 INT, C2 INT, C3 INT, C4 INT)
 
 SELECT * FROM T1
 
@@ -29,13 +29,13 @@ SELECT * FROM T1
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 DESC])
@@ -45,7 +45,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -66,13 +67,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 DESC])
@@ -82,7 +83,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -103,13 +105,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -119,7 +121,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -139,13 +142,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 ASC])
@@ -155,7 +158,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -176,13 +180,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 ASC])
@@ -192,7 +196,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -213,13 +218,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 ASC])
@@ -229,7 +234,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -249,13 +255,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -265,7 +271,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -285,13 +292,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1])
 sort_keys([t1.c1 DESC])
@@ -301,7 +308,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -322,13 +330,13 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1])
 sort_keys([t1.c1 ASC])
@@ -338,7 +346,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -359,13 +368,13 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -375,7 +384,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -395,13 +405,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -411,7 +421,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -431,13 +442,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 ASC])
@@ -447,7 +458,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -467,13 +479,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1])
 sort_keys([t1.c1 DESC])
@@ -483,7 +495,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -504,13 +517,13 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1])
 sort_keys([t1.c1 DESC])
@@ -520,7 +533,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -541,13 +555,13 @@ SELECT DISTINCT T1.C1 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 ASC])
@@ -557,7 +571,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -578,13 +593,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -594,7 +609,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -614,13 +630,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 ASC])
@@ -630,7 +646,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -650,13 +667,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2])
 sort_keys([t1.c2 DESC])
@@ -666,7 +683,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
@@ -686,13 +704,13 @@ SELECT DISTINCT T1.C2 AS C1 FROM T1 T1    ORDER BY 1 DESC
 EXPLAIN SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3])
 sort_keys([t1.c3 ASC])
@@ -702,7 +720,8 @@ access([t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
@@ -723,13 +742,13 @@ SELECT DISTINCT T1.C3 AS C1 FROM T1 T1    ORDER BY 1 ASC
 EXPLAIN SELECT DISTINCT T1.C4 AS C1 FROM T1 T1    ORDER BY 1 DESC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 18617 |
-| 1  |  DISTINCT    |      | 1000      | 18410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 18617 |
+| 1  |  HASH DISTINCT |      | 1000      | 18410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4])
 sort_keys([t1.c4 DESC])
@@ -739,7 +758,8 @@ access([t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C4 AS C1 FROM T1 T1    ORDER BY 1 DESC

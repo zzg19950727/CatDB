@@ -5,19 +5,30 @@
 
 namespace CatDB {
 	namespace Parser {
-		DECLARE(Stmt);
+		DECLARE(ColumnDefineStmt);
+		using Common::DataType;
 
+        class ColumnDefineStmt
+		{
+		private:
+			ColumnDefineStmt();
+		public:
+			~ColumnDefineStmt();
+			static ColumnDefineStmt_s make_column_define_stmt(const String& name, const DataType &data_type);
+            KV_STRING(
+                K(column_name),
+                K(data_type)
+            );
+
+		public:
+			String column_name;
+			DataType data_type;
+		};
+		
+		DECLARE(Stmt);
 		class Stmt
 		{
 		public:
-			enum StmtType {
-				Select = 0,
-				Update,
-				Insert,
-				Delete,
-				SetOperation,
-				DoCMD
-			};
 			Stmt();
 			virtual ~Stmt();
 			virtual StmtType stmt_type()const = 0;

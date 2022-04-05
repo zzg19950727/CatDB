@@ -35,6 +35,7 @@ String to_kv_string(const long& value);
 String to_kv_string(const unsigned long& value);
 String to_kv_string(const char* value);
 String to_kv_string(bool value);
+String to_kv_string(HintType value);
 
 template<typename T>
 String to_kv_string(const T& value)

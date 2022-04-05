@@ -1,5 +1,6 @@
 ﻿#include "cat_io_service.h"
 #include "io_service.h"
+#include "object.h"
 #include "buffer.h"
 #include "error.h"
 #include "page.h"

@@ -1,7 +1,6 @@
 ﻿#ifndef PHY_TABLE_SCAN_H
 #define PHY_TABLE_SCAN_H
 #include "phy_operator.h"
-#include "phy_filter.h"
 #include "type.h"
 #include "row.h"
 
@@ -11,6 +10,7 @@ namespace CatDB {
 	}
 	namespace Sql {
 		using Storage::TableSpace_s;
+		using Common::Row_s;
 		
 		class PhyTableScan : public PhyOperator
 		{
@@ -27,12 +27,13 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 			void set_access_desc(const RowDesc &desc);
 		private:
 			TableSpace_s table_space;
-			Row_s access_row;
+			RowDesc access_desc;
+			Row_s store_row;
 		};
 	}
 }

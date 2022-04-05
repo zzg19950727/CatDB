@@ -1,11 +1,16 @@
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "select_stmt.h"
+#include "query_ctx.h"
+#include "transform_utils.h"
+#include "obj_cast_util.h"
 
 using namespace::CatDB::Parser;
 using namespace::CatDB::Common;
+using namespace::CatDB::Transform;
 
 ExprStmt::ExprStmt()
+:is_flag(INVALID_FLAG)
 {
 }
 
@@ -13,36 +18,10 @@ ExprStmt::~ExprStmt()
 {
 }
 
-
-String ExprStmt::flag_to_string(u32 flag) const 
+u32 ExprStmt::deduce_type()
 {
-    if (IS_COLUMN == flag) {
-        return N(IS_COLUMN);
-    } else if (HAS_COLUMN == flag) {
-        return N(HAS_COLUMN);
-    } else if (IS_CONST == flag) {
-        return N(IS_CONST);
-    } else if (HAS_CONST == flag) {
-        return N(HAS_CONST);
-    } else if (IS_AGG == flag) {
-        return N(IS_AGG);
-    } else if (HAS_AGG == flag) {
-        return N(HAS_AGG);
-    } else if (IS_SUBQUERY == flag) {
-        return N(IS_SUBQUERY);
-    } else if (HAS_SUBQUERY == flag) {
-        return N(HAS_SUBQUERY);
-    } else if (IS_LIST == flag) {
-        return N(IS_LIST);
-    } else if (IS_OP_EXPR == flag) {
-        return N(IS_OP_EXPR);
-    } else if (IS_EXEC_PARAM == flag) {
-        return N(IS_EXEC_PARAM);
-    } else if (HAS_EXEC_PARAM == flag) {
-        return N(HAS_EXEC_PARAM);
-    } else {
-        return N(UNKNOWN);
-    }
+	u32 ret = SUCCESS;
+	return ret;
 }
 
 String ExprStmt::flags_to_string() const
@@ -51,10 +30,10 @@ String ExprStmt::flags_to_string() const
     Vector<u32> members;
     flags.to_list(members);
     if (INVALID_FLAG != is_flag) {
-        ret += flag_to_string(u32(is_flag));
+        ret += StmtFlagString[is_flag];
     }
     for (u32 i = 0; i < members.size(); ++i) {
-        ret += "," + flag_to_string(members[i]);
+        ret += "," + String(StmtFlagString[members[i]]);
     }
     ret += "]";
     return ret;
@@ -71,6 +50,27 @@ bool ExprStmt::is_and_expr()
 		}
 	} else {
 		return false;
+	}
+}
+
+u32 ExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr->is_flag = is_flag;
+	expr->flags = flags;
+	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, ctx, flag));
+	expr->alias_name = alias_name;	//表达式的别名
+	expr->table_ids = table_ids;
+	expr->res_type = res_type;
+	return ret;
+}
+
+String ExprStmt::get_alias_name() const
+{
+	if (!alias_name.empty()) {
+		return alias_name;
+	} else {
+		return to_string();
 	}
 }
 
@@ -91,24 +91,29 @@ ExprStmt_s ConstStmt::make_const_stmt(const Object_s& value)
 {
 	ConstStmt* stmt = new ConstStmt();
 	stmt->value = value;
+	stmt->deduce_type();
 	return ExprStmt_s(stmt);
 }
 
 String ConstStmt::to_string() const
 {
 	if (value) {
-		return value->to_string();
+		if (res_type.is_varchar()) {
+			return "'" + value->to_string() + "'";
+		} else {
+			return value->to_string();
+		}
 	}
 	else {
 		return "";
 	}
 }
 
-u32 ConstStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 ConstStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_const_stmt(value);
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -118,7 +123,9 @@ bool ConstStmt::same_as(const ExprStmt_s& other)
 		return false;
 	}
 	ConstStmt_s const_stmt = other;
-	return value->operator==(const_stmt->value);
+	int res = 0;
+	value->compare(const_stmt->value, res);
+	return 0 == res;
 }
 
 u32 ConstStmt::formalize()
@@ -127,6 +134,23 @@ u32 ConstStmt::formalize()
 	clear_flag();
 	set_is_flag(IS_CONST);
 	add_flag(HAS_CONST);
+	return ret;
+}
+
+u32 ConstStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	switch (value->get_type()) {
+		case T_NUMBER:
+			res_type = DataType::default_number_type();
+			break;
+		case T_VARCHAR:
+			res_type = DataType::default_varchar_type();
+			break;
+		case T_DATETIME:
+			res_type = DataType::default_datetime_type(DATETIME);
+			break;
+	}
 	return ret;
 }
 
@@ -143,25 +167,23 @@ ExprType ExecParamStmt::expr_type() const
 	return EXEC_PARAM;
 }
 
-ExprStmt_s ExecParamStmt::make_exec_param_stmt(const ExprStmt_s& ref_expr)
+ExprStmt_s ExecParamStmt::make_exec_param_stmt(u32 index)
 {
 	ExecParamStmt* stmt = new ExecParamStmt();
-	stmt->ref_expr = ref_expr;
+	stmt->param_index = index;
 	return ExprStmt_s(stmt);
 }
 
 String ExecParamStmt::to_string() const
 {
-	return "?";
+	return String("(?-") + std::to_string(param_index) + ")";
 }
 
-u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
-	ExprStmt_s copy_ref_expr;
-	CHECK(ExprUtils::deep_copy_expr(ref_expr, copy_ref_expr, flag));
-	expr = make_exec_param_stmt(copy_ref_expr);
-	expr->alias_name = alias_name;
+	expr = make_exec_param_stmt(param_index);
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -171,7 +193,7 @@ bool ExecParamStmt::same_as(const ExprStmt_s& other)
 		return false;
 	}
 	ExecParamStmt_s param_stmt = other;
-	return param_stmt->ref_expr->same_as(ref_expr);
+	return param_stmt->param_index == param_index;
 }
 
 u32 ExecParamStmt::formalize()
@@ -227,7 +249,7 @@ String ColumnStmt::to_string() const
 		return column;
 }
 
-u32 ColumnStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 ColumnStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_column_stmt(table, column);
@@ -235,13 +257,14 @@ u32 ColumnStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	col_expr->is_row_id = is_row_id;
 	col_expr->table_id = table_id;
 	col_expr->column_id = column_id;
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
 u32 ColumnStmt::formalize()
 {
 	u32 ret = SUCCESS;
+	table_ids.clear();
 	table_ids.add_member(table_id);
 	clear_flag();
 	set_is_flag(IS_COLUMN);
@@ -300,11 +323,11 @@ String SetExprStmt::to_string()const
 	return ret;
 }
 
-u32 SetExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 SetExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_set_expr(type, index);
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -319,19 +342,14 @@ bool SetExprStmt::same_as(const ExprStmt_s& other)
 
 DEFINE_KV_STRING(SubQueryStmt,
 				KV(flags, flags_to_string()),
+				K(res_type),
 				K(table_ids),
-				K(is_any),
-				K(is_all),
-				K(output_one_row),
-				KV(corrected_exprss, params),
+				KV(corrected_exprs, params),
 				K(query_stmt)
 			);
 
 SubQueryStmt::SubQueryStmt()
-	: subquery_id(0),
-	is_any(false),
-	is_all(false),
-	output_one_row(true)
+	: subquery_id(0)
 {
 }
 
@@ -351,34 +369,47 @@ ExprStmt_s SubQueryStmt::make_query_stmt()
 
 String SubQueryStmt::to_string() const
 {
-	String ret = String("(") + std::to_string(subquery_id) + ")";
-	if (is_any) {
-		ret = "subquery_any"+ret;
-	} else if (is_all) {
-		ret = "subquery_all" + ret;
-	} else {
-		ret = "subquery" + ret;
-	}
+	String ret = String("subquery(") + std::to_string(subquery_id) + ")";
 	return ret;
 }
 
-u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_query_stmt();
 	SubQueryStmt_s query_expr = expr;
-	query_expr->query_stmt = query_stmt;
-	query_stmt->increase_ref_count();
 	query_expr->subquery_id = subquery_id;
-	query_expr->output_one_row = output_one_row;
-	query_expr->is_any = is_any;
-	query_expr->is_all = is_all;
-	ExprStmt_s copy_expr;
-	for (u32 i = 0; i < exec_params.size(); ++i) {
-		CHECK(ExprUtils::deep_copy_expr(exec_params[i], copy_expr, flag));
-		query_expr->add_corrected_exprs(copy_expr);
+	if (exec_params.empty()) {
+		if (!ENABLE_COPY_ON_WRITE(flag)) {
+			CHECK(TransformUtils::deep_copy_stmt(query_stmt,
+												 query_expr->query_stmt,
+												 ctx,
+												 COPY_SHARE));
+		} else {
+			query_expr->query_stmt = query_stmt;
+			query_stmt->increase_ref_count();
+		}
+	} else {
+		ExprStmt_s copy_expr;
+		ExecParamStmt_s exec_param;
+		for (u32 i = 0; i < exec_params.size(); ++i) {
+			exec_params[i]->deep_copy(copy_expr, ctx, flag);
+			exec_param = copy_expr;
+			exec_param->set_param_index(ctx->generate_param_index());
+			query_expr->exec_params.push_back(copy_expr);
+		}
+		CHECK(TransformUtils::deep_copy_stmt(query_stmt,
+											query_expr->query_stmt,
+											ctx,
+											COPY_SHARE));
+		Vector<ExprStmt_s> old_exec_params, new_exec_params;
+		append(old_exec_params, exec_params);
+		append(new_exec_params, query_expr->exec_params);
+		CHECK(query_expr->query_stmt->replace_stmt_exprs(old_exec_params, 
+														 new_exec_params, 
+														 true));
 	}
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -395,13 +426,35 @@ u32 SubQueryStmt::formalize()
 		add_flags(params[i]->get_flags());
 	}
 	CHECK(query_stmt->formalize());
+	CHECK(deduce_type());
 	return ret;
 }
 
-void SubQueryStmt::add_corrected_exprs(ExecParamStmt_s expr)
+u32 SubQueryStmt::deduce_type()
 {
-	exec_params.push_back(expr);
-	params.push_back(expr->get_ref_expr());
+	u32 ret = SUCCESS;
+	MY_ASSERT(query_stmt->select_expr_list.size() > 0);
+	res_type = query_stmt->select_expr_list[0]->res_type;
+	return ret;
+}
+
+void SubQueryStmt::add_related_exprs(ExprStmt_s &related_expr, ExecParamStmt_s &exec_param)
+{
+	exec_params.push_back(exec_param);
+	params.push_back(related_expr);
+}
+
+u32 SubQueryStmt::get_all_exec_params(Vector< std::pair<ExecParamStmt_s, ExprStmt_s> > &all_exec_params)
+{
+	u32 ret = SUCCESS;
+	if (exec_params.size() != params.size()) {
+		ret = ERR_UNEXPECTED;
+		return ret;
+	}
+	for (u32 i = 0; i < params.size(); ++i) {
+		all_exec_params.push_back(std::pair<ExecParamStmt_s, ExprStmt_s>(exec_params[i], params[i]));
+	}
+	return ret;
 }
 
 ListStmt::ListStmt()
@@ -428,19 +481,18 @@ String ListStmt::to_string() const
 	for (u32 i = 0; i < params.size(); ++i) {
 		ret += params[i]->to_string();
 		if (i != params.size() - 1) {
-			ret += ",";
+			ret += ", ";
 		}
 	}
 	ret += ")";
 	return ret;
 }
 
-u32 ListStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 ListStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_list_stmt();
-	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -463,6 +515,25 @@ u32 ListStmt::formalize()
 		add_flag(IS_CONST);
 	} else {
 		del_flag(IS_CONST);
+	}
+	CHECK(deduce_type());
+	return ret;
+}
+
+u32 ListStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	Vector<DataType> src_types;
+	Vector<bool> need_cast;
+	for (u32 i = 0; i < params.size(); ++i) {
+		src_types.push_back(params[i]->res_type);
+	}
+	CHECK(ObjCastUtil::get_result_type(src_types, need_cast, res_type));
+	MY_ASSERT(src_types.size() == need_cast.size());
+	for (u32 i = 0; i < params.size(); ++i) {
+		if (need_cast[i]) {
+			CHECK(ObjCastUtil::add_cast(params[i], res_type, params[i]));
+		}
 	}
 	return ret;
 }
@@ -505,7 +576,7 @@ ExprStmt_s AggrStmt::make_aggr_stmt()
 
 String AggrStmt::to_string() const
 {
-	String func = aggr_func_name();
+	String func = AggrTypeString[aggr_func];
 	String distinct_str;
 	if (distinct) {
 		distinct_str = "DISTINCT ";
@@ -514,42 +585,15 @@ String AggrStmt::to_string() const
 	return func + "(" + distinct_str + expr_str + ")";
 }
 
-u32 AggrStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 AggrStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_aggr_stmt();
 	AggrStmt_s aggr_expr = expr;
 	aggr_expr->aggr_func = aggr_func;
 	aggr_expr->distinct = distinct;
-	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
-}
-
-String AggrStmt::aggr_func_name()const
-{
-	String func;
-	switch (aggr_func)
-	{
-	case COUNT:
-		func = "COUNT";
-		break;
-	case SUM:
-		func = "SUM";
-		break;
-	case AVG:
-		func = "AVG";
-		break;
-	case MIN:
-		func = "MIN";
-		break;
-	case MAX:
-		func = "MAX";
-		break;
-	default:
-		func = "UNKNOWN";
-	}
-	return func;
 }
 
 u32 AggrStmt::formalize()
@@ -563,6 +607,35 @@ u32 AggrStmt::formalize()
 	CHECK(aggr_expr->formalize());
 	table_ids.add_members(aggr_expr->table_ids);
 	add_flags(aggr_expr->get_flags());
+	CHECK(deduce_type());
+	return ret;
+}
+
+u32 AggrStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	bool need_cast = false;
+	ExprStmt_s aggr_expr = get_aggr_expr();
+	switch (aggr_func) {
+		case SUM:
+		case AVG:
+			res_type = DataType::default_number_type();
+			CHECK(ObjCastUtil::check_need_cast(aggr_expr->res_type, 
+											   res_type, 
+											   need_cast));
+			if (need_cast) {
+				CHECK(ObjCastUtil::add_cast(aggr_expr, res_type, aggr_expr));
+			}
+			break;
+		case COUNT:
+			res_type = DataType::default_number_type();
+			break;
+		case MAX:
+		case MIN:
+			res_type = aggr_expr->res_type;
+			break;
+	}
+	set_aggr_expr(aggr_expr);
 	return ret;
 }
 
@@ -632,70 +705,155 @@ String OpExprStmt::to_string()const
 		case OP_ADD:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "+";
+				ret += " + ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_SUB: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "-";
+				ret += " - ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_MUL: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "*";
+				ret += " * ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_DIV: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "/";
+				ret += " / ";
 				ret += params[1]->to_string();
 			}
 			break;
+		case OP_ASSIGN:
 		case OP_EQ: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "=";
+				ret += " = ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_NE: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "!=";
+				ret += " != ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GE: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += ">=";
+				ret += " >= ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GT: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += ">";
+				ret += " > ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LE: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "<=";
+				ret += " <= ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LT: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += "<";
+				ret += " < ";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_EQ_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " = ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_NE_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " != ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_GE_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " >= ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_GT_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " > ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_LE_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " <= ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_LT_ANY:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " < ANY";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_EQ_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " = ALL";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_NE_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " != ALL";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_GE_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " >= ALL";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_GT_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " > ALL";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_LE_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " <= ALL";
+				ret += params[1]->to_string();
+			}
+			break;
+		case OP_LT_ALL:
+			if (params.size() == 2) {
+				ret += params[0]->to_string();
+				ret += " < ALL";
 				ret += params[1]->to_string();
 			}
 			break;
@@ -729,6 +887,7 @@ String OpExprStmt::to_string()const
 				ret += " IS NOT NULL";
 			}
 			break;
+		case OP_IN_LIST:
 		case OP_IN: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
@@ -736,6 +895,7 @@ String OpExprStmt::to_string()const
 				ret += params[1]->to_string();
 			}
 			break;
+		case OP_NOT_IN_LIST:
 		case OP_NOT_IN: 
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
@@ -798,14 +958,14 @@ String OpExprStmt::to_string()const
 				ret += " AS ";
 				MY_ASSERT(CONST == params[1]->expr_type());
 				ConstStmt_s const_value = params[1];
-				ret += const_value->value->type();
+				ret += const_value->res_type.to_kv_string();
 				ret += ")";
 			}
 			break;
 		case OP_CASE_WHEN:
 			ret += "CASE ";
 			if (params.size() % 2) {
-				for (u32 i = 0; i < params.size() / 2; i += 2) {
+				for (u32 i = 0; i < params.size()-1; i += 2) {
 					ret += "WHEN ";
 					ret += params[i]->to_string();
 					ret += " THEN ";
@@ -816,7 +976,7 @@ String OpExprStmt::to_string()const
 				ret += " END";
 			} else if (params.size() > 1) {
 				ret += params[0]->to_string();
-				for (u32 i = 1; i < params.size() / 2; i += 2) {
+				for (u32 i = 1; i < params.size()-1; i += 2) {
 					ret += " WHEN ";
 					ret += params[i]->to_string();
 					ret += " THEN ";
@@ -874,12 +1034,11 @@ String OpExprStmt::to_string()const
 	return ret;
 }
 
-u32 OpExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
+u32 OpExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_op_expr_stmt(op_type);
-	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
-	expr->alias_name = alias_name;
+	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
 }
 
@@ -900,7 +1059,252 @@ u32 OpExprStmt::formalize()
 	}
 	if (all_is_const) {
 		add_flag(IS_CONST);
+	} else {
+		del_flag(IS_CONST);
 	}
+	CHECK(deduce_type());
+	return ret;
+}
+
+u32 OpExprStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	u32 i = 0;
+	Vector<DataType> src_types;
+	Vector<bool> need_cast;
+	bool l_need_cast = false;
+	DataType l_dst_type;
+	bool r_need_cast = false;
+	DataType r_dst_type;
+	DataType dst_type;
+	switch (op_type) {
+		case OP_MINUS:
+		case OP_NOT:
+		case OP_IS_NULL:
+		case OP_IS_NOT_NULL:
+		case OP_EXISTS:
+		case OP_NOT_EXISTS:
+			CHECK(ObjCastUtil::get_result_type(params[0]->res_type,
+											   l_need_cast,
+											   l_dst_type,
+											   params[0]->res_type,
+											   r_need_cast,
+											   r_dst_type,
+											   op_type,
+											   dst_type));
+			if (l_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
+			}
+			break;
+		case OP_ASSIGN:
+			dst_type = params[0]->res_type;
+			CHECK(ObjCastUtil::check_need_cast(params[1]->res_type, 
+											   dst_type, 
+											   r_need_cast));
+			if (r_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[1], dst_type, params[1]));
+			}
+			break;
+		case OP_BETWEEN:
+		case OP_NOT_BETWEEN:
+			CHECK(ObjCastUtil::get_result_type(params[0]->res_type,
+											   l_need_cast,
+											   l_dst_type,
+											   params[1]->res_type,
+											   r_need_cast,
+											   r_dst_type,
+											   op_type,
+											   dst_type));
+			if (l_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
+			}
+			if (r_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[1], l_dst_type, params[1]));
+			}
+			CHECK(ObjCastUtil::get_result_type(params[0]->res_type,
+											   l_need_cast,
+											   l_dst_type,
+											   params[2]->res_type,
+											   r_need_cast,
+											   r_dst_type,
+											   op_type,
+											   dst_type));
+			if (l_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
+			}
+			if (r_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[2], l_dst_type, params[2]));
+			}
+			CHECK(ObjCastUtil::get_result_type(params[1]->res_type,
+											   l_need_cast,
+											   l_dst_type,
+											   params[2]->res_type,
+											   r_need_cast,
+											   r_dst_type,
+											   op_type,
+											   dst_type));
+			if (l_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[1], l_dst_type, params[1]));
+			}
+			if (r_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[2], l_dst_type, params[2]));
+			}
+			break;
+		case OP_LIKE:
+		case OP_NOT_LIKE: 
+			if (!params[0]->res_type.is_varchar() || 
+				!params[1]->res_type.is_varchar()) {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			dst_type =  params[0]->res_type;
+			break;
+		case OP_CAST: 
+			dst_type = params[1]->res_type;
+			break;
+		case OP_CASE_WHEN:
+			if (params.size() % 2) {
+				for (i = 0; i < params.size()-1; i += 2) {
+					src_types.push_back(params[i+1]->res_type);
+				}
+				src_types.push_back(params[i]->res_type);
+				CHECK(ObjCastUtil::get_result_type(src_types, need_cast, dst_type));
+				MY_ASSERT(src_types.size() == need_cast.size());
+				for (i = 0; i < src_types.size()-1; ++i) {
+					if (need_cast[i]) {
+						CHECK(ObjCastUtil::add_cast(params[i*2+1], dst_type, params[i*2+1]));
+					}
+				}
+				if (need_cast[i]) {
+					CHECK(ObjCastUtil::add_cast(params[i*2], dst_type, params[i*2]));
+				}
+			} else if (params.size() > 1) {
+				src_types.push_back(params[0]->res_type);
+				for (i = 1; i < params.size()-1; i += 2) {
+					src_types.push_back(params[i]->res_type);
+				}
+				CHECK(ObjCastUtil::get_result_type(src_types, need_cast, dst_type));
+				MY_ASSERT(src_types.size() == need_cast.size());
+				if (need_cast[0]) {
+					CHECK(ObjCastUtil::add_cast(params[0], dst_type, params[0]));
+				}
+				for (i = 1; i < src_types.size(); ++i) {
+					if (need_cast[i]) {
+						CHECK(ObjCastUtil::add_cast(params[i*2-1], dst_type, params[i*2-1]));
+					}
+				}
+				src_types.clear();
+				need_cast.clear();
+				for (i = 1; i < params.size()-1; i += 2) {
+					src_types.push_back(params[i+1]->res_type);
+				}
+				src_types.push_back(params[i]->res_type);
+				CHECK(ObjCastUtil::get_result_type(src_types, need_cast, dst_type));
+				MY_ASSERT(src_types.size() == need_cast.size());
+				for (i = 0; i < src_types.size()-1; ++i) {
+					if (need_cast[i]) {
+						CHECK(ObjCastUtil::add_cast(params[i*2+2], dst_type, params[i*2+2]));
+					}
+				}
+				if (need_cast[i]) {
+					CHECK(ObjCastUtil::add_cast(params[i*2+1], dst_type, params[i*2+1]));
+				}
+			}
+			break;
+		case OP_IFNULL:
+			for (i = 0; i < params.size(); ++i) {
+				src_types.push_back(params[i]->res_type);
+			}
+			CHECK(ObjCastUtil::get_result_type(src_types, need_cast, dst_type));
+			MY_ASSERT(src_types.size() == need_cast.size());
+			for (u32 i = 0; i < params.size(); ++i) {
+				if (need_cast[i]) {
+					CHECK(ObjCastUtil::add_cast(params[i], dst_type, params[i]));
+				}
+			}
+			break;
+		case OP_TO_CHAR:
+			if (params.size() == 2) {
+				if (!params[1]->res_type.is_varchar()) {
+					ret = INVALID_CAST;
+					return ret;
+				}
+			}
+			dst_type = DataType::default_varchar_type();
+			break;
+		case OP_SUBSTR:
+			if (!params[0]->res_type.is_varchar()) {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			if (!params[1]->res_type.is_number()) {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			if (!params[2]->res_type.is_number()) {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			dst_type = params[0]->res_type;
+			break;
+		case OP_TO_NUMBER:
+			if (params[0]->res_type.is_varchar() ||
+				params[1]->res_type.is_number()) {
+				
+			} else {
+				ret = INVALID_CAST;
+				return ret;
+			}
+			dst_type = DataType::default_number_type();
+			break;
+		case OP_ADD:
+		case OP_SUB:
+		case OP_MUL:
+		case OP_DIV:
+		case OP_EQ:
+		case OP_NE:
+		case OP_GE:
+		case OP_GT:
+		case OP_LE:
+		case OP_LT:
+		case OP_EQ_ANY:
+		case OP_NE_ANY:
+		case OP_GE_ANY:
+		case OP_GT_ANY:
+		case OP_LE_ANY:
+		case OP_LT_ANY:
+		case OP_EQ_ALL:
+		case OP_NE_ALL:
+		case OP_GE_ALL:
+		case OP_GT_ALL:
+		case OP_LE_ALL:
+		case OP_LT_ALL:
+		case OP_IN:
+		case OP_NOT_IN:
+		case OP_IN_LIST:
+		case OP_NOT_IN_LIST:
+		case OP_AND:
+		case OP_OR:
+			ret = (ObjCastUtil::get_result_type(params[0]->res_type,
+											   l_need_cast,
+											   l_dst_type,
+											   params[1]->res_type,
+											   r_need_cast,
+											   r_dst_type,
+											   op_type,
+											   dst_type));
+			if (FAIL(ret)) {
+				LOG_ERR("deduce type failed", K(params), K(ret));
+				return ret;
+			}
+			if (l_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[0], l_dst_type, params[0]));
+			}
+			if (r_need_cast) {
+				CHECK(ObjCastUtil::add_cast(params[1], r_dst_type, params[1]));
+			}
+	}
+	res_type = dst_type;
 	return ret;
 }
 
@@ -922,44 +1326,4 @@ bool OpExprStmt::same_as(const ExprStmt_s &other)
 		}
 		return true;
 	}
-}
-
-
-String OpExprStmt::op_string(OperationType op_type)
-{
-	switch (op_type) {
-		case OP_INVALID: return N(OP_INVALID);
-		case OP_MINUS: return N(OP_MINUS);
-		case OP_ADD: return N(OP_ADD);
-		case OP_SUB: return N(OP_SUB);
-		case OP_MUL: return N(OP_MUL);
-		case OP_DIV: return N(OP_DIV);
-		case OP_EQ: return N(OP_EQ);
-		case OP_NE: return N(OP_NE);
-		case OP_GE: return N(OP_GE);
-		case OP_GT: return N(OP_GT);
-		case OP_LE: return N(OP_LE);
-		case OP_LT: return N(OP_LT);
-		case OP_BETWEEN: return N(OP_BETWEEN);
-		case OP_NOT_BETWEEN: return N(OP_NOT_BETWEEN);
-		case OP_IS_NULL: return N(OP_IS_NULL);
-		case OP_IS_NOT_NULL: return N(OP_IS_NOT_NULL);
-		case OP_IN: return N(OP_IN);
-		case OP_NOT_IN: return N(OP_NOT_IN);
-		case OP_EXISTS: return N(OP_EXISTS);
-		case OP_NOT_EXISTS: return N(OP_NOT_EXISTS);
-		case OP_AND: return N(OP_AND);
-		case OP_OR: return N(OP_OR);
-		case OP_NOT: return N(OP_NOT);
-		case OP_LIKE: return N(OP_LIKE);
-		case OP_NOT_LIKE: return N(OP_NOT_LIKE);
-		case OP_CAST: return N(OP_CAST);
-		case OP_CASE_WHEN: return N(OP_CASE_WHEN);
-		case OP_IFNULL: return N(OP_IFNULL);
-		case OP_TO_CHAR: return N(OP_TO_CHAR);
-		case OP_SUBSTR: return N(OP_SUBSTR);
-		case OP_TO_NUMBER: return N(OP_TO_NUMBER);
-		defualt: return N(UNKNOWN);
-	}
-	return "";
 }

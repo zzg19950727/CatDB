@@ -1,10 +1,12 @@
 #ifndef QUERY_CTX_H
 #define QUERY_CTX_H
+#include "hint_stmt.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Sql {
         DECLARE(QueryCtx);
+        using Parser::QueryHint;
         class QueryCtx {
         public:
             QueryCtx()
@@ -12,6 +14,7 @@ namespace CatDB {
             cur_stmt_id(1),
             sample_size(1),
             cur_view_id(1),
+            param_index(0),
             killed(false)
             {}
             void reset();
@@ -26,8 +29,10 @@ namespace CatDB {
             u32 check_query_status();
             void increase_affected_rows() { ++affected_rows; }
             u32 get_affected_rows() const { return affected_rows; }
+            u32 generate_param_index() { return param_index++; }
 
         public:
+            QueryHint query_hint;
             String cur_database;
             String err_msg;
             u32 cur_table_id;
@@ -36,6 +41,7 @@ namespace CatDB {
             double sample_size;
             u32 affected_rows;
             u32 thread_id;
+            u32 param_index;
             bool killed;
         };
     }

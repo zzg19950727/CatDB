@@ -31,22 +31,22 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx_s &ctx)
 	Plan_s plan = Plan_s();
 	switch (lex_stmt->stmt_type())
 	{
-	case Stmt::Insert:
+	case Insert:
 		plan = InsertPlan::make_insert_plan(lex_stmt);
 		break;
-	case Stmt::Delete:
+	case Delete:
 		plan = DeletePlan::make_delete_plan(lex_stmt);
 		break;
-	case Stmt::Update:
+	case Update:
 		plan = UpdatePlan::make_update_plan(lex_stmt);
 		break;
-	case Stmt::Select:
+	case Select:
 		plan = SelectPlan::make_select_plan(lex_stmt);
 		break;
-	case Stmt::SetOperation:
+	case SetOperation:
 		plan = SelectPlan::make_select_plan(lex_stmt);
 		break;
-	case Stmt::DoCMD:
+	case DoCMD:
 		plan = CMDPlan::make_cmd_plan(lex_stmt);
 		break;
 	}

@@ -32,6 +32,8 @@ PhyOperator_s PhyHashGroup::make_hash_group(PhyOperator_s & child,
 
 u32 PhyHashGroup::inner_open()
 {
+	hash_table.set_exec_ctx(exec_ctx);
+	init_agg_func();
 	return child->open();
 }
 
@@ -50,38 +52,41 @@ u32 PhyHashGroup::reset()
 	return child->reset();
 }
 
-u32 PhyHashGroup::inner_get_next_row(Row_s & row)
+u32 PhyHashGroup::inner_get_next_row()
 {
 	u32 ret = SUCCESS;
+	bool is_valid = false;
+	Row_s row;
 	if (!is_build_hash_table) {
-		ret = build_hash_table();
-		if (FAIL(ret)) {
-			return ret;
-		}
+		CHECK(build_hash_table());
 	}
 	reset_agg_func();
 	if (start_new_group) {
 		if (!first_group_row) {
 			return ERR_UNEXPECTED;
 		} else {
-			add_row_to_agg_func(first_group_row);
+			CHECK(add_row_to_agg_func(first_group_row));
 			start_new_group = false;
 		}
 	}
-	while ((ret = hash_table.get_next_row(row)) == SUCCESS) {
+	while (SUCC(hash_table.get_next_row(row))) {
 		//是否是同一group
 		if (!first_group_row) {
 			first_group_row = row;
-		} else if (!this->euqal(first_group_row, row)) {
+		}
+		CHECK(this->euqal(first_group_row, row, is_valid));
+		if (!is_valid) {
 			first_group_row.swap(row);
 			start_new_group = true;
+			set_input_rows(row);
 			return SUCCESS;
 		}
-		add_row_to_agg_func(row);
+		CHECK(add_row_to_agg_func(row));
 	}
 	if (ret == NO_MORE_ROWS && first_group_row) {
 		first_group_row.swap(row);
 		first_group_row.reset();
+		set_input_rows(row);
 		ret = SUCCESS;
 	}
 	return ret;
@@ -96,35 +101,43 @@ u32 PhyHashGroup::build_hash_table()
 {
 	Row_s row;
 	u32 ret = SUCCESS;
-	while ((ret=child->get_next_row(row)) == SUCCESS){
+	while (SUCC(child->get_next_row(row))){
 		row = Row::deep_copy(row);
-		hash_table.build(row);
+		CHECK(hash_table.build(row));
 	}
 	if (ret != NO_MORE_ROWS) {
 		return ret;
 	}
-	ret = hash_table.sort_bucket();
-	if (FAIL(ret)) {
-		return ret;
-	}
+	CHECK(hash_table.sort_bucket());
 	is_build_hash_table = true;
 	return ret;
 }
 
-bool PhyHashGroup::euqal(const Row_s & lhs, const Row_s & rhs)
+u32 PhyHashGroup::euqal(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
 {
-	for (u32 i = 0; i < group_exprs.size(); ++i){
-		Object_s lhs_value = group_exprs[i]->get_result(lhs);
-		Object_s rhs_value = group_exprs[i]->get_result(rhs);
+	u32 ret = SUCCESS;
+	Object_s lhs_value;
+	Object_s rhs_value;
+	int res = 0;
+	is_valid = true;
+	for (u32 i = 0; i < group_exprs.size(); ++i) {
+		exec_ctx->set_input_rows(lhs);
+		CHECK(group_exprs[i]->get_result(exec_ctx));
+		lhs_value = exec_ctx->output_result;
+		exec_ctx->set_input_rows(rhs);
+		CHECK(group_exprs[i]->get_result(exec_ctx));
+		rhs_value = exec_ctx->output_result;
 		if (lhs_value->is_null() && rhs_value->is_null()) {
-			return true;
+			is_valid = true;
+			break;
 		}
-		Object_s result = lhs_value->operator==(rhs_value);
-		if (!result->bool_value()){
-			return false;
+		CHECK(lhs_value->compare(rhs_value, res));
+		if (0 != res) {
+			is_valid = false;
+			break;
 		}
 	}
-	return true;
+	return ret;
 }
 
 void PhyHashGroup::reset_agg_func()
@@ -135,15 +148,21 @@ void PhyHashGroup::reset_agg_func()
 	}
 }
 
-u32 PhyHashGroup::add_row_to_agg_func(const Row_s & row)
+void PhyHashGroup::init_agg_func()
+{
+	for (u32 i = 0; i < agg_funcs.size(); ++i) {
+		AggregateExpression_s agg_func = agg_funcs[i];
+		agg_func->set_exec_ctx(exec_ctx);
+	}
+}
+
+u32 PhyHashGroup::add_row_to_agg_func(Row_s & row)
 {
 	u32 ret = SUCCESS;
 	for (u32 i = 0; i < agg_funcs.size(); ++i) {
 		AggregateExpression_s agg_func = agg_funcs[i];
-		ret = agg_func->add_row(row);
-		if (ret != SUCCESS) {
-			break;
-		}
+		exec_ctx->set_input_rows(row);
+		CHECK(agg_func->add_row(exec_ctx));
 	}
 	return ret;
 }

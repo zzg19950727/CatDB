@@ -1,0 +1,1045 @@
+#define ENUM_TYPE_I(arg)                arg
+#define ENUM_STR_I(arg)                 #arg
+#define ENUM_REPEAT_1(func, arg1)       ,func(arg1)
+#define ENUM_REPEAT_2(func  ,arg1\
+                            ,arg2)      ENUM_REPEAT_1(func  ,arg1)\
+                                        ENUM_REPEAT_1(func  ,arg2)
+#define ENUM_REPEAT_3(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_2(func, __VA_ARGS__)
+#define ENUM_REPEAT_4(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_3(func, __VA_ARGS__)
+#define ENUM_REPEAT_5(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_4(func, __VA_ARGS__)
+#define ENUM_REPEAT_6(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_5(func, __VA_ARGS__)
+#define ENUM_REPEAT_7(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_6(func, __VA_ARGS__)
+#define ENUM_REPEAT_8(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_7(func, __VA_ARGS__)
+#define ENUM_REPEAT_9(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_8(func, __VA_ARGS__)
+#define ENUM_REPEAT_10(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_9(func, __VA_ARGS__)
+#define ENUM_REPEAT_11(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_10(func, __VA_ARGS__)
+#define ENUM_REPEAT_12(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_11(func, __VA_ARGS__)
+#define ENUM_REPEAT_13(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_12(func, __VA_ARGS__)
+#define ENUM_REPEAT_14(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_13(func, __VA_ARGS__)
+#define ENUM_REPEAT_15(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_14(func, __VA_ARGS__)
+#define ENUM_REPEAT_16(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_15(func, __VA_ARGS__)
+#define ENUM_REPEAT_17(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_16(func, __VA_ARGS__)
+#define ENUM_REPEAT_18(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_17(func, __VA_ARGS__)
+#define ENUM_REPEAT_19(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_18(func, __VA_ARGS__)
+#define ENUM_REPEAT_20(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_19(func, __VA_ARGS__)
+#define ENUM_REPEAT_21(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_20(func, __VA_ARGS__)
+#define ENUM_REPEAT_22(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_21(func, __VA_ARGS__)
+#define ENUM_REPEAT_23(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_22(func, __VA_ARGS__)
+#define ENUM_REPEAT_24(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_23(func, __VA_ARGS__)
+#define ENUM_REPEAT_25(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_24(func, __VA_ARGS__)
+#define ENUM_REPEAT_26(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_25(func, __VA_ARGS__)
+#define ENUM_REPEAT_27(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_26(func, __VA_ARGS__)
+#define ENUM_REPEAT_28(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_27(func, __VA_ARGS__)
+#define ENUM_REPEAT_29(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_28(func, __VA_ARGS__)
+#define ENUM_REPEAT_30(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_29(func, __VA_ARGS__)
+#define ENUM_REPEAT_31(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_30(func, __VA_ARGS__)
+#define ENUM_REPEAT_32(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_31(func, __VA_ARGS__)
+#define ENUM_REPEAT_33(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_32(func, __VA_ARGS__)
+#define ENUM_REPEAT_34(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_33(func, __VA_ARGS__)
+#define ENUM_REPEAT_35(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_34(func, __VA_ARGS__)
+#define ENUM_REPEAT_36(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_35(func, __VA_ARGS__)
+#define ENUM_REPEAT_37(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_36(func, __VA_ARGS__)
+#define ENUM_REPEAT_38(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_37(func, __VA_ARGS__)
+#define ENUM_REPEAT_39(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_38(func, __VA_ARGS__)
+#define ENUM_REPEAT_40(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_39(func, __VA_ARGS__)
+#define ENUM_REPEAT_41(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_40(func, __VA_ARGS__)
+#define ENUM_REPEAT_42(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_41(func, __VA_ARGS__)
+#define ENUM_REPEAT_43(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_42(func, __VA_ARGS__)
+#define ENUM_REPEAT_44(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_43(func, __VA_ARGS__)
+#define ENUM_REPEAT_45(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_44(func, __VA_ARGS__)
+#define ENUM_REPEAT_46(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_45(func, __VA_ARGS__)
+#define ENUM_REPEAT_47(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_46(func, __VA_ARGS__)
+#define ENUM_REPEAT_48(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_47(func, __VA_ARGS__)
+#define ENUM_REPEAT_49(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_48(func, __VA_ARGS__)
+#define ENUM_REPEAT_50(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_49(func, __VA_ARGS__)
+#define ENUM_REPEAT_51(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_50(func, __VA_ARGS__)
+#define ENUM_REPEAT_52(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_51(func, __VA_ARGS__)
+#define ENUM_REPEAT_53(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_52(func, __VA_ARGS__)
+#define ENUM_REPEAT_54(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_53(func, __VA_ARGS__)
+#define ENUM_REPEAT_55(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_54(func, __VA_ARGS__)
+#define ENUM_REPEAT_56(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_55(func, __VA_ARGS__)
+#define ENUM_REPEAT_57(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_56(func, __VA_ARGS__)
+#define ENUM_REPEAT_58(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_57(func, __VA_ARGS__)
+#define ENUM_REPEAT_59(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_58(func, __VA_ARGS__)
+#define ENUM_REPEAT_60(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_59(func, __VA_ARGS__)
+#define ENUM_REPEAT_61(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_60(func, __VA_ARGS__)
+#define ENUM_REPEAT_62(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_61(func, __VA_ARGS__)
+#define ENUM_REPEAT_63(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_62(func, __VA_ARGS__)
+#define ENUM_REPEAT_64(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_63(func, __VA_ARGS__)
+#define ENUM_REPEAT_65(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_64(func, __VA_ARGS__)
+#define ENUM_REPEAT_66(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_65(func, __VA_ARGS__)
+#define ENUM_REPEAT_67(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_66(func, __VA_ARGS__)
+#define ENUM_REPEAT_68(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_67(func, __VA_ARGS__)
+#define ENUM_REPEAT_69(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_68(func, __VA_ARGS__)
+#define ENUM_REPEAT_70(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_69(func, __VA_ARGS__)
+#define ENUM_REPEAT_71(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_70(func, __VA_ARGS__)
+#define ENUM_REPEAT_72(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_71(func, __VA_ARGS__)
+#define ENUM_REPEAT_73(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_72(func, __VA_ARGS__)
+#define ENUM_REPEAT_74(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_73(func, __VA_ARGS__)
+#define ENUM_REPEAT_75(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_74(func, __VA_ARGS__)
+#define ENUM_REPEAT_76(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_75(func, __VA_ARGS__)
+#define ENUM_REPEAT_77(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_76(func, __VA_ARGS__)
+#define ENUM_REPEAT_78(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_77(func, __VA_ARGS__)
+#define ENUM_REPEAT_79(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_78(func, __VA_ARGS__)
+#define ENUM_REPEAT_80(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_79(func, __VA_ARGS__)
+#define ENUM_REPEAT_81(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_80(func, __VA_ARGS__)
+#define ENUM_REPEAT_82(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_81(func, __VA_ARGS__)
+#define ENUM_REPEAT_83(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_82(func, __VA_ARGS__)
+#define ENUM_REPEAT_84(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_83(func, __VA_ARGS__)
+#define ENUM_REPEAT_85(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_84(func, __VA_ARGS__)
+#define ENUM_REPEAT_86(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_85(func, __VA_ARGS__)
+#define ENUM_REPEAT_87(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_86(func, __VA_ARGS__)
+#define ENUM_REPEAT_88(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_87(func, __VA_ARGS__)
+#define ENUM_REPEAT_89(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_88(func, __VA_ARGS__)
+#define ENUM_REPEAT_90(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_89(func, __VA_ARGS__)
+#define ENUM_REPEAT_91(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_90(func, __VA_ARGS__)
+#define ENUM_REPEAT_92(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_91(func, __VA_ARGS__)
+#define ENUM_REPEAT_93(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_92(func, __VA_ARGS__)
+#define ENUM_REPEAT_94(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_93(func, __VA_ARGS__)
+#define ENUM_REPEAT_95(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_94(func, __VA_ARGS__)
+#define ENUM_REPEAT_96(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_95(func, __VA_ARGS__)
+#define ENUM_REPEAT_97(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_96(func, __VA_ARGS__)
+#define ENUM_REPEAT_98(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_97(func, __VA_ARGS__)
+#define ENUM_REPEAT_99(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_98(func, __VA_ARGS__)
+#define ENUM_REPEAT_100(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_99(func, __VA_ARGS__)
+#define ENUM_REPEAT_101(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_100(func, __VA_ARGS__)
+#define ENUM_REPEAT_102(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_101(func, __VA_ARGS__)
+#define ENUM_REPEAT_103(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_102(func, __VA_ARGS__)
+#define ENUM_REPEAT_104(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_103(func, __VA_ARGS__)
+#define ENUM_REPEAT_105(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_104(func, __VA_ARGS__)
+#define ENUM_REPEAT_106(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_105(func, __VA_ARGS__)
+#define ENUM_REPEAT_107(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_106(func, __VA_ARGS__)
+#define ENUM_REPEAT_108(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_107(func, __VA_ARGS__)
+#define ENUM_REPEAT_109(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_108(func, __VA_ARGS__)
+#define ENUM_REPEAT_110(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_109(func, __VA_ARGS__)
+#define ENUM_REPEAT_111(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_110(func, __VA_ARGS__)
+#define ENUM_REPEAT_112(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_111(func, __VA_ARGS__)
+#define ENUM_REPEAT_113(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_112(func, __VA_ARGS__)
+#define ENUM_REPEAT_114(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_113(func, __VA_ARGS__)
+#define ENUM_REPEAT_115(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_114(func, __VA_ARGS__)
+#define ENUM_REPEAT_116(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_115(func, __VA_ARGS__)
+#define ENUM_REPEAT_117(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_116(func, __VA_ARGS__)
+#define ENUM_REPEAT_118(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_117(func, __VA_ARGS__)
+#define ENUM_REPEAT_119(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_118(func, __VA_ARGS__)
+#define ENUM_REPEAT_120(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_119(func, __VA_ARGS__)
+#define ENUM_REPEAT_121(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_120(func, __VA_ARGS__)
+#define ENUM_REPEAT_122(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_121(func, __VA_ARGS__)
+#define ENUM_REPEAT_123(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_122(func, __VA_ARGS__)
+#define ENUM_REPEAT_124(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_123(func, __VA_ARGS__)
+#define ENUM_REPEAT_125(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_124(func, __VA_ARGS__)
+#define ENUM_REPEAT_126(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_125(func, __VA_ARGS__)
+#define ENUM_REPEAT_127(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_126(func, __VA_ARGS__)
+#define ENUM_REPEAT_128(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_127(func, __VA_ARGS__)
+#define ENUM_REPEAT_129(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_128(func, __VA_ARGS__)
+#define ENUM_REPEAT_130(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_129(func, __VA_ARGS__)
+#define ENUM_REPEAT_131(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_130(func, __VA_ARGS__)
+#define ENUM_REPEAT_132(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_131(func, __VA_ARGS__)
+#define ENUM_REPEAT_133(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_132(func, __VA_ARGS__)
+#define ENUM_REPEAT_134(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_133(func, __VA_ARGS__)
+#define ENUM_REPEAT_135(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_134(func, __VA_ARGS__)
+#define ENUM_REPEAT_136(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_135(func, __VA_ARGS__)
+#define ENUM_REPEAT_137(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_136(func, __VA_ARGS__)
+#define ENUM_REPEAT_138(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_137(func, __VA_ARGS__)
+#define ENUM_REPEAT_139(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_138(func, __VA_ARGS__)
+#define ENUM_REPEAT_140(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_139(func, __VA_ARGS__)
+#define ENUM_REPEAT_141(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_140(func, __VA_ARGS__)
+#define ENUM_REPEAT_142(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_141(func, __VA_ARGS__)
+#define ENUM_REPEAT_143(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_142(func, __VA_ARGS__)
+#define ENUM_REPEAT_144(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_143(func, __VA_ARGS__)
+#define ENUM_REPEAT_145(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_144(func, __VA_ARGS__)
+#define ENUM_REPEAT_146(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_145(func, __VA_ARGS__)
+#define ENUM_REPEAT_147(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_146(func, __VA_ARGS__)
+#define ENUM_REPEAT_148(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_147(func, __VA_ARGS__)
+#define ENUM_REPEAT_149(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_148(func, __VA_ARGS__)
+#define ENUM_REPEAT_150(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_149(func, __VA_ARGS__)
+#define ENUM_REPEAT_151(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_150(func, __VA_ARGS__)
+#define ENUM_REPEAT_152(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_151(func, __VA_ARGS__)
+#define ENUM_REPEAT_153(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_152(func, __VA_ARGS__)
+#define ENUM_REPEAT_154(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_153(func, __VA_ARGS__)
+#define ENUM_REPEAT_155(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_154(func, __VA_ARGS__)
+#define ENUM_REPEAT_156(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_155(func, __VA_ARGS__)
+#define ENUM_REPEAT_157(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_156(func, __VA_ARGS__)
+#define ENUM_REPEAT_158(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_157(func, __VA_ARGS__)
+#define ENUM_REPEAT_159(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_158(func, __VA_ARGS__)
+#define ENUM_REPEAT_160(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_159(func, __VA_ARGS__)
+#define ENUM_REPEAT_161(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_160(func, __VA_ARGS__)
+#define ENUM_REPEAT_162(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_161(func, __VA_ARGS__)
+#define ENUM_REPEAT_163(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_162(func, __VA_ARGS__)
+#define ENUM_REPEAT_164(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_163(func, __VA_ARGS__)
+#define ENUM_REPEAT_165(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_164(func, __VA_ARGS__)
+#define ENUM_REPEAT_166(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_165(func, __VA_ARGS__)
+#define ENUM_REPEAT_167(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_166(func, __VA_ARGS__)
+#define ENUM_REPEAT_168(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_167(func, __VA_ARGS__)
+#define ENUM_REPEAT_169(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_168(func, __VA_ARGS__)
+#define ENUM_REPEAT_170(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_169(func, __VA_ARGS__)
+#define ENUM_REPEAT_171(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_170(func, __VA_ARGS__)
+#define ENUM_REPEAT_172(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_171(func, __VA_ARGS__)
+#define ENUM_REPEAT_173(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_172(func, __VA_ARGS__)
+#define ENUM_REPEAT_174(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_173(func, __VA_ARGS__)
+#define ENUM_REPEAT_175(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_174(func, __VA_ARGS__)
+#define ENUM_REPEAT_176(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_175(func, __VA_ARGS__)
+#define ENUM_REPEAT_177(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_176(func, __VA_ARGS__)
+#define ENUM_REPEAT_178(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_177(func, __VA_ARGS__)
+#define ENUM_REPEAT_179(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_178(func, __VA_ARGS__)
+#define ENUM_REPEAT_180(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_179(func, __VA_ARGS__)
+#define ENUM_REPEAT_181(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_180(func, __VA_ARGS__)
+#define ENUM_REPEAT_182(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_181(func, __VA_ARGS__)
+#define ENUM_REPEAT_183(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_182(func, __VA_ARGS__)
+#define ENUM_REPEAT_184(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_183(func, __VA_ARGS__)
+#define ENUM_REPEAT_185(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_184(func, __VA_ARGS__)
+#define ENUM_REPEAT_186(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_185(func, __VA_ARGS__)
+#define ENUM_REPEAT_187(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_186(func, __VA_ARGS__)
+#define ENUM_REPEAT_188(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_187(func, __VA_ARGS__)
+#define ENUM_REPEAT_189(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_188(func, __VA_ARGS__)
+#define ENUM_REPEAT_190(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_189(func, __VA_ARGS__)
+#define ENUM_REPEAT_191(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_190(func, __VA_ARGS__)
+#define ENUM_REPEAT_192(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_191(func, __VA_ARGS__)
+#define ENUM_REPEAT_193(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_192(func, __VA_ARGS__)
+#define ENUM_REPEAT_194(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_193(func, __VA_ARGS__)
+#define ENUM_REPEAT_195(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_194(func, __VA_ARGS__)
+#define ENUM_REPEAT_196(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_195(func, __VA_ARGS__)
+#define ENUM_REPEAT_197(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_196(func, __VA_ARGS__)
+#define ENUM_REPEAT_198(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_197(func, __VA_ARGS__)
+#define ENUM_REPEAT_199(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_198(func, __VA_ARGS__)
+#define ENUM_REPEAT_200(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_199(func, __VA_ARGS__)
+#define ENUM_REPEAT_201(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_200(func, __VA_ARGS__)
+#define ENUM_REPEAT_202(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_201(func, __VA_ARGS__)
+#define ENUM_REPEAT_203(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_202(func, __VA_ARGS__)
+#define ENUM_REPEAT_204(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_203(func, __VA_ARGS__)
+#define ENUM_REPEAT_205(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_204(func, __VA_ARGS__)
+#define ENUM_REPEAT_206(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_205(func, __VA_ARGS__)
+#define ENUM_REPEAT_207(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_206(func, __VA_ARGS__)
+#define ENUM_REPEAT_208(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_207(func, __VA_ARGS__)
+#define ENUM_REPEAT_209(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_208(func, __VA_ARGS__)
+#define ENUM_REPEAT_210(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_209(func, __VA_ARGS__)
+#define ENUM_REPEAT_211(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_210(func, __VA_ARGS__)
+#define ENUM_REPEAT_212(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_211(func, __VA_ARGS__)
+#define ENUM_REPEAT_213(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_212(func, __VA_ARGS__)
+#define ENUM_REPEAT_214(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_213(func, __VA_ARGS__)
+#define ENUM_REPEAT_215(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_214(func, __VA_ARGS__)
+#define ENUM_REPEAT_216(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_215(func, __VA_ARGS__)
+#define ENUM_REPEAT_217(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_216(func, __VA_ARGS__)
+#define ENUM_REPEAT_218(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_217(func, __VA_ARGS__)
+#define ENUM_REPEAT_219(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_218(func, __VA_ARGS__)
+#define ENUM_REPEAT_220(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_219(func, __VA_ARGS__)
+#define ENUM_REPEAT_221(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_220(func, __VA_ARGS__)
+#define ENUM_REPEAT_222(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_221(func, __VA_ARGS__)
+#define ENUM_REPEAT_223(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_222(func, __VA_ARGS__)
+#define ENUM_REPEAT_224(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_223(func, __VA_ARGS__)
+#define ENUM_REPEAT_225(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_224(func, __VA_ARGS__)
+#define ENUM_REPEAT_226(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_225(func, __VA_ARGS__)
+#define ENUM_REPEAT_227(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_226(func, __VA_ARGS__)
+#define ENUM_REPEAT_228(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_227(func, __VA_ARGS__)
+#define ENUM_REPEAT_229(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_228(func, __VA_ARGS__)
+#define ENUM_REPEAT_230(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_229(func, __VA_ARGS__)
+#define ENUM_REPEAT_231(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_230(func, __VA_ARGS__)
+#define ENUM_REPEAT_232(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_231(func, __VA_ARGS__)
+#define ENUM_REPEAT_233(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_232(func, __VA_ARGS__)
+#define ENUM_REPEAT_234(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_233(func, __VA_ARGS__)
+#define ENUM_REPEAT_235(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_234(func, __VA_ARGS__)
+#define ENUM_REPEAT_236(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_235(func, __VA_ARGS__)
+#define ENUM_REPEAT_237(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_236(func, __VA_ARGS__)
+#define ENUM_REPEAT_238(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_237(func, __VA_ARGS__)
+#define ENUM_REPEAT_239(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_238(func, __VA_ARGS__)
+#define ENUM_REPEAT_240(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_239(func, __VA_ARGS__)
+#define ENUM_REPEAT_241(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_240(func, __VA_ARGS__)
+#define ENUM_REPEAT_242(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_241(func, __VA_ARGS__)
+#define ENUM_REPEAT_243(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_242(func, __VA_ARGS__)
+#define ENUM_REPEAT_244(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_243(func, __VA_ARGS__)
+#define ENUM_REPEAT_245(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_244(func, __VA_ARGS__)
+#define ENUM_REPEAT_246(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_245(func, __VA_ARGS__)
+#define ENUM_REPEAT_247(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_246(func, __VA_ARGS__)
+#define ENUM_REPEAT_248(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_247(func, __VA_ARGS__)
+#define ENUM_REPEAT_249(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_248(func, __VA_ARGS__)
+#define ENUM_REPEAT_250(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_249(func, __VA_ARGS__)
+#define ENUM_REPEAT_251(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_250(func, __VA_ARGS__)
+#define ENUM_REPEAT_252(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_251(func, __VA_ARGS__)
+#define ENUM_REPEAT_253(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_252(func, __VA_ARGS__)
+#define ENUM_REPEAT_254(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_253(func, __VA_ARGS__)
+#define ENUM_REPEAT_255(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_254(func, __VA_ARGS__)
+#define ENUM_REPEAT_256(func, arg, ...)  ENUM_REPEAT_1(func  ,arg)\
+                                        ENUM_REPEAT_255(func, __VA_ARGS__)
+#define GET_ENUM_REPEAT(_1\
+                        ,_2\
+                        ,_3\
+                        ,_4\
+                        ,_5\
+                        ,_6\
+                        ,_7\
+                        ,_8\
+                        ,_9\
+                        ,_10\
+                        ,_11\
+                        ,_12\
+                        ,_13\
+                        ,_14\
+                        ,_15\
+                        ,_16\
+                        ,_17\
+                        ,_18\
+                        ,_19\
+                        ,_20\
+                        ,_21\
+                        ,_22\
+                        ,_23\
+                        ,_24\
+                        ,_25\
+                        ,_26\
+                        ,_27\
+                        ,_28\
+                        ,_29\
+                        ,_30\
+                        ,_31\
+                        ,_32\
+                        ,_33\
+                        ,_34\
+                        ,_35\
+                        ,_36\
+                        ,_37\
+                        ,_38\
+                        ,_39\
+                        ,_40\
+                        ,_41\
+                        ,_42\
+                        ,_43\
+                        ,_44\
+                        ,_45\
+                        ,_46\
+                        ,_47\
+                        ,_48\
+                        ,_49\
+                        ,_50\
+                        ,_51\
+                        ,_52\
+                        ,_53\
+                        ,_54\
+                        ,_55\
+                        ,_56\
+                        ,_57\
+                        ,_58\
+                        ,_59\
+                        ,_60\
+                        ,_61\
+                        ,_62\
+                        ,_63\
+                        ,_64\
+                        ,_65\
+                        ,_66\
+                        ,_67\
+                        ,_68\
+                        ,_69\
+                        ,_70\
+                        ,_71\
+                        ,_72\
+                        ,_73\
+                        ,_74\
+                        ,_75\
+                        ,_76\
+                        ,_77\
+                        ,_78\
+                        ,_79\
+                        ,_80\
+                        ,_81\
+                        ,_82\
+                        ,_83\
+                        ,_84\
+                        ,_85\
+                        ,_86\
+                        ,_87\
+                        ,_88\
+                        ,_89\
+                        ,_90\
+                        ,_91\
+                        ,_92\
+                        ,_93\
+                        ,_94\
+                        ,_95\
+                        ,_96\
+                        ,_97\
+                        ,_98\
+                        ,_99\
+                        ,_100\
+                        ,_101\
+                        ,_102\
+                        ,_103\
+                        ,_104\
+                        ,_105\
+                        ,_106\
+                        ,_107\
+                        ,_108\
+                        ,_109\
+                        ,_110\
+                        ,_111\
+                        ,_112\
+                        ,_113\
+                        ,_114\
+                        ,_115\
+                        ,_116\
+                        ,_117\
+                        ,_118\
+                        ,_119\
+                        ,_120\
+                        ,_121\
+                        ,_122\
+                        ,_123\
+                        ,_124\
+                        ,_125\
+                        ,_126\
+                        ,_127\
+                        ,_128\
+                        ,_129\
+                        ,_130\
+                        ,_131\
+                        ,_132\
+                        ,_133\
+                        ,_134\
+                        ,_135\
+                        ,_136\
+                        ,_137\
+                        ,_138\
+                        ,_139\
+                        ,_140\
+                        ,_141\
+                        ,_142\
+                        ,_143\
+                        ,_144\
+                        ,_145\
+                        ,_146\
+                        ,_147\
+                        ,_148\
+                        ,_149\
+                        ,_150\
+                        ,_151\
+                        ,_152\
+                        ,_153\
+                        ,_154\
+                        ,_155\
+                        ,_156\
+                        ,_157\
+                        ,_158\
+                        ,_159\
+                        ,_160\
+                        ,_161\
+                        ,_162\
+                        ,_163\
+                        ,_164\
+                        ,_165\
+                        ,_166\
+                        ,_167\
+                        ,_168\
+                        ,_169\
+                        ,_170\
+                        ,_171\
+                        ,_172\
+                        ,_173\
+                        ,_174\
+                        ,_175\
+                        ,_176\
+                        ,_177\
+                        ,_178\
+                        ,_179\
+                        ,_180\
+                        ,_181\
+                        ,_182\
+                        ,_183\
+                        ,_184\
+                        ,_185\
+                        ,_186\
+                        ,_187\
+                        ,_188\
+                        ,_189\
+                        ,_190\
+                        ,_191\
+                        ,_192\
+                        ,_193\
+                        ,_194\
+                        ,_195\
+                        ,_196\
+                        ,_197\
+                        ,_198\
+                        ,_199\
+                        ,_200\
+                        ,_201\
+                        ,_202\
+                        ,_203\
+                        ,_204\
+                        ,_205\
+                        ,_206\
+                        ,_207\
+                        ,_208\
+                        ,_209\
+                        ,_210\
+                        ,_211\
+                        ,_212\
+                        ,_213\
+                        ,_214\
+                        ,_215\
+                        ,_216\
+                        ,_217\
+                        ,_218\
+                        ,_219\
+                        ,_220\
+                        ,_221\
+                        ,_222\
+                        ,_223\
+                        ,_224\
+                        ,_225\
+                        ,_226\
+                        ,_227\
+                        ,_228\
+                        ,_229\
+                        ,_230\
+                        ,_231\
+                        ,_232\
+                        ,_233\
+                        ,_234\
+                        ,_235\
+                        ,_236\
+                        ,_237\
+                        ,_238\
+                        ,_239\
+                        ,_240\
+                        ,_241\
+                        ,_242\
+                        ,_243\
+                        ,_244\
+                        ,_245\
+                        ,_246\
+                        ,_247\
+                        ,_248\
+                        ,_249\
+                        ,_250\
+                        ,_251\
+                        ,_252\
+                        ,_253\
+                        ,_254\
+                        ,_255\
+                        ,_256\
+                        ,p\
+                        ,...)       p
+#define ENUM_BODY(func, ...)        GET_ENUM_REPEAT(__VA_ARGS__\
+                                                    ,ENUM_REPEAT_256\
+                                                    ,ENUM_REPEAT_255\
+                                                    ,ENUM_REPEAT_254\
+                                                    ,ENUM_REPEAT_253\
+                                                    ,ENUM_REPEAT_252\
+                                                    ,ENUM_REPEAT_251\
+                                                    ,ENUM_REPEAT_250\
+                                                    ,ENUM_REPEAT_249\
+                                                    ,ENUM_REPEAT_248\
+                                                    ,ENUM_REPEAT_247\
+                                                    ,ENUM_REPEAT_246\
+                                                    ,ENUM_REPEAT_245\
+                                                    ,ENUM_REPEAT_244\
+                                                    ,ENUM_REPEAT_243\
+                                                    ,ENUM_REPEAT_242\
+                                                    ,ENUM_REPEAT_241\
+                                                    ,ENUM_REPEAT_240\
+                                                    ,ENUM_REPEAT_239\
+                                                    ,ENUM_REPEAT_238\
+                                                    ,ENUM_REPEAT_237\
+                                                    ,ENUM_REPEAT_236\
+                                                    ,ENUM_REPEAT_235\
+                                                    ,ENUM_REPEAT_234\
+                                                    ,ENUM_REPEAT_233\
+                                                    ,ENUM_REPEAT_232\
+                                                    ,ENUM_REPEAT_231\
+                                                    ,ENUM_REPEAT_230\
+                                                    ,ENUM_REPEAT_229\
+                                                    ,ENUM_REPEAT_228\
+                                                    ,ENUM_REPEAT_227\
+                                                    ,ENUM_REPEAT_226\
+                                                    ,ENUM_REPEAT_225\
+                                                    ,ENUM_REPEAT_224\
+                                                    ,ENUM_REPEAT_223\
+                                                    ,ENUM_REPEAT_222\
+                                                    ,ENUM_REPEAT_221\
+                                                    ,ENUM_REPEAT_220\
+                                                    ,ENUM_REPEAT_219\
+                                                    ,ENUM_REPEAT_218\
+                                                    ,ENUM_REPEAT_217\
+                                                    ,ENUM_REPEAT_216\
+                                                    ,ENUM_REPEAT_215\
+                                                    ,ENUM_REPEAT_214\
+                                                    ,ENUM_REPEAT_213\
+                                                    ,ENUM_REPEAT_212\
+                                                    ,ENUM_REPEAT_211\
+                                                    ,ENUM_REPEAT_210\
+                                                    ,ENUM_REPEAT_209\
+                                                    ,ENUM_REPEAT_208\
+                                                    ,ENUM_REPEAT_207\
+                                                    ,ENUM_REPEAT_206\
+                                                    ,ENUM_REPEAT_205\
+                                                    ,ENUM_REPEAT_204\
+                                                    ,ENUM_REPEAT_203\
+                                                    ,ENUM_REPEAT_202\
+                                                    ,ENUM_REPEAT_201\
+                                                    ,ENUM_REPEAT_200\
+                                                    ,ENUM_REPEAT_199\
+                                                    ,ENUM_REPEAT_198\
+                                                    ,ENUM_REPEAT_197\
+                                                    ,ENUM_REPEAT_196\
+                                                    ,ENUM_REPEAT_195\
+                                                    ,ENUM_REPEAT_194\
+                                                    ,ENUM_REPEAT_193\
+                                                    ,ENUM_REPEAT_192\
+                                                    ,ENUM_REPEAT_191\
+                                                    ,ENUM_REPEAT_190\
+                                                    ,ENUM_REPEAT_189\
+                                                    ,ENUM_REPEAT_188\
+                                                    ,ENUM_REPEAT_187\
+                                                    ,ENUM_REPEAT_186\
+                                                    ,ENUM_REPEAT_185\
+                                                    ,ENUM_REPEAT_184\
+                                                    ,ENUM_REPEAT_183\
+                                                    ,ENUM_REPEAT_182\
+                                                    ,ENUM_REPEAT_181\
+                                                    ,ENUM_REPEAT_180\
+                                                    ,ENUM_REPEAT_179\
+                                                    ,ENUM_REPEAT_178\
+                                                    ,ENUM_REPEAT_177\
+                                                    ,ENUM_REPEAT_176\
+                                                    ,ENUM_REPEAT_175\
+                                                    ,ENUM_REPEAT_174\
+                                                    ,ENUM_REPEAT_173\
+                                                    ,ENUM_REPEAT_172\
+                                                    ,ENUM_REPEAT_171\
+                                                    ,ENUM_REPEAT_170\
+                                                    ,ENUM_REPEAT_169\
+                                                    ,ENUM_REPEAT_168\
+                                                    ,ENUM_REPEAT_167\
+                                                    ,ENUM_REPEAT_166\
+                                                    ,ENUM_REPEAT_165\
+                                                    ,ENUM_REPEAT_164\
+                                                    ,ENUM_REPEAT_163\
+                                                    ,ENUM_REPEAT_162\
+                                                    ,ENUM_REPEAT_161\
+                                                    ,ENUM_REPEAT_160\
+                                                    ,ENUM_REPEAT_159\
+                                                    ,ENUM_REPEAT_158\
+                                                    ,ENUM_REPEAT_157\
+                                                    ,ENUM_REPEAT_156\
+                                                    ,ENUM_REPEAT_155\
+                                                    ,ENUM_REPEAT_154\
+                                                    ,ENUM_REPEAT_153\
+                                                    ,ENUM_REPEAT_152\
+                                                    ,ENUM_REPEAT_151\
+                                                    ,ENUM_REPEAT_150\
+                                                    ,ENUM_REPEAT_149\
+                                                    ,ENUM_REPEAT_148\
+                                                    ,ENUM_REPEAT_147\
+                                                    ,ENUM_REPEAT_146\
+                                                    ,ENUM_REPEAT_145\
+                                                    ,ENUM_REPEAT_144\
+                                                    ,ENUM_REPEAT_143\
+                                                    ,ENUM_REPEAT_142\
+                                                    ,ENUM_REPEAT_141\
+                                                    ,ENUM_REPEAT_140\
+                                                    ,ENUM_REPEAT_139\
+                                                    ,ENUM_REPEAT_138\
+                                                    ,ENUM_REPEAT_137\
+                                                    ,ENUM_REPEAT_136\
+                                                    ,ENUM_REPEAT_135\
+                                                    ,ENUM_REPEAT_134\
+                                                    ,ENUM_REPEAT_133\
+                                                    ,ENUM_REPEAT_132\
+                                                    ,ENUM_REPEAT_131\
+                                                    ,ENUM_REPEAT_130\
+                                                    ,ENUM_REPEAT_129\
+                                                    ,ENUM_REPEAT_128\
+                                                    ,ENUM_REPEAT_127\
+                                                    ,ENUM_REPEAT_126\
+                                                    ,ENUM_REPEAT_125\
+                                                    ,ENUM_REPEAT_124\
+                                                    ,ENUM_REPEAT_123\
+                                                    ,ENUM_REPEAT_122\
+                                                    ,ENUM_REPEAT_121\
+                                                    ,ENUM_REPEAT_120\
+                                                    ,ENUM_REPEAT_119\
+                                                    ,ENUM_REPEAT_118\
+                                                    ,ENUM_REPEAT_117\
+                                                    ,ENUM_REPEAT_116\
+                                                    ,ENUM_REPEAT_115\
+                                                    ,ENUM_REPEAT_114\
+                                                    ,ENUM_REPEAT_113\
+                                                    ,ENUM_REPEAT_112\
+                                                    ,ENUM_REPEAT_111\
+                                                    ,ENUM_REPEAT_110\
+                                                    ,ENUM_REPEAT_109\
+                                                    ,ENUM_REPEAT_108\
+                                                    ,ENUM_REPEAT_107\
+                                                    ,ENUM_REPEAT_106\
+                                                    ,ENUM_REPEAT_105\
+                                                    ,ENUM_REPEAT_104\
+                                                    ,ENUM_REPEAT_103\
+                                                    ,ENUM_REPEAT_102\
+                                                    ,ENUM_REPEAT_101\
+                                                    ,ENUM_REPEAT_100\
+                                                    ,ENUM_REPEAT_99\
+                                                    ,ENUM_REPEAT_98\
+                                                    ,ENUM_REPEAT_97\
+                                                    ,ENUM_REPEAT_96\
+                                                    ,ENUM_REPEAT_95\
+                                                    ,ENUM_REPEAT_94\
+                                                    ,ENUM_REPEAT_93\
+                                                    ,ENUM_REPEAT_92\
+                                                    ,ENUM_REPEAT_91\
+                                                    ,ENUM_REPEAT_90\
+                                                    ,ENUM_REPEAT_89\
+                                                    ,ENUM_REPEAT_88\
+                                                    ,ENUM_REPEAT_87\
+                                                    ,ENUM_REPEAT_86\
+                                                    ,ENUM_REPEAT_85\
+                                                    ,ENUM_REPEAT_84\
+                                                    ,ENUM_REPEAT_83\
+                                                    ,ENUM_REPEAT_82\
+                                                    ,ENUM_REPEAT_81\
+                                                    ,ENUM_REPEAT_80\
+                                                    ,ENUM_REPEAT_79\
+                                                    ,ENUM_REPEAT_78\
+                                                    ,ENUM_REPEAT_77\
+                                                    ,ENUM_REPEAT_76\
+                                                    ,ENUM_REPEAT_75\
+                                                    ,ENUM_REPEAT_74\
+                                                    ,ENUM_REPEAT_73\
+                                                    ,ENUM_REPEAT_72\
+                                                    ,ENUM_REPEAT_71\
+                                                    ,ENUM_REPEAT_70\
+                                                    ,ENUM_REPEAT_69\
+                                                    ,ENUM_REPEAT_68\
+                                                    ,ENUM_REPEAT_67\
+                                                    ,ENUM_REPEAT_66\
+                                                    ,ENUM_REPEAT_65\
+                                                    ,ENUM_REPEAT_64\
+                                                    ,ENUM_REPEAT_63\
+                                                    ,ENUM_REPEAT_62\
+                                                    ,ENUM_REPEAT_61\
+                                                    ,ENUM_REPEAT_60\
+                                                    ,ENUM_REPEAT_59\
+                                                    ,ENUM_REPEAT_58\
+                                                    ,ENUM_REPEAT_57\
+                                                    ,ENUM_REPEAT_56\
+                                                    ,ENUM_REPEAT_55\
+                                                    ,ENUM_REPEAT_54\
+                                                    ,ENUM_REPEAT_53\
+                                                    ,ENUM_REPEAT_52\
+                                                    ,ENUM_REPEAT_51\
+                                                    ,ENUM_REPEAT_50\
+                                                    ,ENUM_REPEAT_49\
+                                                    ,ENUM_REPEAT_48\
+                                                    ,ENUM_REPEAT_47\
+                                                    ,ENUM_REPEAT_46\
+                                                    ,ENUM_REPEAT_45\
+                                                    ,ENUM_REPEAT_44\
+                                                    ,ENUM_REPEAT_43\
+                                                    ,ENUM_REPEAT_42\
+                                                    ,ENUM_REPEAT_41\
+                                                    ,ENUM_REPEAT_40\
+                                                    ,ENUM_REPEAT_39\
+                                                    ,ENUM_REPEAT_38\
+                                                    ,ENUM_REPEAT_37\
+                                                    ,ENUM_REPEAT_36\
+                                                    ,ENUM_REPEAT_35\
+                                                    ,ENUM_REPEAT_34\
+                                                    ,ENUM_REPEAT_33\
+                                                    ,ENUM_REPEAT_32\
+                                                    ,ENUM_REPEAT_31\
+                                                    ,ENUM_REPEAT_30\
+                                                    ,ENUM_REPEAT_29\
+                                                    ,ENUM_REPEAT_28\
+                                                    ,ENUM_REPEAT_27\
+                                                    ,ENUM_REPEAT_26\
+                                                    ,ENUM_REPEAT_25\
+                                                    ,ENUM_REPEAT_24\
+                                                    ,ENUM_REPEAT_23\
+                                                    ,ENUM_REPEAT_22\
+                                                    ,ENUM_REPEAT_21\
+                                                    ,ENUM_REPEAT_20\
+                                                    ,ENUM_REPEAT_19\
+                                                    ,ENUM_REPEAT_18\
+                                                    ,ENUM_REPEAT_17\
+                                                    ,ENUM_REPEAT_16\
+                                                    ,ENUM_REPEAT_15\
+                                                    ,ENUM_REPEAT_14\
+                                                    ,ENUM_REPEAT_13\
+                                                    ,ENUM_REPEAT_12\
+                                                    ,ENUM_REPEAT_11\
+                                                    ,ENUM_REPEAT_10\
+                                                    ,ENUM_REPEAT_9\
+                                                    ,ENUM_REPEAT_8\
+                                                    ,ENUM_REPEAT_7\
+                                                    ,ENUM_REPEAT_6\
+                                                    ,ENUM_REPEAT_5\
+                                                    ,ENUM_REPEAT_4\
+                                                    ,ENUM_REPEAT_3\
+                                                    ,ENUM_REPEAT_2\
+                                                    ,ENUM_REPEAT_1) (func, __VA_ARGS__)
+#define ENUM_TYPE_START(type_name)                      enum type_name {
+#define ENUM_STR_START(type_name)                       static const char* type_name##String[] = {
+#define ENUM_END                                        };
+
+#define ENUM_TYPE_DEFINE(type_name, first_arg, ...)     ENUM_TYPE_START(type_name)\
+                                                        ENUM_TYPE_I(first_arg)\
+                                                        ENUM_BODY(ENUM_TYPE_I, __VA_ARGS__)\
+                                                        ENUM_END
+
+#define ENUM_STR_DEFINE(type_name, first_arg, ...)      ENUM_STR_START(type_name)\
+                                                        ENUM_STR_I(first_arg)\
+                                                        ENUM_BODY(ENUM_STR_I, __VA_ARGS__)\
+                                                        ENUM_END
+
+#define ENUM_DEFINE(type_name, first_arg, ...)          ENUM_TYPE_DEFINE(type_name, first_arg, __VA_ARGS__)\
+                                                        ENUM_STR_DEFINE(type_name, first_arg, __VA_ARGS__)

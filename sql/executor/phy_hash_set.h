@@ -31,7 +31,7 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 get_next_row_union_all(Row_s &row);
 			u32 get_next_row_union(Row_s &row);
 			u32 get_next_row_intersect(Row_s &row);
@@ -39,7 +39,7 @@ namespace CatDB {
 			u32 build_hash_table();
 			u32 type() const override;
 		private:
-			Common::HashTable hash_table;
+			HashTable hash_table;
 			bool init_hash_table;
 			SetOpType set_type;
 		};

@@ -17,7 +17,7 @@ namespace CatDB {
 				table_item(table) {}
 			virtual ~LogTableScan() {}
 			static LogicalOperator_s make_table_scan(BasicTableStmt_s &table);
-			virtual u32 type() const override{return LogicalOperator::LOG_TABLE_SCAN;}
+			virtual u32 type() const override{return LOG_TABLE_SCAN;}
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;

@@ -2,6 +2,7 @@
 #define LOG_UPDATE_H
 #include "logical_operator.h"
 #include "type.h"
+#include "row.h"
 
 namespace CatDB {
 	namespace Optimizer {
@@ -14,7 +15,7 @@ namespace CatDB {
 			LogUpdate(LogicalOperator_s &child)
                 :SingleChildLogicalOperator(child) {}
 			virtual ~LogUpdate() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_UPDATE;}
+			virtual u32 type() const override{return LOG_UPDATE;}
 			static LogicalOperator_s make_update(LogicalOperator_s &child,
 												BasicTableStmt_s &update_table,
 												Vector<ExprStmt_s> &assign_exprs,
@@ -31,6 +32,8 @@ namespace CatDB {
 			Vector<ColumnStmt_s> column_exprs;
 			Vector<ExprStmt_s> value_exprs;
 			ColumnStmt_s row_id;
+			Common::RowDesc row_desc;
+			Common::RowDesc update_desc;
 		};
 	}
 }

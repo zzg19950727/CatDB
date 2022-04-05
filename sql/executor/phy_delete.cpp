@@ -46,6 +46,7 @@ u32 PhyDelete::inner_open()
 
 u32 PhyDelete::close()
 {
+	u32 ret = SUCCESS;
 	u32 ret1 = child->close();
 	u32 ret2 = table_space->close();
 	if (FAIL(ret1)) {
@@ -60,30 +61,29 @@ u32 PhyDelete::reset()
     return child->reset();
 }
 
-u32 PhyDelete::inner_get_next_row(Row_s &row)
+u32 PhyDelete::inner_get_next_row()
 {
     u32 ret = SUCCESS;
+	Row_s row;
 	//delete all rows
 	if (is_delete_all) {
 		ret = table_space->delete_all_row();
 		if (ret != SUCCESS) {
-			LOG_ERR("delete all rows error", err_string(ret));
+			LOG_ERR("delete all rows error", K(ret));
 			return ret;
 		} else {
 			return NO_MORE_ROWS;
 		}
 	}
-	while ((ret = child->get_next_row(row)) == SUCCESS) {
-		Object_s result = row_id->get_result(row);
+	while (SUCC(child->get_next_row(row))) {
+		set_input_rows(row);
+		CHECK(row_id->get_result(exec_ctx));
+		Object_s &result = exec_ctx->output_result;
 		if (result->is_null()) {
             continue;
         }
-		if (T_NUMBER != result->get_type()) {
-			return INVALID_ARGUMENT;
-		}
-		Number_s num = result;
 		increase_affected_rows();
-		return table_space->delete_row(num->value());
+		return table_space->delete_row(result->value());
 	}
 	return ret;
 }

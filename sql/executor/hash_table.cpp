@@ -1,6 +1,6 @@
 ﻿#include "hash_table.h"
 #include "phy_expression.h"
-#include "phy_filter.h"
+#include "phy_operator.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -61,6 +61,11 @@ bool HashTable::empty() const
 	return is_empty;
 }
 
+void HashTable::set_exec_ctx(ExecCtx_s& ctx)
+{
+	exec_ctx = ctx;
+}
+
 u32 HashTable::build(const Row_s & row)
 {
 	u32 hash_value = hash(hash_exprs, row);
@@ -71,60 +76,82 @@ u32 HashTable::build(const Row_s & row)
 
 u32 HashTable::probe(const Row_s & row, bool ignore_mark)
 {
+	u32 ret = SUCCESS;
 	u32 hash_value = hash(probe_exprs, row);
 	const auto& bucket = buckets[hash_value];
+	bool is_valid = false;
 	for (auto iter = bucket.cbegin(); iter != bucket.cend(); ++iter) {
 		if (ignore_mark && iter->second) {
 			continue;
-		} else if (!filter_row(iter->first, row)) {
+		}
+		CHECK(equal(iter->first, row, is_valid));
+		if (!is_valid) {
 			continue;
-		} else if (equal(iter->first, row))
+		}
+		CHECK(filter_row(iter->first, row, is_valid));
+		if (!is_valid) {
+			continue;
+		} else {
 			return SUCCESS;
+		}
 	}
-	return ROW_NOT_FOUND;
+	ret = ROW_NOT_FOUND;
+	return ret;
 }
 
 u32 HashTable::probe_all_rows(const Row_s & row, Queue<Row_s>& out_rows, bool ignore_mark)
 {
+	u32 ret = SUCCESS;
 	u32 hash_value = hash(probe_exprs, row);
 	auto& bucket = buckets[hash_value];
+	bool is_valid = false;
 	for (auto iter = bucket.begin(); iter != bucket.end(); ++iter) {
 		if (ignore_mark && iter->second) {
 			continue;
-		} else if (!filter_row(iter->first, row)) {
-			continue;
-		} else if (equal(iter->first, row)) {
-			out_rows.push(iter->first);
-			iter->second = true;
 		}
+		CHECK(equal(iter->first, row, is_valid));
+		if (!is_valid) {
+			continue;
+		}
+		CHECK(filter_row(iter->first, row, is_valid));
+		if (!is_valid) {
+			continue;
+		}
+		out_rows.push(iter->first);
+		iter->second = true;
 	}
 	if (out_rows.empty()){
-		return ROW_NOT_FOUND;
-	} else {
-		return SUCCESS;
+		ret = ROW_NOT_FOUND;
 	}
+	return ret;
 }
 
 u32 HashTable::probe_all_rows(const Row_s & row, bool ignore_mark)
 {
+	u32 ret = SUCCESS;
 	u32 hash_value = hash(probe_exprs, row);
 	auto& bucket = buckets[hash_value];
 	bool is_empty = true;
+	bool is_valid = false;
 	for (auto iter = bucket.begin(); iter != bucket.end(); ++iter) {
 		if (ignore_mark && iter->second) {
 			continue;
-		} else if (!filter_row(iter->first, row)) {
+		} 
+		CHECK(equal(iter->first, row, is_valid));
+		if (!is_valid) {
 			continue;
-		} else if (equal(iter->first, row)) {
-			is_empty = false;
-			iter->second = true;
 		}
+		CHECK(filter_row(iter->first, row, is_valid));
+		if (!is_valid) {
+			continue;
+		}
+		is_empty = false;
+		iter->second = true;
 	}
 	if (is_empty){
-		return ROW_NOT_FOUND;
-	} else {
-		return SUCCESS;
+		ret = ROW_NOT_FOUND;
 	}
+	return ret;
 }
 
 u32 HashTable::set_hash_exprs(const Vector<Expression_s> & exprs)
@@ -153,7 +180,7 @@ u32 HashTable::set_probe_expr(Expression_s & expr)
 
 u32 HashTable::set_other_condition(const Vector<Expression_s>& exprs)
 {
-	other_condition = PhyFilter::make_filter(exprs);
+	other_conditions = exprs;
 	return SUCCESS;
 }
 
@@ -192,27 +219,39 @@ u32 HashTable::get_next_row(Row_s& row, bool ignore_mark)
 
 bool HashTable::less(const Element & lhs, const Element & rhs)
 {
+	u32 ret = SUCCESS;
+	int res = 0;
+	Object_s l_obj, r_obj;
 	for (u32 i = 0; i < hash_exprs.size(); ++i){
-		Object_s left = hash_exprs[i]->get_result(lhs.first);
-		Object_s right = hash_exprs[i]->get_result(rhs.first);
-		if (left->is_null() && right->is_null()) {
-			continue;
-		}
-		else if (left->is_null()) {
-			return true;
-		}
-		else if (right->is_null()) {
+		ret = exec_ctx->set_input_rows(lhs.first);
+		if (FAIL(ret)) {
 			return false;
 		}
-		else {
-			Object_s result = left->operator==(right);
-			if (result->bool_value())
-				continue;
-			result = left->operator>(right);
-			if (result->bool_value())
-				return false;
-			else
-				return true;
+		ret = hash_exprs[i]->get_result(exec_ctx);
+		if (FAIL(ret)) {
+			return false;
+		}
+		l_obj = exec_ctx->output_result;
+		if (l_obj->is_null()) {
+			continue;
+		}
+		ret = exec_ctx->set_input_rows(rhs.first);
+		if (FAIL(ret)) {
+			return false;
+		}
+		ret = hash_exprs[i]->get_result(exec_ctx);
+		if (FAIL(ret)) {
+			return false;
+		}
+		r_obj = exec_ctx->output_result;
+		if (r_obj->is_null()) {
+			continue;
+		}
+		CHECK(l_obj->compare(r_obj, res));
+		if (0 == res) {
+			continue;
+		} else {
+			return res < 0;
 		}
 	}
 	return false;
@@ -220,56 +259,58 @@ bool HashTable::less(const Element & lhs, const Element & rhs)
 
 u32 HashTable::hash(Vector<Expression_s>& exprs, const Row_s & row)
 {
+	u32 ret = SUCCESS;
 	Hash<u32> hash;
 	u32 value = 0;
 	if (exprs.empty()) {
-		for (u32 i = 0; i < row->get_row_desc().get_column_num(); ++i){
-			Object_s obj;
+		Object_s obj;
+		for (u32 i = 0; i < row->get_cell_num(); ++i){
 			row->get_cell(i, obj);
 			value = hash(value + obj->hash());
 		}
 	} else {
 		for (u32 i = 0; i < exprs.size(); ++i) {
-			Object_s obj = exprs[i]->get_result(row);
-			if (obj->get_type() == T_ERROR_RESULT) {
-				LOG_ERR("error hash column found", K(obj));
-				continue;
-			}
-			value = hash(value + obj->hash());
+			CHECK(exec_ctx->set_input_rows(row));
+			CHECK(exprs[i]->get_result(exec_ctx));
+			value = hash(value + exec_ctx->output_result->hash());
 		}
 	}
 	return value % bucket_num;
 }
 
-bool HashTable::equal(const Row_s & lhs, const Row_s & rhs)
+u32 HashTable::equal(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
 {
-	bool equal = true;
+	u32 ret = SUCCESS;
+	is_valid = false;
 	if (probe_exprs.empty()) {
-		return lhs->equal(rhs);
+		CHECK(lhs->equal(rhs, is_valid));
 	} else if (probe_exprs.size() != hash_exprs.size()) {
-		return false;
+		ret = ERR_UNEXPECTED;
 	} else {
+		int res = 0;
+		Object_s l_obj, r_obj;
 		for (u32 i = 0; i < probe_exprs.size(); ++i) {
-			Object_s r_lhs = hash_exprs[i]->get_result(lhs);
-			Object_s r_rhs = probe_exprs[i]->get_result(rhs);
-			if (r_lhs->is_null() && r_rhs->is_null()) {
-				continue;
-			}
-			Object_s result = r_lhs->operator==(r_rhs);
-			if (!result->bool_value()) {
-				return false;
-			}
+			CHECK(exec_ctx->set_input_rows(lhs));
+			CHECK(hash_exprs[i]->get_result(exec_ctx));
+			l_obj = exec_ctx->output_result;
+			CHECK(exec_ctx->set_input_rows(rhs));
+			CHECK(probe_exprs[i]->get_result(exec_ctx));
+			r_obj = exec_ctx->output_result;
+			CHECK(l_obj->compare(r_obj, res));
+			is_valid = 0 == res;
 		}
-		return true;
 	}
+	return ret;
 }
 
-bool HashTable::filter_row(const Row_s& left_row, const Row_s& right_row)
+u32 HashTable::filter_row(const Row_s& left_row, const Row_s& right_row, bool &is_valid)
 {
-	if (!other_condition) {
-		return true;
-	} else {
-		Row_s agent_row = RowAgent::make_agent_row(left_row, right_row);
-		return (*other_condition)(agent_row);
+	u32 ret = SUCCESS;
+	is_valid = true;
+	if (!other_conditions.empty()) {
+		CHECK(exec_ctx->set_input_rows(left_row, right_row));
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		is_valid = exec_ctx->bool_result;
 	}
+	return ret;
 }

@@ -7,7 +7,7 @@
 using namespace CatDB::Parser;
 
 DEFINE_KV_STRING(InsertStmt,
-	KV(stmt_type, N(INSERT)),
+	KV(stmt_type, StmtTypeString[stmt_type()]),
 	K(is_explain),
 	K(stmt_hint),
 	K(table),
@@ -24,9 +24,9 @@ InsertStmt::~InsertStmt()
 {
 }
 
-Stmt::StmtType InsertStmt::stmt_type() const
+StmtType InsertStmt::stmt_type() const
 {
-	return Stmt::Insert;
+	return Insert;
 }
 
 Stmt_s InsertStmt::make_insert_stmt()
@@ -44,7 +44,21 @@ u32 InsertStmt::formalize()
 		CHECK(query_values->formalize());
 	}
 	for (u32 i = 0; i < value_list.size(); ++i) {
-		CHECK(value_list[i]->formalize());
+		for (u32 j = 0; j < value_list[i].size(); ++j) {
+			CHECK(value_list[i][j]->formalize());
+		}
+	}
+	CHECK(deduce_value_type());
+	return ret;
+}
+
+u32 InsertStmt::deduce_value_type()
+{
+	u32 ret = SUCCESS;
+	if (query_values) {
+
+	} else {
+
 	}
 	return ret;
 }
@@ -53,7 +67,9 @@ u32 InsertStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
 {
 	u32 ret = SUCCESS;
 	CHECK(DMLStmt::inner_get_stmt_exprs(exprs));
-	append(exprs, value_list);
+	for (u32 i = 0; i < value_list.size(); ++i) {
+		append(exprs, value_list[i]);
+	}
 	return ret;
 }
 
@@ -66,7 +82,9 @@ u32 InsertStmt::inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs,
 	if (query_values) {
 		CHECK(query_values->replace_stmt_exprs(old_exprs, new_exprs));
 	} else {
-		CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, value_list));
+		for (u32 i = 0; i < value_list.size(); ++i) {
+			CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, value_list[i]));
+		}
 	}
 	return ret;
 }

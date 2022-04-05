@@ -16,6 +16,18 @@ namespace CatDB {
 		DECLARE(PhyFilter);
 		DECLARE(QueryCtx);
 		
+		DECLARE(ExecCtx);
+		class ExecCtx {
+		public:
+			static ExecCtx_s make_exec_ctx();
+			u32 set_input_rows(const Row_s &row);
+			u32 set_input_rows(const Row_s &row1, const Row_s &row2);
+			HashMap<u32, Object_s> param_store;
+			Vector<Row_s> input_rows;
+			Object_s output_result;
+			bool bool_result;
+		};
+		
 		//物理运算符接口
 		class PhyOperator
 		{
@@ -56,24 +68,27 @@ namespace CatDB {
 			* @return SUCCESS或ITER_END或错误码
 			*/
 			u32 get_next_row(Row_s &row);
-			virtual u32 inner_get_next_row(Row_s &row) = 0;
+			virtual u32 inner_get_next_row() = 0;
 			//获取当前算子的类型
 			virtual u32 type() const = 0;
-			void set_output_exprs(u32 operator_id, const Vector<Expression_s> &exprs);
-			u32 set_filter(const PhyFilter_s& filter);
-			PhyFilter_s get_filter()const;
-			void set_row_desc(RowDesc &desc) { output_desc = desc; }
+			void set_output_exprs(const Vector<Expression_s> &exprs);
+			u32 set_filter(const Vector<Expression_s>& filter);
+			void set_operator_id(u32 id);
 			void set_query_ctx(QueryCtx_s &ctx);
+			void set_exec_ctx(ExecCtx_s &ctx);
+			void set_input_rows(const Row_s &row);
+			void set_input_rows(const Row_s &row1, const Row_s &row2);
 		public:
 			u32 make_row(Row_s &row);
 			u32 make_const_row(Object_s &const_value, Row_s &row);
 			u32 check_status();
 			void increase_affected_rows();
 			Vector<Expression_s> output_exprs;
-			RowDesc output_desc;
-			PhyFilter_s filter;
+			Vector<Expression_s> filters;
 			Row_s cur_row;
+            u32 operator_id;
 			QueryCtx_s query_ctx;
+			ExecCtx_s exec_ctx;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)
 		};
@@ -108,7 +123,6 @@ namespace CatDB {
 			JoinType join_type()const;
 			void set_join_type(JoinType type);
 			void set_outer_const_value(Object_s &value);
-			u32 make_join_row(const Row_s &left_row, const Row_s &right_row, Row_s &row);
 		protected:
 			JoinType type;
 			//outer join没有匹配时输出的默认值

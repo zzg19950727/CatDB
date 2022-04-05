@@ -1,7 +1,6 @@
 #include "phy_nested_loop_join.h"
 #include "phy_expression.h"
 #include "object.h"
-#include "phy_filter.h"
 #include "error.h"
 #include "row.h"
 #include "log.h"
@@ -24,25 +23,16 @@ PhyOperator_s PhyNestedLoopJoin::make_nested_loop_join(const PhyOperator_s & lef
 	const Vector<Expression_s>& join_cond)
 {
 	PhyNestedLoopJoin* op = new PhyNestedLoopJoin(left_child, right_child);
-	op->set_join_condition(join_cond);
+	op->join_condition = join_cond;
 	return PhyOperator_s(op);
-}
-
-u32 PhyNestedLoopJoin::set_join_condition(const Vector<Expression_s> & join_cond)
-{
-	join_condition = PhyFilter::make_filter(join_cond);
-	return SUCCESS;
 }
 
 u32 PhyNestedLoopJoin::inner_open()
 {
-	u32 ret = left_child->open();
-	if (ret == SUCCESS) {
-		return right_child->open();
-	}
-	else {
-		return ret;
-	}
+	u32 ret = SUCCESS;
+	CHECK(left_child->open());
+	CHECK(right_child->open());
+	return ret;
 }
 
 u32 PhyNestedLoopJoin::close()
@@ -59,46 +49,39 @@ u32 PhyNestedLoopJoin::close()
 
 u32 PhyNestedLoopJoin::reset()
 {
-	u32 ret = left_child->reset();
-	if (ret == SUCCESS) {
-		ret = right_child->reset();
-		if (ret == SUCCESS) {
-			right_pos = 0;
-			is_start = false;
-			right_cache.clear();
-			return SUCCESS;
-		}
-		else {
-			return ret;
-		}
-	}
-	else {
-		return ret;
-	}
+	u32 ret = SUCCESS;
+	CHECK(left_child->reset());
+	CHECK(right_child->reset());
+	right_pos = 0;
+	is_start = false;
+	right_cache.clear();
+	return ret;
 }
 
-u32 PhyNestedLoopJoin::inner_get_next_row(Row_s & row)
+u32 PhyNestedLoopJoin::inner_get_next_row()
 {
+	u32 ret = SUCCESS;
 	if (!is_start) {
-		u32 ret = cache_right_table();
-		if (SUCC(ret)) {
-			is_start = true;
-		} else {
-			return ret;
-		}
+		CHECK(cache_right_table());
+		is_start = true;
 	}
 	switch (JoinPhyOperator::type) {
 	case Inner:
-		return inner_join(row);
+		ret = inner_join();
+		break;
 	case LeftSemi:
-		return left_semi_join(row);
+		ret = left_semi_join();
+		break;
 	case LeftAnti:
-		return left_anti_join(row);
+		ret = left_anti_join();
+		break;
 	case LeftOuter:
-		return left_outer_join(row);
+		ret = left_outer_join();
+		break;
 	default:
-		return OPERATION_NOT_SUPPORT;
+		ret = OPERATION_NOT_SUPPORT;
 	}
+	return ret;
 }
 
 u32 PhyNestedLoopJoin::type() const
@@ -108,165 +91,107 @@ u32 PhyNestedLoopJoin::type() const
 
 u32 PhyNestedLoopJoin::cache_right_table()
 {
-	u32 ret;
+	u32 ret = SUCCESS;
 	Row_s row;
 	right_pos = 0;
 	right_cache.clear();
-	while ((ret=right_child->get_next_row(row)) == SUCCESS) {
+	while (SUCC(right_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
 		right_cache.push_back(row);
 	}
-	if (ret != NO_MORE_ROWS) {
-		return ret;
+	if (ret == NO_MORE_ROWS) {
+		ret = SUCCESS;
 	}
-	else {
-		return SUCCESS;
-	}
+	return ret;
 }
 
-u32 PhyNestedLoopJoin::inner_join(Row_s & row)
+u32 PhyNestedLoopJoin::inner_join()
 {
 	u32 ret = SUCCESS;
 	if (!left_row) {
-		ret = left_child->get_next_row(left_row);
-		if (ret != SUCCESS) {
-			return ret;
-		}
+		CHECK(left_child->get_next_row(left_row));
 	}
 	for (;;) {
+		bool is_valid = false;
 		while (right_pos < right_cache.size()) {
-			row = right_cache[right_pos++];
-			Row_s new_row = RowAgent::make_agent_row(row, left_row);
-			if (join_condition) {
-				if ((*join_condition)(new_row)) {
-					return make_join_row(left_row, row, row);
-				}
-				else {
-					continue;
-				}
-			}
-			else {
-				return make_join_row(left_row, row, row);
+			Row_s row = right_cache[right_pos++];
+			set_input_rows(left_row, row);
+			CHECK(expr_filter(join_condition, exec_ctx));
+			if (exec_ctx->bool_result) {
+				return ret;
 			}
 		}
-		ret = left_child->get_next_row(left_row);
-		if (ret == NO_MORE_ROWS) {
-			break;
-		}
-		else if (ret == SUCCESS) {
-			right_pos = 0;
-			continue;
-		}
-		else {
-			break;
-		}
+		CHECK(left_child->get_next_row(left_row));
+		right_pos = 0;
 	}
 	return ret;
 }
 
-u32 PhyNestedLoopJoin::left_semi_join(Row_s & row)
+u32 PhyNestedLoopJoin::left_semi_join()
 {
 	u32 ret = SUCCESS;
-	while ((ret=left_child->get_next_row(left_row)) == SUCCESS) {
+	while (SUCC(left_child->get_next_row(left_row))) {
 		right_pos = 0;
 		while (right_pos < right_cache.size()) {
-			row = right_cache[right_pos++];
-			Row_s new_row = RowAgent::make_agent_row(row, left_row);
-			if (join_condition) {
-				if ((*join_condition)(new_row)) {
-					row = left_row;
-					return SUCCESS;
-				}
-				else {
-					continue;
-				}
-			}
-			else {
-				row = left_row;
-				return SUCCESS;
+			Row_s row = right_cache[right_pos++];
+			set_input_rows(left_row, row);
+			CHECK(expr_filter(join_condition, exec_ctx));
+			if (exec_ctx->bool_result) {
+				return ret;
 			}
 		}
 	}
 	return ret;
 }
 
-u32 PhyNestedLoopJoin::left_anti_join(Row_s & row)
+u32 PhyNestedLoopJoin::left_anti_join()
 {
 	u32 ret = SUCCESS;
-	while((ret = left_child->get_next_row(left_row)) == SUCCESS) {
+	while(SUCC(left_child->get_next_row(left_row))) {
 		right_pos = 0;
 		bool is_in = false;
 		while (right_pos < right_cache.size()) {
-			row = right_cache[right_pos++];
-			Row_s new_row = RowAgent::make_agent_row(row, left_row);
-			if (join_condition) {
-				if ((*join_condition)(new_row)) {
-					is_in = true;
-					break;
-				} else {
-					continue;
-				}
-			} else {
+			Row_s row = right_cache[right_pos++];
+			set_input_rows(left_row, row);
+			CHECK(expr_filter(join_condition, exec_ctx));
+			if (exec_ctx->bool_result) {
 				is_in = true;
 				break;
 			}
 		}
 		if (!is_in || right_cache.empty()) {
-			row = left_row;
-			return SUCCESS;
+			set_input_rows(left_row);
+			return ret;
 		}
 	}
 	return ret;
 }
 
-u32 PhyNestedLoopJoin::left_outer_join(Row_s & row)
+u32 PhyNestedLoopJoin::left_outer_join()
 {
 	u32 ret = SUCCESS;
 	if (!left_row) {
-		ret = left_child->get_next_row(left_row);
-		if (ret != SUCCESS) {
-			return ret;
-		}
+		CHECK(left_child->get_next_row(left_row));
 	}
 	for (;;) {
 		bool not_match = right_pos == 0;
 		while (right_pos < right_cache.size()) {
-			row = right_cache[right_pos++];
-			Row_s new_row = RowAgent::make_agent_row(row, left_row);
-			if (join_condition) {
-				if ((*join_condition)(new_row)) {
-					return make_join_row(left_row, row, row);
-				}
-				else {
-					continue;
-				}
-			}
-			else {
-				return make_join_row(left_row, row, row);
+			Row_s row = right_cache[right_pos++];
+			set_input_rows(left_row, row);
+			CHECK(expr_filter(join_condition, exec_ctx));
+			if (exec_ctx->bool_result) {
+				return ret;
 			}
 		}
 		if (not_match) {
 			Row_s right_row;
-			ret = right_child->make_const_row(outer_const_value, right_row);
-			if (FAIL(ret)) {
-				return ret;
-			}
-			ret = make_join_row(left_row, right_row, row);
+			CHECK(right_child->make_const_row(outer_const_value, right_row));
+			set_input_rows(left_row, right_row);
 			left_row.reset();
 			return ret;
 		}
-		ret = left_child->get_next_row(left_row);
-		if (ret == NO_MORE_ROWS) {
-			break;
-		}
-		else if (ret == SUCCESS) {
-			right_pos = 0;
-			continue;
-		}
-		else {
-			break;
-		}
+		CHECK(left_child->get_next_row(left_row));
+		right_pos = 0;
 	}
-	
 	return ret;
 }

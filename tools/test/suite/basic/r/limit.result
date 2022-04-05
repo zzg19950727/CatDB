@@ -6,7 +6,7 @@ CREATE DATABASE RANDOM_TEST
 
 DROP TABLE IF EXISTS T1
 
-CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+CREATE TABLE T1(C1 INT, C2 INT, C3 INT, C4 INT)
 
 SELECT * FROM T1
 
@@ -14,14 +14,14 @@ SELECT * FROM T1
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
 | 6    | 3    | 1    | 7    |
-| 9    | 4    | 0    | 4    |
+| 9    | 4    | 1    | 4    |
 | 4    | 3    | 3    | 8    |
 | 4    | 3    | 7    | 4    |
-| 7    | 6    | 8    | 0    |
+| 7    | 6    | 8    | 1    |
 | 3    | 8    | 4    | 6    |
 | 6    | 8    | 6    | 6    |
-| 9    | 9    | 2    | 0    |
-| 3    | 9    | 0    | 7    |
+| 9    | 9    | 2    | 1    |
+| 3    | 9    | 1    | 7    |
 | 2    | 4    | 1    | 2    |
 +------+------+------+------+
 10 rows in set
@@ -36,32 +36,33 @@ Query Plan:
 | 1  |  TABLE SCAN | T1   | 100000    | 15410  |
 +----------------------------------------------+
 Outputs & filters:
-0 - output([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3], [t1.c2], [t1.c4], [t1.c3])
-sort_keys([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3 DESC], [t1.c2 ASC], [t1.c4 DESC], [t1.c3 ASC])
-1 - output([t1.c2-t1.c2/6-51/t1.c4*46/t1.c3], [t1.c2], [t1.c4], [t1.c3])
+0 - output([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3], [t1.c2], [t1.c4], [t1.c3])
+sort_keys([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3 DESC], [t1.c2 ASC], [t1.c4 DESC], [t1.c3 ASC])
+1 - output([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3], [t1.c2], [t1.c4], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  (T1.C2 - ((T1.C2 / 6) - 51) / T1.C4 * 46 / T1.C3) AS C1, T1.C2 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
-+-----------------------+------+------+------+
-| c1                    | c2   | c3   | c4   |
-+-----------------------+------+------+------+
-| 1154                  | 4    | 2    | 1    |
-| 325                   | 3    | 7    | 1    |
-| 100                   | 8    | 6    | 4    |
-| 95                    | 3    | 8    | 3    |
-| operation not support | 6    | 0    | 8    |
-| 81                    | 3    | 4    | 7    |
-| 69                    | 8    | 6    | 6    |
-| operation not support | 9    | 0    | 2    |
-| operation not support | 9    | 7    | 0    |
-| operation not support | 4    | 4    | 0    |
-+-----------------------+------+------+------+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 1159 | 9    | 1    | 2    |
+| 1154 | 4    | 2    | 1    |
+| 556  | 4    | 4    | 1    |
+| 331  | 9    | 7    | 1    |
+| 325  | 3    | 7    | 1    |
+| 293  | 6    | 1    | 8    |
+| 100  | 8    | 6    | 4    |
+| 95   | 3    | 8    | 3    |
+| 81   | 3    | 4    | 7    |
+| 69   | 8    | 6    | 6    |
++------+------+------+------+
 10 rows in set
 
 EXPLAIN SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 2
@@ -82,7 +83,8 @@ access([t1.c3], [t1.c2], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 2
@@ -90,7 +92,7 @@ SELECT  T1.C3 AS C1, 68 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 0    | 68   | 9    | 3    |
+| 1    | 68   | 9    | 3    |
 | 1    | 68   | 3    | 6    |
 +------+------+------+------+
 2 rows in set
@@ -113,7 +115,8 @@ access([t1.c2], [t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
@@ -147,7 +150,8 @@ access([t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, 95 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC  LIMIT 5
@@ -158,7 +162,7 @@ SELECT  T1.C1 AS C1, 95 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 AS
 | 2    | 95   | 85   | 2    |
 | 4    | 95   | 85   | 8    |
 | 6    | 95   | 85   | 7    |
-| 7    | 95   | 85   | 0    |
+| 7    | 95   | 85   | 1    |
 | 9    | 95   | 85   | 4    |
 +------+------+------+------+
 5 rows in set
@@ -181,7 +185,8 @@ access([t1.c2], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C2 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 5
@@ -215,7 +220,8 @@ access([t1.c3], [t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
@@ -223,12 +229,12 @@ SELECT  T1.C3 AS C1, T1.C1 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER B
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 8    | 7    | 7    | 0    |
+| 8    | 7    | 7    | 1    |
 | 7    | 4    | 4    | 4    |
 | 4    | 3    | 3    | 6    |
 | 3    | 4    | 4    | 8    |
+| 1    | 9    | 9    | 4    |
 | 1    | 6    | 6    | 7    |
-| 0    | 9    | 9    | 4    |
 +------+------+------+------+
 6 rows in set
 
@@ -248,7 +254,8 @@ access([t1.c3], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C3 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC  LIMIT 0, 0
@@ -271,7 +278,8 @@ access([t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, 7 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 0, 0
@@ -294,7 +302,8 @@ access([t1.c4], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C4 AS C1, 0 AS C2, 70 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC  LIMIT 0, 0
@@ -317,7 +326,8 @@ access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C2 AS C1, T1.C4 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC  LIMIT 0, 0
@@ -340,7 +350,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  30 AS C1, T1.C2 AS C2, T1.C2 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  LIMIT 0, 0
@@ -367,7 +378,8 @@ access([t1.c3], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 4, 9
@@ -377,10 +389,10 @@ SELECT  T1.C3 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER B
 +------+------+------+------+
 | 3    | 3    | 4    | 4    |
 | 2    | 2    | 9    | 9    |
+| 1    | 1    | 9    | 9    |
 | 1    | 1    | 6    | 6    |
+| 1    | 1    | 3    | 3    |
 | 1    | 1    | 2    | 2    |
-| 0    | 0    | 9    | 9    |
-| 0    | 0    | 3    | 3    |
 +------+------+------+------+
 6 rows in set
 
@@ -404,7 +416,8 @@ access([t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, 5 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC  LIMIT 4, 9
@@ -441,7 +454,8 @@ access([t1.c4], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6, 8
@@ -451,7 +465,7 @@ SELECT  T1.C4 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER B
 +------+------+------+------+
 | 6    | 6    | 6    | 4    |
 | 7    | 7    | 7    | 1    |
-| 7    | 7    | 7    | 0    |
+| 7    | 7    | 7    | 1    |
 | 8    | 8    | 8    | 3    |
 +------+------+------+------+
 4 rows in set
@@ -474,7 +488,8 @@ access([t1.c4], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C4 AS C1, T1.C3 AS C2, 98 AS C3, 66 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC  LIMIT 6
@@ -482,9 +497,9 @@ SELECT  T1.C4 AS C1, T1.C3 AS C2, 98 AS C3, 66 AS C4 FROM T1 T1    ORDER BY 1 AS
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 0    | 8    | 98   | 66   |
+| 1    | 8    | 98   | 66   |
 | 4    | 7    | 98   | 66   |
-| 4    | 0    | 98   | 66   |
+| 4    | 1    | 98   | 66   |
 | 6    | 4    | 98   | 66   |
 | 7    | 1    | 98   | 66   |
 | 8    | 3    | 98   | 66   |
@@ -509,7 +524,8 @@ access([t1.c1], [t1.c3], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, T1.C3 AS C2, T1.C2 AS C3, 76 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC  LIMIT 6
@@ -544,7 +560,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, T1.C1 AS C2, T1.C1 AS C3, 33 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
@@ -574,7 +591,8 @@ access([t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C1 AS C1, T1.C2 AS C2, 20 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC  LIMIT 1
@@ -604,7 +622,8 @@ access([t1.c2], [t1.c3], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  T1.C2 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 ASC ,4 DESC  LIMIT 5
@@ -612,8 +631,8 @@ SELECT  T1.C2 AS C1, T1.C2 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER B
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 9    | 9    | 0    | 3    |
-| 4    | 4    | 0    | 9    |
+| 9    | 9    | 1    | 3    |
+| 4    | 4    | 1    | 9    |
 | 3    | 3    | 1    | 6    |
 | 3    | 3    | 3    | 4    |
 | 3    | 3    | 7    | 4    |
@@ -640,7 +659,8 @@ access([t1.c2], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT  19 AS C1, 39 AS C2, T1.C2 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC  LIMIT 6, 8

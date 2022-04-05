@@ -15,7 +15,7 @@ namespace CatDB {
 				table_item(table) {}
 			virtual ~LogView() {}
 			static LogicalOperator_s make_view(ViewTableStmt_s &table, LogicalOperator_s &query_root);
-			virtual u32 type() const override{return LogicalOperator::LOG_VIEW;}
+			virtual u32 type() const override{return LOG_VIEW;}
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;

@@ -14,7 +14,7 @@ namespace CatDB {
 			LogScalarGroupBy(LogicalOperator_s child)
                 :SingleChildLogicalOperator(child) {}
 			virtual ~LogScalarGroupBy() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_SCALAR_GROUP;}
+			virtual u32 type() const override{return LOG_SCALAR_GROUP;}
 			static LogicalOperator_s make_scalar_group_by(const LogicalOperator_s& child,
 														Vector<ExprStmt_s> &agg_items);
 			virtual u32 est_row_count()override;

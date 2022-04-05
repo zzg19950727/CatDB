@@ -10,7 +10,6 @@ namespace CatDB {
 	}
 	namespace Sql {
 		using Common::Row_s;
-		using Common::HashTable;
 		DECLARE(Expression);
 
 		class PhyHashJoin : public JoinPhyOperator
@@ -29,23 +28,23 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
 			u32 build_hash_table();
 			u32 build_hash_table_for_left_anti();
 			u32 build_hash_table_for_right_anti();
-			u32 join(Row_s &row);
-			u32 left_semi_join(Row_s &row);
-			u32 right_semi_join(Row_s &row);
-			u32 left_anti_join(Row_s& row);
-			u32 right_anti_join(Row_s& row);
-			u32 left_outer_join(Row_s &row);
-			u32 right_outer_join(Row_s &row);
-			u32 full_outer_join(Row_s &row);
+			u32 join();
+			u32 left_semi_join();
+			u32 right_semi_join();
+			u32 left_anti_join();
+			u32 right_anti_join();
+			u32 left_outer_join();
+			u32 right_outer_join();
+			u32 full_outer_join();
 
 		private:
-			Common::HashTable hash_table;
+			HashTable hash_table;
 			Vector<Expression_s> hash_exprs;
 			Vector<Expression_s> prob_exprs;
 		private:

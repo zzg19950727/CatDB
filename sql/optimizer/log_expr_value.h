@@ -14,7 +14,7 @@ namespace CatDB {
 			LogExprValue()
                 :LogicalOperator() {}
 			virtual ~LogExprValue() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_EXPR_VALUE;}
+			virtual u32 type() const override{return LOG_EXPR_VALUE;}
 			static LogicalOperator_s make_expr_value(Vector<Vector<ExprStmt_s>> &values);
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;

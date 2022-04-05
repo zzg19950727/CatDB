@@ -6,7 +6,7 @@ CREATE DATABASE RANDOM_TEST
 
 DROP TABLE IF EXISTS T1
 
-CREATE TABLE T1(C1 NUMERIC, C2 NUMERIC, C3 NUMERIC, C4 NUMERIC)
+CREATE TABLE T1(C1 INT, C2 INT, C3 INT, C4 INT)
 
 SELECT * FROM T1
 
@@ -29,23 +29,24 @@ SELECT * FROM T1
 EXPLAIN SELECT DISTINCT T1.C3 AS C1, (T1.C2 / 58) - T1.C4 AS C2, 16 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
-0 - output([t1.c3], [t1.c2/58-t1.c4], [16], [t1.c4])
-sort_keys([t1.c3 ASC], [t1.c2/58-t1.c4 DESC], [16 ASC], [t1.c4 DESC])
-1 - output([t1.c3], [t1.c2/58-t1.c4], [t1.c4])
-2 - output([t1.c3], [t1.c2/58-t1.c4], [t1.c4])
+0 - output([t1.c3], [t1.c2 / 58 - t1.c4], [16], [t1.c4])
+sort_keys([t1.c3 ASC], [t1.c2 / 58 - t1.c4 DESC], [16 ASC], [t1.c4 DESC])
+1 - output([t1.c3], [t1.c2 / 58 - t1.c4], [t1.c4])
+2 - output([t1.c3], [t1.c2 / 58 - t1.c4], [t1.c4])
 access([t1.c3], [t1.c2], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1, (T1.C2 / 58) - T1.C4 AS C2, 16 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 DESC
@@ -59,8 +60,8 @@ SELECT DISTINCT T1.C3 AS C1, (T1.C2 / 58) - T1.C4 AS C2, 16 AS C3, T1.C4 AS C4 F
 | 21   | -6   | 16   | 6    |
 | 29   | -26  | 16   | 26   |
 | 64   | -66  | 16   | 67   |
-| 74   | -35  | 16   | 36   |
 | 74   | -41  | 16   | 41   |
+| 74   | -35  | 16   | 36   |
 | 87   | -71  | 16   | 71   |
 | 92   | -44  | 16   | 45   |
 +------+------+------+------+
@@ -69,13 +70,13 @@ SELECT DISTINCT T1.C3 AS C1, (T1.C2 / 58) - T1.C4 AS C2, 16 AS C3, T1.C4 AS C4 F
 EXPLAIN SELECT DISTINCT T1.C1 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c4], [t1.c4], [t1.c1])
 sort_keys([t1.c1 ASC], [t1.c4 ASC], [t1.c4 DESC], [t1.c1 ASC])
@@ -85,7 +86,8 @@ access([t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
@@ -109,13 +111,13 @@ SELECT DISTINCT T1.C1 AS C1, T1.C4 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1   
 EXPLAIN SELECT DISTINCT T1.C2 AS C1, 67 AS C2, T1.C3 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [67], [t1.c3], [t1.c3])
 sort_keys([t1.c2 ASC], [67 ASC], [t1.c3 ASC], [t1.c3 DESC])
@@ -125,7 +127,8 @@ access([t1.c2], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1, 67 AS C2, T1.C3 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
@@ -149,13 +152,13 @@ SELECT DISTINCT T1.C2 AS C1, 67 AS C2, T1.C3 AS C3, T1.C3 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT T1.C2 AS C1, T1.C4 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c3], [t1.c2])
 sort_keys([t1.c2 DESC], [t1.c4 ASC], [t1.c3 DESC], [t1.c2 DESC])
@@ -165,7 +168,8 @@ access([t1.c2], [t1.c4], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1, T1.C4 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
@@ -174,8 +178,8 @@ SELECT DISTINCT T1.C2 AS C1, T1.C4 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1   
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
 | 87   | 45   | 92   | 87   |
-| 86   | 36   | 74   | 86   |
 | 86   | 59   | 11   | 86   |
+| 86   | 36   | 74   | 86   |
 | 61   | 67   | 64   | 61   |
 | 53   | 41   | 74   | 53   |
 | 50   | 26   | 29   | 50   |
@@ -189,13 +193,13 @@ SELECT DISTINCT T1.C2 AS C1, T1.C4 AS C2, T1.C3 AS C3, T1.C2 AS C4 FROM T1 T1   
 EXPLAIN SELECT DISTINCT 46 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([46], [t1.c1], [t1.c4], [t1.c1])
 sort_keys([46 ASC], [t1.c1 DESC], [t1.c4 ASC], [t1.c1 ASC])
@@ -205,7 +209,8 @@ access([t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT 46 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 ASC ,4 ASC
@@ -215,27 +220,27 @@ SELECT DISTINCT 46 AS C1, T1.C1 AS C2, T1.C4 AS C3, T1.C1 AS C4 FROM T1 T1    OR
 +------+------+------+------+
 | 46   | 86   | 67   | 86   |
 | 46   | 79   | 41   | 79   |
-| 46   | 74   | 59   | 74   |
 | 46   | 67   | 45   | 67   |
-| 46   | 57   | 18   | 57   |
-| 46   | 53   | 26   | 53   |
+| 46   | 74   | 59   | 74   |
 | 46   | 34   | 75   | 34   |
+| 46   | 53   | 26   | 53   |
+| 46   | 57   | 18   | 57   |
 | 46   | 29   | 6    | 29   |
-| 46   | 27   | 36   | 27   |
 | 46   | 10   | 71   | 10   |
+| 46   | 27   | 36   | 27   |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN SELECT DISTINCT T1.C1 AS C1, 71 AS C2, 87 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 174565 |
-| 1  |  DISTINCT    |      | 100000    | 36410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410   |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 174565 |
+| 1  |  HASH DISTINCT |      | 100000    | 36410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410   |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [71], [87], [t1.c1])
 sort_keys([t1.c1 DESC], [71 ASC], [87 DESC], [t1.c1 ASC])
@@ -245,7 +250,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1, 71 AS C2, 87 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
@@ -269,13 +275,13 @@ SELECT DISTINCT T1.C1 AS C1, 71 AS C2, 87 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER
 EXPLAIN SELECT DISTINCT 74 AS C1, T1.C1 AS C2, T1.C1 AS C3, 9 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 174565 |
-| 1  |  DISTINCT    |      | 100000    | 36410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410   |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 174565 |
+| 1  |  HASH DISTINCT |      | 100000    | 36410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410   |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([74], [t1.c1], [t1.c1], [9])
 sort_keys([74 ASC], [t1.c1 ASC], [t1.c1 ASC], [9 ASC])
@@ -285,7 +291,8 @@ access([t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT 74 AS C1, T1.C1 AS C2, T1.C1 AS C3, 9 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 ASC
@@ -293,29 +300,29 @@ SELECT DISTINCT 74 AS C1, T1.C1 AS C2, T1.C1 AS C3, 9 AS C4 FROM T1 T1    ORDER 
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 74   | 10   | 10   | 9    |
-| 74   | 27   | 27   | 9    |
-| 74   | 29   | 29   | 9    |
+| 74   | 86   | 86   | 9    |
+| 74   | 79   | 79   | 9    |
+| 74   | 67   | 67   | 9    |
+| 74   | 74   | 74   | 9    |
 | 74   | 34   | 34   | 9    |
 | 74   | 53   | 53   | 9    |
 | 74   | 57   | 57   | 9    |
-| 74   | 67   | 67   | 9    |
-| 74   | 74   | 74   | 9    |
-| 74   | 79   | 79   | 9    |
-| 74   | 86   | 86   | 9    |
+| 74   | 29   | 29   | 9    |
+| 74   | 10   | 10   | 9    |
+| 74   | 27   | 27   | 9    |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN SELECT DISTINCT T1.C4 AS C1, 43 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [43], [t1.c3], [t1.c1])
 sort_keys([t1.c4 ASC], [43 DESC], [t1.c3 DESC], [t1.c1 DESC])
@@ -325,7 +332,8 @@ access([t1.c4], [t1.c3], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C4 AS C1, 43 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 DESC
@@ -349,13 +357,13 @@ SELECT DISTINCT T1.C4 AS C1, 43 AS C2, T1.C3 AS C3, T1.C1 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, 76 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c2], [76], [t1.c3])
 sort_keys([t1.c3 DESC], [t1.c2 ASC], [76 DESC], [t1.c3 DESC])
@@ -365,7 +373,8 @@ access([t1.c3], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, 76 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
@@ -389,13 +398,13 @@ SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, 76 AS C3, T1.C3 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c2], [t1.c1], [t1.c3])
 sort_keys([t1.c3 ASC], [t1.c2 DESC], [t1.c1 DESC], [t1.c3 ASC])
@@ -405,7 +414,8 @@ access([t1.c3], [t1.c2], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
@@ -419,8 +429,8 @@ SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1   
 | 21   | 14   | 29   | 21   |
 | 29   | 50   | 53   | 29   |
 | 64   | 61   | 86   | 64   |
-| 74   | 86   | 27   | 74   |
 | 74   | 53   | 79   | 74   |
+| 74   | 86   | 27   | 74   |
 | 87   | 33   | 10   | 87   |
 | 92   | 87   | 67   | 92   |
 +------+------+------+------+
@@ -429,13 +439,13 @@ SELECT DISTINCT T1.C3 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C3 AS C4 FROM T1 T1   
 EXPLAIN SELECT DISTINCT T1.C1 AS C1, 33 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [33], [t1.c2], [t1.c1])
 sort_keys([t1.c1 ASC], [33 ASC], [t1.c2 DESC], [t1.c1 DESC])
@@ -445,7 +455,8 @@ access([t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1, 33 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 DESC
@@ -469,13 +480,13 @@ SELECT DISTINCT T1.C1 AS C1, 33 AS C2, T1.C2 AS C3, T1.C1 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT 92 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([92], [t1.c3], [t1.c1], [t1.c2])
 sort_keys([92 DESC], [t1.c3 ASC], [t1.c1 DESC], [t1.c2 DESC])
@@ -485,7 +496,8 @@ access([t1.c3], [t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT 92 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 DESC
@@ -493,29 +505,29 @@ SELECT DISTINCT 92 AS C1, T1.C3 AS C2, T1.C1 AS C3, T1.C2 AS C4 FROM T1 T1    OR
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 92   | 1    | 57   | 42   |
-| 92   | 10   | 34   | 34   |
-| 92   | 11   | 74   | 86   |
-| 92   | 21   | 29   | 14   |
-| 92   | 29   | 53   | 50   |
 | 92   | 64   | 86   | 61   |
 | 92   | 74   | 79   | 53   |
-| 92   | 74   | 27   | 86   |
-| 92   | 87   | 10   | 33   |
 | 92   | 92   | 67   | 87   |
+| 92   | 11   | 74   | 86   |
+| 92   | 10   | 34   | 34   |
+| 92   | 29   | 53   | 50   |
+| 92   | 1    | 57   | 42   |
+| 92   | 21   | 29   | 14   |
+| 92   | 87   | 10   | 33   |
+| 92   | 74   | 27   | 86   |
 +------+------+------+------+
 10 rows in set
 
 EXPLAIN SELECT DISTINCT T1.C1 AS C1, T1.C1 AS C2, T1.C3 AS C3, 69 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c3], [69])
 sort_keys([t1.c1 DESC], [t1.c1 DESC], [t1.c3 DESC], [69 ASC])
@@ -525,7 +537,8 @@ access([t1.c1], [t1.c3])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1, T1.C1 AS C2, T1.C3 AS C3, 69 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
@@ -549,13 +562,13 @@ SELECT DISTINCT T1.C1 AS C1, T1.C1 AS C2, T1.C3 AS C3, 69 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT T1.C2 AS C1, 90 AS C2, 47 AS C3, 13 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 37238 |
-| 1  |  DISTINCT    |      | 1000      | 36410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 37238 |
+| 1  |  HASH DISTINCT |      | 1000      | 36410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [90], [47], [13])
 sort_keys([t1.c2 ASC], [90 DESC], [47 DESC], [13 ASC])
@@ -565,7 +578,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C2 AS C1, 90 AS C2, 47 AS C3, 13 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 DESC ,3 DESC ,4 ASC
@@ -588,13 +602,13 @@ SELECT DISTINCT T1.C2 AS C1, 90 AS C2, 47 AS C3, 13 AS C4 FROM T1 T1    ORDER BY
 EXPLAIN SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, 91 AS C3, 47 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c2], [91], [47])
 sort_keys([t1.c4 ASC], [t1.c2 ASC], [91 DESC], [47 ASC])
@@ -604,7 +618,8 @@ access([t1.c4], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, 91 AS C3, 47 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 DESC ,4 ASC
@@ -628,13 +643,13 @@ SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, 91 AS C3, 47 AS C4 FROM T1 T1    ORDER
 EXPLAIN SELECT DISTINCT 69 AS C1, 70 AS C2, 29 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
 
 Query Plan:
-+----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST  |
-+----------------------------------------------+
-| 0  | SORT         |      | 1000      | 37238 |
-| 1  |  DISTINCT    |      | 1000      | 36410 |
-| 2  |   TABLE SCAN | T1   | 100000    | 5410  |
-+----------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST  |
++------------------------------------------------+
+| 0  | SORT           |      | 1000      | 37238 |
+| 1  |  HASH DISTINCT |      | 1000      | 36410 |
+| 2  |   TABLE SCAN   | T1   | 100000    | 5410  |
++------------------------------------------------+
 Outputs & filters:
 0 - output([69], [70], [29], [t1.c2])
 sort_keys([69 DESC], [70 DESC], [29 DESC], [t1.c2 ASC])
@@ -644,7 +659,8 @@ access([t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT 69 AS C1, 70 AS C2, 29 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 ASC
@@ -652,28 +668,28 @@ SELECT DISTINCT 69 AS C1, 70 AS C2, 29 AS C3, T1.C2 AS C4 FROM T1 T1    ORDER BY
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
+| 69   | 70   | 29   | 61   |
+| 69   | 70   | 29   | 53   |
+| 69   | 70   | 29   | 87   |
+| 69   | 70   | 29   | 34   |
+| 69   | 70   | 29   | 50   |
+| 69   | 70   | 29   | 42   |
 | 69   | 70   | 29   | 14   |
 | 69   | 70   | 29   | 33   |
-| 69   | 70   | 29   | 34   |
-| 69   | 70   | 29   | 42   |
-| 69   | 70   | 29   | 50   |
-| 69   | 70   | 29   | 53   |
-| 69   | 70   | 29   | 61   |
 | 69   | 70   | 29   | 86   |
-| 69   | 70   | 29   | 87   |
 +------+------+------+------+
 9 rows in set
 
 EXPLAIN SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c2], [t1.c1], [t1.c4])
 sort_keys([t1.c4 DESC], [t1.c2 ASC], [t1.c1 DESC], [t1.c4 ASC])
@@ -683,7 +699,8 @@ access([t1.c4], [t1.c2], [t1.c1])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
@@ -707,13 +724,13 @@ SELECT DISTINCT T1.C4 AS C1, T1.C2 AS C2, T1.C1 AS C3, T1.C4 AS C4 FROM T1 T1   
 EXPLAIN SELECT DISTINCT T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, 55 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c2], [55])
 sort_keys([t1.c4 ASC], [t1.c3 ASC], [t1.c2 ASC], [55 DESC])
@@ -723,7 +740,8 @@ access([t1.c4], [t1.c3], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, 55 AS C4 FROM T1 T1    ORDER BY 1 ASC ,2 ASC ,3 ASC ,4 DESC
@@ -747,13 +765,13 @@ SELECT DISTINCT T1.C4 AS C1, T1.C3 AS C2, T1.C2 AS C3, 55 AS C4 FROM T1 T1    OR
 EXPLAIN SELECT DISTINCT T1.C3 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 184565 |
-| 1  |  DISTINCT    |      | 100000    | 46410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 15410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 184565 |
+| 1  |  HASH DISTINCT |      | 100000    | 46410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 15410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c2], [t1.c3])
 sort_keys([t1.c3 DESC], [t1.c1 DESC], [t1.c2 DESC], [t1.c3 DESC])
@@ -763,7 +781,8 @@ access([t1.c3], [t1.c1], [t1.c2])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C3 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C3 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 DESC ,3 DESC ,4 DESC
@@ -787,13 +806,13 @@ SELECT DISTINCT T1.C3 AS C1, T1.C1 AS C2, T1.C2 AS C3, T1.C3 AS C4 FROM T1 T1   
 EXPLAIN SELECT DISTINCT T1.C1 AS C1, T1.C4 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC
 
 Query Plan:
-+-----------------------------------------------+
-| ID | OPERATOR     | NAME | ROW COUNT | COST   |
-+-----------------------------------------------+
-| 0  | SORT         |      | 100000    | 179565 |
-| 1  |  DISTINCT    |      | 100000    | 41410  |
-| 2  |   TABLE SCAN | T1   | 100000    | 10410  |
-+-----------------------------------------------+
++-------------------------------------------------+
+| ID | OPERATOR       | NAME | ROW COUNT | COST   |
++-------------------------------------------------+
+| 0  | SORT           |      | 100000    | 179565 |
+| 1  |  HASH DISTINCT |      | 100000    | 41410  |
+| 2  |   TABLE SCAN   | T1   | 100000    | 10410  |
++-------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c4], [85], [t1.c4])
 sort_keys([t1.c1 DESC], [t1.c4 ASC], [85 DESC], [t1.c4 ASC])
@@ -803,7 +822,8 @@ access([t1.c1], [t1.c4])
 
 outline:
 /*+
-LEADING(@SEL1 t1)
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
 */
 
 SELECT DISTINCT T1.C1 AS C1, T1.C4 AS C2, 85 AS C3, T1.C4 AS C4 FROM T1 T1    ORDER BY 1 DESC ,2 ASC ,3 DESC ,4 ASC

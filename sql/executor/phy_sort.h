@@ -24,11 +24,11 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		protected:
 			u32 quick_sort(Vector<Row_s> &arr, int begin, int end);
-			bool compare(const Row_s& lhs, const Row_s& rhs)const;
+			bool compare(const Row_s& lhs, const Row_s& rhs);
 			virtual u32 sort_rows();
 			Vector<Row_s> rows;
 			Vector<Expression_s> sort_exprs;

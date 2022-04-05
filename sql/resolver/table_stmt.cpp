@@ -2,8 +2,10 @@
 #include "table_stmt.h"
 #include "expr_utils.h"
 #include "select_stmt.h"
+#include "transform_utils.h"
 
 using namespace::CatDB::Parser;
+using namespace::CatDB::Transform;
 
 TableStmt::TableStmt()
 {
@@ -20,12 +22,6 @@ void TableStmt::set_alias_name(const String& alias_name)
 	}
 }
 
-String TableStmt::get_table_type_name(TableType table_type)
-{
-	static const char* table_type_name[3] = {"BasicTable", "JoinedTable", "ViewTable"};
-	return table_type_name[table_type];
-}
-
 u32 TableStmt::get_table_exprs(Vector<ExprStmt_s> &exprs)
 {
 	append(exprs, table_filter);
@@ -40,11 +36,11 @@ u32 TableStmt::replace_exprs(const Vector<ExprStmt_s> &old_exprs,
 	return ret;
 }
 
-u32 TableStmt::inner_deep_copy(TableStmt_s &table, u32 flag)const
+u32 TableStmt::inner_deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(table);
-	CHECK(ExprUtils::deep_copy_exprs(table_filter, table->table_filter, flag));
+	CHECK(ExprUtils::deep_copy_exprs(table_filter, table->table_filter, ctx, flag));
 	table->table_type = table_type;
 	table->alias_name = alias_name;
 	table->table_id = table_id;
@@ -56,7 +52,7 @@ BasicTableStmt::BasicTableStmt(const String &database, const String& table_name)
 	table_name(table_name),
 	is_dual(false)
 {
-	table_type = TableStmt::BasicTable;
+	table_type = BasicTable;
 }
 
 TableStmt_s BasicTableStmt::make_basic_table(const String &database, const String& table_name)
@@ -71,12 +67,12 @@ TableStmt_s BasicTableStmt::make_dual_table()
 	return TableStmt_s(table);
 }
 
-u32 BasicTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
+u32 BasicTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	table = make_basic_table(database, table_name);
 	BasicTableStmt_s basic_table = table;
-	CHECK(inner_deep_copy(table, flag));
+	CHECK(inner_deep_copy(table, ctx, flag));
 	basic_table->ref_table_id = ref_table_id;
 	basic_table->is_dual = is_dual;
 	return ret;
@@ -129,17 +125,17 @@ TableStmt_s JoinedTableStmt::make_joined_table(TableStmt_s &left_table,
 	return TableStmt_s(joined_table);
 }
 
-u32 JoinedTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
+u32 JoinedTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	TableStmt_s copy_left_table;
 	TableStmt_s copy_right_table;
-	CHECK(left_table->deep_copy(copy_left_table, flag));
-	CHECK(right_table->deep_copy(copy_right_table, flag));
+	CHECK(left_table->deep_copy(copy_left_table, ctx, flag));
+	CHECK(right_table->deep_copy(copy_right_table, ctx, flag));
 	table = make_joined_table(copy_left_table, copy_right_table, join_type);
-	CHECK(inner_deep_copy(table, flag));
+	CHECK(inner_deep_copy(table, ctx, flag));
 	JoinedTableStmt_s joined_table = table;
-	CHECK(ExprUtils::deep_copy_exprs(join_condition, joined_table->join_condition, flag));
+	CHECK(ExprUtils::deep_copy_exprs(join_condition, joined_table->join_condition, ctx, flag));
 	return ret;
 }
 
@@ -204,7 +200,7 @@ u32 JoinedTableStmt::replace_exprs(const Vector<ExprStmt_s> &old_exprs,
 }
 
 DEFINE_KV_STRING(ViewTableStmt,
-				KV(table_type, get_table_type_name(table_type)),
+				KV(table_type, TableTypeString[table_type]),
 				K(alias_name),
 				K(table_id),
 				K(table_filter),
@@ -214,7 +210,7 @@ DEFINE_KV_STRING(ViewTableStmt,
 ViewTableStmt::ViewTableStmt(Stmt_s &ref_query)
 							:ref_query(ref_query)
 { 
-	table_type = TableStmt::ViewTable; 
+	table_type = ViewTable; 
 }
 
 TableStmt_s ViewTableStmt::make_view_table(Stmt_s ref_query)
@@ -222,14 +218,21 @@ TableStmt_s ViewTableStmt::make_view_table(Stmt_s ref_query)
 	return TableStmt_s(new ViewTableStmt(ref_query));
 }
 
-u32 ViewTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
+u32 ViewTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	SelectStmt_s copy_ref_query;
-	copy_ref_query = ref_query;
-	ref_query->increase_ref_count();
+	if (ENABLE_COPY_ON_WRITE(flag)) {
+		copy_ref_query = ref_query;
+		ref_query->increase_ref_count();
+	} else {
+		CHECK(TransformUtils::deep_copy_stmt(ref_query,
+											 copy_ref_query,
+											 ctx,
+											 flag));
+	}
 	table = make_view_table(copy_ref_query);
-	CHECK(inner_deep_copy(table, flag));
+	CHECK(inner_deep_copy(table, ctx, flag));
 	return ret;
 }
 

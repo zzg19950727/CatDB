@@ -1,5 +1,6 @@
 #include "phy_hash_distinct.h"
 #include "phy_expression.h"
+#include "object.h"
 #include "error.h"
 #include "row.h"
 #include "log.h"
@@ -23,6 +24,7 @@ PhyOperator_s CatDB::Sql::PhyHashDistinct::make_hash_distinct(PhyOperator_s & ch
 
 u32 CatDB::Sql::PhyHashDistinct::inner_open()
 {
+	hash_table.set_exec_ctx(exec_ctx);
 	return child->open();
 }
 
@@ -37,15 +39,19 @@ u32 CatDB::Sql::PhyHashDistinct::reset()
 	return child->reset();
 }
 
-u32 CatDB::Sql::PhyHashDistinct::inner_get_next_row(Row_s & row)
+u32 CatDB::Sql::PhyHashDistinct::inner_get_next_row()
 {
 	u32 ret = SUCCESS;
-	while ((ret = child->get_next_row(row)) == SUCCESS) {
-		if (hash_table.probe(row) == SUCCESS) {
+	Row_s row;
+	while (SUCC(child->get_next_row(row))) {
+		if (SUCC(hash_table.probe(row))) {
 			continue;
+		} else if (ROW_NOT_FOUND != ret) {
+			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			hash_table.build(row);
+			CHECK(hash_table.build(row));
+			set_input_rows(row);
 			return ret;
 		}
 	}

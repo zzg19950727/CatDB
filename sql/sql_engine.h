@@ -4,10 +4,6 @@
 #include "row.h"
 
 namespace CatDB {
-    namespace Common {
-        DECLARE(Object);
-        DECLARE(QueryResult);
-    }
     namespace Parser {
         DECLARE(Stmt);
         DECLARE(DMLStmt);
@@ -23,10 +19,7 @@ namespace CatDB {
         DECLARE(SqlEngine);
         DECLARE(ResultSet);
         DECLARE(QueryCtx);
-        using Common::RowDesc;
         using Common::Row_s;
-        using Common::Object_s;
-        using Common::QueryResult_s;
         using Parser::Stmt_s;
         using Parser::DMLStmt_s;
         using Optimizer::Plan_s;
@@ -34,34 +27,36 @@ namespace CatDB {
 
         class ResultSet {
         private:
-			ResultSet(u32 column_count);
+			ResultSet();
 
 		public:
 			~ResultSet();
-			static ResultSet_s make_result_set(u32 column_count=0);
-            u32 get_column_num() const;
-            void set_column_num(u32 count);
-            u32 set_result_title(u32 idx, const String &title);
+			static ResultSet_s make_result_set();
+            u32 add_result_title(const String &title, OBJ_TYPE type);
             String get_result_title(u32 idx) const;
-            u32 set_result_type(u32 idx, u32 type);
-            u32 get_result_type(u32 idx) const;
-            u32 add_row(Row_s &row);
-            u32 add_row(Vector<Object_s> &cells);
-            u32 add_row(Object_s &cell);
-            QueryResult_s get_query_result();
-            u32 get_affect_rows() const;
-            void set_explain_info(const String& info) { explain_info = info; }
+            OBJ_TYPE get_result_type(u32 idx) const;
+            void add_row(const Row_s& row);
+            void set_op_root(PhyOperator_s &root);
+            u32 get_column_count() const { return result_type.size(); }
+
+            void set_explain_info(const String& info) { is_explain = true; explain_info = info; }
             String get_explain_info() const { return explain_info; }
             bool need_send_result() const { return have_user_data; }
+            bool is_explain_plan() const { return is_explain; }
+
+            u32 open();
+            u32 get_next_row(Row_s &row);
+            u32 close();
 			
 		private:
-			QueryResult_s query_result;
+            Vector<Row_s> cache_rows;
             Vector<String> result_title;
-            Vector<u32> result_type;
-            RowDesc desc;
-			u32 affect_rows;
+            Vector<OBJ_TYPE> result_type;
             String explain_info;
+            PhyOperator_s phy_root;
+            u32 row_idx;
             bool have_user_data;
+            bool is_explain;
         private:
             DISALLOW_COPY_AND_ASSIGN(ResultSet);
         };
@@ -75,15 +70,13 @@ namespace CatDB {
 			~SqlEngine();
 			static SqlEngine_s make_sql_engine(const String& query, QueryCtx_s &query_ctx);
             static u32 handle_inner_sql(const String &query, QueryCtx_s &query_ctx, ResultSet_s &result_set);
-            static u32 handle_subplan(PhyOperator_s root, Object_s &result);
             u32 handle_query();
 			ResultSet_s get_query_result();
 
         private:
-            u32 execute_plan(PhyOperator_s root);
-            u32 explain_plan(LogicalOperator_s root);
+            u32 init_result_set();
+            u32 explain_plan(LogicalOperator_s root, String &plan_info);
             u32 print_outline(String &outline);
-            u32 print_stmt_outline(DMLStmt_s stmt, bool print_global_hint, String &outline);
 
 		private:
             QueryCtx_s query_ctx;

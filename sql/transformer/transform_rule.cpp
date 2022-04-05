@@ -10,8 +10,9 @@
 using namespace CatDB::Transform;
 using namespace CatDB::Parser;
 
-TransformRule::TransformRule(bool pre_order)
+TransformRule::TransformRule(bool pre_order, HintType control_hint)
     :pre_order(pre_order),
+    control_hint(control_hint),
     happened(false)
 {
 
@@ -22,6 +23,11 @@ TransformRule::~TransformRule()
 
 }
 
+bool TransformRule::need_rewrite(DMLStmt_s stmt) const
+{
+    return !ctx->query_ctx->query_hint.enable_no_rewrite(stmt->get_qb_name());
+}
+
 void TransformRule::set_transform_ctx(TransformCtx_s &ctx)
 { 
     this->ctx = ctx; 
@@ -30,9 +36,7 @@ void TransformRule::set_transform_ctx(TransformCtx_s &ctx)
 u32 TransformRule::transform(DMLStmt_s stmt)
 {
     u32 ret = SUCCESS;
-    if (!need_rewrite(stmt)) {
-        //do nothing
-    } else if (pre_order) {
+    if (pre_order) {
         CHECK(transform_pre_order(stmt));
     } else {
         CHECK(transform_post_order(stmt));
@@ -40,13 +44,16 @@ u32 TransformRule::transform(DMLStmt_s stmt)
     return ret;
 }
 
-bool TransformRule::need_rewrite(DMLStmt_s stmt) const
-{
-    return !stmt->stmt_hint.enable_no_rewrite();
-}
-
 u32 TransformRule::transform_one_stmt(DMLStmt_s &stmt)
 {
+    /**
+      * do {
+      *     1. check hint disable
+      *     2. check validity
+      *     4. do transform
+      *     5. generate outline
+      * } while
+      */
     return SUCCESS;
 }
 

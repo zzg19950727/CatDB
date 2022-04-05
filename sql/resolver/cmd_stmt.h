@@ -8,34 +8,10 @@
 
 namespace CatDB {
 	namespace Parser {
-        DECLARE(ColumnDefineStmt);
         DECLARE(ExprStmt);
         DECLARE(BasicTableStmt);
 		DECLARE(Stmt);
-
-        class ColumnDefineStmt
-		{
-		public:
-			enum DataType {
-				NUMBER = 0,
-				DATETIME,
-				VARCHAR,
-				INT
-			};
-		private:
-			ColumnDefineStmt();
-		public:
-			~ColumnDefineStmt();
-			static ColumnDefineStmt_s make_column_define_stmt(const String& name, u32 data_type);
-            KV_STRING(
-                K(column_name),
-                K(data_type)
-            );
-
-		public:
-			String column_name;
-			u32 data_type;
-		};
+		using Common::DataType;
 
         DECLARE(CMDStmt);
 		class CMDStmt : public Stmt
@@ -43,28 +19,12 @@ namespace CatDB {
 		private:
 			CMDStmt();
 		public:
-        enum CMDType {
-                NONE = 0,
-				CreateTable,
-				DropTable,
-				CreateDatabase,
-				DropDatabase,
-				ShowTables,
-				ShowDatabases,
-				DescTable,
-				UseDatabase,
-				Analyze,
-                SetVar,
-                ShowProcesslist,
-                Kill,
-                ShowMemory
-			};
 			~CMDStmt();
 			StmtType stmt_type()const override;
 			static Stmt_s make_cmd_stmt(CMDType cmd_type);
             u32 get_create_table_params(String &database, 
                                         String &table, 
-                                        Vector<Pair<String, String>> &columns,
+                                        Vector<ColumnDefineStmt_s> &columns,
                                         Vector<String> &engine_args);
             u32 get_drop_table_params(String &database, String &table, bool &ignore_not_exists);
             u32 get_create_database_params(String &database);
@@ -76,7 +36,6 @@ namespace CatDB {
             u32 get_analyze_params(String &database, String &table, double &sample_size);
             u32 get_set_var_params(String &var_name, String &var_value);
             u32 get_kill_params(int &thread_id);
-            String get_cmd_type()const;
             u32 formalize() override;
 		public:
             struct CMDParams{
@@ -184,7 +143,7 @@ namespace CatDB {
             CMDType cmd_type;
 
             KV_STRING_OVERRIDE(
-                KV(cmd_type, get_cmd_type()),
+                KV(cmd_type, CMDTypeString[cmd_type]),
                 K(params)
             );
 		};

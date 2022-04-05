@@ -3,14 +3,13 @@
 #include "type.h"
 
 namespace CatDB {
-	namespace Sql {
-		DECLARE(Expression);
-		DECLARE(PhyFilter);
-	}
 	namespace Common {
-		using Sql::Expression_s;
-		using Sql::PhyFilter_s;
 		DECLARE(Row);
+	}
+	namespace Sql {
+		using Common::Row_s;
+		DECLARE(Expression);
+		DECLARE(ExecCtx);
 
 		class HashTable
 		{
@@ -22,6 +21,7 @@ namespace CatDB {
 			~HashTable();
 			void clear();
 			bool empty()const;
+			void set_exec_ctx(ExecCtx_s& ctx);
 
 			u32 build(const Row_s& row);
 			//hash distinct、hash group使用
@@ -42,14 +42,15 @@ namespace CatDB {
 		private:
 			bool less(const Element& lhs, const Element& rhs);
 			u32 hash(Vector<Expression_s>& exprs, const Row_s& row);
-			bool equal(const Row_s& lhs, const Row_s& rhs);
-			inline bool filter_row(const Row_s& left_row, const Row_s& right_row);
+			u32 equal(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
+			u32 filter_row(const Row_s& left_row, const Row_s& right_row, bool &is_valid);
 
 			TableType buckets;
 			Vector<Expression_s> hash_exprs;
 			Vector<Expression_s> probe_exprs;
-			PhyFilter_s other_condition;
+			Vector<Expression_s> other_conditions;
 			BucketIterator cur_bucket;
+			ExecCtx_s exec_ctx;
 			u32 cur_bucket_pos;
 			u32 bucket_num;
 			bool is_empty;

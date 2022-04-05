@@ -1,4 +1,5 @@
 #include "update_plan.h"
+#include "schema_checker.h"
 #include "update_stmt.h"
 #include "expr_stmt.h"
 #include "log_update.h"
@@ -46,7 +47,18 @@ u32 UpdatePlan::generate_plan_tree()
 										   value_exprs,
 										   stmt->row_id_col);
 	root_operator->init(query_ctx, est_info);
+	LogUpdate_s log_update = root_operator;
 	CHECK(root_operator->compute_property());
+	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+	CHECK(checker->get_row_desc(stmt->table->ref_table_id, log_update->row_desc));
+	
+    ColumnDesc col_desc;
+    for (u32 i = 0; i < column_exprs.size(); ++i) {
+        ColumnStmt_s col_expr = column_exprs[i];
+        col_desc.set_cid(col_expr->column_id);
+        col_desc.set_data_type(col_expr->res_type);
+        log_update->update_desc.add_column_desc(col_desc);
+    }
 	return ret;
 }
 
@@ -75,7 +87,7 @@ u32 UpdatePlan::check_assign_expr(ExprStmt_s &assign_expr,
 	UpdateStmt_s stmt = lex_stmt;
     MY_ASSERT(assign_expr, OP_EXPR == assign_expr->expr_type());
     OpExprStmt_s expr = assign_expr;
-    MY_ASSERT(OP_EQ == expr->op_type, 2 == expr->params.size());
+    MY_ASSERT(OP_ASSIGN == expr->op_type, 2 == expr->params.size());
     MY_ASSERT(COLUMN == expr->params[0]->expr_type());
     column_expr = expr->params[0];
     MY_ASSERT(column_expr->table_id == stmt->table->table_id);

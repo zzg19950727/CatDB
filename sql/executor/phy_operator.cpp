@@ -1,11 +1,32 @@
 #include "phy_operator.h"
 #include "phy_expression.h"
-#include "phy_filter.h"
+#include "object.h"
 #include "query_ctx.h"
 #include "error.h"
 
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
+
+ExecCtx_s ExecCtx::make_exec_ctx()
+{
+	return ExecCtx_s(new ExecCtx);
+}
+
+u32 ExecCtx::set_input_rows(const Row_s &row)
+{
+	input_rows.clear();
+	Row_s copy = row;
+	input_rows.push_back(copy);
+	return SUCCESS;
+}
+
+u32 ExecCtx::set_input_rows(const Row_s &row1, const Row_s &row2)
+{
+	input_rows.clear();
+	input_rows.push_back(row1);
+	input_rows.push_back(row2);
+	return SUCCESS;
+}
 
 PhyOperator::PhyOperator()
 	:query_ctx(NULL)
@@ -19,21 +40,19 @@ PhyOperator::~PhyOperator()
 u32 PhyOperator::open()
 {
 	u32 ret = SUCCESS;
-	cur_row = Row::make_row(output_desc);
+	cur_row = Row::make_row(output_exprs.size());
+	cur_row->set_op_id(operator_id);
 	return inner_open();
 }
 
 u32 PhyOperator::get_next_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	while ((ret=inner_get_next_row(row)) == SUCCESS) {
+	while ((ret=inner_get_next_row()) == SUCCESS) {
 		CHECK(check_status());
-		if (filter) {
-			if ((*filter)(row)) {
-				return make_row(row);
-			} else {
-				continue;
-			}
+		CHECK(expr_filter(filters, exec_ctx));
+		if (!exec_ctx->bool_result) {
+			continue;
 		} else {
 			return make_row(row);
 		}
@@ -41,26 +60,22 @@ u32 PhyOperator::get_next_row(Row_s &row)
 	return ret;
 }
 
-void PhyOperator::set_output_exprs(u32 operator_id, const Vector<Expression_s> &exprs)
+void PhyOperator::set_output_exprs(const Vector<Expression_s> &exprs)
 {
 	output_exprs = exprs;
-	for (u32 i = 0; i < exprs.size(); ++i) {
-		ColumnDesc col_desc;
-		col_desc.set_tid_cid(operator_id, i);
-		output_desc.add_column_desc(col_desc);
-	}
 }
 
 u32 PhyOperator::make_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	if (!cur_row || output_desc.get_column_num() != output_exprs.size()) {
+	if (!cur_row) {
 		ret = ERR_UNEXPECTED;
 		return ret;
 	}
 	for (u32 i = 0; i < output_exprs.size(); ++i) {
-		Object_s cell = output_exprs[i]->get_result(row);
-		cur_row->set_cell(i, cell);
+		ColumnExpression_s col = output_exprs[i];
+		CHECK(output_exprs[i]->get_result(exec_ctx));
+		cur_row->set_cell(i, exec_ctx->output_result);
 	}
 	row = cur_row;
 	return ret;
@@ -73,7 +88,7 @@ u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
 		ret = ERR_UNEXPECTED;
 		return ret;
 	}
-	for (u32 i = 0; i < output_desc.get_column_num(); ++i) {
+	for (u32 i = 0; i < output_exprs.size(); ++i) {
 		Object_s cell = Object::make_null_object();
 		cur_row->set_cell(i, cell);
 	}
@@ -81,20 +96,38 @@ u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
 	return ret;
 }
 
-u32 PhyOperator::set_filter(const PhyFilter_s& filter) 
+u32 PhyOperator::set_filter(const Vector<Expression_s>& filter) 
 { 
-	this->filter = filter; 
+	filters = filter; 
 	return SUCCESS;
 }
 
-PhyFilter_s PhyOperator::get_filter()const 
-{ 
-	return filter; 
+void PhyOperator::set_operator_id(u32 id)
+{
+	operator_id = id;
 }
 
 void PhyOperator::set_query_ctx(QueryCtx_s &ctx) 
 { 
 	query_ctx = ctx; 
+}
+
+void PhyOperator::set_exec_ctx(ExecCtx_s &ctx)
+{
+	exec_ctx = ctx;
+}
+
+void PhyOperator::set_input_rows(const Row_s &row)
+{
+	exec_ctx->input_rows.clear();
+	exec_ctx->input_rows.push_back(row);
+}
+
+void PhyOperator::set_input_rows(const Row_s &row1, const Row_s &row2)
+{
+	exec_ctx->input_rows.clear();
+	exec_ctx->input_rows.push_back(row1);
+	exec_ctx->input_rows.push_back(row2);
 }
 
 u32 PhyOperator::check_status()
@@ -157,12 +190,6 @@ void JoinPhyOperator::set_join_type(JoinType type)
 void JoinPhyOperator::set_outer_const_value(Object_s &value) 
 { 
 	outer_const_value = value; 
-}
-
-u32 JoinPhyOperator::make_join_row(const Row_s &left_row, const Row_s &right_row, Row_s &row)
-{
-	row = RowAgent::make_agent_row(left_row, right_row);
-	return SUCCESS;
 }
 
 MultiChildPhyOperator::MultiChildPhyOperator()

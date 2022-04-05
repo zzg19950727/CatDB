@@ -15,7 +15,7 @@ namespace CatDB {
             InsertResolver(InsertStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
             ~InsertResolver();
             u32 resolve_stmt();
-            u32 check_insert_value(BasicTableStmt_s &insert_table, Vector<ExprStmt_s> &value_list);
+            u32 check_insert_value(BasicTableStmt_s &insert_table, Vector<Vector<ExprStmt_s>> &value_list);
             u32 check_insert_value(BasicTableStmt_s &insert_table, SelectStmt_s &select_value);
             u32 resolve_row(Vector<ExprStmt_s>& list, const Common::RowDesc& row_desc);
         private:

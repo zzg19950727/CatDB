@@ -534,17 +534,17 @@ u32 DMLPlan::generate_join_order_with_table_item(TableStmt_s& table_stmt, Logica
 u32 DMLPlan::generate_join_order()
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(lex_stmt, lex_stmt->stmt_type() !=  Stmt::DoCMD)
+    MY_ASSERT(lex_stmt, lex_stmt->stmt_type() !=  DoCMD)
     DMLStmt_s stmt = lex_stmt;
     Vector<TableStmt_s> base_tables;
     CHECK(generate_conflict_detecotrs(stmt->from_stmts, 
                                       stmt->where_stmt, 
                                       conflict_detectors));
-    LOG_INFO("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
+    LOG_TRACE("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
     CHECK(init_leading_info());
-    if (stmt->stmt_hint.has_leading_hint()) {
+    if (query_ctx->query_hint.has_leading_hint(stmt->get_qb_name())) {
         CHECK(generate_join_order_with_DP(false));
     }
     if (join_orders.size() != base_tables.size() || 
@@ -556,7 +556,7 @@ u32 DMLPlan::generate_join_order()
     root_operator = join_orders[base_tables.size() - 1][0];
     MY_ASSERT(root_operator);
     CHECK(generate_plan_hint());
-    LOG_INFO("succeed to generate join order");
+    LOG_TRACE("succeed to generate join order");
     return ret;
 }
 
@@ -586,12 +586,12 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint)
     MY_ASSERT(join_orders.size() > 0);
     u32 join_levels = join_orders[0].size();
     for (u32 level = 1; level < join_levels; ++level) {
-        LOG_INFO("begin to generate join order", K(level));
+        LOG_TRACE("begin to generate join order", K(level));
         for (u32 left_level = 0; left_level < level; ++left_level) {
             u32 right_level = level - 1 - left_level;
             CHECK(generate_join_order_with_DP(ignore_hint, left_level, right_level));
         }
-        LOG_INFO("succeed to generate join order", K(level), K(join_orders[level].size()));
+        LOG_TRACE("succeed to generate join order", K(level), K(join_orders[level].size()));
     }
     return ret;
 }
@@ -614,6 +614,8 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
             } else if (!ignore_hint) {
                 CHECK(is_leading_legal(left_tree->table_ids, right_tree->table_ids, is_legal));
                 if (!is_legal) {
+                    LOG_TRACE("join order conflict with leading hint", K(left_tree->table_ids), 
+                                K(right_tree->table_ids), K(join_info));
                     continue;
                 }
             }
@@ -630,8 +632,10 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
                                             right_tree->table_ids, 
                                             detectors, 
                                             join_info));
-                    join_info.join_type = ReveriseJoinType[join_info.join_type];
+                    join_info.join_type = ReverseJoinType[join_info.join_type];
                 } else {
+                    LOG_TRACE("join order is not legal", K(left_tree->table_ids), 
+                                K(right_tree->table_ids), K(join_info));
                     continue;
                 }
             }
@@ -828,11 +832,13 @@ u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree,
 {
     u32 ret = SUCCESS;
     JoinAlgo algo;
-    CHECK(get_join_method(left_tree->table_ids, 
+    ret = get_join_method(left_tree->table_ids, 
                           right_tree->table_ids, 
                           join_info,
-                          false,
-                          algo));
+                          algo);
+    if (FAIL(ret)) {
+        return ret;
+    }
     CHECK(generate_join_operator(left_tree, 
                                 right_tree, 
                                 join_info, 
@@ -844,36 +850,65 @@ u32 DMLPlan::generate_join_plan(LogicalOperator_s &left_tree,
 u32 DMLPlan::get_join_method(const BitSet &left_tables,
                             const BitSet &right_tables,
                             JoinInfo &join_info,
-                            bool ignore_hint,
                             JoinAlgo &algo)
 {
+    #define USE_ALGO(method, algo)  method |= 1 << (algo)
+    #define SET_ALGO(method, algo)  method = 1 << (algo)
+    #define NO_USE_ALGO(method, algo) method &= ~(1 << (algo))
+    #define HAS_ALGO(method, algo)  method & (1 << (algo))
     u32 ret = SUCCESS;
     Vector<JoinHintStmt_s> join_hints;
     DMLStmt_s stmt = lex_stmt;
-    stmt->stmt_hint.get_join_hints(join_hints);
+    query_ctx->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
+    u32 method = 0;
+    USE_ALGO(method, NL_JOIN);
+    USE_ALGO(method, HASH_JOIN);
     if (join_info.equal_join_condition.empty()) {
-        algo = NL_JOIN;
-    } else {
-        algo = HASH_JOIN;
-        for (u32 i = 0; !ignore_hint && i < join_hints.size(); ++i) {
-            JoinHintStmt_s &hint = join_hints[i];
-            if (right_tables.is_equal(hint->table_ids)) {
-                algo = hint->join_algo;
+        NO_USE_ALGO(method, HASH_JOIN);
+    }
+    if (RightOuter == join_info.join_type ||
+        FullOuter == join_info.join_type ||
+        RightSemi == join_info.join_type ||
+        RightAnti == join_info.join_type) {
+        NO_USE_ALGO(method, NL_JOIN);
+    }
+    u32 hint_method = method;
+    for (u32 i = 0; i < join_hints.size(); ++i) {
+        JoinHintStmt_s &hint = join_hints[i];
+        if (right_tables.is_equal(hint->table_ids)) {
+            if (hint->is_enable()) {
+                if (HAS_ALGO(hint_method, hint->join_algo)) {
+                    SET_ALGO(hint_method, hint->join_algo);
+                    hint->set_used(true);
+                }
+            } else {
+                if (HAS_ALGO(hint_method, hint->join_algo)) {
+                    NO_USE_ALGO(hint_method, hint->join_algo);
+                    hint->set_used(true);
+                }
             }
         }
     }
-    if (NL_JOIN == algo) {
-        if (RightOuter == join_info.join_type ||
-            FullOuter == join_info.join_type ||
-            RightSemi == join_info.join_type ||
-            RightAnti == join_info.join_type) {
-            if (ignore_hint) {
-                ret = OPERATION_NOT_SUPPORT;
-                LOG_TRACE("NestLoop Join not support join type", K(join_info));
-            } else {
-                CHECK(get_join_method(left_tables, right_tables, join_info, true, algo));
+    if (0 != hint_method) {
+        //use hint algo
+        method = hint_method;
+    } else {
+        //ignore hint
+        for (u32 i = 0; i < join_hints.size(); ++i) {
+            JoinHintStmt_s &hint = join_hints[i];
+            if (right_tables.is_equal(hint->table_ids)) {
+                hint->set_used(false);
             }
         }
+    }
+    if (HAS_ALGO(method, HASH_JOIN)) {
+        //use hash join first
+        algo = HASH_JOIN;
+    } else if (HAS_ALGO(method, NL_JOIN)) {
+        algo = NL_JOIN;
+    } else {
+        ret = OPERATION_NOT_SUPPORT;
+        LOG_TRACE("join type not support", K(join_info));
     }
     return ret;
 }
@@ -913,11 +948,11 @@ u32 DMLPlan::set_table_access_columns(LogicalOperator_s &op)
     Vector<ExprStmt_s> columns;
     DMLStmt_s stmt = lex_stmt;
     u32 table_id = INVALID_ID;
-    MY_ASSERT(stmt, op, LogicalOperator::LOG_TABLE_SCAN == op->type() || LogicalOperator::LOG_VIEW == op->type());
-    if (LogicalOperator::LOG_TABLE_SCAN == op->type()) {
+    MY_ASSERT(stmt, op, LOG_TABLE_SCAN == op->type() || LOG_VIEW == op->type());
+    if (LOG_TABLE_SCAN == op->type()) {
         LogTableScan_s table_scan = op;
         table_id = table_scan->table_item->table_id;
-    } else if (LogicalOperator::LOG_VIEW == op->type()) {
+    } else if (LOG_VIEW == op->type()) {
         LogView_s view = op;
         table_id = view->table_item->table_id;
     }
@@ -953,10 +988,10 @@ u32 DMLPlan::init_leading_info()
 {
     u32 ret = SUCCESS;
     DMLStmt_s stmt = lex_stmt;
-    if (!stmt->stmt_hint.has_leading_hint()) {
+    if (!query_ctx->query_hint.has_leading_hint(stmt->get_qb_name())) {
         return ret;
     }
-    LeadingHintStmt_s leading_hint = stmt->stmt_hint.get_leading_hint();
+    LeadingHintStmt_s leading_hint = query_ctx->query_hint.get_leading_hint(stmt->get_qb_name());
     MY_ASSERT(leading_hint->tables);
     CHECK(get_leading_info(leading_hint->tables, leading_info.table_ids));
     return ret;
@@ -992,21 +1027,13 @@ u32 DMLPlan::generate_plan_hint()
 {
     u32 ret = SUCCESS;
     DMLStmt_s stmt = lex_stmt;
-    stmt->stmt_hint.remove_hint(HintStmt::JOIN);
-    stmt->stmt_hint.remove_hint(HintStmt::LEADING);
     Vector<String> table_names;
     LeadingTable_s table;
     CHECK(generate_plan_hint(root_operator, table_names, table));
     MY_ASSERT(table);
-    if (table->is_base_table) {
-        LeadingTable_s table_list = LeadingTable::make_leading_table();
-        table_list->is_base_table = false;
-        table_list->table_list.push_back(table);
-        table = table_list;
+    if (!table->is_base_table) {
+        CHECK(query_ctx->query_hint.generate_leading_outline(stmt->get_qb_name(), table));
     }
-    LeadingHintStmt_s leading_hint = HintStmt::make_hint_stmt(HintStmt::LEADING);
-    leading_hint->tables = table;
-    stmt->stmt_hint.add_hint(leading_hint);
     return ret;
 }
 
@@ -1015,17 +1042,17 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
                                 LeadingTable_s &table)
 {
     u32 ret = SUCCESS;
-    if (LogicalOperator::LOG_TABLE_SCAN == op->type() ||
-        LogicalOperator::LOG_DUAL_TABLE == op->type() ||
-        LogicalOperator::LOG_VIEW == op->type()) {
+    if (LOG_TABLE_SCAN == op->type() ||
+        LOG_DUAL_TABLE == op->type() ||
+        LOG_VIEW == op->type()) {
         TableStmt_s table_item;
-        if (LogicalOperator::LOG_TABLE_SCAN == op->type()) {
+        if (LOG_TABLE_SCAN == op->type()) {
             LogTableScan_s scan = op;
             table_item = scan->table_item;
-        } else if (LogicalOperator::LOG_DUAL_TABLE == op->type()) {
+        } else if (LOG_DUAL_TABLE == op->type()) {
             LogDualTable_s dual = op;
             table_item = dual->table_item;
-        } else if (LogicalOperator::LOG_VIEW == op->type()) {
+        } else if (LOG_VIEW == op->type()) {
             LogView_s view = op;
             table_item = view->table_item;
         }
@@ -1034,7 +1061,7 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
         table = LeadingTable::make_leading_table();
         table->is_base_table = true;
         table->table_name = table_item->alias_name;
-    } else if (LogicalOperator::LOG_JOIN == op->type()) {
+    } else if (LOG_JOIN == op->type()) {
         LogJoin_s join_op = op;
         Vector<String> left_table_names;
         Vector<String> right_table_names;
@@ -1052,11 +1079,10 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
         table->table_list.push_back(right_table);
 
         //generate join hint
-        JoinHintStmt_s join_hint = HintStmt::make_hint_stmt(HintStmt::JOIN);
-        append(join_hint->table_names, right_table_names);
-        join_hint->join_algo = join_op->join_algo;
         DMLStmt_s stmt = lex_stmt;
-        stmt->stmt_hint.add_hint(join_hint);
+        CHECK(query_ctx->query_hint.generate_join_outline(stmt->get_qb_name(),
+                                                          right_table_names,
+                                                          join_op->join_algo));
     } else {
         ret = ERR_UNEXPECTED;
     }

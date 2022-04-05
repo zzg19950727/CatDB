@@ -2,11 +2,12 @@
 #include "schema_guard.h"
 #include "sql_engine.h"
 #include "table_space.h"
-#include "query_result.h"
+#include "obj_datetime.h"
 #include "query_ctx.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
+#include "log.h"
 
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
@@ -141,7 +142,7 @@ u32 StatisManager::delete_table_statis(u32 tid)
     u32 ret = SUCCESS;
     String sql = "DELETE FROM SYSTEM.TABLE_STATIS WHERE TID = ";
     sql += std::to_string(tid) + ";";
-    QueryResult_s result;
+    ResultSet_s result;
     CHECK(execute_sys_sql(sql, result));
     sql = "DELETE FROM SYSTEM.COLUMN_STATIS WHERE TID = ";
     sql += std::to_string(tid) + ";";
@@ -150,15 +151,12 @@ u32 StatisManager::delete_table_statis(u32 tid)
     return ret;
 }
 
-u32 StatisManager::execute_sys_sql(const String& sql, QueryResult_s &result, double sample_size)
+u32 StatisManager::execute_sys_sql(const String& sql, ResultSet_s &result, double sample_size)
 {
     u32 ret = SUCCESS;
     QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
     query_ctx->sample_size = sample_size;
-	ResultSet_s result_set;
-	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result_set));
-    MY_ASSERT(result_set);
-    result = result_set->get_query_result();
+	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result));
 	return ret;
 }
 
@@ -187,15 +185,15 @@ u32 StatisManager::init_statis_cache()
 u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
 {
     u32 ret = SUCCESS;
-    QueryResult_s table_statis_result;
+    ResultSet_s table_statis_result;
     String table_statis_sql = R"(SELECT tid, row_count, space_size FROM system.table_statis A
                             WHERE analyze_time = (SELECT MAX(analyze_time) from system.table_statis B WHERE A.tid=B.tid) 
                             ORDER BY tid;)";
     CHECK(execute_sys_sql(table_statis_sql, table_statis_result));
-    for (u32 i = 0; i < table_statis_result->size(); ++i) {
-		Row_s row;
-		CHECK(table_statis_result->get_row(i, row));
-        MY_ASSERT(3 == row->get_row_desc().get_column_num());
+    Row_s row;
+    CHECK(table_statis_result->open());
+    MY_ASSERT(3 == table_statis_result->get_column_count());
+    while (SUCC( ret = table_statis_result->get_next_row(row))) {
 		TableStatis_s statis = TableStatis::make_table_statis();
         Object_s cell;
         u32 pos = 0;
@@ -207,21 +205,22 @@ u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
         statis->space_size = cell->value();
         table_statis.push_back(statis);
 	}
+    CHECK(table_statis_result->close());
     return ret;
 }
 
 u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
 {
     u32 ret = SUCCESS;
-    QueryResult_s column_statis_result;
+    ResultSet_s column_statis_result;
     String column_statis_sql = R"(SELECT tid, cid, ndv, null_count, max_value, min_value FROM system.column_statis A
                                 WHERE analyze_time = (SELECT MAX(analyze_time) from system.column_statis B WHERE A.tid=B.tid and A.cid = B.cid) 
                                 ORDER BY tid;)";
     CHECK(execute_sys_sql(column_statis_sql, column_statis_result));
-    for (u32 i = 0; i < column_statis_result->size(); ++i) {
-		Row_s row;
-		CHECK(column_statis_result->get_row(i, row));
-        MY_ASSERT(6 == row->get_row_desc().get_column_num());
+    Row_s row;
+    CHECK(column_statis_result->open());
+    MY_ASSERT(6 == column_statis_result->get_column_count());
+    while (SUCC( ret = column_statis_result->get_next_row(row))) {
         ColumnStatis_s statis = ColumnStatis::make_column_statis();
         Object_s cell;
         u32 pos = 0;
@@ -239,6 +238,7 @@ u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
         statis->min_value = cell->value();
         column_statis.push_back(statis);
 	}
+    CHECK(column_statis_result->close());
     return ret;
 }
 
@@ -260,7 +260,7 @@ u32 StatisManager::inner_analyze_table(const String& database, const String& tab
     if (sample_size > 1) {
         sample_size = 1;
     }
-    QueryResult_s result;
+    ResultSet_s result;
     CHECK(execute_sys_sql(query, result, sample_size));
     TableStatis_s table_statis;
     CHECK(generate_table_statis(table_id, 
@@ -292,7 +292,7 @@ u32 StatisManager::generate_analyze_sql(const String& database,
     table_id = table_info->table_id;
     query = "select count(1) ";
     for (auto iter = table_info->id_column_infos.cbegin(); iter != table_info->id_column_infos.cend(); ++iter) {
-		if (iter->second->column_type == "varchar") {
+		if (T_VARCHAR == iter->second->column_type.res_type) {
 			continue;
 		}
         const String &column = iter->second->column_name;
@@ -311,14 +311,17 @@ u32 StatisManager::generate_table_statis(u32 table_id,
                                         u32 space_size,
                                         double sample_size,
                                         Vector<u32> &column_ids,
-                                        QueryResult_s result,
+                                        ResultSet_s &result,
                                         TableStatis_s &table_statis)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(result, 1 == result->size())
     Row_s row;
-    CHECK(result->get_row(0, row));
-    MY_ASSERT(row->get_row_desc().get_column_num() == 4*column_ids.size()+1);
+    CHECK(result->open());
+    MY_ASSERT(4*column_ids.size()+1 == result->get_column_count());
+    while (SUCC( ret = result->get_next_row(row))) {
+    }
+    CHECK(result->close());
+    MY_ASSERT(row);
     table_statis = TableStatis::make_table_statis();
     table_statis->tid = table_id;
     table_statis->space_size = space_size;
@@ -347,7 +350,9 @@ u32 StatisManager::generate_table_statis(u32 table_id,
 u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_statis_query, String &column_statis_query)
 {
     u32 ret = SUCCESS;
-    String cur_time = DateTime::CurrentDatetime();
+    DateTime_s cur;
+    CHECK(DateTime::current_datetime(cur));
+    String cur_time = cur->to_string();
 	table_statis_query = "insert into system.table_statis values("
 		+ std::to_string(table_statis->tid) + ","
 		+ std::to_string(table_statis->row_count) + ","

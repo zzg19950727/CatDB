@@ -1,5 +1,6 @@
 #include "phy_hash_set.h"
 #include "phy_expression.h"
+#include "object.h"
 #include "error.h"
 #include "row.h"
 #include "log.h"
@@ -28,16 +29,11 @@ PhyOperator_s CatDB::Sql::PhyHashSetOp::make_hash_setop(PhyOperator_s & first_ch
 
 u32 CatDB::Sql::PhyHashSetOp::inner_open()
 {
-	u32 ret = right_child->open();
-	if (ret == SUCCESS){
-		ret = left_child->open();
-		if (ret == SUCCESS)
-			return SUCCESS;
-		else
-			return ret;
-	}else{
-		return ret;
-	}
+	u32 ret = SUCCESS;
+	CHECK(right_child->open());
+	CHECK(left_child->open());
+	hash_table.set_exec_ctx(exec_ctx);
+	return ret;
 }
 
 u32 CatDB::Sql::PhyHashSetOp::close()
@@ -66,31 +62,38 @@ u32 CatDB::Sql::PhyHashSetOp::reset()
 		return SUCCESS;
 }
 
-u32 CatDB::Sql::PhyHashSetOp::inner_get_next_row(Row_s & row)
+u32 CatDB::Sql::PhyHashSetOp::inner_get_next_row()
 {
+	u32 ret = SUCCESS;
+	Row_s row;
 	switch(set_type) {
 		case UNION_ALL:
-			return get_next_row_union_all(row);
+			ret = get_next_row_union_all(row);
+			break;
 		case UNION:
-			return get_next_row_union(row);
+			ret = get_next_row_union(row);
+			break;
 		case INTERSECT:
-			return get_next_row_intersect(row);
+			ret = get_next_row_intersect(row);
+			break;
 		case EXCEPT:
-			return get_next_row_except(row);
+			ret = get_next_row_except(row);
+			break;
 	}
-	return ERR_UNEXPECTED;
+	set_input_rows(row);
+	return ret;
 }
 
 u32 CatDB::Sql::PhyHashSetOp::get_next_row_union_all(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	while ((ret=left_child->get_next_row(row)) == SUCCESS) {
+	while (SUCC(left_child->get_next_row(row))) {
 		return ret;
 	}
 	if (ret != NO_MORE_ROWS) {
 		return ret;
 	}
-	while ((ret=right_child->get_next_row(row)) == SUCCESS) {
+	while (SUCC(right_child->get_next_row(row))) {
 		return ret;
 	}
 	return ret;
@@ -99,23 +102,29 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_union_all(Row_s &row)
 u32 CatDB::Sql::PhyHashSetOp::get_next_row_union(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	while ((ret=left_child->get_next_row(row)) == SUCCESS) {
-		if (hash_table.probe(row) == SUCCESS) {
+	while (SUCC(left_child->get_next_row(row))) {
+		if (SUCC(hash_table.probe(row))) {
 			continue;
+		} else if (ROW_NOT_FOUND != ret) {
+			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			return hash_table.build(row);
+			CHECK(hash_table.build(row));
+			return ret;
 		}
 	}
 	if (ret != NO_MORE_ROWS) {
 		return ret;
 	}
-	while ((ret=right_child->get_next_row(row)) == SUCCESS) {
-		if (hash_table.probe(row) == SUCCESS) {
+	while (SUCC(right_child->get_next_row(row))) {
+		if (SUCC(hash_table.probe(row))) {
 			continue;
+		} else if (ROW_NOT_FOUND != ret) {
+			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			return hash_table.build(row);
+			CHECK(hash_table.build(row));
+			return ret;
 		}
 	}
 	return ret;
@@ -125,14 +134,15 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_intersect(Row_s &row)
 {
 	u32 ret = SUCCESS;
 	if (!init_hash_table) {
-		ret = build_hash_table();
-		if (FAIL(ret)) {
-			return ret;
-		}
+		CHECK(build_hash_table());
 	}
-	while ((ret=left_child->get_next_row(row)) == SUCCESS) {
-		if (hash_table.probe_all_rows(row, true) == SUCCESS) {
-			return SUCCESS;
+	while (SUCC(left_child->get_next_row(row))) {
+		if (SUCC(hash_table.probe_all_rows(row, true))) {
+			return ret;
+		} else if (ROW_NOT_FOUND != ret) {
+			return ret;
+		} else {
+			ret = SUCCESS;
 		}
 	}
 	return ret;
@@ -142,17 +152,17 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_except(Row_s &row)
 {
 	u32 ret = SUCCESS;
 	if (!init_hash_table) {
-		ret = build_hash_table();
-		if (FAIL(ret)) {
-			return ret;
-		}
+		CHECK(build_hash_table());
 	}
-	while ((ret=left_child->get_next_row(row)) == SUCCESS){
-		if (hash_table.probe(row) == SUCCESS) {
+	while (SUCC(left_child->get_next_row(row))){
+		if (SUCC(hash_table.probe(row))) {
 			continue;
+		} else if (ROW_NOT_FOUND != ret) {
+			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			return hash_table.build(row);
+			CHECK(hash_table.build(row));
+			return ret;
 		}
 	}
 	return ret;
@@ -162,9 +172,9 @@ u32 CatDB::Sql::PhyHashSetOp::build_hash_table()
 {
 	u32 ret = SUCCESS;
 	Row_s row;
-	while ((ret=right_child->get_next_row(row)) == SUCCESS){
+	while (SUCC(right_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
-		hash_table.build(row);
+		CHECK(hash_table.build(row));
 	}
 	init_hash_table = true;
 	return ret;

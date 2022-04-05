@@ -18,7 +18,7 @@ namespace CatDB {
 			LogSubQueryEvaluate() {}
 			virtual ~LogSubQueryEvaluate() {}
 			static LogicalOperator_s make_subquery_evaluate(LogicalOperator_s &query_root);
-			virtual u32 type() const override{return LogicalOperator::LOG_SUBQUERY_EVALUATE;}
+			virtual u32 type() const override{return LOG_SUBQUERY_EVALUATE;}
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
             void add_subplan(SubQueryStmt_s& subquery_expr, LogicalOperator_s &subplan);

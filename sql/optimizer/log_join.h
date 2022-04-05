@@ -21,7 +21,7 @@ namespace CatDB {
 											const LogicalOperator_s& right,
 											JoinType jon_type,
 											JoinAlgo join_algo);
-			virtual u32 type() const override{return LogicalOperator::LOG_JOIN;}
+			virtual u32 type() const override{return LOG_JOIN;}
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;

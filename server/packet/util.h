@@ -13,6 +13,7 @@
 namespace CatDB{
 	namespace Server{
 		using Common::Object_s;
+		using namespace Common;
 		enum MYSQL_PROTOCOL_TYPE
 		{
 			TEXT = 1,
@@ -503,8 +504,6 @@ namespace CatDB{
 			switch (mysql_type)
 			{
 			case MYSQL_TYPE_NULL:
-				ob_type = T_NULL_TYPE;
-				break;
 			case MYSQL_TYPE_LONG:
 			case MYSQL_TYPE_LONGLONG:
 			case MYSQL_TYPE_FLOAT:

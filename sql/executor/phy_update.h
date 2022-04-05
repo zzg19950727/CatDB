@@ -32,12 +32,18 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
+			void set_update_desc(const RowDesc& desc);
+			void set_access_desc(const RowDesc &desc);
 		private:
 			TableSpace_s table_space;
 			Expression_s row_id;
 			Vector<Expression_s> value_exprs;
+			Row_s update_row;
+			Row_s access_row;
+			RowDesc access_desc;
+			RowDesc update_desc;
 		};
 	}
 }

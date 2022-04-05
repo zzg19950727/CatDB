@@ -38,23 +38,6 @@ namespace CatDB {
 		class LogicalOperator
 		{
 		public:
-			enum LogOperatorType {
-				LOG_TABLE_SCAN = 0,
-				LOG_JOIN,
-				LOG_SORT,
-				LOG_DISTINCT,
-				LOG_GROUP_BY,
-				LOG_SCALAR_GROUP,
-				LOG_SET,
-				LOG_LIMIT,
-				LOG_VIEW,
-				LOG_INSERT,
-				LOG_UPDATE,
-				LOG_DELETE,
-				LOG_EXPR_VALUE,
-				LOG_DUAL_TABLE,
-				LOG_SUBQUERY_EVALUATE
-			};
 			LogicalOperator();
 			virtual ~LogicalOperator();
 			virtual u32 type() const = 0;

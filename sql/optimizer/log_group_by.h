@@ -14,7 +14,7 @@ namespace CatDB {
 			LogGroupBy(const LogicalOperator_s& child)
                 :SingleChildLogicalOperator(child) {}
 			virtual ~LogGroupBy() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_GROUP_BY;}
+			virtual u32 type() const override{return LOG_GROUP_BY;}
 			static LogicalOperator_s make_group_by(const LogicalOperator_s& child,
 													Vector<ExprStmt_s> &group_by_exprs, 
 													Vector<ExprStmt_s> &agg_items);

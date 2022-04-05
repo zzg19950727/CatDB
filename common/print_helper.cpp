@@ -43,3 +43,8 @@ String to_kv_string(bool value)
         return String("false");
     }
 }
+
+String to_kv_string(HintType value)
+{
+    return String(HintTypeString[value]);
+}

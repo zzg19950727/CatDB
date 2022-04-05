@@ -40,9 +40,9 @@ Plan::PlanType SelectPlan::type() const
 u32 SelectPlan::generate_plan_tree()
 {
 	u32 ret = SUCCESS;
-	if (Stmt::SetOperation == lex_stmt->stmt_type()) {
+	if (SetOperation == lex_stmt->stmt_type()) {
 		CHECK(generate_set_plan_tree());
-	} else if (Stmt::Select == lex_stmt->stmt_type()) {
+	} else if (Select == lex_stmt->stmt_type()) {
 		CHECK(generate_normal_plan_tree());
 	} else {
 		ret = ERR_UNEXPECTED;

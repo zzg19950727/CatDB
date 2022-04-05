@@ -14,7 +14,7 @@ namespace CatDB {
 			LogDistinct(LogicalOperator_s &child)
                 :SingleChildLogicalOperator(child) {}
 			virtual ~LogDistinct() {}
-			virtual u32 type() const override {return LogicalOperator::LOG_DISTINCT;}
+			virtual u32 type() const override {return LOG_DISTINCT;}
 			static LogicalOperator_s make_distinct(LogicalOperator_s &child);
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;

@@ -55,7 +55,7 @@ void LogGroupBy::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
 {
     PlanInfo info;
     print_basic_info(depth, info);
-    info.op = "GROUP BY";
+    info.op = "HASH GROUP BY";
     print_exprs(group_by_exprs, "group_by_exprs", info);
     if (!agg_items.empty()) {
         print_exprs(agg_items, "aggr_exprs", info);

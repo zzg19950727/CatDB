@@ -16,7 +16,7 @@ namespace CatDB {
 				 offset(0),
 				 limit_value(0) {}
 			virtual ~LogLimit() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_LIMIT;}
+			virtual u32 type() const override{return LOG_LIMIT;}
 			static LogicalOperator_s make_limit(LogicalOperator_s &child, u32 offset, u32 limit_value);
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;

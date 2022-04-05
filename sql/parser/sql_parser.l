@@ -25,16 +25,18 @@ ident	{letter}({letter}|{digit})*
 qb_name_ident @{letter}({letter}|{digit})*
 date	[0-9]{4}(-[0-9]{1,2}){2}
 time	[0-9]{2}(:[0-9]{1,2}){2}
-timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
+timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
+start_comment	\/\*
+end_comment		\*\/
+
 %x beg_str
 %x beg_str2
 %x beg_ident
+%x beg_comment
 %%
 
 "bool"			{ return CatDB::SqlParser::make_BOOL(loc); }
 "null"			{ return CatDB::SqlParser::make_NULLX(loc); }
-"false"			{ return CatDB::SqlParser::make_FALSE(loc); }
-"true"			{ return CatDB::SqlParser::make_TRUE(loc); }
 "except"		{ return CatDB::SqlParser::make_EXCEPT(loc); }
 "union"			{ return CatDB::SqlParser::make_UNION(loc); }
 "intersect"		{ return CatDB::SqlParser::make_INTERSECT(loc); }
@@ -94,7 +96,6 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "limit"			{ return CatDB::SqlParser::make_LIMIT(loc); }
 "memory"		{ return CatDB::SqlParser::make_MEMORY(loc); }
 "month"			{ return CatDB::SqlParser::make_MONTH(loc); }
-"number"		{ return CatDB::SqlParser::make_NUMBER(loc); }
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
 "processlist"	{ return CatDB::SqlParser::make_PROCESSLIST(loc); }
@@ -134,9 +135,12 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "then"			{ return CatDB::SqlParser::make_THEN(loc); }
 "else"			{ return CatDB::SqlParser::make_ELSE(loc); }
 "end"			{ return CatDB::SqlParser::make_END_SYM(loc); }
-"qb_name"       { return CatDB::SqlParser::make_QB_NAME(loc); }
 "use_hash"      { return CatDB::SqlParser::make_USE_HASH(loc); }
 "use_nl"        { return CatDB::SqlParser::make_USE_NL(loc); }
+"no_use_hash"   { return CatDB::SqlParser::make_NO_USE_HASH(loc); }
+"no_use_nl"     { return CatDB::SqlParser::make_NO_USE_NL(loc); }
+"unnest"      	{ return CatDB::SqlParser::make_UNNEST(loc); }
+"no_unnest"     { return CatDB::SqlParser::make_NO_UNNEST(loc); }
 "leading"       { return CatDB::SqlParser::make_LEADING(loc); }
 "parallel"      { return CatDB::SqlParser::make_PARALLEL(loc); }
 "ordered"       { return CatDB::SqlParser::make_ORDERED(loc); }
@@ -148,6 +152,8 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "split"			{ return CatDB::SqlParser::make_SPLIT(loc); }
 "csv"			{ return CatDB::SqlParser::make_CSV(loc); }
 "year"			{ return CatDB::SqlParser::make_YEAR(loc); }
+"begin_outline_data"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE_DATA(loc); }
+"end_outline_data"		{ return CatDB::SqlParser::make_END_OUTLINE_DATA(loc); }
 
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
@@ -161,10 +167,25 @@ timestamp	[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "/*+"			{ return CatDB::SqlParser::make_BEGIN_HINT(loc); }
 "*/"			{ return CatDB::SqlParser::make_END_HINT(loc); }
 \"				{parse_str.clear();BEGIN(beg_str);}
-<beg_str>\"         {
-						BEGIN(INITIAL);
-						return CatDB::SqlParser::make_STRING(parse_str,loc);
-					}
+
+{start_comment}				{
+								BEGIN(beg_comment);		
+							}
+<beg_comment>(.|\n)			{
+								;
+							}
+
+<beg_comment><<EOF>>		{
+								yyterminate();
+							}
+<beg_comment>{end_comment}	{
+								BEGIN(INITIAL);
+							}
+
+<beg_str>\"         		{
+								BEGIN(INITIAL);
+								return CatDB::SqlParser::make_STRING(parse_str,loc);
+							}
 <beg_str>\\n		parse_str += '\n';
 <beg_str>\\t		parse_str += '\t';
 <beg_str>\\r		parse_str += '\r';

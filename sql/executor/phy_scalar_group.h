@@ -30,11 +30,12 @@ namespace CatDB {
 			u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row(Row_s &row) override;
+			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
 			void reset_agg_func();
-			u32 add_row_to_agg_func(const Row_s& row);
+			void init_agg_func();
+			u32 add_row_to_agg_func(Row_s& row);
 
 			Vector<Expression_s> agg_funcs;
 			bool is_start;

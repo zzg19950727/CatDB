@@ -4,8 +4,8 @@
 #include "type.h"
 
 namespace CatDB {
-    namespace Common {
-		DECLARE(QueryResult);
+    namespace Sql {
+		DECLARE(ResultSet);
 	}
 		
 	namespace Parser {
@@ -13,7 +13,9 @@ namespace CatDB {
         DECLARE(ColumnInfo);
         DECLARE(TableInfo);
         DECLARE(DatabaseInfo);
-        using Common::QueryResult_s;
+        DECLARE(ColumnDefineStmt);
+        using Sql::ResultSet_s;
+        using Common::DataType;
 
         class ColumnInfo {
             ColumnInfo()
@@ -25,7 +27,7 @@ namespace CatDB {
             u32 table_id;
             u32 column_id;
             String column_name;
-            String column_type;
+            DataType column_type;
 
             KV_STRING(
                 K(table_id),
@@ -106,27 +108,29 @@ namespace CatDB {
             u32 del_database(const String& name);
             u32 add_table(const String& db_name,
                           const String& table_name,
-                          const Vector<Pair<String,String>> &columns,
+                          const Vector<ColumnDefineStmt_s> &columns,
                           const Vector<String> &engine_args);
             u32 del_table(const String &db_name, const String& table_name);
 
         private:
-            u32 execute_sys_sql(const String& sql, QueryResult_s &result);
+            u32 execute_sys_sql(const String& sql, ResultSet_s &result);
             u32 init_database_info();
             u32 init_table_info(Vector<TableInfo_s> &table_info);
             u32 init_column_info(Vector<ColumnInfo_s> &column_info);
-            u32 init_system_schema();
+            u32 init_system_schema(const Vector<ColumnDefineStmt_s> &SYS_DB_DEF,
+                                   const Vector<ColumnDefineStmt_s> &SYS_TABLE_DEF,
+                                   const Vector<ColumnDefineStmt_s> &SYS_COLUMN_DEF);
             u32 add_database_to_cache(u32 id, const String& name);
             u32 add_database_to_inner_table(u32 id, const String& name);
             u32 add_table_to_cache(u32 db_id,
                                    u32 table_id,
                                    const String& name,
-                                   const Vector<Pair<String,String>> &columns,
+                                   const Vector<ColumnDefineStmt_s> &columns,
                                    const Vector<String> &engine_args = Vector<String>());
             u32 add_table_to_inner_table(u32 db_id,
                                         u32 table_id,
                                         const String& name,
-                                        const Vector<Pair<String,String>> &columns,
+                                        const Vector<ColumnDefineStmt_s> &columns,
                                         const Vector<String> &engine_args = Vector<String>());
             u32 del_database_from_cache(u32 id, const String& name);
             u32 del_database_from_inner_table(u32 id);

@@ -3,14 +3,14 @@
 #include "type.h"
 
 namespace CatDB {
-    namespace Common {
-		DECLARE(QueryResult);
+    namespace Sql {
+		DECLARE(ResultSet);
 	}
 	namespace Optimizer {
         DECLARE(ColumnStatis);
         DECLARE(TableStatis);
         DECLARE(StatisManager);
-        using Common::QueryResult_s;
+        using Sql::ResultSet_s;
         
         class ColumnStatis {
         private:
@@ -72,7 +72,7 @@ namespace CatDB {
 			double get_column_null_count(u32 tid, u32 cid);
             u32 delete_table_statis(u32 tid);
         protected:
-            u32 execute_sys_sql(const String& sql, QueryResult_s &result, double sample_size=1);
+            u32 execute_sys_sql(const String& sql, ResultSet_s &result, double sample_size=1);
             u32 init_table_statis(Vector<TableStatis_s> &table_statis);
             u32 init_column_statis(Vector<ColumnStatis_s> &column_statis);
             u32 inner_analyze_table(const String& database, const String& table, double sample_size);
@@ -85,7 +85,7 @@ namespace CatDB {
                                       u32 space_size,
                                       double sample_size,
                                       Vector<u32> &column_ids,
-                                      QueryResult_s result,
+                                      ResultSet_s &result,
                                       TableStatis_s &table_statis);  
             u32 generate_load_sql(TableStatis_s &statis, String &table_statis_query, String &column_statis_query);                      
         };

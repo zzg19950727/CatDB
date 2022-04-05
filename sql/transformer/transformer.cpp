@@ -45,7 +45,7 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
         if (!happened) {
             break;
         } else {
-            LOG_INFO("success to transform once", K(i), K(stmt));
+            LOG_TRACE("success to transform once", K(i), K(stmt));
         }
     }
     TRANSFORM(TransformPostProcess, stmt, ctx, happened);

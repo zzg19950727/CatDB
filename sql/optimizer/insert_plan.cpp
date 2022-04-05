@@ -38,19 +38,7 @@ u32 InsertPlan::generate_value_plan_tree()
 	if (stmt->query_values) {
 		CHECK(generate_sub_select_plan_tree(stmt->query_values, root_operator));
 	} else {
-		Vector<Vector<ExprStmt_s>> values;
-		u32 size = 0;
-		for (u32 i = 0; i < stmt->value_list.size(); ++i) {
-			MY_ASSERT(EXPR_LIST == stmt->value_list[i]->expr_type());
-			if (0 == i) {
-				size = stmt->value_list[i]->params.size();
-				MY_ASSERT(size > 0);
-			} else {
-				MY_ASSERT(size == stmt->value_list[i]->params.size());
-			}
-			values.push_back(stmt->value_list[i]->params);
-		}
-		root_operator = LogExprValue::make_expr_value(values);
+		root_operator = LogExprValue::make_expr_value(stmt->value_list);
 		root_operator->init(query_ctx, est_info);
 		CHECK(root_operator->compute_property());
 	}

@@ -2,11 +2,9 @@
 #define CSV_TABLE_SPACE_H
 #include "table_space.h"
 #include "type.h"
+#include "row.h"
 
 namespace CatDB {
-	namespace Common{
-		DECLARE(Row);
-	}
 	namespace Storage {
 		DECLARE(IoService);
 		DECLARE(CSVTableSpace);
@@ -30,9 +28,10 @@ namespace CatDB {
 			u32 close()override;
 
 			u32 insert_row(const Row_s& row)override;
-			u32 update_row(const Row_s& row)override;
+			u32 get_row(u32 row_id, Row_s& row)override;
 			u32 delete_row(u32 row_id)override;
 			u32 delete_all_row()override;
+			u32 update_row(u32 row_id, const Row_s& update_row, const Row_s& access_row)override;
 
 		private:
 			u32 buffer_empty();
@@ -45,7 +44,6 @@ namespace CatDB {
 		private:
 			const u32 buffer_size = 64 * PAGE_SIZE;
 			IoService_s io;
-			u32 page_skip_size;
 			u64 row_id;
 			bool need_write_buffer;
 

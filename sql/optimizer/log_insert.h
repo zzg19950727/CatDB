@@ -14,7 +14,7 @@ namespace CatDB {
 			LogInsert(LogicalOperator_s &child)
                 :SingleChildLogicalOperator(child) {}
 			virtual ~LogInsert() {}
-			virtual u32 type() const override{return LogicalOperator::LOG_INSERT;}
+			virtual u32 type() const override{return LOG_INSERT;}
 			static LogicalOperator_s make_insert(LogicalOperator_s &child, BasicTableStmt_s &insert_table);
 			virtual u32 est_row_count()override;
 			virtual u32 est_cost()override;

@@ -16,7 +16,7 @@ RowPacket::RowPacket(const Row_s& row)
 
 int RowPacket::serialize(char* buffer, int64_t length, int64_t& pos)
 {
-	for (u32 i = 0; i < row_->get_row_desc().get_column_num(); ++i)
+	for (u32 i = 0; i < row_->get_cell_num(); ++i)
 	{
 		Object_s cell;
 		row_->get_cell(i, cell);
@@ -94,7 +94,7 @@ int RowPacket::bool_cell_str(const Object_s & obj, char * buf, const int64_t len
 	}
 	else
 	{
-		bool_val = obj->bool_value();
+		bool_val = obj->value();
 		/* skip 1 byte to store length */
 		length = snprintf(buf + pos + 1, len - pos - 1, "%d", bool_val ? 1 : 0);
 		Util::store_length(buf, len, length, pos);

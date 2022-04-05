@@ -23,6 +23,11 @@ u32 DMLStmt::formalize()
 {
     u32 ret = SUCCESS;
     table_ids.clear();
+    if (!stmt_hint.has_qb_name()) {
+        stmt_hint.generate_qb_name(stmt_id);
+    }
+    CHECK(collect_special_exprs());
+    CHECK(deduce_type());
     for (u32 i = 0; i < from_stmts.size(); ++i) {
         CHECK(from_stmts[i]->formalize());
         table_ids.add_members(from_stmts[i]->table_ids);
@@ -30,7 +35,26 @@ u32 DMLStmt::formalize()
     for (u32 i = 0; i < where_stmt.size(); ++i) {
         CHECK(where_stmt[i]->formalize());
     }
-    collect_special_exprs();
+    return ret;
+}
+
+u32 DMLStmt::deduce_type()
+{
+    u32 ret = SUCCESS;
+    Vector<TableStmt_s> tables;
+    CHECK(get_table_items(tables));
+    for (u32 i = 0; i < tables.size(); ++i) {
+        if (tables[i]->is_view_table()) {
+            ViewTableStmt_s view = tables[i];
+            CHECK(view->ref_query->formalize());
+            Vector<ExprStmt_s> columns;
+            CHECK(get_column_exprs(tables[i]->table_id, columns));
+            for (u32 j = 0; j < columns.size(); ++j) {
+                ColumnStmt_s col = columns[j];
+                col->res_type = view->ref_query->select_expr_list[col->column_id]->res_type;
+            }
+        }
+    }
     return ret;
 }
 
@@ -52,10 +76,20 @@ u32 DMLStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
 }
 
 u32 DMLStmt::replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
-                                const Vector<ExprStmt_s> &new_exprs)
+                                const Vector<ExprStmt_s> &new_exprs,
+                                const bool recurse_child_stmt)
 {
     u32 ret = SUCCESS;
     CHECK(inner_replace_stmt_exprs(old_exprs, new_exprs));
+    if (recurse_child_stmt) {
+        Vector<SelectStmt_s> child_stms;
+        CHECK(get_child_stmts(child_stms));
+        for (u32 i = 0; i < child_stms.size(); ++i) {
+            CHECK(child_stms[i]->replace_stmt_exprs(old_exprs, 
+                                                    new_exprs, 
+                                                    recurse_child_stmt));
+        }
+    }
     return ret;
 }
 
@@ -119,7 +153,8 @@ u32 DMLStmt::get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns)
 {
     u32 ret = SUCCESS;
     for (u32 i = 0; i < column_exprs.size(); ++i) {
-        if (column_exprs[i]->table_ids.has_member(table_id)) {
+        ColumnStmt_s col = column_exprs[i];
+        if (table_id == col->table_id) {
 			if (!ExprUtils::find_equal_expr(columns, column_exprs[i])) {
             	columns.push_back(column_exprs[i]);
 			}
@@ -131,7 +166,7 @@ u32 DMLStmt::get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns)
 u32 DMLStmt::get_child_stmts(Vector<SelectStmt_s> &child_stms)
 {
     u32 ret = SUCCESS;
-    if (Stmt::SetOperation == stmt_type()) {
+    if (SetOperation == stmt_type()) {
         SetStmt *set_stmt = dynamic_cast<SetStmt*>(this);
         child_stms.push_back(set_stmt->left_query);
         child_stms.push_back(set_stmt->right_query);
@@ -159,103 +194,11 @@ u32 DMLStmt::get_child_stmts(Vector<SelectStmt_s> &child_stms)
     return ret;
 }
 
-
-u32 DMLStmt::update_table_hint()
-{
-    u32 ret = SUCCESS;
-    Vector<HintStmt_s> new_hints;
-    for (u32 i = 0; i < stmt_hint.all_hints.size(); ++i) {
-        if (HintStmt::LEADING == stmt_hint.all_hints[i]->get_hint_type()) {
-            LeadingHintStmt_s leading_hint = stmt_hint.all_hints[i];
-            bool res = true;
-            if (!leading_hint->is_ordered) {
-                res = update_leading_table_hint(leading_hint->tables);
-            } else {
-                change_ordered_to_leading(leading_hint);
-            }
-            if (res) {
-                new_hints.push_back(stmt_hint.all_hints[i]);
-            }
-        } else if (HintStmt::JOIN == stmt_hint.all_hints[i]->get_hint_type()) {
-            if (update_join_hint(stmt_hint.all_hints[i])) {
-                new_hints.push_back(stmt_hint.all_hints[i]);
-            }
-        } else {
-            new_hints.push_back(stmt_hint.all_hints[i]);
-        }
-    }
-    stmt_hint.all_hints = new_hints;
-    return ret;
-}
-
 u32 DMLStmt::reset_stmt_id(u32 stmt_id)
 {
     u32 ret = SUCCESS;
     this->stmt_id = stmt_id;
-    CHECK(stmt_hint.reset_qb_name(stmt_id));
-    return ret;
-}
-
-bool DMLStmt::update_join_hint(JoinHintStmt_s join_hint)
-{
-    bool ret = true;
-    u32 id = INVALID_ID;
-    for (u32 i = 0; i < join_hint->table_names.size(); ++i) {
-        ret = find_table_id(join_hint->table_names[i], id);
-        if (!ret) {
-            return ret;
-        }
-        join_hint->table_ids.add_member(id);
-    }
-    return ret;
-}
-
-void DMLStmt::change_ordered_to_leading(LeadingHintStmt_s &leading_hint)
-{
-    LeadingTable_s table = LeadingTable::make_leading_table();
-    table->is_base_table = false;
-    for (u32 i = 0; i < from_stmts.size(); ++i) {
-        LeadingTable_s leading_table;
-        change_table_item_to_leading(from_stmts[i], leading_table);
-        table->table_list.push_back(leading_table);
-    }
-    leading_hint->is_ordered = false;
-    leading_hint->tables = table;
-}
-
-void DMLStmt::change_table_item_to_leading(TableStmt_s &table_item, LeadingTable_s &leading_table)
-{
-    if (table_item->is_joined_table()) {
-        leading_table = LeadingTable::make_leading_table();
-        leading_table->is_base_table = false;
-        LeadingTable_s left_table, right_table;
-        JoinedTableStmt_s joined_table = table_item;
-        change_table_item_to_leading(joined_table->left_table, left_table);
-        change_table_item_to_leading(joined_table->right_table, right_table);
-        leading_table->table_list.push_back(left_table);
-        leading_table->table_list.push_back(right_table);
-    } else {
-        leading_table = LeadingTable::make_leading_table();
-        leading_table->is_base_table = true;
-        leading_table->table_name = table_item->alias_name;
-        leading_table->table_id = table_item->table_id;
-    }
-}
-
-bool DMLStmt::update_leading_table_hint(LeadingTable_s &leading_hint)
-{
-    bool ret = true;
-    if (leading_hint->is_base_table) {
-        ret = find_table_id(leading_hint->table_name, 
-                            leading_hint->table_id);
-    } else {
-        for (u32 i = 0; i < leading_hint->table_list.size(); ++i) {
-            ret = update_leading_table_hint(leading_hint->table_list[i]);
-            if (!ret) {
-                break;
-            }
-        }
-    }
+    stmt_hint.generate_qb_name(stmt_id);
     return ret;
 }
 
@@ -277,17 +220,17 @@ bool DMLStmt::find_table_id(const String &table_name, u32 &table_id)
     return find;
 }
 
-u32 DMLStmt::inner_deep_copy(DMLStmt_s stmt, u32 flag)const
+u32 DMLStmt::inner_deep_copy(DMLStmt_s stmt, QueryCtx_s &ctx, u32 flag)const
 {
     u32 ret = SUCCESS;
     MY_ASSERT(stmt);
     TableStmt_s copy_table;
     for (u32 i = 0; i < from_stmts.size(); ++i) {
-        CHECK(from_stmts[i]->deep_copy(copy_table, flag));
+        CHECK(from_stmts[i]->deep_copy(copy_table, ctx, flag));
         stmt->from_stmts.push_back(copy_table);
     }
-    CHECK(ExprUtils::deep_copy_exprs(where_stmt, stmt->where_stmt, flag));
-    CHECK(stmt_hint.deep_copy(stmt->stmt_hint, flag));
+    CHECK(ExprUtils::deep_copy_exprs(where_stmt, stmt->where_stmt, ctx, flag));
+    //CHECK(stmt_hint.deep_copy(stmt->stmt_hint));
     stmt->stmt_id = stmt_id;
     stmt->is_explain = is_explain;
     return ret;
