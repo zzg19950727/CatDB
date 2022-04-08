@@ -4,6 +4,7 @@
 
 namespace CatDB {
     namespace Parser {
+        DECLARE(DMLStmt);
         DECLARE(SelectStmt);
         DECLARE(TableStmt);
         DECLARE(ExprStmt);
@@ -15,6 +16,7 @@ namespace CatDB {
     namespace Transform {
         DECLARE(TransformCtx);
         using Sql::QueryCtx_s;
+        using Parser::DMLStmt_s;
         using Parser::SelectStmt_s;
         using Parser::TableStmt_s;
         using Parser::ExprStmt_s;
@@ -43,6 +45,16 @@ namespace CatDB {
                                        SetOpType set_op,
                                        SelectStmt_s &set_stmt,
                                        TransformCtx_s &ctx);
+        
+            static u32 is_simple_stmt(SelectStmt_s &stmt, bool &is_simple);
+
+            static u32 get_view_table_columns(DMLStmt_s &stmt, 
+                                              ViewTableStmt_s &view_table, 
+                                              Vector<ExprStmt_s> &columns, 
+                                              Vector<ExprStmt_s> &select_exprs);
+        
+            static u32 build_joined_table(Vector<TableStmt_s> &table_items,
+                                          TableStmt_s &joined_table);
         };
     }
 }

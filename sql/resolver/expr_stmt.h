@@ -131,6 +131,7 @@ namespace CatDB {
 			static ExprStmt_s make_column_stmt(const String& table, const String& column);
 			static ExprStmt_s make_all_column_stmt();
 			u32 formalize() override;
+			u32 deduce_type() override;
 			bool is_all_column()const;
 			String to_string()const override;
 			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;

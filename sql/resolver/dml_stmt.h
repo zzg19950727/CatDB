@@ -24,7 +24,6 @@ namespace CatDB {
 			virtual ~DMLStmt();
 			virtual StmtType stmt_type() const override = 0;
 			virtual u32 formalize() override;
-			u32 deduce_type();
 			void increase_ref_count() { ++ref_count; }
 			void decrease_ref_count() { --ref_count; }
 			

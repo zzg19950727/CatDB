@@ -8,7 +8,7 @@ typedef std::string String;
 #define MAX_INT_PREC			36
 #define MAX_BIGINT_PREC			72
 #define MAX_NUM_SCALE	38
-#define MAX_STR_LENGTH	255
+#define MAX_STR_LENGTH	10240
 #define MAX_TIME_SCALE	9
 
 namespace CatDB {

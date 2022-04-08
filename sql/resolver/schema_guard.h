@@ -44,11 +44,14 @@ namespace CatDB {
         class TableInfo {
             TableInfo()
             :db_id(INVALID_ID),
-            table_id(INVALID_ID)
+            table_id(INVALID_ID),
+            type(USER_PHY_TABLE)
             {}
         public:
+            void set_table_type(int value);
             u32 db_id;
             u32 table_id;
+            PhyTableType type;
             String table_name;
             Vector<String> engine_args;
             UnorderedHashMap<String, ColumnInfo_s> name_column_infos;
@@ -108,6 +111,7 @@ namespace CatDB {
             u32 del_database(const String& name);
             u32 add_table(const String& db_name,
                           const String& table_name,
+                          PhyTableType type,
                           const Vector<ColumnDefineStmt_s> &columns,
                           const Vector<String> &engine_args);
             u32 del_table(const String &db_name, const String& table_name);
@@ -119,19 +123,22 @@ namespace CatDB {
             u32 init_column_info(Vector<ColumnInfo_s> &column_info);
             u32 init_system_schema(const Vector<ColumnDefineStmt_s> &SYS_DB_DEF,
                                    const Vector<ColumnDefineStmt_s> &SYS_TABLE_DEF,
-                                   const Vector<ColumnDefineStmt_s> &SYS_COLUMN_DEF);
+                                   const Vector<ColumnDefineStmt_s> &SYS_COLUMN_DEF,
+                                   const Vector<String> &SYS_ENGINE_ARGS);
             u32 add_database_to_cache(u32 id, const String& name);
             u32 add_database_to_inner_table(u32 id, const String& name);
             u32 add_table_to_cache(u32 db_id,
                                    u32 table_id,
+                                   PhyTableType type,
                                    const String& name,
                                    const Vector<ColumnDefineStmt_s> &columns,
-                                   const Vector<String> &engine_args = Vector<String>());
+                                   const Vector<String> &engine_args);
             u32 add_table_to_inner_table(u32 db_id,
                                         u32 table_id,
+                                        PhyTableType type,
                                         const String& name,
                                         const Vector<ColumnDefineStmt_s> &columns,
-                                        const Vector<String> &engine_args = Vector<String>());
+                                        const Vector<String> &engine_args);
             u32 del_database_from_cache(u32 id, const String& name);
             u32 del_database_from_inner_table(u32 id);
             u32 del_table_from_cache(u32 db_id,

@@ -1,10 +1,12 @@
 #include "expr_utils.h"
 #include "dml_stmt.h"
 #include "expr_stmt.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 
-using namespace::CatDB::Parser;
+using namespace CatDB::Common;
+using namespace CatDB::Parser;
 
 u32 ExprUtils::get_column_exprs(Vector<ExprStmt_s> &exprs, 
                                 u32 table_id, 
@@ -127,5 +129,46 @@ u32 ExprUtils::deep_copy_expr(const ExprStmt_s &old_expr,
     } else {
         CHECK(old_expr->deep_copy(new_expr, ctx, flag));
     }
+    return ret;
+}
+
+u32 ExprUtils::make_row_id_expr(const String& table_name, 
+                                u32 table_id, 
+                                ColumnStmt_s &row_id)
+{
+    u32 ret = SUCCESS;
+    row_id = ColumnStmt::make_column_stmt(table_name, "ROWID");
+    row_id->table_id = table_id;
+    row_id->column_id = ROWID_COLUMN_ID;
+    CHECK(row_id->formalize());
+    return ret;
+}
+
+u32 ExprUtils::is_null_reject_expr(ExprStmt_s &expr, bool &reject_null)
+{
+    u32 ret = SUCCESS;
+    if (expr->has_flag(IS_COLUMN)) {
+        reject_null = false;
+    } else {
+        reject_null = true;
+    }
+    return ret;
+}
+
+u32 ExprUtils::make_is_null_expr(ExprStmt_s &old_expr, ExprStmt_s &new_expr)
+{
+    u32 ret = SUCCESS;
+    new_expr = OpExprStmt::make_op_expr_stmt(OP_IS_NULL);
+	new_expr->params.push_back(old_expr); 
+    CHECK(new_expr->formalize());
+    return ret;
+}
+
+u32 ExprUtils::make_null_expr(ExprStmt_s &null_expr)
+{
+    u32 ret = SUCCESS;
+    Object_s value = Object::make_null_object();
+    null_expr = ConstStmt::make_const_stmt(value);
+    CHECK(null_expr->formalize());
     return ret;
 }

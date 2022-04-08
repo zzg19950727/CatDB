@@ -189,7 +189,12 @@ u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
     String table_statis_sql = R"(SELECT tid, row_count, space_size FROM system.table_statis A
                             WHERE analyze_time = (SELECT MAX(analyze_time) from system.table_statis B WHERE A.tid=B.tid) 
                             ORDER BY tid;)";
-    CHECK(execute_sys_sql(table_statis_sql, table_statis_result));
+    ret = (execute_sys_sql(table_statis_sql, table_statis_result));
+    if (FAIL(ret)) {
+        LOG_ERR("database not init");
+        ret = SUCCESS;
+        return ret;
+    }
     Row_s row;
     CHECK(table_statis_result->open());
     MY_ASSERT(3 == table_statis_result->get_column_count());
@@ -216,7 +221,12 @@ u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
     String column_statis_sql = R"(SELECT tid, cid, ndv, null_count, max_value, min_value FROM system.column_statis A
                                 WHERE analyze_time = (SELECT MAX(analyze_time) from system.column_statis B WHERE A.tid=B.tid and A.cid = B.cid) 
                                 ORDER BY tid;)";
-    CHECK(execute_sys_sql(column_statis_sql, column_statis_result));
+    ret = (execute_sys_sql(column_statis_sql, column_statis_result));
+    if (FAIL(ret)) {
+        LOG_ERR("database not init");
+        ret = SUCCESS;
+        return ret;
+    }
     Row_s row;
     CHECK(column_statis_result->open());
     MY_ASSERT(6 == column_statis_result->get_column_count());

@@ -8,8 +8,10 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "cmd_stmt.h"
+#include "select_stmt.h"
 #include "request_handle.h"
 #include "memory_monitor.h"
+#include "dml_resolver.h"
 #include "obj_varchar.h"
 #include "query_ctx.h"
 #include "server.h"
@@ -87,6 +89,12 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 		case ShowMemory:
 			CHECK(do_show_memory(query_result));
 			break;
+		case CreateView:
+			CHECK(do_create_view());
+			break;
+		case DropView:
+			CHECK(do_drop_view());
+			break;
         default:
 			ret = INVALID_CMD_TYPE;
     }
@@ -118,15 +126,25 @@ u32 CMDPlan::do_cmd_create_table()
 	TableInfo_s info;
 	ret = guard->find_table_info(database, table, info);
 	if (SUCC(ret)) {
-		String msg = "table " + database + "." + table + " exists!";
-		query_ctx->set_error_msg(msg);
-		ret = TABLE_EXISTS;
+		if (USER_VIEW_TABLE == info->type) {
+			String msg = "view " + database + "." + table + " exists!";
+			query_ctx->set_error_msg(msg);
+			ret = VIEW_EXISTS;
+		} else {
+			String msg = "table " + database + "." + table + " exists!";
+			query_ctx->set_error_msg(msg);
+			ret = TABLE_EXISTS;
+		}
 		return ret;
 	} else {
 		ret = SUCCESS;
 	}
 	engine_args.push_back(std::to_string(columns.size()));
-	CHECK(guard->add_table(database, table, columns, engine_args));
+	CHECK(guard->add_table(database, 
+						   table, 
+						   USER_PHY_TABLE,
+						   columns, 
+						   engine_args));
 	CHECK(TableSpace::create_table(database, table));
 	return ret;
 }
@@ -150,6 +168,16 @@ u32 CMDPlan::do_cmd_drop_table()
 	} else if (FAIL(ret)) {
 		String msg = "table " + database + "." + table + " not exists!";
 		query_ctx->set_error_msg(msg);
+		return ret;
+	} else if (USER_VIEW_TABLE == info->type) {
+		String msg = table + " is view not table!";
+		query_ctx->set_error_msg(msg);
+		ret = TABLE_NOT_EXISTS;
+		return ret;
+	} else if (SYS_INNER_TABLE == info->type) {
+		String msg = "can not drop system inner table:" + table;
+		query_ctx->set_error_msg(msg);
+		ret = TABLE_NOT_EXISTS;
 		return ret;
 	}
 	CHECK(TableSpace::delete_table(database, table));
@@ -548,6 +576,93 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 	query = "select * from system.memory_use order by 2;";
 	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
 	MemoryMonitor::make_memory_monitor().set_trace_mode(mode);
+	return ret;
+}
+
+u32 CMDPlan::do_create_view()
+{
+	u32 ret = SUCCESS;
+	String database;
+	String view_name;
+	Vector<String> column_define;
+	String view_define_sql;
+	SelectStmt_s ref_query;
+	Vector<ColumnDefineStmt_s> columns;
+	Vector<String> engine_args;
+	CMDStmt_s stmt = lex_stmt;
+	MY_ASSERT(query_ctx);
+	CHECK(stmt->get_create_view_params(database,
+									   view_name,
+									   column_define,
+									   view_define_sql,
+									   ref_query));
+	ret = ERR_UNEXPECTED;
+	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	MY_ASSERT(guard);
+	TableInfo_s info;
+	ret = guard->find_table_info(database, view_name, info);
+	if (SUCC(ret)) {
+		if (USER_PHY_TABLE == info->type) {
+			String msg = "table " + view_name + " exists!";
+			query_ctx->set_error_msg(msg);
+			ret = TABLE_EXISTS;
+		} else {
+			String msg = "view " + view_name + " exists!";
+			query_ctx->set_error_msg(msg);
+			ret = VIEW_EXISTS;
+		}
+		return ret;
+	} else {
+		ret = SUCCESS;
+	}
+	ResolveCtx resolve_ctx;
+	CHECK(DMLResolver::resolve_stmt(ref_query, query_ctx, resolve_ctx));
+	query_ctx->set_error_msg("");
+	CHECK(ref_query->formalize());
+	for (u32 i = 0; i < ref_query->select_expr_list.size(); ++i) {
+		ExprStmt_s &expr = ref_query->select_expr_list[i];
+		ColumnDefineStmt_s column = ColumnDefineStmt::make_column_define_stmt(expr->alias_name, expr->res_type);
+		columns.push_back(column);
+	}
+	engine_args.push_back(view_define_sql);
+	CHECK(guard->add_table(database, 
+						   view_name, 
+						   USER_VIEW_TABLE,
+						   columns, 
+						   engine_args));
+	return ret;
+}
+
+u32 CMDPlan::do_drop_view()
+{
+	u32 ret = SUCCESS;
+	String database;
+	String view_name;
+	bool ignore_not_exists;
+	CMDStmt_s stmt = lex_stmt;
+	MY_ASSERT(query_ctx);
+	CHECK(stmt->get_drop_view_params(database,
+									 view_name,
+									 ignore_not_exists));
+	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	MY_ASSERT(guard);
+	TableInfo_s info;
+	ret = guard->find_table_info(database, view_name, info);
+	if (FAIL(ret) && ignore_not_exists) {
+		ret = SUCCESS;
+		return ret;
+	} else if (FAIL(ret)) {
+		String msg = "view " + view_name + " not exists!";
+		query_ctx->set_error_msg(msg);
+		ret = VIEW_NOT_EXISTS;
+		return ret;
+	} else if (USER_PHY_TABLE == info->type) {
+		String msg = view_name + " is table not view!";
+		query_ctx->set_error_msg(msg);
+		ret = VIEW_NOT_EXISTS;
+		return ret;
+	}
+	CHECK(guard->del_table(database, view_name));
 	return ret;
 }
 

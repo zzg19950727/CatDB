@@ -67,6 +67,15 @@ String CatDB::SqlDriver::error_position()
 	return query_stream.str();
 }
 
+String CatDB::SqlDriver::left_string()
+{
+	String sql;
+	std::getline(query_stream, sql);
+	for (int i = sql.size()-1; i >= 0; --i)
+		query_stream.putback(sql[i]);
+	return sql;
+}
+
 void CatDB::SqlDriver::set_global_database(const String & database)
 {
 	global_database = database;

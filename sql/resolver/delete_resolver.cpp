@@ -2,6 +2,7 @@
 #include "delete_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
+#include "expr_utils.h"
 #include "error.h"
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
@@ -32,9 +33,9 @@ u32 DeleteResolver::resolve_stmt()
         if (resolve_ctx.cur_tables[i]->alias_name == table_name
             && resolve_ctx.cur_tables[i]->is_basic_and_not_dual_table()) {
             find = true;
-            delete_stmt->row_id_col = ColumnStmt::make_column_stmt(table_name, "ROWID");
-            delete_stmt->row_id_col->table_id = resolve_ctx.cur_tables[i]->table_id;
-            delete_stmt->row_id_col->column_id = ROWID_COLUMN_ID;
+            CHECK(ExprUtils::make_row_id_expr(table_name,
+                                              resolve_ctx.cur_tables[i]->table_id,
+                                              delete_stmt->row_id_col));
             delete_stmt->table = resolve_ctx.cur_tables[i];
         }
     }

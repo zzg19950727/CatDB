@@ -14,6 +14,23 @@ using namespace CatDB::Common;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
+void TableInfo::set_table_type(int value)
+{
+    switch (value) {
+        case 0:
+            type = SYS_INNER_TABLE;
+            break;
+        case 1:
+            type = USER_PHY_TABLE;
+            break;
+        case 2:
+            type = USER_VIEW_TABLE;
+            break;
+        default:
+            type = USER_PHY_TABLE;
+    }
+}
+
 SchemaGuard_s SchemaGuard::make_schema_guard()
 {
     static SchemaGuard_s guard(new SchemaGuard());
@@ -102,6 +119,7 @@ u32 SchemaGuard::get_all_table(const String& db_name, Vector<String> &tables)
     for (auto iter = info->name_table_infos.cbegin(); 
          iter != info->name_table_infos.cend(); 
          ++iter) {
+        if (iter->second->type <= USER_PHY_TABLE)
         tables.push_back(iter->first);
     }
     return ret;
@@ -138,6 +156,7 @@ u32 SchemaGuard::del_database(const String& name)
 
 u32 SchemaGuard::add_table(const String& db_name,
                           const String& table_name,
+                          PhyTableType type,
                           const Vector<ColumnDefineStmt_s> &columns,
                           const Vector<String> &engine_args)
 {
@@ -147,8 +166,18 @@ u32 SchemaGuard::add_table(const String& db_name,
     u32 db_id = iter->second->db_id;
     u32 table_id = INVALID_ID;
     CHECK(generate_table_id(db_id, table_id));
-    CHECK(add_table_to_inner_table(db_id, table_id, table_name, columns, engine_args));
-    CHECK(add_table_to_cache(db_id, table_id, table_name, columns, engine_args));
+    CHECK(add_table_to_inner_table(db_id, 
+                                   table_id, 
+                                   type,
+                                   table_name, 
+                                   columns, 
+                                   engine_args));
+    CHECK(add_table_to_cache(db_id, 
+                             table_id, 
+                             type,
+                             table_name, 
+                             columns, 
+                             engine_args));
     return ret;
 }
 
@@ -190,6 +219,7 @@ u32 SchemaGuard::init_guard()
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("db_id",  DataType(T_NUMBER, MAX_PREC, 0)));
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("id",     DataType(T_NUMBER, MAX_PREC, 0)));
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("name",   DataType(T_VARCHAR, MAX_STR_LENGTH)));
+    SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("type",   DataType(T_NUMBER, MAX_PREC, 0)));
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("arg1",   DataType(T_VARCHAR, MAX_STR_LENGTH)));
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("arg2",   DataType(T_VARCHAR, MAX_STR_LENGTH)));
     SYS_TABLE_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("arg3",   DataType(T_VARCHAR, MAX_STR_LENGTH)));
@@ -204,15 +234,40 @@ u32 SchemaGuard::init_guard()
     SYS_COLUMN_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("arg1",      DataType(T_NUMBER, MAX_PREC, 0)));
     SYS_COLUMN_DEF.push_back(ColumnDefineStmt::make_column_define_stmt("arg2",      DataType(T_NUMBER, MAX_PREC, 0)));
 
+    Vector<String> SYS_ENGINE_ARGS;
+    SYS_ENGINE_ARGS.push_back("CAT");
+    SYS_ENGINE_ARGS.push_back(" ");
+    SYS_ENGINE_ARGS.push_back(" ");
+    SYS_ENGINE_ARGS.push_back(" ");
+    SYS_ENGINE_ARGS.push_back(" ");
+
     CHECK(add_database_to_cache(SYSTEM_DB_ID, SYSTEM_DB_NAME));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_DB_ID, SYS_DB_NAME, SYS_DB_DEF));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_TABLE_ID, SYS_TABLE_NAME, SYS_TABLE_DEF));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_COLUMN_ID, SYS_COLUMN_NAME, SYS_COLUMN_DEF));
-    init_database_info();
-    init_table_info(table_info);
-    init_column_info(column_info);
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_DB_ID, 
+                             SYS_INNER_TABLE,
+                             SYS_DB_NAME, 
+                             SYS_DB_DEF, 
+                             SYS_ENGINE_ARGS));
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_TABLE_ID, 
+                             SYS_INNER_TABLE,
+                             SYS_TABLE_NAME, 
+                             SYS_TABLE_DEF, 
+                             SYS_ENGINE_ARGS));
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_COLUMN_ID,
+                             SYS_INNER_TABLE, 
+                             SYS_COLUMN_NAME, 
+                             SYS_COLUMN_DEF, 
+                             SYS_ENGINE_ARGS));
+    CHECK(init_database_info());
+    CHECK(init_table_info(table_info));
+    CHECK(init_column_info(column_info));
     if (table_info.empty() || column_info.empty()) {
-        CHECK(init_system_schema(SYS_DB_DEF, SYS_TABLE_DEF, SYS_COLUMN_DEF));
+        CHECK(init_system_schema(SYS_DB_DEF, 
+                                 SYS_TABLE_DEF, 
+                                 SYS_COLUMN_DEF, 
+                                 SYS_ENGINE_ARGS));
     }
     u32 j = 0;
     for (u32 i = 0; i < table_info.size(); ++i) {
@@ -285,7 +340,7 @@ u32 SchemaGuard::init_table_info(Vector<TableInfo_s> &table_info)
     }
     Row_s row;
     CHECK(table_info_result->open());
-    MY_ASSERT(8 == table_info_result->get_column_count());
+    MY_ASSERT(9 == table_info_result->get_column_count());
     while (SUCC( ret = table_info_result->get_next_row(row))) {
         Object_s cell;
         u32 pos = 0;
@@ -296,6 +351,8 @@ u32 SchemaGuard::init_table_info(Vector<TableInfo_s> &table_info)
         info->table_id = cell->value();
         row->get_cell(pos++, cell);
         info->table_name = cell->to_string();
+        row->get_cell(pos++, cell);
+        info->set_table_type(cell->value());
 
         for (u32 j = 0; j < ENGINE_ARG_COUNT; ++j) {
             row->get_cell(pos++, cell);
@@ -343,17 +400,48 @@ u32 SchemaGuard::init_column_info(Vector<ColumnInfo_s> &column_info)
 
 u32 SchemaGuard::init_system_schema(const Vector<ColumnDefineStmt_s> &SYS_DB_DEF,
                                    const Vector<ColumnDefineStmt_s> &SYS_TABLE_DEF,
-                                   const Vector<ColumnDefineStmt_s> &SYS_COLUMN_DEF)
+                                   const Vector<ColumnDefineStmt_s> &SYS_COLUMN_DEF,
+                                   const Vector<String> &SYS_ENGINE_ARGS)
 {
     u32 ret = SUCCESS;
     CHECK(add_database_to_cache(SYSTEM_DB_ID, SYSTEM_DB_NAME));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_DB_ID, SYS_DB_NAME, SYS_DB_DEF));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_TABLE_ID, SYS_TABLE_NAME, SYS_TABLE_DEF));
-    CHECK(add_table_to_cache(SYSTEM_DB_ID, SYS_COLUMN_ID, SYS_COLUMN_NAME, SYS_COLUMN_DEF));
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_DB_ID, 
+                             SYS_INNER_TABLE,
+                             SYS_DB_NAME, 
+                             SYS_DB_DEF, 
+                             SYS_ENGINE_ARGS));
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_TABLE_ID, 
+                             SYS_INNER_TABLE,
+                             SYS_TABLE_NAME, 
+                             SYS_TABLE_DEF, 
+                             SYS_ENGINE_ARGS));
+    CHECK(add_table_to_cache(SYSTEM_DB_ID, 
+                             SYS_COLUMN_ID, 
+                             SYS_INNER_TABLE,
+                             SYS_COLUMN_NAME, 
+                             SYS_COLUMN_DEF, 
+                             SYS_ENGINE_ARGS));
     CHECK(add_database_to_inner_table(SYSTEM_DB_ID, SYSTEM_DB_NAME));
-    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, SYS_DB_ID, SYS_DB_NAME, SYS_DB_DEF));
-    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, SYS_TABLE_ID, SYS_TABLE_NAME, SYS_TABLE_DEF));
-    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, SYS_COLUMN_ID, SYS_COLUMN_NAME, SYS_COLUMN_DEF));
+    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, 
+                                   SYS_DB_ID, 
+                                   SYS_INNER_TABLE,
+                                   SYS_DB_NAME, 
+                                   SYS_DB_DEF, 
+                                   SYS_ENGINE_ARGS));
+    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, 
+                                   SYS_TABLE_ID, 
+                                   SYS_INNER_TABLE,
+                                   SYS_TABLE_NAME, 
+                                   SYS_TABLE_DEF, 
+                                   SYS_ENGINE_ARGS));
+    CHECK(add_table_to_inner_table(SYSTEM_DB_ID, 
+                                   SYS_COLUMN_ID, 
+                                   SYS_INNER_TABLE,
+                                   SYS_COLUMN_NAME, 
+                                   SYS_COLUMN_DEF, 
+                                   SYS_ENGINE_ARGS));
     LOG_TRACE("succeed to init database inner table");
     return ret;
 }
@@ -381,6 +469,7 @@ u32 SchemaGuard::add_database_to_inner_table(u32 id, const String& name)
 
 u32 SchemaGuard::add_table_to_cache(u32 db_id,
                                    u32 table_id,
+                                   PhyTableType type,
                                    const String& name,
                                    const Vector<ColumnDefineStmt_s> &columns,
                                    const Vector<String> &engine_args)
@@ -392,6 +481,7 @@ u32 SchemaGuard::add_table_to_cache(u32 db_id,
     TableInfo_s table_info = TableInfo::make_table_info();
     table_info->db_id = db_id;
     table_info->table_id = table_id;
+    table_info->type = type;
     table_info->table_name = name;
     table_info->engine_args = engine_args;
     database_info->id_table_infos[table_id] = table_info;
@@ -411,13 +501,17 @@ u32 SchemaGuard::add_table_to_cache(u32 db_id,
 
 u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
                                         u32 table_id,
+                                        PhyTableType type,
                                         const String& name,
                                         const Vector<ColumnDefineStmt_s> &columns,
                                         const Vector<String> &engine_args)
 {
     u32 ret = SUCCESS;
     String query = "insert into " + FULL_SYSTEM_TABLE_NAME + " values(" +
-            std::to_string(db_id) + "," + std::to_string(table_id) + ",\"" + name + "\"";
+                std::to_string(db_id) + "," + 
+                std::to_string(table_id) + ",\"" + 
+                name + "\"," +
+                std::to_string(type);
     int i = 0;
     for (; i < engine_args.size() && i < ENGINE_ARG_COUNT; ++i) {
         query += String(",\"") + engine_args[i] + "\""; 
@@ -430,7 +524,8 @@ u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
 	CHECK(execute_sys_sql(query, result));
 	for (u32 i = 0; i < columns.size(); ++i) {
 		query = "insert into " + FULL_SYSTEM_COLUMN_NAME + " values(" + 
-        std::to_string(table_id) + "," + std::to_string(i) + ",\"" +
+            std::to_string(table_id) + "," + 
+            std::to_string(i) + ",\"" +
 			columns[i]->column_name + "\"," + 
             std::to_string((int)columns[i]->data_type.res_type) + "," + 
             std::to_string(columns[i]->data_type.precision) + "," + 

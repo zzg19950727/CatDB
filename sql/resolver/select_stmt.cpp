@@ -143,6 +143,20 @@ bool SelectStmt::has_group_by() const
 	return group_exprs.size() || is_scalar_group_by();
 }
 
+bool SelectStmt::has_order_by() const
+{
+	return !order_exprs.empty();
+}
+bool SelectStmt::has_limit() const
+{
+	return limit_stmt;
+}
+
+bool SelectStmt::has_distinct() const
+{
+	return is_distinct;
+}
+
 u32 SelectStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
 {
 	u32 ret = SUCCESS;
@@ -198,34 +212,6 @@ u32 SetStmt::formalize()
 	CHECK(left_query->formalize());
 	CHECK(right_query->formalize());
 	CHECK(SelectStmt::formalize());
-	CHECK(deduce_type());
-	return ret;
-}
-
-u32 SetStmt::deduce_type()
-{
-	u32 ret = SUCCESS;
-	bool l_need_cast = false;
-	bool r_need_cast = false;
-	DataType dst_type;
-	for (u32 i = 0; i < select_expr_list.size(); ++i) {
-		CHECK(ObjCastUtil::get_result_type(left_query->select_expr_list[i]->res_type, 
-										   l_need_cast,
-										   right_query->select_expr_list[i]->res_type, 
-										   r_need_cast,
-										   dst_type));
-		if (l_need_cast) {
-			CHECK(ObjCastUtil::add_cast(left_query->select_expr_list[i], 
-										dst_type,
-										left_query->select_expr_list[i]));
-		}
-		if (r_need_cast) {
-			CHECK(ObjCastUtil::add_cast(right_query->select_expr_list[i], 
-										dst_type,
-										right_query->select_expr_list[i]));
-		}
-		select_expr_list[i]->res_type = dst_type;
-	}
 	return ret;
 }
 

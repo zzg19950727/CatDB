@@ -310,3 +310,33 @@ u32 ObjCastUtil::inner_add_cast(ExprStmt_s& from_expr,
     to_expr = op_expr;
     return ret;
 }
+
+u32 ObjCastUtil::deduce_set_expr_type(SetStmt_s &stmt)
+{
+    u32 ret = SUCCESS;
+	bool l_need_cast = false;
+	bool r_need_cast = false;
+	DataType dst_type;
+    Vector<ExprStmt_s> &select_expr_list = stmt->select_expr_list;
+    Vector<ExprStmt_s> &l_select_expr_list = stmt->left_query->select_expr_list;
+    Vector<ExprStmt_s> &r_select_expr_list = stmt->right_query->select_expr_list;
+	for (u32 i = 0; i < select_expr_list.size(); ++i) {
+		CHECK(get_result_type(l_select_expr_list[i]->res_type, 
+                            l_need_cast,
+                            r_select_expr_list[i]->res_type, 
+                            r_need_cast,
+                            dst_type));
+		if (l_need_cast) {
+			CHECK(add_cast(l_select_expr_list[i], 
+                            dst_type,
+                            l_select_expr_list[i]));
+		}
+		if (r_need_cast) {
+			CHECK(add_cast(r_select_expr_list[i], 
+                            dst_type,
+                            r_select_expr_list[i]));
+		}
+		select_expr_list[i]->res_type = dst_type;
+	}
+	return ret;
+}

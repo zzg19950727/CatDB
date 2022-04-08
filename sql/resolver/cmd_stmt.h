@@ -2,13 +2,14 @@
 #define CMD_STMT_H
 #include "object.h"
 #include "error.h"
-#include "stmt.h"
+#include "select_stmt.h"
 #include "type.h"
 #include "log.h"
 
 namespace CatDB {
 	namespace Parser {
         DECLARE(ExprStmt);
+        DECLARE(SelectStmt);
         DECLARE(BasicTableStmt);
 		DECLARE(Stmt);
 		using Common::DataType;
@@ -31,11 +32,22 @@ namespace CatDB {
             u32 get_drop_database_params(String &database, bool &ignore_not_exists);
             u32 get_show_tables_params(String &database);
             u32 get_show_databases_params(bool &is_select_current_database);
-            u32 get_desc_table_params(String &database, String &table, bool &is_show_table_statis, bool &is_show_column_statis);
+            u32 get_desc_table_params(String &database, 
+                                      String &table, 
+                                      bool &is_show_table_statis, 
+                                      bool &is_show_column_statis);
             u32 get_use_database_params(String &database);
             u32 get_analyze_params(String &database, String &table, double &sample_size);
             u32 get_set_var_params(String &var_name, String &var_value);
             u32 get_kill_params(int &thread_id);
+            u32 get_create_view_params(String &database,
+                                    String &view_name,
+                                    Vector<String> &column_define,
+                                    String &view_define_sql,
+                                    SelectStmt_s &ref_query);
+            u32 get_drop_view_params(String &database,
+                                     String &view_name, 
+                                     bool &ignore_not_exists);
             u32 formalize() override;
 		public:
             struct CMDParams{
@@ -132,6 +144,31 @@ namespace CatDB {
                         K(thread_id)
                     );
                 } kill_params;
+                //create view
+                struct {
+                    String database;
+                    String view_name;
+                    Vector<String> column_define;
+                    String view_define_sql;
+                    SelectStmt_s ref_query;
+                    KV_STRING(
+                        K(database),
+                        K(view_name),
+                        K(column_define),
+                        K(view_define_sql)
+                    );
+                } create_view_params;
+                //drop view
+                struct {
+                    String database;
+                    String view_name;
+                    bool ignore_not_exists;
+                    KV_STRING(
+                        K(database),
+                        K(view_name),
+                        K(ignore_not_exists)
+                    );
+                } drop_view_params;
 
                 CMDParams() { }
                 ~CMDParams() { }

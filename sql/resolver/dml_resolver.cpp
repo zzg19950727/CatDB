@@ -9,6 +9,7 @@
 #include "delete_stmt.h"
 #include "insert_stmt.h"
 #include "dml_resolver.h"
+#include "sql_engine.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
@@ -125,9 +126,10 @@ u32 DMLResolver::resolve_table_item(TableStmt_s& table)
     return ret;
 }
 
-u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
+u32 DMLResolver::resolve_basic_table_item(TableStmt_s& table)
 {
     u32 ret = SUCCESS;
+    BasicTableStmt_s table_stmt = table;
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
         String err_msg = "table " + table_stmt->alias_name + " exists";
@@ -147,9 +149,36 @@ u32 DMLResolver::resolve_basic_table_item(BasicTableStmt_s table_stmt)
             query_ctx->set_error_msg(err_msg);
             return ret;
         }
-        table_stmt->table_id = query_ctx->generate_table_id();
-        resolve_ctx.cur_tables.push_back(table_stmt);
+        bool is_view = false;
+        CHECK(checker->check_is_user_view(table_stmt->database,
+                                          table_stmt->table_name,
+                                          is_view));
+        if (is_view) {
+            CHECK(resolve_user_view(table));
+        }
+        table->table_id = query_ctx->generate_table_id();
+        resolve_ctx.cur_tables.push_back(table);
     }
+    return ret;
+}
+
+u32 DMLResolver::resolve_user_view(TableStmt_s& table)
+{
+    u32 ret = SUCCESS;
+    String define_sql;
+    SelectStmt_s ref_query;
+    BasicTableStmt_s table_stmt = table;
+    MY_ASSERT(table_stmt);
+    SchemaChecker_s checker = SchemaChecker::make_schema_checker();
+    CHECK(checker->get_user_view_define(table_stmt->database,
+                                        table_stmt->table_name,
+                                        define_sql));
+    ResolveCtx temp_ctx;
+    CHECK(SqlEngine::handle_user_view(define_sql, query_ctx, &temp_ctx, ref_query));
+    append(resolve_ctx.all_hints, temp_ctx.all_hints);
+    ViewTableStmt_s view_table = ViewTableStmt::make_view_table(ref_query);
+    view_table->alias_name = table->alias_name;
+    table = view_table;
     return ret;
 }
 
@@ -471,8 +500,8 @@ u32 DMLResolver::resolve_column_from_view(ViewTableStmt_s table, ColumnStmt_s &c
 u32 DMLResolver::resolve_subquery(SelectStmt_s& query_stmt, ResolveCtx &ctx)
 {
     u32 ret = SUCCESS;
-    ctx.all_hints = resolve_ctx.all_hints;
     CHECK(resolve_stmt(query_stmt, query_ctx, ctx));
+    append(resolve_ctx.all_hints, ctx.all_hints);
     return ret;
 }
 

@@ -89,7 +89,10 @@ u32 CMDStmt::get_show_databases_params(bool &is_select_current_database)
 	return ret;
 }
 
-u32 CMDStmt::get_desc_table_params(String &database, String &table, bool &is_show_table_statis, bool &is_show_column_statis)
+u32 CMDStmt::get_desc_table_params(String &database, 
+								   String &table, 
+								   bool &is_show_table_statis, 
+								   bool &is_show_column_statis)
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(cmd_type == DescTable,
@@ -134,6 +137,34 @@ u32 CMDStmt::get_kill_params(int &thread_id)
 	u32 ret = SUCCESS;
     MY_ASSERT(cmd_type == Kill);
 	thread_id = params.kill_params.thread_id;
+	return ret;
+}
+
+u32 CMDStmt::get_create_view_params(String &database,
+									String &view_name,
+                                    Vector<String> &column_define,
+                                    String &view_define_sql,
+                                    SelectStmt_s &ref_query)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(cmd_type == CreateView);
+	database = params.create_view_params.database;
+	view_name = params.create_view_params.view_name;
+	column_define = params.create_view_params.column_define;
+	view_define_sql = params.create_view_params.view_define_sql;
+	ref_query = params.create_view_params.ref_query;
+	return ret;
+}
+
+u32 CMDStmt::get_drop_view_params(String &database,
+								  String &view_name, 
+								  bool &ignore_not_exists)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(cmd_type == DropView);
+	database = params.drop_view_params.database;
+	view_name = params.drop_view_params.view_name;
+	ignore_not_exists = params.drop_view_params.ignore_not_exists;
 	return ret;
 }
 

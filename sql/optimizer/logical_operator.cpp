@@ -156,6 +156,11 @@ u32 LogicalOperator::produce_more_expr(Vector<ExprStmt_s>& expr_consume,
     u32 ret = SUCCESS;
     bool can_be = true;
     for (u32 i = 0; i < expr_consume.size(); ++i) {
+        CHECK(find_expr_will_use(expr_consume[i], 
+                                expr_produce, 
+                                expr_output));
+        /*
+        需要延迟表达式的计算
         CHECK(expr_can_be_consumed(expr_consume[i], 
                                    expr_produce, 
                                    can_be));
@@ -167,7 +172,7 @@ u32 LogicalOperator::produce_more_expr(Vector<ExprStmt_s>& expr_consume,
             CHECK(find_expr_will_use(expr_consume[i], 
                                      expr_produce, 
                                      expr_output));
-        }
+        }*/
     }
     return ret;
 }

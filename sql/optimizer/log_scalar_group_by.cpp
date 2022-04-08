@@ -5,6 +5,7 @@
 #include "log.h"
 
 using namespace CatDB::Optimizer;
+using namespace CatDB::Parser;
 
 LogicalOperator_s LogScalarGroupBy::make_scalar_group_by(const LogicalOperator_s& child,
 														Vector<ExprStmt_s> &agg_items)
@@ -35,6 +36,10 @@ u32  LogScalarGroupBy::allocate_expr_pre()
 {
     u32 ret = SUCCESS;
     append(expr_ctx.expr_produce, agg_items);
+    for (u32 i = 0; i < agg_items.size(); ++i) {
+        AggrStmt_s agg_item = agg_items[i];
+        expr_ctx.expr_consume.push_back(agg_item->get_aggr_expr());
+    }
     CHECK(LogicalOperator::allocate_expr_pre());
     return ret;
 }

@@ -21,6 +21,7 @@ namespace CatDB {
             void set_transform_ctx(TransformCtx_s &ctx);
             u32 transform(DMLStmt_s stmt);
             bool transform_happened() const { return happened; }
+            void set_happened() { happened = true; }
             virtual bool need_rewrite(DMLStmt_s stmt) const;
 
         protected:
@@ -32,7 +33,7 @@ namespace CatDB {
             u32 transform_self(DMLStmt_s &stmt);
             u32 transform_chidren(DMLStmt_s &stmt);
 
-        private:
+        protected:
             bool pre_order;
             HintType control_hint;
 

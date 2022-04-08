@@ -200,6 +200,32 @@ u32 SqlEngine::handle_query()
     return ret;
 }
 
+u32 SqlEngine::handle_user_view(const String &view, QueryCtx_s &query_ctx,  ResolveCtx *ctx, SelectStmt_s &ref_query)
+{
+    u32 ret = SUCCESS;
+    SqlDriver parser;
+	parser.set_global_database(query_ctx->cur_database);
+	parser.parse_sql(view);
+	if (parser.is_sys_error()) {
+		ret = ERR_UNEXPECTED;
+        query_ctx->set_error_msg(parser.sys_error());
+        return ret;
+	} else if (parser.is_syntax_error()) {
+        ret = ERR_UNEXPECTED;
+        query_ctx->set_error_msg(parser.syntax_error());
+        return ret;
+	} else if (!parser.parse_result()) {
+		ret = ERR_UNEXPECTED;
+        return ret;
+	} else {
+        ref_query = parser.parse_result();
+        CHECK(DMLResolver::resolve_stmt(ref_query, query_ctx, *ctx));
+        query_ctx->set_error_msg("");
+        CHECK(ref_query->formalize());
+    }
+    return ret;
+}
+
 ResultSet_s SqlEngine::get_query_result()
 {
     return query_result;

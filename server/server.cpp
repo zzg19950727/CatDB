@@ -41,9 +41,13 @@ ServerService::~ServerService()
 int ServerService::run()
 {
 	SchemaGuard_s schema_guard = SchemaGuard::make_schema_guard();
-	schema_guard->init_guard();
+	if ((schema_guard->init_guard()) != SUCCESS) {
+		return -1;
+	}
 	StatisManager_s manager = StatisManager::make_statis_manager();
-	manager->init_statis_cache();
+	if ((manager->init_statis_cache()) != SUCCESS) {
+		return -1;
+	}
 	m_fd = start_listen(m_config.ip().c_str(), m_config.port(), m_config.max_client_count());
 	if (m_fd > 0)
 	{

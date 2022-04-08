@@ -1,5 +1,6 @@
 #include "select_resolver.h"
 #include "group_by_checker.h"
+#include "obj_cast_util.h"
 #include "schema_checker.h"
 #include "schema_guard.h"
 #include "select_stmt.h"
@@ -150,11 +151,14 @@ u32 SelectResolver::get_all_column_from_view_table(ViewTableStmt_s table, Vector
     SelectStmt_s& query = table->ref_query;
     MY_ASSERT(query);
     for (u32 i = 0; i < query->select_expr_list.size(); ++i) {
-        String &alias_name = query->select_expr_list[i]->alias_name;
+        ExprStmt_s &select_expr = query->select_expr_list[i];
+        CHECK(select_expr->formalize());
+        String &alias_name = select_expr->alias_name;
         ColumnStmt_s col = ColumnStmt::make_column_stmt(table->alias_name, alias_name);
         col->table_id = table->table_id;
         col->column_id = i;
         col->alias_name = alias_name;
+        col->res_type = select_expr->res_type;
         columns.push_back(col);
     }
     return ret;
@@ -235,14 +239,16 @@ u32 SetResolver::resolve_stmt()
     MY_ASSERT(set_stmt->right_query->is_select_stmt());
     CHECK(DMLResolver::resolve_stmt(set_stmt->left_query, query_ctx, resolve_ctx));
     CHECK(DMLResolver::resolve_stmt(set_stmt->right_query, query_ctx, resolve_ctx));
-    MY_ASSERT(set_stmt->left_query->select_expr_list.size() == set_stmt->right_query->select_expr_list.size());
-    for (u32 i = 0; i < set_stmt->left_query->select_expr_list.size(); ++i) {
-        CHECK(set_stmt->left_query->select_expr_list[i]->formalize());
-        CHECK(set_stmt->right_query->select_expr_list[i]->formalize());
+    Vector<ExprStmt_s> &l_select_expr_list = set_stmt->left_query->select_expr_list;
+    Vector<ExprStmt_s> &r_select_expr_list = set_stmt->right_query->select_expr_list;
+    MY_ASSERT(l_select_expr_list.size() == r_select_expr_list.size());
+    for (u32 i = 0; i < l_select_expr_list.size(); ++i) {
+        CHECK(l_select_expr_list[i]->formalize());
+        CHECK(r_select_expr_list[i]->formalize());
         ExprStmt_s select_expr = SetExprStmt::make_set_expr(set_stmt->set_op, i);
-        select_expr->alias_name = set_stmt->left_query->select_expr_list[i]->alias_name;
-        select_expr->res_type = set_stmt->left_query->select_expr_list[i]->res_type;
+        select_expr->alias_name = l_select_expr_list[i]->alias_name;
         set_stmt->select_expr_list.push_back(select_expr);
     }
+    CHECK(ObjCastUtil::deduce_set_expr_type(set_stmt));
     return ret;
 }

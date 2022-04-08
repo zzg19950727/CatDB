@@ -38,7 +38,7 @@ Query Plan:
 Outputs & filters:
 0 - output([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3], [t1.c2], [t1.c4], [t1.c3])
 sort_keys([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3 DESC], [t1.c2 ASC], [t1.c4 DESC], [t1.c3 ASC])
-1 - output([t1.c2 - t1.c2 / 6 - 51 / t1.c4 * 46 / t1.c3], [t1.c2], [t1.c4], [t1.c3])
+1 - output([t1.c2], [t1.c4], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c3])
 
 outline:

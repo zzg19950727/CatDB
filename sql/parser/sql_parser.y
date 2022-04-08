@@ -264,12 +264,14 @@
 %token LP "("
 %token MEDIUMINT
 %token MEMORY
+%token MERGE
 %token MINUS "-"
 %token MONTH
 %token MUL "*"
 %token NOT
 %token NO_REWRITE
 %token NO_UNNEST
+%token NO_MERGE
 %token NO_USE_HASH
 %token NO_USE_NL
 %token NULLX
@@ -315,6 +317,7 @@
 %token VALUES
 %token VARBINARY
 %token VARCHAR
+%token VIEW
 %token WHEN
 %token WHERE
 %token YEAR
@@ -336,7 +339,7 @@
 %type<DataType>						data_type
 %type<double>						opt_sample_size
 %type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name 
-									ident string datetime number opt_qb_name opt_qb_name_single 
+									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
 %type<Vector<TableStmt_s>>			from_list 
 %type<BasicTableStmt_s> 			relation_factor
 %type<Vector<OrderStmt_s>>			opt_order_by order_by_list
@@ -348,7 +351,7 @@
 %type<Hint> 						opt_hint
 %type<Vector<HintStmt_s>> 			opt_hint_list hint_list
 %type<HintStmt_s> 					single_hint
-%type<Vector<String>> 				hint_table_list opt_engine_def
+%type<Vector<String>> 				hint_table_list opt_engine_def opt_view_column_define view_column_define
 %type<Vector<LeadingTable_s>> 		leading_hint_table_list
 %type<LeadingTable_s> 				leading_hint_table
 %type<OperationType> 				cmp_type sq_cmp_type
@@ -541,6 +544,16 @@ single_hint:
 	| NO_UNNEST opt_qb_name_single
 	{
 		$$ = HintStmt::make_hint_stmt(UNNEST, false);
+		$$->set_qb_name($2);
+	}
+	| MERGE opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(MERGE, true);
+		$$->set_qb_name($2);
+	}
+	| NO_MERGE opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(MERGE, false);
 		$$->set_qb_name($2);
 	}
 /*optiizer hint*/
@@ -1592,7 +1605,49 @@ create_stmt:
 		cmd_stmt->params.create_database_params.database = $3;
 		$$ = cmd_stmt;
 	}
+	| CREATE VIEW ident opt_view_column_define AS beg_view_define select_stmt
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateView);
+		check(cmd_stmt);
+		cmd_stmt->params.create_view_params.database = driver.get_global_database();
+		cmd_stmt->params.create_view_params.view_name = $3;
+		cmd_stmt->params.create_view_params.column_define = $4;
+		cmd_stmt->params.create_view_params.view_define_sql = $6;
+		cmd_stmt->params.create_view_params.ref_query = $7;
+		$$ = cmd_stmt;
+	}
   ;
+
+opt_view_column_define:
+	/*empty*/
+	{
+		$$ = Vector<String>();
+	}
+	| "(" view_column_define ")"
+	{
+		$$ = $2;
+	}
+	;
+
+view_column_define:
+	column_name
+	{
+		$$ = Vector<String>();
+		$$.push_back($1);
+	}
+	| view_column_define "," column_name
+	{
+		$$ = $1;
+		$$.push_back($3);
+	}
+	;
+
+beg_view_define:
+	/*empty*/
+	{
+		$$ = driver.left_string();
+	}
+	;
 
 table_element_list:
     column_definition
@@ -1703,6 +1758,9 @@ opt_engine_def:
 	{ 
 		$$ = Vector<String>(); 
 		$$.push_back("CAT");
+		$$.push_back(" ");
+		$$.push_back(" ");
+		$$.push_back(" ");
 	}
 	| ENGINE CMP_EQ CSV "," INFILE CMP_EQ string "," FIELD SPLIT BY string "," LINE SPLIT BY string
 	{
@@ -1734,6 +1792,15 @@ opt_engine_def:
 		check(cmd_stmt);
 		cmd_stmt->params.drop_database_params.ignore_not_exists = $3;
 		cmd_stmt->params.drop_database_params.database = $4;
+		$$ = cmd_stmt;
+	}
+	| DROP VIEW opt_if_exists ident
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropView);
+		check(cmd_stmt);
+		cmd_stmt->params.drop_view_params.database = driver.get_global_database();
+		cmd_stmt->params.drop_view_params.ignore_not_exists = $3;
+		cmd_stmt->params.drop_view_params.view_name = $4;
 		$$ = cmd_stmt;
 	}
   ;

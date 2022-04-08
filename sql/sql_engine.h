@@ -7,6 +7,8 @@ namespace CatDB {
     namespace Parser {
         DECLARE(Stmt);
         DECLARE(DMLStmt);
+        DECLARE(SelectStmt);
+        DECLARE(ResolveCtx);
     }
 
     namespace Optimizer {
@@ -22,6 +24,8 @@ namespace CatDB {
         using Common::Row_s;
         using Parser::Stmt_s;
         using Parser::DMLStmt_s;
+        using Parser::SelectStmt_s;
+        using Parser::ResolveCtx;
         using Optimizer::Plan_s;
         using Optimizer::LogicalOperator_s;
 
@@ -70,6 +74,10 @@ namespace CatDB {
 			~SqlEngine();
 			static SqlEngine_s make_sql_engine(const String& query, QueryCtx_s &query_ctx);
             static u32 handle_inner_sql(const String &query, QueryCtx_s &query_ctx, ResultSet_s &result_set);
+            static u32 handle_user_view(const String &view, 
+                                        QueryCtx_s &query_ctx,  
+                                        ResolveCtx *ctx, 
+                                        SelectStmt_s &ref_query);
             u32 handle_query();
 			ResultSet_s get_query_result();
 

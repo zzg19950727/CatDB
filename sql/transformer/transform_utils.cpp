@@ -1,4 +1,5 @@
 #include "transform_utils.h"
+#include "obj_cast_util.h"
 #include "transformer.h"
 #include "select_stmt.h"
 #include "table_stmt.h"
@@ -10,6 +11,7 @@
 
 using namespace CatDB::Transform;
 using namespace CatDB::Parser;
+using namespace CatDB::Common;
 
 u32 TransformUtils::deep_copy_stmt(const SelectStmt_s &old_stmt, 
                                     SelectStmt_s &new_stmt, 
@@ -110,9 +112,58 @@ u32 TransformUtils::create_set_stmt(const SelectStmt_s &left_query,
     CHECK(set_stmt->reset_stmt_id(ctx->query_ctx->generate_stmt_id()));
     for (u32 i = 0; i < left_query->select_expr_list.size(); ++i) {
         SetExprStmt_s expr = SetExprStmt::make_set_expr(set_op, i);
-        expr->res_type = left_query->select_expr_list[i]->res_type;
         expr->alias_name = left_query->select_expr_list[i]->alias_name;
         set_stmt->select_expr_list.push_back(expr);
+    }
+    SetStmt_s stmt = set_stmt;
+    CHECK(ObjCastUtil::deduce_set_expr_type(stmt));
+    return ret;
+}
+
+u32 TransformUtils::is_simple_stmt(SelectStmt_s &stmt, bool &is_simple)
+{
+    u32 ret = SUCCESS;
+    is_simple = false;
+    if (stmt->is_set_stmt() ||
+        stmt->has_group_by() || 
+        stmt->has_order_by() || 
+        stmt->has_limit()) {
+        is_simple = false;
+    } else if (1 != stmt->from_stmts.size()) {
+        is_simple = false;
+    } else if (stmt->from_stmts[0]->is_joined_table()) {
+        is_simple = false;
+    } else {
+        is_simple = true;
+    }
+    return ret;
+}
+
+u32 TransformUtils::get_view_table_columns(DMLStmt_s &stmt, 
+                                            ViewTableStmt_s &view_table, 
+                                            Vector<ExprStmt_s> &columns, 
+                                            Vector<ExprStmt_s> &select_exprs)
+{
+    u32 ret = SUCCESS;
+    CHECK(stmt->get_column_exprs(view_table->table_id, columns));
+    SelectStmt_s view = view_table->ref_query;
+    for (u32 i = 0; i < columns.size(); ++i) {
+        ColumnStmt_s col = columns[i];
+        MY_ASSERT(col->column_id < view->select_expr_list.size());
+        select_exprs.push_back(view->select_expr_list[col->column_id]);
+    }
+    return ret;
+}
+
+u32 TransformUtils::build_joined_table(Vector<TableStmt_s> &table_items,
+                                        TableStmt_s &joined_table)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(table_items.size() > 0);
+    joined_table = table_items[0];
+    for (u32 i = 1; i < table_items.size(); ++i) {
+        JoinedTableStmt_s table = JoinedTableStmt::make_joined_table(joined_table, table_items[i], Inner);
+        joined_table = table;
     }
     return ret;
 }

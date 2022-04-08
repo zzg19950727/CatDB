@@ -29,6 +29,7 @@ namespace CatDB {
 		String sys_error()const;
 		String syntax_error()const;
 		String error_position();
+		String left_string();
 		void set_global_database(const String& database);
 		const String& get_global_database();
 		void set_sys_error(const String& err);

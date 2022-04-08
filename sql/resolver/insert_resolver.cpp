@@ -74,7 +74,8 @@ u32 InsertResolver::resolve_stmt()
     MY_ASSERT(insert_stmt->table);
     MY_ASSERT(insert_stmt->table->is_basic_table());
     BasicTableStmt_s &insert_table_item = insert_stmt->table;
-    CHECK(resolve_basic_table_item(insert_table_item));
+    TableStmt_s table_item = insert_table_item;
+    CHECK(resolve_basic_table_item(table_item));
     MY_ASSERT(!insert_table_item->is_dual_table());
     if (insert_stmt->value_list.size() > 0) {
         for (u32 i = 0; i < insert_stmt->value_list.size(); ++i) {

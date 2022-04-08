@@ -36,7 +36,9 @@ ENUM_DEFINE(CMDType,
 			SetVar,
 			ShowProcesslist,
 			Kill,
-			ShowMemory
+			ShowMemory,
+			CreateView,
+			DropView
 		);
 
 ENUM_DEFINE(StmtFlag,
@@ -173,6 +175,7 @@ ENUM_DEFINE(HintType,
 			INVALID_HINT,
 			NO_REWRITE,
 			UNNEST,
+			MERGE,
 			JOIN, 
 			LEADING, 
 			PARALLEL);
@@ -194,6 +197,12 @@ ENUM_DEFINE(LogOperatorType,
 			LOG_EXPR_VALUE,
 			LOG_DUAL_TABLE,
 			LOG_SUBQUERY_EVALUATE
+		);
+
+ENUM_DEFINE(PhyTableType,
+			SYS_INNER_TABLE,
+			USER_PHY_TABLE,
+			USER_VIEW_TABLE
 		);
 
 ENUM_DEFINE(TimeType,

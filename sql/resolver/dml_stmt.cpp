@@ -26,8 +26,6 @@ u32 DMLStmt::formalize()
     if (!stmt_hint.has_qb_name()) {
         stmt_hint.generate_qb_name(stmt_id);
     }
-    CHECK(collect_special_exprs());
-    CHECK(deduce_type());
     for (u32 i = 0; i < from_stmts.size(); ++i) {
         CHECK(from_stmts[i]->formalize());
         table_ids.add_members(from_stmts[i]->table_ids);
@@ -35,26 +33,7 @@ u32 DMLStmt::formalize()
     for (u32 i = 0; i < where_stmt.size(); ++i) {
         CHECK(where_stmt[i]->formalize());
     }
-    return ret;
-}
-
-u32 DMLStmt::deduce_type()
-{
-    u32 ret = SUCCESS;
-    Vector<TableStmt_s> tables;
-    CHECK(get_table_items(tables));
-    for (u32 i = 0; i < tables.size(); ++i) {
-        if (tables[i]->is_view_table()) {
-            ViewTableStmt_s view = tables[i];
-            CHECK(view->ref_query->formalize());
-            Vector<ExprStmt_s> columns;
-            CHECK(get_column_exprs(tables[i]->table_id, columns));
-            for (u32 j = 0; j < columns.size(); ++j) {
-                ColumnStmt_s col = columns[j];
-                col->res_type = view->ref_query->select_expr_list[col->column_id]->res_type;
-            }
-        }
-    }
+    CHECK(collect_special_exprs());
     return ret;
 }
 

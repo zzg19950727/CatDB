@@ -76,6 +76,16 @@ namespace CatDB {
                                       ExprStmt_s &new_expr,
                                       QueryCtx_s &ctx,
                                       u32 flag = COPY_ON_WRITE);
+        
+            static u32 make_row_id_expr(const String& table_name, 
+                                        u32 table_id, 
+                                        ColumnStmt_s &row_id);
+        
+            static u32 is_null_reject_expr(ExprStmt_s &expr, bool &reject_null);
+
+            static u32 make_is_null_expr(ExprStmt_s &old_expr, ExprStmt_s &new_expr);
+
+            static u32 make_null_expr(ExprStmt_s &null_expr);
         };
     }
 }

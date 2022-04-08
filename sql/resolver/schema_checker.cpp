@@ -78,6 +78,25 @@ u32 SchemaChecker::get_table_id(const String & database, const String & table, u
 	return ret;
 }
 
+u32 SchemaChecker::check_is_user_view(const String& database, const String& table, bool &is_view)
+{
+	u32 ret = SUCCESS;
+	TableInfo_s table_info;
+	CHECK(schema_guard->find_table_info(database, table, table_info));
+	is_view = USER_VIEW_TABLE == table_info->type;
+	return ret;
+}
+
+u32 SchemaChecker::get_user_view_define(const String& database, const String& table, String &define_sql)
+{
+	u32 ret = SUCCESS;
+	TableInfo_s table_info;
+	CHECK(schema_guard->find_table_info(database, table, table_info));
+	MY_ASSERT(USER_VIEW_TABLE == table_info->type);
+	define_sql = table_info->engine_args[0];
+	return ret;
+}
+
 u32 SchemaChecker::get_database_id(const String& database, u32 &id)
 {
 	u32 ret = SUCCESS;

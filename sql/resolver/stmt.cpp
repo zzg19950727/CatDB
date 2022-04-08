@@ -31,3 +31,8 @@ bool Stmt::is_select_stmt() const
 { 
     return stmt_type() == Select || SetOperation == stmt_type(); 
 }
+
+bool Stmt::is_set_stmt() const
+{
+	return SetOperation == stmt_type(); 
+}

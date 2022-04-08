@@ -50,7 +50,8 @@ namespace CatDB {
             u32 resolve_from_stmt();
             u32 resolve_where_stmt();
             u32 resolve_table_item(TableStmt_s& table_stmt);
-            u32 resolve_basic_table_item(BasicTableStmt_s table_stmt);
+            u32 resolve_basic_table_item(TableStmt_s& table_stmt);
+            u32 resolve_user_view(TableStmt_s& table_stmt);
             u32 resolve_joined_table_item(JoinedTableStmt_s table_stmt);
             u32 resolve_view_table_item(ViewTableStmt_s table_stmt);
 

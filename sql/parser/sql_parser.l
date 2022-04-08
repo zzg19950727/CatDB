@@ -143,6 +143,8 @@ end_comment		\*\/
 "no_use_nl"     { return CatDB::SqlParser::make_NO_USE_NL(loc); }
 "unnest"      	{ return CatDB::SqlParser::make_UNNEST(loc); }
 "no_unnest"     { return CatDB::SqlParser::make_NO_UNNEST(loc); }
+"merge"			{ return CatDB::SqlParser::make_MERGE(loc); }
+"no_merge"		{ return CatDB::SqlParser::make_NO_MERGE(loc); }
 "leading"       { return CatDB::SqlParser::make_LEADING(loc); }
 "parallel"      { return CatDB::SqlParser::make_PARALLEL(loc); }
 "ordered"       { return CatDB::SqlParser::make_ORDERED(loc); }
@@ -154,6 +156,7 @@ end_comment		\*\/
 "split"			{ return CatDB::SqlParser::make_SPLIT(loc); }
 "csv"			{ return CatDB::SqlParser::make_CSV(loc); }
 "year"			{ return CatDB::SqlParser::make_YEAR(loc); }
+"view"			{ return CatDB::SqlParser::make_VIEW(loc); }
 "begin_outline_data"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE_DATA(loc); }
 "end_outline_data"		{ return CatDB::SqlParser::make_END_OUTLINE_DATA(loc); }
 

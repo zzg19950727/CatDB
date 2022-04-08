@@ -109,6 +109,17 @@ namespace CatDB {
 			~UnnestHintStmt() {}
 		};
 
+		DECLARE(MergeHintStmt);
+		class MergeHintStmt : public TransformHint {
+		private:
+			MergeHintStmt(bool is_enable) 
+			: TransformHint(MERGE, is_enable)
+			{}
+		friend class HintStmt;
+		public:
+			~MergeHintStmt() {}
+		};
+
 		DECLARE(JoinHintStmt);
 		class JoinHintStmt : public OptimizerHint
 		{
@@ -288,6 +299,8 @@ namespace CatDB {
 			bool enable_no_rewrite(const String &qb_name) const;
 			bool enable_unnest(const String &qb_name) const;
 			bool enable_no_unnest(const String &qb_name) const;
+			bool enable_merge(const String &qb_name) const;
+			bool enable_no_merge(const String &qb_name) const;
 			void get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints);
 			LeadingHintStmt_s get_leading_hint(const String &qb_name);
 			bool has_leading_hint(const String &qb_name);

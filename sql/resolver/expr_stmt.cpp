@@ -272,6 +272,15 @@ u32 ColumnStmt::formalize()
 	return ret;
 }
 
+u32 ColumnStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	if (is_row_id) {
+		res_type = DataType::default_int_type();
+	}
+	return ret;
+}
+
 bool ColumnStmt::same_as(const ExprStmt_s& other)
 {
 	if (COLUMN != other->expr_type()) {

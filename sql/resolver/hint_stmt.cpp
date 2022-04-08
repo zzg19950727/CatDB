@@ -14,6 +14,9 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
         case UNNEST:
             hint = HintStmt_s(new UnnestHintStmt(is_enable));
             break;
+        case MERGE:
+            hint = HintStmt_s(new MergeHintStmt(is_enable));
+            break;
         case JOIN:
             hint = HintStmt_s(new JoinHintStmt(is_enable));
             break;
@@ -472,6 +475,20 @@ bool QueryHint::enable_no_unnest(const String &qb_name) const
 {
     HintManager::HintStatus status = HintManager::NOT_SET_HINT;
     transformer_hints->get_hint_status(qb_name, UNNEST, status);
+    return HintManager::FORCE_DISABLE == status;
+}
+
+bool QueryHint::enable_merge(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, MERGE, status);
+    return HintManager::FORCE_ENABLE == status;
+}
+
+bool QueryHint::enable_no_merge(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, MERGE, status);
     return HintManager::FORCE_DISABLE == status;
 }
 

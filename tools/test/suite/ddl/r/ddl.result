@@ -13,9 +13,8 @@ show databases
 | random_test |
 | tpch        |
 | system      |
-| tpch_csv    |
 +-------------+
-5 rows in set
+4 rows in set
 
 drop database test
 
@@ -27,9 +26,8 @@ show databases
 | random_test |
 | tpch        |
 | system      |
-| tpch_csv    |
 +-------------+
-4 rows in set
+3 rows in set
 
 create database test
 
@@ -120,10 +118,10 @@ desc t1
 | c9    | NUMBER(72, 38) | YES  |      | NULL    |       |
 | c10   | NUMBER(72, 38) | YES  |      | NULL    |       |
 | c11   | NUMBER(72, 38) | YES  |      | NULL    |       |
-| c12   | VARCHAR(255)   | YES  |      | NULL    |       |
-| c13   | VARCHAR(255)   | YES  |      | NULL    |       |
-| c14   | VARCHAR(255)   | YES  |      | NULL    |       |
-| c15   | VARCHAR(255)   | YES  |      | NULL    |       |
+| c12   | VARCHAR(10240) | YES  |      | NULL    |       |
+| c13   | VARCHAR(10240) | YES  |      | NULL    |       |
+| c14   | VARCHAR(10240) | YES  |      | NULL    |       |
+| c15   | VARCHAR(10240) | YES  |      | NULL    |       |
 | c16   | TIMESTAMP      | YES  |      | NULL    |       |
 | c17   | DATETIME       | YES  |      | NULL    |       |
 | c18   | DATE           | YES  |      | NULL    |       |
@@ -150,7 +148,7 @@ desc t2
 | c12   | VARCHAR(9)     | YES  |      | NULL    |       |
 | c13   | VARCHAR(12)    | YES  |      | NULL    |       |
 | c14   | VARCHAR(11)    | YES  |      | NULL    |       |
-| c15   | VARCHAR(255)   | YES  |      | NULL    |       |
+| c15   | VARCHAR(10240) | YES  |      | NULL    |       |
 | c16   | TIMESTAMP      | YES  |      | NULL    |       |
 | c17   | DATETIME       | YES  |      | NULL    |       |
 | c18   | DATE           | YES  |      | NULL    |       |
@@ -176,7 +174,7 @@ desc t3
 | c11   | NUMBER(72, 38) | YES  |      | NULL    |       |
 | c12   | VARCHAR(100)   | YES  |      | NULL    |       |
 | c13   | VARCHAR(120)   | YES  |      | NULL    |       |
-| c14   | VARCHAR(255)   | YES  |      | NULL    |       |
+| c14   | VARCHAR(10240) | YES  |      | NULL    |       |
 | c15   | VARCHAR(240)   | YES  |      | NULL    |       |
 | c16   | TIMESTAMP      | YES  |      | NULL    |       |
 | c17   | DATETIME       | YES  |      | NULL    |       |

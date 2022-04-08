@@ -6,9 +6,11 @@
 namespace CatDB {
     namespace Parser {
         DECLARE(ExprStmt);
+        DECLARE(SetStmt);
     }
 	namespace Common {
         using Parser::ExprStmt_s;
+        using Parser::SetStmt_s;
 		DECLARE(ObjCastUtil);
 		class ObjCastUtil
 		{
@@ -63,6 +65,8 @@ namespace CatDB {
             static u32 inner_add_cast(ExprStmt_s& from_expr, 
                                     const DataType& to_type, 
                                     ExprStmt_s &to_expr);
+        
+            static u32 deduce_set_expr_type(SetStmt_s &stmt);
         };
 	}
 }

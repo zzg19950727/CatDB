@@ -28,6 +28,10 @@ namespace CatDB {
 			
 			u32 get_table_id(const String& database, const String& table, u32& id);
 
+			u32 check_is_user_view(const String& database, const String& table, bool &is_view);
+
+			u32 get_user_view_define(const String& database, const String& table, String &define_sql);
+
 			u32 get_database_id(const String& database, u32 &id);
 
 		private:

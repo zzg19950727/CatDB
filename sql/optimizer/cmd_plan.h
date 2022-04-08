@@ -47,6 +47,8 @@ namespace CatDB {
 			u32 do_show_processlist(ResultSet_s &query_result);
 			u32 do_kill_process();
 			u32 do_show_memory(ResultSet_s &query_result);
+			u32 do_create_view();
+			u32 do_drop_view();
 
 		private:
 			u32 init_command_result_head(const Vector<String> &title, ResultSet_s &query_result);

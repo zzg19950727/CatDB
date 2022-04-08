@@ -62,6 +62,9 @@ namespace CatDB {
 			virtual u32 deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const;
 			bool is_scalar_group_by() const;
 			bool has_group_by() const;
+			bool has_order_by() const;
+			bool has_limit() const;
+			bool has_distinct() const;
 			Vector<ExprStmt_s> &get_aggr_exprs()	{ return aggr_exprs; }
 		protected:
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
@@ -101,7 +104,6 @@ namespace CatDB {
 			StmtType stmt_type()const override;
 			static Stmt_s make_set_stmt(const Stmt_s& left_query, const Stmt_s& right_query, SetOpType set_op);
 			u32 formalize() override;
-			u32 deduce_type();
 			u32 deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const override;
 		private:
 			u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;

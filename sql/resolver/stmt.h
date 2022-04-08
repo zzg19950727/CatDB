@@ -34,6 +34,7 @@ namespace CatDB {
 			virtual StmtType stmt_type()const = 0;
 			virtual u32 formalize() = 0;
 			bool is_select_stmt() const;
+			bool is_set_stmt() const;
 			VIRTUAL_KV_STRING(
 				K("")
 			);

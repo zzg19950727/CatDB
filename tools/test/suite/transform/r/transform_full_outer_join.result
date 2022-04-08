@@ -1,0 +1,762 @@
+
+
+drop database if exists test
+
+create database test
+
+drop table if exists t1
+
+drop table if exists t2
+
+drop table if exists t3
+
+drop table if exists t4
+
+create table t1(c1 int, c2 int, c3 int)
+
+create table t2(c1 int, c2 int, c3 int)
+
+create table t3(c1 int, c2 int, c3 int)
+
+create table t4(c1 int, c2 int, c3 int)
+
+insert into t1 values(1,1,1)
+
+insert into t1 values(2,2,2)
+
+insert into t1 values(3,3,3)
+
+insert into t1 values(4,4,4)
+
+insert into t1 values(5,5,5)
+
+insert into t2 select * from t1
+
+insert into t3 select * from t1
+
+insert into t4 select * from t1
+
+explain select t1.* from t1 full join t2 on t1.c1 = t2.c1
+
+Query Plan:
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH FullOuter JOIN |      | 1         | 8    |
+| 1  |  TABLE SCAN         | T1   | 1         | 4    |
+| 2  |  TABLE SCAN         | T2   | 1         | 4    |
++----------------------------------------------------+
+Outputs & filters:
+0 - output([t1.c1], [t1.c2], [t1.c3])
+equal_join_conditions([t1.c1 = t2.c1])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+2 - output([t2.c1])
+access([t2.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 t1, t2)
+USE_HASH(@SEL1 t2)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 = t2.c1
+
++------+------+------+
+| c1   | c2   | c3   |
++------+------+------+
+| 1    | 1    | 1    |
+| 2    | 2    | 2    |
+| 3    | 3    | 3    |
+| 4    | 4    | 4    |
+| 5    | 5    | 5    |
++------+------+------+
+5 rows in set
+
+explain select t1.* from t1 full join t2 on t1.c1 > t2.c1
+
+Query Plan:
++--------------------------------------------------------------+
+| ID | OPERATOR                     | NAME  | ROW COUNT | COST |
++--------------------------------------------------------------+
+| 0  | VIEW                         | VIEW1 | 2         | 25   |
+| 1  |  UNION_ALL                   |       | 2         | 25   |
+| 2  |   NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 3  |    TABLE SCAN                | T1    | 1         | 4    |
+| 4  |    TABLE SCAN                | T2    | 1         | 4    |
+| 5  |   NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 6  |    TABLE SCAN                | T2    | 1         | 4    |
+| 7  |    TABLE SCAN                | T1    | 1         | 4    |
++--------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.], [VIEW1.c2], [VIEW1.c3])
+1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+2 - output([t1.c1], [t1.c2], [t1.c3], [t2.c1])
+other_join_conditions([t1.c1 > t2.c1])
+3 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+4 - output([t2.c1])
+access([t2.c1])
+5 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [t2.c1])
+other_join_conditions([t1.c1 > t2.c1])
+6 - output([t2.c1])
+access([t2.c1])
+7 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 > t2.c1
+
++--------+----------+----------+
+| VIEW1. | VIEW1.c2 | VIEW1.c3 |
++--------+----------+----------+
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 2      | 2        | 2        |
+| 1      | 1        | 1        |
+| NULL   | NULL     | NULL     |
++--------+----------+----------+
+12 rows in set
+
+explain select t1.* from t1 full join t2 on t1.c1 > 3
+
+Query Plan:
++--------------------------------------------------------------+
+| ID | OPERATOR                     | NAME  | ROW COUNT | COST |
++--------------------------------------------------------------+
+| 0  | VIEW                         | VIEW1 | 2         | 24   |
+| 1  |  UNION_ALL                   |       | 2         | 24   |
+| 2  |   NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 3  |    TABLE SCAN                | T1    | 1         | 4    |
+| 4  |    TABLE SCAN                | T2    | 1         | 4    |
+| 5  |   NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 6  |    TABLE SCAN                | T2    | 1         | 4    |
+| 7  |    TABLE SCAN                | T1    | 1         | 4    |
++--------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.], [VIEW1.c2], [VIEW1.c3])
+1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)])
+2 - output([t1.c1], [t1.c2], [t1.c3])
+other_join_conditions([t1.c1 > 3])
+3 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+5 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))])
+7 - filters([t1.c1 > 3])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 > 3
+
++--------+----------+----------+
+| VIEW1. | VIEW1.c2 | VIEW1.c3 |
++--------+----------+----------+
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 3      | 3        | 3        |
+| 1      | 1        | 1        |
++--------+----------+----------+
+12 rows in set
+
+explain select t1.* from t1 full join t2 on t1.c1 > t2.c1 and t1.c2 = t2.c1
+
+Query Plan:
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH FullOuter JOIN |      | 1         | 8    |
+| 1  |  TABLE SCAN         | T1   | 1         | 4    |
+| 2  |  TABLE SCAN         | T2   | 1         | 4    |
++----------------------------------------------------+
+Outputs & filters:
+0 - output([t1.c1], [t1.c2], [t1.c3])
+equal_join_conditions([t1.c2 = t2.c1])
+other_join_conditions([t1.c1 > t2.c1])
+1 - output([t1.c2], [t1.c1], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+2 - output([t2.c1])
+access([t2.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 t1, t2)
+USE_HASH(@SEL1 t2)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 > t2.c1 and t1.c2 = t2.c1
+
++------+------+------+
+| c1   | c2   | c3   |
++------+------+------+
+| NULL | NULL | NULL |
+| NULL | NULL | NULL |
+| NULL | NULL | NULL |
+| NULL | NULL | NULL |
+| NULL | NULL | NULL |
+| 3    | 3    | 3    |
+| 5    | 5    | 5    |
+| 4    | 4    | 4    |
+| 1    | 1    | 1    |
+| 2    | 2    | 2    |
++------+------+------+
+10 rows in set
+
+explain select t1.* from t1 full join t2 on t1.c1 = t1.c2
+
+Query Plan:
++--------------------------------------------------------------+
+| ID | OPERATOR                     | NAME  | ROW COUNT | COST |
++--------------------------------------------------------------+
+| 0  | VIEW                         | VIEW1 | 2         | 25   |
+| 1  |  UNION_ALL                   |       | 2         | 25   |
+| 2  |   NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 3  |    TABLE SCAN                | T1    | 1         | 4    |
+| 4  |    TABLE SCAN                | T2    | 1         | 4    |
+| 5  |   NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 6  |    TABLE SCAN                | T2    | 1         | 4    |
+| 7  |    TABLE SCAN                | T1    | 1         | 4    |
++--------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.], [VIEW1.], [VIEW1.c3])
+1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)])
+2 - output([t1.c1], [t1.c2], [t1.c3])
+other_join_conditions([t1.c1 = t1.c2])
+3 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+5 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))])
+7 - filters([t1.c1 = t1.c2])
+access([t1.c1], [t1.c2])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 = t1.c2
+
++--------+--------+----------+
+| VIEW1. | VIEW1. | VIEW1.c3 |
++--------+--------+----------+
+| 5      | 5      | 5        |
+| 5      | 5      | 5        |
+| 5      | 5      | 5        |
+| 5      | 5      | 5        |
+| 5      | 5      | 5        |
+| 4      | 4      | 4        |
+| 4      | 4      | 4        |
+| 4      | 4      | 4        |
+| 4      | 4      | 4        |
+| 4      | 4      | 4        |
+| 3      | 3      | 3        |
+| 3      | 3      | 3        |
+| 3      | 3      | 3        |
+| 3      | 3      | 3        |
+| 3      | 3      | 3        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
++--------+--------+----------+
+25 rows in set
+
+explain select t3.* from t1, t2 full join t3 on t2.c1 != t3.c2 where t1.c1 = t2.c1
+
+Query Plan:
++---------------------------------------------------------------+
+| ID | OPERATOR                      | NAME  | ROW COUNT | COST |
++---------------------------------------------------------------+
+| 0  | HASH Inner JOIN               |       | 2         | 29   |
+| 1  |  TABLE SCAN                   | T1    | 1         | 4    |
+| 2  |  VIEW                         | VIEW1 | 2         | 25   |
+| 3  |   UNION_ALL                   |       | 2         | 25   |
+| 4  |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 5  |     TABLE SCAN                | T2    | 1         | 4    |
+| 6  |     TABLE SCAN                | T3    | 1         | 4    |
+| 7  |    NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 8  |     TABLE SCAN                | T3    | 1         | 4    |
+| 9  |     TABLE SCAN                | T2    | 1         | 4    |
++---------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.c1], [VIEW1.], [VIEW1.c3])
+equal_join_conditions([t1.c1 = VIEW1.])
+1 - output([t1.c1])
+access([t1.c1])
+2 - output([VIEW1.], [VIEW1.c1], [VIEW1.], [VIEW1.c3])
+3 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+4 - output([t2.c1], [t3.c2], [t3.c1], [t3.c3])
+other_join_conditions([t2.c1 != t3.c2])
+5 - output([t2.c1])
+access([t2.c1])
+6 - output([t3.c2], [t3.c1], [t3.c3])
+access([t3.c2], [t3.c1], [t3.c3])
+7 - output([CAST('NULL' AS NUMBER(72, 38))], [t3.c2], [t3.c1], [t3.c3])
+other_join_conditions([t2.c1 != t3.c2])
+8 - output([t3.c2], [t3.c1], [t3.c3])
+access([t3.c2], [t3.c1], [t3.c3])
+9 - output([t2.c1])
+access([t2.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 t1, VIEW1)
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL3 t3, t2)
+USE_NL(@SEL3 t2)
+LEADING(@SEL2 t2, t3)
+USE_NL(@SEL2 t3)
+END_OUTLINE_DATA
+*/
+
+select t3.* from t1, t2 full join t3 on t2.c1 != t3.c2 where t1.c1 = t2.c1
+
++----------+--------+----------+
+| VIEW1.c1 | VIEW1. | VIEW1.c3 |
++----------+--------+----------+
+| 2        | 2      | 2        |
+| 3        | 3      | 3        |
+| 4        | 4      | 4        |
+| 5        | 5      | 5        |
+| 1        | 1      | 1        |
+| 3        | 3      | 3        |
+| 4        | 4      | 4        |
+| 5        | 5      | 5        |
+| 1        | 1      | 1        |
+| 2        | 2      | 2        |
+| 4        | 4      | 4        |
+| 5        | 5      | 5        |
+| 1        | 1      | 1        |
+| 2        | 2      | 2        |
+| 3        | 3      | 3        |
+| 5        | 5      | 5        |
+| 1        | 1      | 1        |
+| 2        | 2      | 2        |
+| 3        | 3      | 3        |
+| 4        | 4      | 4        |
++----------+--------+----------+
+20 rows in set
+
+explain select t2.* from t1 left join t2 on t1.c1 = t2.c1 full join t3 on t3.c2 > t2.c2
+
+Query Plan:
++--------------------------------------------------------------+
+| ID | OPERATOR                     | NAME  | ROW COUNT | COST |
++--------------------------------------------------------------+
+| 0  | VIEW                         | VIEW1 | 2         | 38   |
+| 1  |  UNION_ALL                   |       | 2         | 38   |
+| 2  |   NESTED LOOP LeftOuter JOIN |       | 1         | 16   |
+| 3  |    HASH LeftOuter JOIN       |       | 1         | 8    |
+| 4  |     TABLE SCAN               | T1    | 1         | 4    |
+| 5  |     TABLE SCAN               | T2    | 1         | 4    |
+| 6  |    TABLE SCAN                | T3    | 1         | 4    |
+| 7  |   NESTED LOOP LeftAnti JOIN  |       | 1         | 21   |
+| 8  |    TABLE SCAN                | T3    | 1         | 4    |
+| 9  |    HASH LeftOuter JOIN       |       | 1         | 8    |
+| 10 |     TABLE SCAN               | T1    | 1         | 4    |
+| 11 |     TABLE SCAN               | T2    | 1         | 4    |
++--------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.], [VIEW1.], [VIEW1.c3])
+1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)], [UNION_ALL(4)])
+2 - output([t1.c1], [t2.c2], [t2.c1], [t2.c3], [t3.c2])
+other_join_conditions([t3.c2 > t2.c2])
+3 - output([t2.c2], [t1.c1], [t2.c1], [t2.c3])
+equal_join_conditions([t1.c1 = t2.c1])
+4 - output([t1.c1])
+access([t1.c1])
+5 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c2], [t2.c1], [t2.c3])
+6 - output([t3.c2])
+access([t3.c2])
+7 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [t3.c2])
+other_join_conditions([t3.c2 > t2.c2])
+8 - output([t3.c2])
+access([t3.c2])
+9 - output([t2.c2])
+equal_join_conditions([t1.c1 = t2.c1])
+10 - output([t1.c1])
+access([t1.c1])
+11 - output([t2.c1], [t2.c2])
+access([t2.c2], [t2.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL3 t3, (t1, t2))
+USE_HASH(@SEL3 t2)
+USE_NL(@SEL3 t1, t2)
+LEADING(@SEL2 (t1, t2), t3)
+USE_HASH(@SEL2 t2)
+USE_NL(@SEL2 t3)
+END_OUTLINE_DATA
+*/
+
+select t2.* from t1 left join t2 on t1.c1 = t2.c1 full join t3 on t3.c2 > t2.c2
+
++--------+--------+----------+
+| VIEW1. | VIEW1. | VIEW1.c3 |
++--------+--------+----------+
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 1      | 1      | 1        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 2      | 2      | 2        |
+| 3      | 3      | 3        |
+| 3      | 3      | 3        |
+| 4      | 4      | 4        |
+| 5      | 5      | 5        |
+| NULL   | NULL   | NULL     |
++--------+--------+----------+
+12 rows in set
+
+explain select t3.* from t1 full join t2 on t1.c1 between t2.c1 and t2.c2 left join t3 on t2.c3 = t3.c3
+
+Query Plan:
++---------------------------------------------------------------+
+| ID | OPERATOR                      | NAME  | ROW COUNT | COST |
++---------------------------------------------------------------+
+| 0  | HASH RightOuter JOIN          |       | 2         | 29   |
+| 1  |  TABLE SCAN                   | T3    | 1         | 4    |
+| 2  |  VIEW                         | VIEW1 | 2         | 25   |
+| 3  |   UNION_ALL                   |       | 2         | 25   |
+| 4  |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 5  |     TABLE SCAN                | T1    | 1         | 4    |
+| 6  |     TABLE SCAN                | T2    | 1         | 4    |
+| 7  |    NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 8  |     TABLE SCAN                | T2    | 1         | 4    |
+| 9  |     TABLE SCAN                | T1    | 1         | 4    |
++---------------------------------------------------------------+
+Outputs & filters:
+0 - output([t3.c1], [t3.c2], [t3.c3])
+equal_join_conditions([VIEW1. = t3.c3])
+1 - output([t3.c3], [t3.c1], [t3.c2])
+access([t3.c3], [t3.c1], [t3.c2])
+2 - output([VIEW1.])
+3 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+4 - output([t1.c1], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+5 - output([t1.c1])
+access([t1.c1])
+6 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+7 - output([CAST('NULL' AS NUMBER(72, 38))], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+8 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+9 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 t3, VIEW1)
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+END_OUTLINE_DATA
+*/
+
+select t3.* from t1 full join t2 on t1.c1 between t2.c1 and t2.c2 left join t3 on t2.c3 = t3.c3
+
++------+------+------+
+| c1   | c2   | c3   |
++------+------+------+
+| 5    | 5    | 5    |
+| 4    | 4    | 4    |
+| 3    | 3    | 3    |
+| 2    | 2    | 2    |
+| 1    | 1    | 1    |
++------+------+------+
+5 rows in set
+
+explain select t3.* from t1 full join t2 on t1.c1 between t2.c1 and t2.c2 full join t3 on t2.c3 != t3.c3
+
+Query Plan:
++-----------------------------------------------------------------+
+| ID | OPERATOR                        | NAME  | ROW COUNT | COST |
++-----------------------------------------------------------------+
+| 0  | VIEW                            | VIEW2 | 3         | 93   |
+| 1  |  UNION_ALL                      |       | 3         | 93   |
+| 2  |   NESTED LOOP LeftOuter JOIN    |       | 2         | 38   |
+| 3  |    VIEW                         | VIEW1 | 2         | 25   |
+| 4  |     UNION_ALL                   |       | 2         | 25   |
+| 5  |      NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 6  |       TABLE SCAN                | T1    | 1         | 4    |
+| 7  |       TABLE SCAN                | T2    | 1         | 4    |
+| 8  |      NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 9  |       TABLE SCAN                | T2    | 1         | 4    |
+| 10 |       TABLE SCAN                | T1    | 1         | 4    |
+| 11 |    TABLE SCAN                   | T3    | 1         | 4    |
+| 12 |   NESTED LOOP LeftAnti JOIN     |       | 1         | 54   |
+| 13 |    TABLE SCAN                   | T3    | 1         | 4    |
+| 14 |    VIEW                         | VIEW1 | 2         | 25   |
+| 15 |     UNION_ALL                   |       | 2         | 25   |
+| 16 |      NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 17 |       TABLE SCAN                | T1    | 1         | 4    |
+| 18 |       TABLE SCAN                | T2    | 1         | 4    |
+| 19 |      NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 20 |       TABLE SCAN                | T2    | 1         | 4    |
+| 21 |       TABLE SCAN                | T1    | 1         | 4    |
++-----------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW2.c1], [VIEW2.c2], [VIEW2.])
+1 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)])
+2 - output([t3.c3], [t3.c1], [t3.c2])
+other_join_conditions([VIEW1. != t3.c3])
+3 - output([VIEW1.])
+4 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+5 - output([t1.c1], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+6 - output([t1.c1])
+access([t1.c1])
+7 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+8 - output([CAST('NULL' AS NUMBER(72, 38))], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+9 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+10 - output([t1.c1])
+access([t1.c1])
+11 - output([t3.c3], [t3.c1], [t3.c2])
+access([t3.c3], [t3.c1], [t3.c2])
+12 - output([t3.c3], [t3.c1], [t3.c2])
+other_join_conditions([VIEW1. != t3.c3])
+13 - output([t3.c3], [t3.c1], [t3.c2])
+access([t3.c3], [t3.c1], [t3.c2])
+14 - output([VIEW1.])
+15 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+16 - output([t1.c1], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+17 - output([t1.c1])
+access([t1.c1])
+18 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+19 - output([CAST('NULL' AS NUMBER(72, 38))], [t2.c3], [t2.c1], [t2.c2])
+other_join_conditions([t1.c1 BETWEEN t2.c1 AND t2.c2])
+20 - output([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
+21 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL5 VIEW1, t3)
+USE_NL(@SEL5 t3)
+LEADING(@SEL6 t3, VIEW1)
+USE_NL(@SEL6 VIEW1)
+LEADING(@SEL3 t2, t1)
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL2 t1, t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+USE_NL(@SEL2 t2)
+END_OUTLINE_DATA
+*/
+
+select t3.* from t1 full join t2 on t1.c1 between t2.c1 and t2.c2 full join t3 on t2.c3 != t3.c3
+
++----------+----------+--------+
+| VIEW2.c1 | VIEW2.c2 | VIEW2. |
++----------+----------+--------+
+| 1        | 1        | 1      |
+| 2        | 2        | 2      |
+| 3        | 3        | 3      |
+| 4        | 4        | 4      |
+| 1        | 1        | 1      |
+| 2        | 2        | 2      |
+| 3        | 3        | 3      |
+| 5        | 5        | 5      |
+| 1        | 1        | 1      |
+| 2        | 2        | 2      |
+| 4        | 4        | 4      |
+| 5        | 5        | 5      |
+| 1        | 1        | 1      |
+| 3        | 3        | 3      |
+| 4        | 4        | 4      |
+| 5        | 5        | 5      |
+| 2        | 2        | 2      |
+| 3        | 3        | 3      |
+| 4        | 4        | 4      |
+| 5        | 5        | 5      |
++----------+----------+--------+
+20 rows in set
+
+explain select t1.* from t1 full join t2 on t1.c1 > t2.c1, t3 full join t4 on t3.c3 != t4.c3 where t1.c1 = t3.c1
+
+Query Plan:
++---------------------------------------------------------------+
+| ID | OPERATOR                      | NAME  | ROW COUNT | COST |
++---------------------------------------------------------------+
+| 0  | HASH Inner JOIN               |       | 4         | 50   |
+| 1  |  VIEW                         | VIEW1 | 2         | 25   |
+| 2  |   UNION_ALL                   |       | 2         | 25   |
+| 3  |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 4  |     TABLE SCAN                | T1    | 1         | 4    |
+| 5  |     TABLE SCAN                | T2    | 1         | 4    |
+| 6  |    NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 7  |     TABLE SCAN                | T2    | 1         | 4    |
+| 8  |     TABLE SCAN                | T1    | 1         | 4    |
+| 9  |  VIEW                         | VIEW2 | 2         | 25   |
+| 10 |   UNION_ALL                   |       | 2         | 25   |
+| 11 |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
+| 12 |     TABLE SCAN                | T3    | 1         | 4    |
+| 13 |     TABLE SCAN                | T4    | 1         | 4    |
+| 14 |    NESTED LOOP LeftAnti JOIN  |       | 1         | 12   |
+| 15 |     TABLE SCAN                | T4    | 1         | 4    |
+| 16 |     TABLE SCAN                | T3    | 1         | 4    |
++---------------------------------------------------------------+
+Outputs & filters:
+0 - output([VIEW1.], [VIEW1.c2], [VIEW1.c3])
+equal_join_conditions([VIEW1. = VIEW2.])
+1 - output([VIEW1.], [VIEW1.c2], [VIEW1.c3])
+2 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)])
+3 - output([t1.c1], [t1.c2], [t1.c3], [t2.c1])
+other_join_conditions([t1.c1 > t2.c1])
+4 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
+5 - output([t2.c1])
+access([t2.c1])
+6 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [t2.c1])
+other_join_conditions([t1.c1 > t2.c1])
+7 - output([t2.c1])
+access([t2.c1])
+8 - output([t1.c1])
+access([t1.c1])
+9 - output([VIEW2.])
+10 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)])
+11 - output([t3.c1], [t3.c3], [t4.c3])
+other_join_conditions([t3.c3 != t4.c3])
+12 - output([t3.c3], [t3.c1])
+access([t3.c3], [t3.c1])
+13 - output([t4.c3])
+access([t4.c3])
+14 - output([CAST('NULL' AS NUMBER(72, 38))], [CAST('NULL' AS NUMBER(72, 38))], [t4.c3])
+other_join_conditions([t3.c3 != t4.c3])
+15 - output([t4.c3])
+access([t4.c3])
+16 - output([t3.c3])
+access([t3.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+LEADING(@SEL1 VIEW1, VIEW2)
+USE_HASH(@SEL1 VIEW2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL2 t2)
+LEADING(@SEL3 t2, t1)
+USE_NL(@SEL3 t1)
+LEADING(@SEL6 t4, t3)
+USE_NL(@SEL6 t3)
+LEADING(@SEL5 t3, t4)
+USE_NL(@SEL5 t4)
+END_OUTLINE_DATA
+*/
+
+select t1.* from t1 full join t2 on t1.c1 > t2.c1, t3 full join t4 on t3.c3 != t4.c3 where t1.c1 = t3.c1
+
++--------+----------+----------+
+| VIEW1. | VIEW1.c2 | VIEW1.c3 |
++--------+----------+----------+
+| 1      | 1        | 1        |
+| 1      | 1        | 1        |
+| 1      | 1        | 1        |
+| 1      | 1        | 1        |
+| 2      | 2        | 2        |
+| 2      | 2        | 2        |
+| 2      | 2        | 2        |
+| 2      | 2        | 2        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 3      | 3        | 3        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 4      | 4        | 4        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
+| 5      | 5        | 5        |
++--------+----------+----------+
+44 rows in set
+
+Bye
