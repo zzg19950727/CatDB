@@ -43,13 +43,13 @@ Number_s Number::make_object(const my_decimal& data)
 	return Number_s(num);
 }
 
-Number_s Number::make_object(f64 value)
+Number_s Number::make_float_object(f64 value)
 {
 	Number* num = new Number(value);
 	return Number_s(num);
 }
 
-Number_s Number::make_object(longlong value)
+Number_s Number::make_int_object(longlong value)
 {
 	Number* num = new Number(value);
 	return Number_s(num);
@@ -131,7 +131,7 @@ u32 Number::cast_to(const DataType& type, Object_s &res)
 	if (!type.is_number()) {
 		ret = INVALID_CAST;
 	} else {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object((longlong)0);
 		Number_s num = res;
 		data.cast_to_decimal(type.precision, type.scale, num->data);
 	}
@@ -142,7 +142,7 @@ u32 Number::num_add(const Number_s& lhs, const Number_s& rhs, Number_s& res)
 {
 	u32 ret = SUCCESS;
 	if (lhs->is_null() || rhs->is_null()) {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object(0);
 		res->set_null();
 	} else {
 		my_decimal dst;
@@ -157,7 +157,7 @@ u32 Number::num_sub(const Number_s& lhs, const Number_s& rhs, Number_s& res)
 {
 	u32 ret = SUCCESS;
 	if (lhs->is_null() || rhs->is_null()) {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object(0);
 		res->set_null();
 	} else {
 		my_decimal dst;
@@ -172,7 +172,7 @@ u32 Number::num_mul(const Number_s& lhs, const Number_s& rhs, Number_s& res)
 {
 	u32 ret = SUCCESS;
 	if (lhs->is_null() || rhs->is_null()) {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object(0);
 		res->set_null();
 	} else {
 		my_decimal dst;
@@ -187,7 +187,7 @@ u32 Number::num_div(const Number_s& lhs, const Number_s& rhs, Number_s& res)
 {
 	u32 ret = SUCCESS;
 	if (lhs->is_null() || rhs->is_null()) {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object(0);
 		res->set_null();
 	} else if (rhs->data.is_zero()) {
 		ret = DEVISOR_IS_ZERO;
@@ -204,7 +204,7 @@ u32 Number::num_mod(const Number_s& lhs, const Number_s& rhs, Number_s& res)
 {
 	u32 ret = SUCCESS;
 	if (lhs->is_null() || rhs->is_null()) {
-		res = Number::make_object((longlong)0);
+		res = Number::make_int_object(0);
 		res->set_null();
 	} else if (rhs->data.is_zero()) {
 		ret = DEVISOR_IS_ZERO;
@@ -227,4 +227,22 @@ u32 Number::num_minus(const Number_s& lhs, Number_s& res)
 		res->data.minus();
 	}
 	return ret;
+}
+
+bool Number::is_valid_number(const String& value)
+{
+	bool is_valid = true;
+	bool has_dot = false;
+	for (u32 i = 0; is_valid && i < value.size(); ++i) {
+		if (value[i] == '.') {
+			if (has_dot) {
+				is_valid = false;
+			} else {
+				has_dot = true;
+			}
+		} else if (value[i] < '0' || value[i] > '9') {
+			is_valid = false;
+		}
+	}
+	return is_valid;
 }

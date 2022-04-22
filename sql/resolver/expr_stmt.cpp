@@ -124,7 +124,11 @@ bool ConstStmt::same_as(const ExprStmt_s& other)
 	}
 	ConstStmt_s const_stmt = other;
 	int res = 0;
+	if (const_stmt->value->is_null() && value->is_null()) {
+		return true;
+	}
 	value->compare(const_stmt->value, res);
+
 	return 0 == res;
 }
 
@@ -201,7 +205,6 @@ u32 ExecParamStmt::formalize()
 	u32 ret = SUCCESS;
 	clear_flag();
 	set_is_flag(IS_EXEC_PARAM);
-	add_flag(HAS_CONST);
 	add_flag(HAS_EXEC_PARAM);
 	return ret;
 }
@@ -420,6 +423,15 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 	}
 	ExprStmt::deep_copy(expr, ctx, flag);
 	return ret;
+}
+
+bool SubQueryStmt::same_as(const ExprStmt_s &other)
+{
+	if (!other || SUBQUERY != other->expr_type()) {
+		return false;
+	}
+	SubQueryStmt_s subquery_expr = other;
+	return subquery_expr->query_stmt == query_stmt;
 }
 
 u32 SubQueryStmt::formalize()
@@ -785,84 +797,84 @@ String OpExprStmt::to_string()const
 		case OP_EQ_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " = ANY";
+				ret += " = ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_NE_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " != ANY";
+				ret += " != ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GE_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " >= ANY";
+				ret += " >= ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GT_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " > ANY";
+				ret += " > ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LE_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " <= ANY";
+				ret += " <= ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LT_ANY:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " < ANY";
+				ret += " < ANY ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_EQ_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " = ALL";
+				ret += " = ALL ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_NE_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " != ALL";
+				ret += " != ALL ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GE_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " >= ALL";
+				ret += " >= ALL ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_GT_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " > ALL";
+				ret += " > ALL ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LE_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " <= ALL";
+				ret += " <= ALL ";
 				ret += params[1]->to_string();
 			}
 			break;
 		case OP_LT_ALL:
 			if (params.size() == 2) {
 				ret += params[0]->to_string();
-				ret += " < ALL";
+				ret += " < ALL ";
 				ret += params[1]->to_string();
 			}
 			break;

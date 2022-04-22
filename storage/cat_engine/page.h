@@ -113,7 +113,7 @@ namespace CatDB {
 				K(page_header_)
 			);
 
-		private:
+		public:
 			Page(const Buffer_s& buffer);
 			u32 deserialize_row(RowInfo* row_info, u32 row_id, Row_s& row)const;
 			u32 serialize_row(const Row_s& row, u32& store_len);

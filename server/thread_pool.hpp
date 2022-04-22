@@ -166,7 +166,9 @@ namespace CatDB {
 					m_condition.notify_all();
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				for (int i = 0; i < m_workers.size(); ++i) {
+					m_workers[i].join();
+				}
 				LOG_INFO("all workers exit");
 			}
 

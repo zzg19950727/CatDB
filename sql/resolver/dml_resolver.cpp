@@ -4,6 +4,7 @@
 #include "update_resolver.h"
 #include "delete_resolver.h"
 #include "insert_resolver.h"
+#include "obj_cast_util.h"
 #include "select_stmt.h"
 #include "update_stmt.h"
 #include "delete_stmt.h"
@@ -11,6 +12,7 @@
 #include "dml_resolver.h"
 #include "sql_engine.h"
 #include "expr_stmt.h"
+#include "expr_utils.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
 #include "query_ctx.h"
@@ -287,6 +289,9 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
                 ret = OPERATION_NOT_SUPPORT;
             }
         }
+        if (1 != query->query_stmt->select_expr_list.size()) {
+            ret = SUBQUERY_RESULT_MUST_BE_ONE_COLUMN;
+        }
 		break;
 	}
 	case EXPR_LIST:
@@ -309,7 +314,8 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
             if (ret == IS_ALL_COLUMN_STMT) {
                 if (COUNT == agg_stmt->aggr_func && 
                     !agg_stmt->distinct) {
-                    ExprStmt_s aggr_expr = ConstStmt::make_const_stmt(Number::make_object((longlong)1));
+                    ExprStmt_s aggr_expr;
+                    CHECK(ExprUtils::make_int_expr(aggr_expr, 1));
                     agg_stmt->set_aggr_expr(aggr_expr);
                     ret = SUCCESS;
                 } else {
@@ -321,12 +327,15 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
                 sum_expr->set_aggr_expr(aggr_expr);
                 sum_expr->distinct = agg_stmt->distinct;
                 sum_expr->aggr_func = SUM;
+                DataType res_type = DataType::default_number_type();
+                ExprStmt_s cast_expr = sum_expr;
+				CHECK(ObjCastUtil::add_cast(cast_expr, res_type, cast_expr));
                 AggrStmt_s count_expr = AggrStmt::make_aggr_stmt();
                 count_expr->set_aggr_expr(aggr_expr);
                 count_expr->distinct = agg_stmt->distinct;
                 count_expr->aggr_func = COUNT;
                 OpExprStmt_s op_expr = OpExprStmt::make_op_expr_stmt(OP_DIV);
-                op_expr->params.push_back(sum_expr);
+                op_expr->params.push_back(cast_expr);
                 op_expr->params.push_back(count_expr);
                 op_expr->alias_name = expr_stmt->alias_name;
                 expr_stmt = op_expr;
@@ -340,10 +349,16 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
 	}
 	case OP_EXPR:
 	{
+        OpExprStmt_s op_expr = expr_stmt;
         for (u32 i = 0; i < expr_stmt->params.size(); ++i) {
             ret = resolve_expr(expr_stmt->params[i], resolve_ctx);
             if (IS_ALL_COLUMN_STMT == ret) {
                 ret = HAVE_ALL_COLUMN_STMT;
+            } else if (SUBQUERY_RESULT_MUST_BE_ONE_COLUMN == ret) {
+                if (OP_EXISTS == op_expr->op_type || 
+                    OP_NOT_EXISTS == op_expr->op_type) {
+                    ret = SUCCESS;
+                }
             } else if (FAIL(ret)) {
                 return ret;
             }
@@ -403,7 +418,12 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
                 ret = SUCCESS;
             }
         }
-        MY_ASSERT(find_cnt <= 1);
+        if (find_cnt > 1) {
+            ret = ERROR_LEX_STMT;
+            String err_msg = "column " + column->column + " exists in multi table";
+            query_ctx->set_error_msg(err_msg);
+            return ret;
+        }
         if (find_cnt == 1) {
             find = true;
         }
@@ -425,7 +445,11 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
             }
         }
     }
-    MY_ASSERT(find);
+    if (!find) {
+        ret = ERROR_LEX_STMT;
+        String err_msg = "column " + column->column + " not exists";
+        query_ctx->set_error_msg(err_msg);
+    }
     return ret;
 }
 

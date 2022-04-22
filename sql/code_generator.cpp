@@ -69,9 +69,6 @@ u32 CodeGenerator::generate_phy_plan_pre(ExprGenerateCtx &ctx, LogicalOperator_s
     //generate phy plan pre
     switch (log_root->type())
     {
-    case LOG_SUBQUERY_EVALUATE:
-        CHECK(generate_subquery_evaluate_op_pre(ctx, log_root));
-        break;
     }
     return ret;
 }
@@ -380,32 +377,21 @@ u32 CodeGenerator::generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op,
 	return ret;
 }
 
-u32 CodeGenerator::generate_subquery_evaluate_op_pre(ExprGenerateCtx &ctx, LogicalOperator_s &log_op)
-{
-	u32 ret = SUCCESS;
-    MY_ASSERT(LOG_SUBQUERY_EVALUATE == log_op->type(), 
-              log_op->childs.size() > 1);
-    LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
-    MY_ASSERT(log_op->childs.size()-1 == subquery_evaluate_op->subqueries.size());
-    ctx.subplan_map.clear();
-    for (u32 i = 1; i < log_op->childs.size(); ++i) {
-        SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i-1];
-        ctx.subplan_map[subquery] = log_op->childs[i];
-    }
-    LogicalOperator_s child = log_op->childs[0];
-    log_op->childs.clear();
-    log_op->childs.push_back(child);
-	return ret;
-}
-
 u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOperator_s &log_op, PhyOperator_s &phy_op)
 {
 	u32 ret = SUCCESS;
-    MY_ASSERT(log_op, ctx.child_ops.size() == 1);
+    MY_ASSERT(log_op, ctx.child_ops.size() > 1,
+              ctx.child_ops.size() == log_op->childs.size());
     MY_ASSERT(LOG_SUBQUERY_EVALUATE == log_op->type());
     LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
     PhySubqueryEvaluate_s phy_subquery_evaluate = PhySubqueryEvaluate::make_subquery_evaluate(ctx.child_ops[0]);
-    phy_subquery_evaluate->add_children(ctx.phy_subplans);
+    MY_ASSERT(ctx.child_ops.size()-1 == subquery_evaluate_op->subqueries.size());
+    ctx.subplan_map.clear();
+    for (u32 i = 1; i < ctx.child_ops.size(); ++i) {
+        SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i-1];
+        ctx.subplan_map[subquery] = ctx.child_ops[i];
+        phy_subquery_evaluate->add_child(ctx.child_ops[i]);
+    }
     phy_op = phy_subquery_evaluate;
 	return ret;
 }

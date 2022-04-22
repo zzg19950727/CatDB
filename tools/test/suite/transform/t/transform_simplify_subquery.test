@@ -1,0 +1,77 @@
+drop database if exists test;
+create database test;
+use test;
+
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+
+create table t1(c1 int, c2 int, c3 int);
+create table t2(c1 int, c2 int, c3 int);
+create table t3(c1 int, c2 int, c3 int);
+create table t4(c1 int, c2 int, c3 int);
+
+insert into t1 values(1,1,1);
+insert into t1 values(2,2,2);
+insert into t1 values(3,3,3);
+insert into t1 values(4,4,4);
+insert into t1 values(5,5,5);
+
+insert into t2 select * from t1;
+insert into t3 select * from t1;
+insert into t4 select * from t1;
+
+explain select * from t1 where c1 > any (select /*+no_unnest*/ c2 from t2 limit 0);
+select * from t1 where c1 > any (select /*+no_unnest*/ c2 from t2 limit 0);
+
+explain select * from t1 where c1 > any (select /*+no_unnest*/ c2 from t2 limit 1);
+select * from t1 where c1 > any (select /*+no_unnest*/ c2 from t2 limit 1);
+
+explain select * from t1 where c1 > all (select /*+no_unnest*/ c2 from t2 limit 1,0);
+select * from t1 where c1 > all (select /*+no_unnest*/ c2 from t2 limit 1,0);
+
+explain select * from t1 where exists(select /*+no_unnest*/ c2 from t2 limit 0);
+select * from t1 where exists(select /*+no_unnest*/ c2 from t2 limit 0);
+
+explain select * from t1 where not exists(select /*+no_unnest*/ c2 from t2 limit 0);
+select * from t1 where not exists(select /*+no_unnest*/ c2 from t2 limit 0);
+
+explain select (select count(*) from t2 limit 1,1) as c1 from t1;
+select (select count(*) from t2 limit 1,1) as c1 from t1;
+
+explain select (select count(*) from t2 limit 1) as c1 from t1;
+select (select count(*) from t2 limit 1) as c1 from t1;
+
+explain select * from t1 where c1 > any (select /*+no_unnest*/ count(*) from t2);
+select * from t1 where c1 > any (select /*+no_unnest*/ count(*) from t2);
+
+explain select * from t1 where c1 > all (select /*+no_unnest*/ sum(c2) from t2);
+select * from t1 where c1 > all (select /*+no_unnest*/ sum(c2) from t2);
+
+explain select * from t1 where exists(select /*+no_unnest*/ max(c2) from t2);
+select * from t1 where exists(select /*+no_unnest*/ max(c2) from t2);
+
+explain select * from t1 where not exists(select /*+no_unnest*/ min(c2) from t2);
+select * from t1 where not exists(select /*+no_unnest*/ min(c2) from t2);
+
+explain select * from t1 where exists(select 1 from t2 order by c1 limit 10);
+select * from t1 where exists(select 1 from t2 order by c1 limit 10);
+
+explain select * from t1 where exists(select c1, sum(c2) from t2 group by c1 having count(*) > 0);
+select * from t1 where exists(select c1, sum(c2) from t2 group by c1 having count(*) > 0);
+
+explain select * from t1 where exists(select c1, sum(c2) from t2 group by c1);
+select * from t1 where exists(select c1, sum(c2) from t2 group by c1);
+
+explain select * from t1 where c1 > any(select sum(c2) from t2 group by c1);
+select * from t1 where c1 > any(select sum(c2) from t2 group by c1);
+
+explain select * from t1 where exists(select distinct c1 from t2);
+select * from t1 where exists(select distinct c1 from t2);
+
+explain select * from t1 where exists(select c1 from t2 union select c2 from t3);
+select * from t1 where exists(select c1 from t2 union select c2 from t3);
+
+explain select * from t1 where exists(select c1, c2 from t2 intersect select c2,c3 from t3);
+select * from t1 where exists(select c1,c2 from t2 intersect select c2,c3 from t3);

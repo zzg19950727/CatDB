@@ -21,6 +21,7 @@ print_usage() {
     echo "      build                       rebuild server"
     echo "      random_test                 generate random test case"
     echo "      test                        run test"
+    echo "      log                         get trace log"
 
 }
 
@@ -188,7 +189,7 @@ run_test() {
 }
 
 watching_log() {
-    tailf $LOG_FILE
+    grep $1 $LOG_FILE | vim -
 }
 
 if [ $# != 0 ]
@@ -219,7 +220,7 @@ then
     elif [ "$1" == "log" ]
     then
         read_conf
-        watching_log
+        watching_log $2
     elif [ "$1" == "build" ]
     then
         build_server $2

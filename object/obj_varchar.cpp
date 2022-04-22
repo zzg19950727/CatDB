@@ -110,9 +110,17 @@ u32 Varchar::cast_to(const DataType& type, Object_s &res)
 	if (type.is_varchar()) {
 		res = Object_s(new Varchar(data, length, type));
 	} else if (type.is_number()) {
-		res = Object_s(new Number(data, length, type));
+		if (!Number::is_valid_number(String(data, length))) {
+			ret = INVALID_NUMBER;
+		} else {
+			res = Object_s(new Number(data, length, type));
+		}
 	} else if (type.is_datetime()) {
-		res = Object_s(new DateTime(data, length, type));
+		if (!DateTime::is_valid_datetime(String(data, length))) {
+			ret = INVALID_DATETIME;
+		} else {
+			res = Object_s(new DateTime(data, length, type));
+		}
 	} else {
 		ret = INVALID_CAST;
 	}
@@ -260,10 +268,10 @@ u32 Varchar::str_length(const Varchar_s& str, Number_s &len)
 {
 	u32 ret = SUCCESS;
 	if (str->is_null()) {
-		len = Number::make_object((longlong)0);
+		len = Number::make_int_object(0);
 		len->set_null();
 	} else {
-		len = Number::make_object((longlong)str->length);
+		len = Number::make_int_object(str->length);
 	}
 	return ret;
 }

@@ -175,8 +175,10 @@ Query Plan:
 +----------------------------------------------+
 Outputs & filters:
 0 - output([c1], [c2], [c3])
+limit([2])
 1 - output([c1], [c2], [c3])
 2 - output([t1.c1], [t1.c2], [t1.c3])
+limit([3])
 3 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
@@ -211,8 +213,8 @@ access([t1.c1], [t1.c2], [t1.c3])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-MERGE(@SEL2)
 MERGE(@SEL3)
+MERGE(@SEL2)
 END_OUTLINE_DATA
 */
 
@@ -284,9 +286,9 @@ access([t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
-USE_HASH(@SEL1 t2)
 MERGE(@SEL2)
+USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -324,10 +326,10 @@ access([t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
-USE_HASH(@SEL1 t2)
-MERGE(@SEL3)
 MERGE(@SEL2)
+MERGE(@SEL3)
+USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -371,10 +373,10 @@ access([t1.c1], [t1.c2], [t1.c3])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t3, (t2, t1))
+MERGE(@SEL2)
 USE_HASH(@SEL1 t1)
 USE_HASH(@SEL1 t2, t1)
-MERGE(@SEL2)
+LEADING(@SEL1 t3, (t2, t1))
 END_OUTLINE_DATA
 */
 
@@ -394,22 +396,22 @@ select t1.* from (select t2.* from t2, t3 where t2.c1 = t3.c1)v1 left join t1 on
 explain select t1.* from (select t2.* from t2, t3 where t2.c1 = t3.c1)v1 right join t1 on t1.c1 = v1.c1
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | HASH LeftOuter JOIN     |      | 1         | 16   |
-| 1  |  TABLE SCAN             | T1   | 1         | 4    |
-| 2  |  NESTED LOOP Inner JOIN |      | 1         | 12   |
-| 3  |   TABLE SCAN            | T2   | 1         | 4    |
-| 4  |   TABLE SCAN            | T3   | 1         | 4    |
-+--------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 1         | 12   |
+| 1  |  TABLE SCAN         | T1   | 1         | 4    |
+| 2  |  HASH Inner JOIN    |      | 1         | 8    |
+| 3  |   TABLE SCAN        | T2   | 1         | 4    |
+| 4  |   TABLE SCAN        | T3   | 1         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([t2.c1 = t3.c1])
 equal_join_conditions([t1.c1 = t2.c1])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
-2 - output([t2.c1], [t3.c1])
+2 - output([t2.c1])
+equal_join_conditions([t2.c1 = t3.c1])
 3 - output([t2.c1])
 access([t2.c1])
 4 - output([t3.c1])
@@ -418,10 +420,10 @@ access([t3.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, (t2, t3))
-USE_NL(@SEL1 t3)
-USE_HASH(@SEL1 t2, t3)
 MERGE(@SEL2)
+USE_HASH(@SEL1 t3)
+USE_HASH(@SEL1 t2, t3)
+LEADING(@SEL1 t1, (t2, t3))
 END_OUTLINE_DATA
 */
 
@@ -441,37 +443,48 @@ select t1.* from (select t2.* from t2, t3 where t2.c1 = t3.c1)v1 right join t1 o
 explain select v1.* from (select t2.c1 + t3.c2 as c1, t2.c2 from t2, t3 where t2.c1 = t3.c1)v1 right join t1 on t1.c1 = v1.c1
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR                | NAME | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | HASH LeftOuter JOIN     |      | 1         | 17   |
-| 1  |  TABLE SCAN             | T1   | 1         | 4    |
-| 2  |  NESTED LOOP Inner JOIN |      | 1         | 12   |
-| 3  |   TABLE SCAN            | T2   | 1         | 4    |
-| 4  |   TABLE SCAN            | T3   | 1         | 4    |
-+--------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 1         | 12   |
+| 1  |  TABLE SCAN         | T1   | 1         | 4    |
+| 2  |  HASH Inner JOIN    |      | 1         | 8    |
+| 3  |   TABLE SCAN        | T2   | 1         | 4    |
+| 4  |   TABLE SCAN        | T3   | 1         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END], [t2.c2])
-filters([t2.c1 = t3.c1])
 equal_join_conditions([t1.c1 = CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END])
 1 - output([t1.c1])
 access([t1.c1])
-2 - output([t2.ROWID], [t2.c1], [t3.c2], [t3.c1], [t2.c2])
-3 - output([t2.ROWID], [t2.c1], [t2.c2])
-access([t2.c1], [t2.ROWID], [t2.c2])
-4 - output([t3.c2], [t3.c1])
-access([t3.c1], [t3.c2])
+2 - output([t2.ROWID], [t2.c1], [t3.c2], [t2.c2])
+equal_join_conditions([t2.c1 = t3.c1])
+3 - output([t2.c1], [t2.ROWID], [t2.c2])
+access([t2.ROWID], [t2.c1], [t2.c2])
+4 - output([t3.c1], [t3.c2])
+access([t3.c2], [t3.c1])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, (t2, t3))
-USE_NL(@SEL1 t3)
-USE_HASH(@SEL1 t2, t3)
 MERGE(@SEL2)
+USE_HASH(@SEL1 t3)
+USE_HASH(@SEL1 t2, t3)
+LEADING(@SEL1 t1, (t2, t3))
 END_OUTLINE_DATA
 */
 
-select v1.* from (select t2.c1 + t3.c2 as c1 from t2, t2.c2 t3 where t2.c1 = t3.c1)v1 right join t1 on t1.c1 = v1.c1
+select v1.* from (select t2.c1 + t3.c2 as c1, t2.c2 from t2, t3 where t2.c1 = t3.c1)v1 right join t1 on t1.c1 = v1.c1
+
++---------------------------------------------------------------------------------------+-------+
+| CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END | t2.c2 |
++---------------------------------------------------------------------------------------+-------+
+| 2                                                                                     | 1     |
+| 4                                                                                     | 2     |
+| NULL                                                                                  | NULL  |
+| NULL                                                                                  | NULL  |
+| NULL                                                                                  | NULL  |
++---------------------------------------------------------------------------------------+-------+
+5 rows in set
 
 Bye

@@ -195,7 +195,7 @@ u32 Page::deserialize_row(RowInfo * row_info, u32 row_id, Row_s & row)const
 			}
 			row->set_cell(i, cell);
 		} else if (column_id == ROWID_COLUMN_ID) {
-			Object_s row_id_value = Number::make_object((longlong)row_id);
+			Object_s row_id_value = Number::make_int_object(row_id);
 			row->set_cell(i, row_id_value);
 		} else {
 			LOG_ERR("row desc error when project row", K(col_desc));

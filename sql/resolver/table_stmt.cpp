@@ -9,6 +9,8 @@ using namespace::CatDB::Transform;
 
 TableStmt::TableStmt()
 {
+	table_type = BasicTable;
+	table_id = 0;
 }
 
 TableStmt::~TableStmt()

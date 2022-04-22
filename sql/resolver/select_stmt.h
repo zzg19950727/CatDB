@@ -66,6 +66,7 @@ namespace CatDB {
 			bool has_limit() const;
 			bool has_distinct() const;
 			Vector<ExprStmt_s> &get_aggr_exprs()	{ return aggr_exprs; }
+			void get_order_by_exprs(Vector<ExprStmt_s> &order_by_exprs);
 		protected:
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
 			virtual u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 

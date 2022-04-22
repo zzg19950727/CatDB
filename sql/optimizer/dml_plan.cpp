@@ -35,7 +35,7 @@ u32 DMLPlan::build_plan()
     return ret;
 }
 
-u32 DMLPlan::generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 
+u32 DMLPlan::generate_conflict_detectors(Vector<TableStmt_s> &tables, 
                                          Vector<ExprStmt_s> &conds,
 										 Vector<ConflictDetector_s> &detectors)
 {
@@ -84,6 +84,9 @@ u32 DMLPlan::generate_cross_product_detector(Vector<TableStmt_s> &tables,
                                              Vector<ConflictDetector_s> &outer_join_detectors)
 {
     u32 ret = SUCCESS;
+    if (tables.size() < 2) {
+        return ret;
+    }
     ConflictDetector_s detector = ConflictDetector::make_conflict_detector();
     for (u32 i = 0; i < tables.size(); ++i) {
         detector->L_DS.add_members(tables[i]->table_ids);
@@ -143,7 +146,7 @@ u32 DMLPlan::generate_outer_join_detecotrs(TableStmt_s &table,
         Vector<TableStmt_s> flatten_tables;
         //抚平inner join
         CHECK(flatten_table_items(table, flatten_tables, conds));
-        CHECK(generate_conflict_detecotrs(flatten_tables, conds, detectors));
+        CHECK(generate_conflict_detectors(flatten_tables, conds, detectors));
     } else {
         Vector<ConflictDetector_s> left_detectors;
         Vector<ConflictDetector_s> right_detectors;
@@ -326,7 +329,9 @@ u32 DMLPlan::inner_generate_inner_join_detectors(ConflictDetector_s &detector)
 u32 DMLPlan::add_join_condition(const ExprStmt_s& cond, JoinInfo &info)
 {
     u32 ret = SUCCESS;
-    if (cond->has_flag(IS_OP_EXPR)) {
+    if (cond->has_flag(HAS_SUBQUERY)) {
+        ret = OPERATION_NOT_SUPPORT;
+    } else if (cond->has_flag(IS_OP_EXPR)) {
         const OpExprStmt_s op_expr = cond;
         if (OP_EQ == op_expr->op_type) {
             info.equal_join_condition.push_back(cond);
@@ -457,9 +462,11 @@ u32 DMLPlan::generate_join_operator(LogicalOperator_s &left,
     join->equal_join_condition = join_info.equal_join_condition;
     join->other_join_condition = join_info.other_join_condition;
     op = join;
-    op->filters = join_info.outer_join_filter;
     op->add_table_ids(left->get_tables_ids());
     op->add_table_ids(right->get_tables_ids());
+    CHECK(add_filter(op, 
+                     join_info.outer_join_filter,
+                     true));
     CHECK(op->compute_property());
     return ret;
 }
@@ -493,7 +500,7 @@ u32 DMLPlan::generate_join_order_with_basic_table(BasicTableStmt_s table_stmt, L
         CHECK(set_table_access_columns(op));
     }
     op->init(query_ctx, est_info);
-    op->filters = table_stmt->table_filter;
+    CHECK(add_filter(op, table_stmt->table_filter));
     CHECK(op->compute_property());
     return ret;
 }
@@ -506,7 +513,7 @@ u32 DMLPlan::generate_join_order_with_view_table(ViewTableStmt_s table_stmt, Log
     op = LogView::make_view(table_stmt, op);
     op->init(query_ctx, est_info);
     CHECK(set_table_access_columns(op));
-    op->filters = table_stmt->table_filter;
+    CHECK(add_filter(op, table_stmt->table_filter));
     CHECK(op->compute_property());
     return ret;
 }
@@ -537,10 +544,18 @@ u32 DMLPlan::generate_join_order()
     MY_ASSERT(lex_stmt, lex_stmt->stmt_type() !=  DoCMD)
     DMLStmt_s stmt = lex_stmt;
     Vector<TableStmt_s> base_tables;
-    CHECK(generate_conflict_detecotrs(stmt->from_stmts, 
-                                      stmt->where_stmt, 
+    Vector<ExprStmt_s> subquery_exprs;
+    Vector<ExprStmt_s> none_subquery_exprs;
+    CHECK(ExprUtils::extract_subquery_exprs(stmt->where_stmt, 
+                                            subquery_exprs, 
+                                            none_subquery_exprs));
+    CHECK(generate_conflict_detectors(stmt->from_stmts, 
+                                      none_subquery_exprs, 
                                       conflict_detectors));
-    LOG_TRACE("succeed to generate conflict detectors", K(stmt->from_stmts), K(conflict_detectors));
+    LOG_TRACE("succeed to generate conflict detectors", 
+                            K(stmt->from_stmts), 
+                            K(none_subquery_exprs),
+                            K(conflict_detectors));
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
     CHECK(init_leading_info());
@@ -554,6 +569,7 @@ u32 DMLPlan::generate_join_order()
     MY_ASSERT(join_orders.size() == base_tables.size());
     MY_ASSERT(join_orders[base_tables.size() - 1].size() == 1);
     root_operator = join_orders[base_tables.size() - 1][0];
+    CHECK(add_filter(root_operator, subquery_exprs));
     MY_ASSERT(root_operator);
     CHECK(generate_plan_hint());
     LOG_TRACE("succeed to generate join order");
@@ -961,26 +977,77 @@ u32 DMLPlan::set_table_access_columns(LogicalOperator_s &op)
     return ret;
 }
 
-u32 DMLPlan::generate_subplan()
+u32 DMLPlan::add_filter(LogicalOperator_s &log_op, 
+                        Vector<ExprStmt_s> &exprs,
+                        bool is_join_condition)
 {
     u32 ret = SUCCESS;
-    DMLStmt_s stmt = lex_stmt;
-    Vector<SubQueryStmt_s> &subquery_exprs = stmt->get_subquery_exprs();
+    Vector<ExprStmt_s> subquery_exprs;
+    Vector<ExprStmt_s> none_subquery_exprs;
+    CHECK(ExprUtils::extract_subquery_exprs(exprs, 
+                                            subquery_exprs, 
+                                            none_subquery_exprs));
+    append(log_op->filters, none_subquery_exprs);
+    CHECK(log_op->compute_property());
+    CHECK(generate_subquery_evaluate(log_op, 
+                                     subquery_exprs, 
+                                     true, 
+                                     true,
+                                     !is_join_condition));
+    return ret;
+}
+
+u32 DMLPlan::generate_subquery_evaluate(LogicalOperator_s &log_op, 
+                                        Vector<ExprStmt_s> &exprs, 
+                                        bool is_filter,
+                                        bool ignore_aggr,
+                                        bool ignore_used_expr)
+{
+    u32 ret = SUCCESS;
+    Vector<SubQueryStmt_s> subquery_exprs;
+    Vector<ExprStmt_s> copy_exprs = exprs;
+    if (ignore_used_expr) {
+        CHECK(ExprUtils::remote_items(copy_exprs, used_subquery_exprs));
+        append(used_subquery_exprs, copy_exprs);
+    }
+    CHECK(ExprUtils::extract_subquery_exprs(copy_exprs, 
+                                            subquery_exprs, 
+                                            ignore_aggr));
     if (subquery_exprs.empty()) {
         return ret;
     }
-    MY_ASSERT(root_operator);
-    LogSubQueryEvaluate_s subquery_evaluate = LogSubQueryEvaluate::make_subquery_evaluate(root_operator);
-    subquery_evaluate->init(query_ctx, est_info);
+    MY_ASSERT(log_op);
+    LogSubQueryEvaluate_s subquery_evaluate;
+    if (LOG_SUBQUERY_EVALUATE == log_op->type()) {
+        subquery_evaluate = log_op;
+    } else {
+        subquery_evaluate = LogSubQueryEvaluate::make_subquery_evaluate(log_op);
+        subquery_evaluate->init(query_ctx, est_info);
+        log_op = subquery_evaluate;
+    }
+    CHECK(generate_subquery_evaluate(subquery_exprs, subquery_evaluate));
+    if (is_filter) {
+        append(subquery_evaluate->filters, exprs);
+    }
+    return ret;
+}
+
+u32 DMLPlan::generate_subquery_evaluate(Vector<SubQueryStmt_s> &subquery_exprs, 
+                                        LogSubQueryEvaluate_s &log_op)
+{
+    u32 ret = SUCCESS;
+    if (subquery_exprs.empty()) {
+        return ret;
+    }
+    MY_ASSERT(log_op);
     for (u32 i = 0; i < subquery_exprs.size(); ++i) {
         SubQueryStmt_s &subquery = subquery_exprs[i];
-        subquery->set_subquery_id(i);
+        subquery->set_subquery_id(log_op->get_next_subquery_id());
         LogicalOperator_s subplan;
         CHECK(generate_sub_select_plan_tree(subquery->query_stmt, subplan));
-        subquery_evaluate->add_subplan(subquery, subplan);
+        log_op->add_subplan(subquery, subplan);
     }
-    root_operator = subquery_evaluate;
-    CHECK(root_operator->compute_property());
+    CHECK(log_op->compute_property());
     return ret;
 }
 
@@ -1083,6 +1150,8 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
         CHECK(query_ctx->query_hint.generate_join_outline(stmt->get_qb_name(),
                                                           right_table_names,
                                                           join_op->join_algo));
+    } else if (LOG_SUBQUERY_EVALUATE == op->type()) {
+        CHECK(generate_plan_hint(op->childs[0], table_names, table));
     } else {
         ret = ERR_UNEXPECTED;
     }

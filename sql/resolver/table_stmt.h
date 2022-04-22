@@ -106,6 +106,7 @@ namespace CatDB {
 				KV(table_type, TableTypeString[table_type]),
 				KV(join_type, JoinTypeString[join_type]),
 				K(table_id),
+				K(table_ids),
 				K(left_table),
 				K(right_table),
 				K(join_condition),

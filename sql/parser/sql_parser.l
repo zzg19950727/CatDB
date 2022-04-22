@@ -100,6 +100,7 @@ end_comment		\*\/
 "on"			{ return CatDB::SqlParser::make_ON(loc); }
 "order"			{ return CatDB::SqlParser::make_ORDER(loc); }
 "outer"			{ return CatDB::SqlParser::make_OUTER(loc); }
+"partition"		{ return CatDB::SqlParser::make_PARTITION(loc); }
 "processlist"	{ return CatDB::SqlParser::make_PROCESSLIST(loc); }
 "right"			{ return CatDB::SqlParser::make_RIGHT(loc); }
 "rowid"			{ return CatDB::SqlParser::make_ROWID(loc); }
@@ -157,8 +158,19 @@ end_comment		\*\/
 "csv"			{ return CatDB::SqlParser::make_CSV(loc); }
 "year"			{ return CatDB::SqlParser::make_YEAR(loc); }
 "view"			{ return CatDB::SqlParser::make_VIEW(loc); }
+"sum"			{ return CatDB::SqlParser::make_SUM(loc); }
+"count"			{ return CatDB::SqlParser::make_COUNT(loc); }
+"avg"			{ return CatDB::SqlParser::make_AVG(loc); }
+"min"			{ return CatDB::SqlParser::make_MIN(loc); }
+"max"			{ return CatDB::SqlParser::make_MAX(loc); }
+"rank"			{ return CatDB::SqlParser::make_RANK(loc); }
+"over"			{ return CatDB::SqlParser::make_OVER(loc); }
+"dense_rank"			{ return CatDB::SqlParser::make_DENSE_RANK(loc); }
+"row_number"			{ return CatDB::SqlParser::make_ROW_NUMBER(loc); }
 "begin_outline_data"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE_DATA(loc); }
 "end_outline_data"		{ return CatDB::SqlParser::make_END_OUTLINE_DATA(loc); }
+"simplify_sq"	{ return CatDB::SqlParser::make_SIMPLIFY_SQ(loc); }
+"no_simplify_sq" { return CatDB::SqlParser::make_NO_SIMPLIFY_SQ(loc); }
 
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }

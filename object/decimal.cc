@@ -161,10 +161,10 @@
 #define LFACTOR1		10000000000ULL
 #define LFACTOR2		100000000000ULL
 #define ULONGLONG_MAX	(~(ulonglong) 0)
-#define INT_MAX			2147483647	
+#define MY_INT_MAX			2147483647	
 #define LONGLONG_MAX	9223372036854775807
 #define LONGLONG_MIN	((long long) 0x8000000000000000LL)
-#define INT_MIN			(-2147483647 - 1) // minimum (signed) int value
+#define MY_INT_MIN			(-2147483647 - 1) // minimum (signed) int value
 #define DECIMAL_NOT_SPECIFIED 39
 #define FLOATING_POINT_BUFFER (311 + DECIMAL_NOT_SPECIFIED)
 
@@ -1144,12 +1144,12 @@ internal_str2dec(const char *from, decimal_t *to, char **end, my_bool fixed)
         error= E_DEC_BAD_NUM;
         goto fatal_error;
       }
-      if (exponent > INT_MAX/2 || (str_error == 0 && exponent < 0))
+      if (exponent > MY_INT_MAX/2 || (str_error == 0 && exponent < 0))
       {
         error= E_DEC_OVERFLOW;
         goto fatal_error;
       }
-      if (exponent < INT_MIN/2 && error != E_DEC_OVERFLOW)
+      if (exponent < MY_INT_MIN/2 && error != E_DEC_OVERFLOW)
       {
         error= E_DEC_TRUNCATED;
         goto fatal_error;

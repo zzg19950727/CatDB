@@ -4,6 +4,10 @@
 #include "transform_post_process.h"
 #include "transform_full_outer_join.h"
 #include "transform_merge_view.h"
+#include "transform_unnest_J_N_subquery.h"
+#include "transform_unnest_JA_subquery.h"
+#include "transform_simplify_subquery.h"
+#include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
@@ -38,12 +42,16 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
     TRANSFORM(TransformPreProcess, stmt, ctx, happened);
     for (u32 i = 0; i < MAX_TRANSFORM_COUNT; ++i) {
         happened = false;
+        //must transfrom at first time
         TRANSFORM(TransformFullOuterJoin, stmt, ctx, happened);
+        //
         TRANSFORM(TransformMergeView, stmt, ctx, happened);
-        //TRANSFORM(TransformJASubquery, stmt, ctx, happened);
-        //TRANSFORM(TransformNSubquery, stmt, ctx, happened);
-        //TRANSFORM(TransformASubquery, stmt, ctx, happened);
-        //TRANSFORM(TransformJSubquery, stmt, ctx, happened);
+        //
+        TRANSFORM(TransformSimplifySubquery, stmt, ctx, happened);
+        //
+        TRANSFORM(TransformUnnestJASubquery, stmt, ctx, happened);
+        //
+        TRANSFORM(TransformUnnestJNSubquery, stmt, ctx, happened);
         if (!happened) {
             break;
         } else {

@@ -36,7 +36,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([COUNT(DISTINCT t1.c3)], [SUM(DISTINCT t1.c2) / COUNT(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
+0 - output([COUNT(DISTINCT t1.c3)], [CAST(SUM(DISTINCT t1.c2) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 aggr_exprs([COUNT(DISTINCT t1.c3)], [SUM(DISTINCT t1.c2)], [COUNT(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
 access([t1.c3], [t1.c2], [t1.c4])
@@ -49,11 +49,11 @@ END_OUTLINE_DATA
 
 SELECT  COUNT(DISTINCT T1.C3) AS C1, AVG(DISTINCT T1.C2) AS C2, COUNT(T1.C3) AS C3, COUNT(T1.C4) AS C4 FROM T1 T1
 
-+------+-------------+------+------+
-| c1   | c2          | c3   | c4   |
-+------+-------------+------+------+
-| 6    | 5.833333333 | 10   | 10   |
-+------+-------------+------+------+
++------+-------------------------------------------------+------+------+
+| c1   | c2                                              | c3   | c4   |
++------+-------------------------------------------------+------+------+
+| 6    | 5.833333333333333333333333333333333333333333333 | 10   | 10   |
++------+-------------------------------------------------+------+------+
 1 row in set
 
 EXPLAIN SELECT  COUNT(DISTINCT T1.C2) AS C1, MIN(T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, COUNT(DISTINCT T1.C2) AS C4 FROM T1 T1
@@ -96,7 +96,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(t1.c4)], [SUM(t1.c1) / COUNT(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)])
+0 - output([SUM(t1.c4)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)])
 aggr_exprs([SUM(t1.c4)], [SUM(t1.c1)], [COUNT(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)])
 1 - output([t1.c4], [t1.c1], [t1.c3], [t1.c2])
 access([t1.c4], [t1.c1], [t1.c3], [t1.c2])
@@ -109,11 +109,11 @@ END_OUTLINE_DATA
 
 SELECT  SUM(T1.C4) AS C1, AVG(T1.C1) AS C2, COUNT(DISTINCT T1.C3) AS C3, MIN(DISTINCT T1.C2) AS C4 FROM T1 T1
 
-+-----------+-------------+------+------+
-| c1        | c2          | c3   | c4   |
-+-----------+-------------+------+------+
-| 53.000000 | 2.700000000 | 6    | 2    |
-+-----------+-------------+------+------+
++------+-------------------------------------------------+------+------+
+| c1   | c2                                              | c3   | c4   |
++------+-------------------------------------------------+------+------+
+| 53   | 2.700000000000000000000000000000000000000000000 | 6    | 2    |
++------+-------------------------------------------------+------+------+
 1 row in set
 
 EXPLAIN SELECT  COUNT(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, SUM(DISTINCT T1.C4) AS C3, AVG(DISTINCT T1.C1) AS C4 FROM T1 T1
@@ -126,7 +126,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([COUNT(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(DISTINCT t1.c4)], [SUM(DISTINCT t1.c1) / COUNT(DISTINCT t1.c1)])
+0 - output([COUNT(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(DISTINCT t1.c4)], [CAST(SUM(DISTINCT t1.c1) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c1)])
 aggr_exprs([COUNT(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(DISTINCT t1.c4)], [SUM(DISTINCT t1.c1)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c2], [t1.c4], [t1.c1])
 access([t1.c2], [t1.c4], [t1.c1])
@@ -139,11 +139,11 @@ END_OUTLINE_DATA
 
 SELECT  COUNT(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, SUM(DISTINCT T1.C4) AS C3, AVG(DISTINCT T1.C1) AS C4 FROM T1 T1
 
-+------+------+-----------+-------------+
-| c1   | c2   | c3        | c4          |
-+------+------+-----------+-------------+
-| 6    | 9    | 29.000000 | 3.500000000 |
-+------+------+-----------+-------------+
++------+------+------+-------------------------------------------------+
+| c1   | c2   | c3   | c4                                              |
++------+------+------+-------------------------------------------------+
+| 6    | 9    | 29   | 3.500000000000000000000000000000000000000000000 |
++------+------+------+-------------------------------------------------+
 1 row in set
 
 EXPLAIN SELECT  AVG(T1.C1) AS C1, SUM(DISTINCT T1.C4) AS C2, COUNT(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
@@ -156,7 +156,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(t1.c1) / COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
+0 - output([CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
 aggr_exprs([SUM(t1.c1)], [COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
@@ -169,11 +169,11 @@ END_OUTLINE_DATA
 
 SELECT  AVG(T1.C1) AS C1, SUM(DISTINCT T1.C4) AS C2, COUNT(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
-+-------------+-----------+------+------+
-| c1          | c2        | c3   | c4   |
-+-------------+-----------+------+------+
-| 2.700000000 | 29.000000 | 10   | 0    |
-+-------------+-----------+------+------+
++-------------------------------------------------+------+------+------+
+| c1                                              | c2   | c3   | c4   |
++-------------------------------------------------+------+------+------+
+| 2.700000000000000000000000000000000000000000000 | 29   | 10   | 0    |
++-------------------------------------------------+------+------+------+
 1 row in set
 
 EXPLAIN SELECT  COUNT(DISTINCT T1.C3) AS C1, MAX(T1.C4) AS C2, MIN(T1.C2) AS C3, COUNT(T1.C3) AS C4 FROM T1 T1
@@ -216,7 +216,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([MIN(DISTINCT t1.c1)], [SUM(t1.c4) / COUNT(t1.c4)], [MIN(DISTINCT t1.c3)], [COUNT(t1.c1)])
+0 - output([MIN(DISTINCT t1.c1)], [CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [MIN(DISTINCT t1.c3)], [COUNT(t1.c1)])
 aggr_exprs([MIN(DISTINCT t1.c1)], [SUM(t1.c4)], [COUNT(t1.c4)], [MIN(DISTINCT t1.c3)], [COUNT(t1.c1)])
 1 - output([t1.c1], [t1.c4], [t1.c3])
 access([t1.c1], [t1.c4], [t1.c3])
@@ -229,11 +229,11 @@ END_OUTLINE_DATA
 
 SELECT  MIN(DISTINCT T1.C1) AS C1, AVG(T1.C4) AS C2, MIN(DISTINCT T1.C3) AS C3, COUNT(T1.C1) AS C4 FROM T1 T1
 
-+------+-------------+------+------+
-| c1   | c2          | c3   | c4   |
-+------+-------------+------+------+
-| 0    | 5.300000000 | 0    | 10   |
-+------+-------------+------+------+
++------+-------------------------------------------------+------+------+
+| c1   | c2                                              | c3   | c4   |
++------+-------------------------------------------------+------+------+
+| 0    | 5.300000000000000000000000000000000000000000000 | 0    | 10   |
++------+-------------------------------------------------+------+------+
 1 row in set
 
 EXPLAIN SELECT  SUM(DISTINCT T1.C1) AS C1, MIN(T1.C2) AS C2, COUNT(T1.C3) AS C3, MAX(DISTINCT T1.C1) AS C4 FROM T1 T1
@@ -259,11 +259,11 @@ END_OUTLINE_DATA
 
 SELECT  SUM(DISTINCT T1.C1) AS C1, MIN(T1.C2) AS C2, COUNT(T1.C3) AS C3, MAX(DISTINCT T1.C1) AS C4 FROM T1 T1
 
-+-----------+------+------+------+
-| c1        | c2   | c3   | c4   |
-+-----------+------+------+------+
-| 21.000000 | 2    | 10   | 7    |
-+-----------+------+------+------+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 21   | 2    | 10   | 7    |
++------+------+------+------+
 1 row in set
 
 EXPLAIN SELECT  SUM(DISTINCT T1.C2) AS C1, AVG(T1.C4) AS C2, COUNT(DISTINCT T1.C3) AS C3, SUM(T1.C3) AS C4 FROM T1 T1
@@ -276,7 +276,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(DISTINCT t1.c2)], [SUM(t1.c4) / COUNT(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
+0 - output([SUM(DISTINCT t1.c2)], [CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 aggr_exprs([SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c3])
@@ -289,11 +289,11 @@ END_OUTLINE_DATA
 
 SELECT  SUM(DISTINCT T1.C2) AS C1, AVG(T1.C4) AS C2, COUNT(DISTINCT T1.C3) AS C3, SUM(T1.C3) AS C4 FROM T1 T1
 
-+-----------+-------------+------+-----------+
-| c1        | c2          | c3   | c4        |
-+-----------+-------------+------+-----------+
-| 35.000000 | 5.300000000 | 6    | 28.000000 |
-+-----------+-------------+------+-----------+
++------+-------------------------------------------------+------+------+
+| c1   | c2                                              | c3   | c4   |
++------+-------------------------------------------------+------+------+
+| 35   | 5.300000000000000000000000000000000000000000000 | 6    | 28   |
++------+-------------------------------------------------+------+------+
 1 row in set
 
 EXPLAIN SELECT  MIN(T1.C4) AS C1, COUNT(T1.C1) AS C2, AVG(DISTINCT T1.C4) AS C3, SUM(T1.C1) AS C4 FROM T1 T1
@@ -306,7 +306,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([MIN(t1.c4)], [COUNT(t1.c1)], [SUM(DISTINCT t1.c4) / COUNT(DISTINCT t1.c4)], [SUM(t1.c1)])
+0 - output([MIN(t1.c4)], [COUNT(t1.c1)], [CAST(SUM(DISTINCT t1.c4) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c4)], [SUM(t1.c1)])
 aggr_exprs([MIN(t1.c4)], [COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(DISTINCT t1.c4)], [SUM(t1.c1)])
 1 - output([t1.c4], [t1.c1])
 access([t1.c4], [t1.c1])
@@ -319,11 +319,11 @@ END_OUTLINE_DATA
 
 SELECT  MIN(T1.C4) AS C1, COUNT(T1.C1) AS C2, AVG(DISTINCT T1.C4) AS C3, SUM(T1.C1) AS C4 FROM T1 T1
 
-+------+------+-------------+-----------+
-| c1   | c2   | c3          | c4        |
-+------+------+-------------+-----------+
-| 0    | 10   | 5.800000000 | 27.000000 |
-+------+------+-------------+-----------+
++------+------+-------------------------------------------------+------+
+| c1   | c2   | c3                                              | c4   |
++------+------+-------------------------------------------------+------+
+| 0    | 10   | 5.800000000000000000000000000000000000000000000 | 27   |
++------+------+-------------------------------------------------+------+
 1 row in set
 
 EXPLAIN SELECT  AVG(T1.C3) AS C1, MAX(T1.C1) AS C2, MAX(T1.C2) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
@@ -336,7 +336,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(t1.c3) / COUNT(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
+0 - output([CAST(SUM(t1.c3) AS NUMBER(72, 38)) / COUNT(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([SUM(t1.c3)], [COUNT(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c3], [t1.c1], [t1.c2])
 access([t1.c3], [t1.c1], [t1.c2])
@@ -349,11 +349,11 @@ END_OUTLINE_DATA
 
 SELECT  AVG(T1.C3) AS C1, MAX(T1.C1) AS C2, MAX(T1.C2) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
-+-------------+------+------+------+
-| c1          | c2   | c3   | c4   |
-+-------------+------+------+------+
-| 2.800000000 | 7    | 9    | 6    |
-+-------------+------+------+------+
++-------------------------------------------------+------+------+------+
+| c1                                              | c2   | c3   | c4   |
++-------------------------------------------------+------+------+------+
+| 2.800000000000000000000000000000000000000000000 | 7    | 9    | 6    |
++-------------------------------------------------+------+------+------+
 1 row in set
 
 EXPLAIN SELECT  COUNT(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C1) AS C2, MIN(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
@@ -396,7 +396,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([MIN(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [SUM(t1.c2) / COUNT(t1.c2)], [SUM(t1.c1) / COUNT(t1.c1)])
+0 - output([MIN(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [CAST(SUM(t1.c2) AS NUMBER(72, 38)) / COUNT(t1.c2)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)])
 aggr_exprs([MIN(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [SUM(t1.c2)], [COUNT(t1.c2)], [SUM(t1.c1)], [COUNT(t1.c1)])
 1 - output([t1.c1], [t1.c3], [t1.c2])
 access([t1.c1], [t1.c3], [t1.c2])
@@ -409,11 +409,11 @@ END_OUTLINE_DATA
 
 SELECT  MIN(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, AVG(T1.C2) AS C3, AVG(T1.C1) AS C4 FROM T1 T1
 
-+------+------+-------------+-------------+
-| c1   | c2   | c3          | c4          |
-+------+------+-------------+-------------+
-| 0    | 0    | 6.200000000 | 2.700000000 |
-+------+------+-------------+-------------+
++------+------+-------------------------------------------------+-------------------------------------------------+
+| c1   | c2   | c3                                              | c4                                              |
++------+------+-------------------------------------------------+-------------------------------------------------+
+| 0    | 0    | 6.200000000000000000000000000000000000000000000 | 2.700000000000000000000000000000000000000000000 |
++------+------+-------------------------------------------------+-------------------------------------------------+
 1 row in set
 
 EXPLAIN SELECT  MIN(T1.C4) AS C1, AVG(T1.C3) AS C2, SUM(T1.C4) AS C3, MIN(T1.C3) AS C4 FROM T1 T1
@@ -426,7 +426,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([MIN(t1.c4)], [SUM(t1.c3) / COUNT(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
+0 - output([MIN(t1.c4)], [CAST(SUM(t1.c3) AS NUMBER(72, 38)) / COUNT(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 aggr_exprs([MIN(t1.c4)], [SUM(t1.c3)], [COUNT(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 1 - output([t1.c4], [t1.c3])
 access([t1.c4], [t1.c3])
@@ -439,11 +439,11 @@ END_OUTLINE_DATA
 
 SELECT  MIN(T1.C4) AS C1, AVG(T1.C3) AS C2, SUM(T1.C4) AS C3, MIN(T1.C3) AS C4 FROM T1 T1
 
-+------+-------------+-----------+------+
-| c1   | c2          | c3        | c4   |
-+------+-------------+-----------+------+
-| 0    | 2.800000000 | 53.000000 | 0    |
-+------+-------------+-----------+------+
++------+-------------------------------------------------+------+------+
+| c1   | c2                                              | c3   | c4   |
++------+-------------------------------------------------+------+------+
+| 0    | 2.800000000000000000000000000000000000000000000 | 53   | 0    |
++------+-------------------------------------------------+------+------+
 1 row in set
 
 EXPLAIN SELECT  SUM(DISTINCT T1.C3) AS C1, MIN(DISTINCT T1.C2) AS C2, COUNT(T1.C4) AS C3, AVG(T1.C2) AS C4 FROM T1 T1
@@ -456,7 +456,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)], [COUNT(t1.c4)], [SUM(t1.c2) / COUNT(t1.c2)])
+0 - output([SUM(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)], [COUNT(t1.c4)], [CAST(SUM(t1.c2) AS NUMBER(72, 38)) / COUNT(t1.c2)])
 aggr_exprs([SUM(DISTINCT t1.c3)], [MIN(DISTINCT t1.c2)], [COUNT(t1.c4)], [SUM(t1.c2)], [COUNT(t1.c2)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
 access([t1.c3], [t1.c2], [t1.c4])
@@ -469,11 +469,11 @@ END_OUTLINE_DATA
 
 SELECT  SUM(DISTINCT T1.C3) AS C1, MIN(DISTINCT T1.C2) AS C2, COUNT(T1.C4) AS C3, AVG(T1.C2) AS C4 FROM T1 T1
 
-+-----------+------+------+-------------+
-| c1        | c2   | c3   | c4          |
-+-----------+------+------+-------------+
-| 19.000000 | 2    | 10   | 6.200000000 |
-+-----------+------+------+-------------+
++------+------+------+-------------------------------------------------+
+| c1   | c2   | c3   | c4                                              |
++------+------+------+-------------------------------------------------+
+| 19   | 2    | 10   | 6.200000000000000000000000000000000000000000000 |
++------+------+------+-------------------------------------------------+
 1 row in set
 
 EXPLAIN SELECT  AVG(T1.C4) AS C1, MIN(T1.C2) AS C2, MIN(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
@@ -486,7 +486,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(t1.c4) / COUNT(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
+0 - output([CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 aggr_exprs([SUM(t1.c4)], [COUNT(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c4], [t1.c2], [t1.c1])
 access([t1.c4], [t1.c2], [t1.c1])
@@ -499,11 +499,11 @@ END_OUTLINE_DATA
 
 SELECT  AVG(T1.C4) AS C1, MIN(T1.C2) AS C2, MIN(T1.C4) AS C3, MIN(T1.C1) AS C4 FROM T1 T1
 
-+-------------+------+------+------+
-| c1          | c2   | c3   | c4   |
-+-------------+------+------+------+
-| 5.300000000 | 2    | 0    | 0    |
-+-------------+------+------+------+
++-------------------------------------------------+------+------+------+
+| c1                                              | c2   | c3   | c4   |
++-------------------------------------------------+------+------+------+
+| 5.300000000000000000000000000000000000000000000 | 2    | 0    | 0    |
++-------------------------------------------------+------+------+------+
 1 row in set
 
 EXPLAIN SELECT  MAX(DISTINCT T1.C2) AS C1, SUM(DISTINCT T1.C2) AS C2, SUM(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
@@ -529,11 +529,11 @@ END_OUTLINE_DATA
 
 SELECT  MAX(DISTINCT T1.C2) AS C1, SUM(DISTINCT T1.C2) AS C2, SUM(T1.C4) AS C3, COUNT(DISTINCT T1.C1) AS C4 FROM T1 T1
 
-+------+-----------+-----------+------+
-| c1   | c2        | c3        | c4   |
-+------+-----------+-----------+------+
-| 9    | 35.000000 | 53.000000 | 6    |
-+------+-----------+-----------+------+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 9    | 35   | 53   | 6    |
++------+------+------+------+
 1 row in set
 
 EXPLAIN SELECT  AVG(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, AVG(T1.C4) AS C4 FROM T1 T1
@@ -546,7 +546,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(DISTINCT t1.c1) / COUNT(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [COUNT(DISTINCT t1.c4)], [SUM(t1.c4) / COUNT(t1.c4)])
+0 - output([CAST(SUM(DISTINCT t1.c1) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [COUNT(DISTINCT t1.c4)], [CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)])
 aggr_exprs([SUM(DISTINCT t1.c1)], [COUNT(DISTINCT t1.c1)], [MIN(DISTINCT t1.c3)], [COUNT(DISTINCT t1.c4)], [SUM(t1.c4)], [COUNT(t1.c4)])
 1 - output([t1.c1], [t1.c3], [t1.c4])
 access([t1.c1], [t1.c3], [t1.c4])
@@ -559,11 +559,11 @@ END_OUTLINE_DATA
 
 SELECT  AVG(DISTINCT T1.C1) AS C1, MIN(DISTINCT T1.C3) AS C2, COUNT(DISTINCT T1.C4) AS C3, AVG(T1.C4) AS C4 FROM T1 T1
 
-+-------------+------+------+-------------+
-| c1          | c2   | c3   | c4          |
-+-------------+------+------+-------------+
-| 3.500000000 | 0    | 5    | 5.300000000 |
-+-------------+------+------+-------------+
++-------------------------------------------------+------+------+-------------------------------------------------+
+| c1                                              | c2   | c3   | c4                                              |
++-------------------------------------------------+------+------+-------------------------------------------------+
+| 3.500000000000000000000000000000000000000000000 | 0    | 5    | 5.300000000000000000000000000000000000000000000 |
++-------------------------------------------------+------+------+-------------------------------------------------+
 1 row in set
 
 EXPLAIN SELECT  MAX(DISTINCT T1.C4) AS C1, MAX(T1.C4) AS C2, COUNT(T1.C3) AS C3, MIN(T1.C2) AS C4 FROM T1 T1
@@ -606,7 +606,7 @@ Query Plan:
 | 1  |  TABLE SCAN     | T1   | 1         | 4    |
 +------------------------------------------------+
 Outputs & filters:
-0 - output([MAX(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(t1.c1) / COUNT(t1.c1)], [MIN(DISTINCT t1.c3)])
+0 - output([MAX(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)], [MIN(DISTINCT t1.c3)])
 aggr_exprs([MAX(DISTINCT t1.c2)], [MAX(DISTINCT t1.c4)], [SUM(t1.c1)], [COUNT(t1.c1)], [MIN(DISTINCT t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
@@ -619,11 +619,11 @@ END_OUTLINE_DATA
 
 SELECT  MAX(DISTINCT T1.C2) AS C1, MAX(DISTINCT T1.C4) AS C2, AVG(T1.C1) AS C3, MIN(DISTINCT T1.C3) AS C4 FROM T1 T1
 
-+------+------+-------------+------+
-| c1   | c2   | c3          | c4   |
-+------+------+-------------+------+
-| 9    | 9    | 2.700000000 | 0    |
-+------+------+-------------+------+
++------+------+-------------------------------------------------+------+
+| c1   | c2   | c3                                              | c4   |
++------+------+-------------------------------------------------+------+
+| 9    | 9    | 2.700000000000000000000000000000000000000000000 | 0    |
++------+------+-------------------------------------------------+------+
 1 row in set
 
 Bye

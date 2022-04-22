@@ -62,6 +62,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 access([t1.ROWID])
@@ -69,8 +70,8 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -90,6 +91,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 filters([t1.c1 > t1.c4])
@@ -98,8 +100,8 @@ access([t1.c1], [t1.c4], [t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -119,6 +121,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([t1.c3 > t2.c3])
 3 - output([t1.c3], [t1.ROWID])
@@ -129,8 +132,8 @@ access([t2.c3])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -150,6 +153,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 access([t1.ROWID])
@@ -157,8 +161,8 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -186,6 +190,7 @@ Query Plan:
 +-------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
@@ -197,12 +202,12 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 ((((t6, t5), t2), t1), t3), t4)
 USE_NL(@SEL1 t5)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t1)
 USE_NL(@SEL1 t3)
 USE_NL(@SEL1 t4)
+LEADING(@SEL1 ((((t6, t5), t2), t1), t3), t4)
 END_OUTLINE_DATA
 */
 
@@ -222,6 +227,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([t2.c3 NOT BETWEEN t1.c1 AND t1.c3])
 3 - output([t1.c1], [t1.c3], [t1.ROWID])
@@ -232,8 +238,8 @@ access([t2.c3])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -255,6 +261,7 @@ Query Plan:
 +----------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 equal_join_conditions([t1.c1 = t2.c2])
 other_join_conditions([t3.c4 != t2.c1])
@@ -270,9 +277,9 @@ access([t3.c4])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t2, (t1, t3))
 USE_NL(@SEL1 t3)
 USE_HASH(@SEL1 t1, t3)
+LEADING(@SEL1 t2, (t1, t3))
 END_OUTLINE_DATA
 */
 
@@ -303,6 +310,7 @@ Query Plan:
 +-----------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([VIEW1. <= VIEW1. OR t1.c2 = VIEW1. OR t1.c2 <= VIEW1. OR t1.c4 NOT BETWEEN VIEW1. AND VIEW1. AND VIEW1. >= t1.c2 OR VIEW1. >= VIEW1.])
 3 - output([VIEW1.], [VIEW1.], [VIEW1.], [VIEW1.])
@@ -335,14 +343,14 @@ access([t1.c2], [t1.c4], [t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 VIEW1, t1)
-USE_NL(@SEL1 t1)
-LEADING(@SEL3 (t4, t3), t2)
-USE_HASH(@SEL3 t3)
-USE_NL(@SEL3 t2)
-LEADING(@SEL2 t2, (t4, t3))
 USE_HASH(@SEL2 t3)
 USE_NL(@SEL2 t4, t3)
+LEADING(@SEL2 t2, (t4, t3))
+USE_HASH(@SEL3 t3)
+USE_NL(@SEL3 t2)
+LEADING(@SEL3 (t4, t3), t2)
+USE_NL(@SEL1 t1)
+LEADING(@SEL1 VIEW1, t1)
 END_OUTLINE_DATA
 */
 
@@ -364,6 +372,7 @@ Query Plan:
 +----------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
@@ -372,9 +381,9 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (t1, t2), t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
+LEADING(@SEL1 (t1, t2), t3)
 END_OUTLINE_DATA
 */
 
@@ -400,6 +409,7 @@ Query Plan:
 +------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([t1.c2 != t5.c2 OR t3.c2 = t1.c2 OR t3.c1 IS NOT NULL OR t3.c4 = t5.c2])
 3 - output([t5.c2], [t3.c2], [t3.c1], [t3.c4])
@@ -415,11 +425,11 @@ access([t1.c2], [t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (((t3, t2), t4), t5), t1)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t4)
 USE_NL(@SEL1 t5)
 USE_NL(@SEL1 t1)
+LEADING(@SEL1 (((t3, t2), t4), t5), t1)
 END_OUTLINE_DATA
 */
 
@@ -439,6 +449,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 access([t1.ROWID])
@@ -446,8 +457,8 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -476,6 +487,7 @@ Query Plan:
 +------------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 5 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)])
 6 - output([t3.c2], [t3.c4], [t4.c2])
@@ -496,13 +508,13 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (VIEW1, t2), t1)
+USE_NL(@SEL2 t4)
+LEADING(@SEL2 t3, t4)
+USE_NL(@SEL3 t3)
+LEADING(@SEL3 t4, t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t1)
-LEADING(@SEL3 t4, t3)
-USE_NL(@SEL3 t3)
-LEADING(@SEL2 t3, t4)
-USE_NL(@SEL2 t4)
+LEADING(@SEL1 (VIEW1, t2), t1)
 END_OUTLINE_DATA
 */
 
@@ -536,6 +548,7 @@ Query Plan:
 +------------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
@@ -568,7 +581,6 @@ access([t3.c1], [t3.c4])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (((((t5, (t6, t7)), t1), (t9, t8)), t3), t2), t4)
 USE_NL(@SEL1 t7)
 USE_NL(@SEL1 t6, t7)
 USE_NL(@SEL1 t1)
@@ -577,6 +589,7 @@ USE_NL(@SEL1 t9, t8)
 USE_NL(@SEL1 t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t4)
+LEADING(@SEL1 (((((t5, (t6, t7)), t1), (t9, t8)), t3), t2), t4)
 END_OUTLINE_DATA
 */
 
@@ -596,6 +609,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([t2.c3 <= t1.c3])
 3 - output([t2.c3])
@@ -607,8 +621,8 @@ access([t1.c3], [t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t2, t1)
 USE_NL(@SEL1 t1)
+LEADING(@SEL1 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -628,6 +642,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 access([t1.ROWID])
@@ -635,8 +650,8 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -658,6 +673,7 @@ Query Plan:
 +----------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
@@ -666,9 +682,9 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (t1, t2), t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
+LEADING(@SEL1 (t1, t2), t3)
 END_OUTLINE_DATA
 */
 
@@ -690,6 +706,7 @@ Query Plan:
 +----------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
@@ -698,9 +715,9 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (t1, t2), t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t3)
+LEADING(@SEL1 (t1, t2), t3)
 END_OUTLINE_DATA
 */
 
@@ -720,6 +737,7 @@ Query Plan:
 +---------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 filters([t1.c2 IS NULL])
@@ -728,8 +746,8 @@ access([t1.c2], [t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_NL(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -765,6 +783,7 @@ Query Plan:
 +------------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 6 - filters([t9.c4 NOT BETWEEN t9.c2 AND t8.c3])
@@ -802,7 +821,6 @@ access([t4.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 ((t10, (t6, ((t7, t8), t9))), t1), (t5, ((t3, t2), t4)))
 USE_NL(@SEL1 t8)
 USE_NL(@SEL1 t9)
 USE_HASH(@SEL1 t7, t8, t9)
@@ -812,6 +830,7 @@ USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t4)
 USE_HASH(@SEL1 t3, t2, t4)
 USE_NL(@SEL1 t5, t3, t2, t4)
+LEADING(@SEL1 ((t10, (t6, ((t7, t8), t9))), t1), (t5, ((t3, t2), t4)))
 END_OUTLINE_DATA
 */
 
@@ -840,6 +859,7 @@ Query Plan:
 +------------------------------------------------------------------+
 Outputs & filters:
 1 - output([t1.ROWID])
+distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 5 - output([UNION_ALL(0)], [UNION_ALL(1)])
 6 - output([t3.c4], [t4.c1])
@@ -860,13 +880,13 @@ access([t1.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 (VIEW1, t2), t1)
+USE_NL(@SEL2 t4)
+LEADING(@SEL2 t3, t4)
+USE_NL(@SEL3 t3)
+LEADING(@SEL3 t4, t3)
 USE_NL(@SEL1 t2)
 USE_NL(@SEL1 t1)
-LEADING(@SEL3 t4, t3)
-USE_NL(@SEL3 t3)
-LEADING(@SEL2 t3, t4)
-USE_NL(@SEL2 t4)
+LEADING(@SEL1 (VIEW1, t2), t1)
 END_OUTLINE_DATA
 */
 

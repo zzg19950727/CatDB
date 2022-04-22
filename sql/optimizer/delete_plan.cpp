@@ -35,7 +35,6 @@ u32 DeletePlan::generate_plan_tree()
 	u32 ret = SUCCESS;
 	DeleteStmt_s stmt = lex_stmt;
 	CHECK(generate_join_order());
-	CHECK(generate_subplan());
 	bool is_delete_all = false;
 	if (stmt->where_stmt.empty() && stmt->from_stmts.size() == 1) {
 		is_delete_all = stmt->from_stmts[0]->same_as(stmt->table);

@@ -318,20 +318,20 @@ u32 DateTime::sub_seconds(const DateTime_s &time, const Number_s &seconds, DateT
 u32 DateTime::make_second_from_day(u32 day, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
-	seconds = Number::make_object((longlong)(day * 24 * 60 * 60));
+	seconds = Number::make_int_object(day * 24 * 60 * 60);
 	return ret;
 }
 
 u32 DateTime::make_second_from_month(u32 month, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
-	seconds = Number::make_object((longlong)(month * 31 * 24 * 60 * 60));
+	seconds = Number::make_int_object(month * 31 * 24 * 60 * 60);
 	return ret;
 }
 
 u32 DateTime::make_second_from_year(u32 year, Number_s& seconds)
 {
 	u32 ret = SUCCESS;
-	seconds = Number::make_object((longlong)(year * 365 * 24 * 60 * 60));
+	seconds = Number::make_int_object(year * 365 * 24 * 60 * 60);
 	return ret;
 }

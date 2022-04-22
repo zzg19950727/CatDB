@@ -65,10 +65,15 @@ u32 TransformMergeView::transform_one_table(DMLStmt_s &stmt,
                                          helper, 
                                          is_valid));
         if (is_valid) {
-            CHECK(do_transform(stmt, 
-                               table, 
-                               helper));
-            happened = true;
+            ViewTableStmt_s view_table = table;
+            SelectStmt_s view = view_table->ref_query;
+            bool is_disable = false;
+            CHECK(check_hint_disable(view, is_disable));
+            if (!is_disable) {
+                CHECK(do_transform(stmt, table, helper));
+                CHECK(generate_outline(view));
+                set_transform_happened();
+            }
         }
     }
     return ret;
@@ -158,18 +163,13 @@ u32 TransformMergeView::do_transform(DMLStmt_s &stmt,
     Vector<ExprStmt_s> new_select_exprs;
     Vector<ExprStmt_s> columns;
     TableStmt_s new_table;
-    bool is_disable = false;
-    CHECK(check_hint_disable(view, is_disable));
-    if (is_disable) {
-        return ret;
-    }
     CHECK(TransformUtils::get_view_table_columns(stmt, 
                                                  view_table, 
                                                  columns, 
                                                  select_exprs));
     CHECK(TransformUtils::build_joined_table(view->from_stmts, new_table));
     
-    append(stmt->where_stmt, view->where_stmt);
+    append(new_table->table_filter, view->where_stmt);
     if (helper.upper_stmt_is_simple) {
         SelectStmt_s parent_stmt = stmt;
         append(parent_stmt->group_exprs, view->group_exprs);
@@ -186,8 +186,7 @@ u32 TransformMergeView::do_transform(DMLStmt_s &stmt,
     }
     CHECK(stmt->replace_stmt_exprs(columns, new_select_exprs));
     table = new_table;
-    set_happened();
-    CHECK(generate_outline(view));
+    set_transform_happened();
     return ret;
 }
 

@@ -39,10 +39,16 @@ void LogLimit::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     PlanInfo info;
     print_basic_info(depth, info);
     info.op = "LIMIT";
+    ExprInfo expr_info;
     if (offset > 0) {
-        info.expr_info += "offset(" + std::to_string(offset) + ")";
+        expr_info.title = "offset";
+        expr_info.exprs.push_back(std::to_string(offset));
+        info.expr_infos.push_back(expr_info);
     }
-    info.expr_info += "limit(" + std::to_string(limit_value) + ")\n";
+    expr_info.title = "limit";
+    expr_info.exprs.clear();
+    expr_info.exprs.push_back(std::to_string(limit_value));
+    info.expr_infos.push_back(expr_info);
     plan_info.push_back(info);
     child()->print_plan(depth + 1, plan_info);
 }

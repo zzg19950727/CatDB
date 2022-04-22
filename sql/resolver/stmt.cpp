@@ -36,3 +36,8 @@ bool Stmt::is_set_stmt() const
 {
 	return SetOperation == stmt_type(); 
 }
+
+bool Stmt::is_update_stmt() const
+{
+	return Update == stmt_type();
+}

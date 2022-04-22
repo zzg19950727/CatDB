@@ -6,6 +6,7 @@
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "query_ctx.h"
+#include "obj_number.h"
 #include "error.h"
 #include "log.h"
 
@@ -58,6 +59,18 @@ u32 TransformUtils::create_view_with_table_item(const TableStmt_s &table,
     view = SelectStmt::make_select_stmt();
     CHECK(view->reset_stmt_id(ctx->query_ctx->generate_stmt_id()));
     view->from_stmts.push_back(table);
+    return ret;
+}
+
+u32 TransformUtils::create_table_with_view(SelectStmt_s &view,
+                                            ViewTableStmt_s &table,
+                                            TransformCtx_s &ctx)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(ctx, ctx->query_ctx);
+    table = ViewTableStmt::make_view_table(view);
+    table->table_id = ctx->query_ctx->generate_table_id();
+    table->alias_name = ctx->query_ctx->generate_view_name();
     return ret;
 }
 
@@ -165,5 +178,97 @@ u32 TransformUtils::build_joined_table(Vector<TableStmt_s> &table_items,
         JoinedTableStmt_s table = JoinedTableStmt::make_joined_table(joined_table, table_items[i], Inner);
         joined_table = table;
     }
+    return ret;
+}
+
+u32 TransformUtils::has_correlated_expr(Vector<ExprStmt_s> &exprs,
+                                        SubQueryStmt_s &subquery_expr,
+                                        bool &is_valid)
+{
+    u32 ret = SUCCESS;
+    bool has = false;
+    is_valid = false;
+    if (subquery_expr->exec_params.empty()) {
+        return ret;
+    }
+    for (u32 i = 0; i < exprs.size(); ++i) {
+        CHECK(has_correlated_expr(exprs[i], 
+                                subquery_expr, 
+                                has));
+        is_valid |= has;
+    }
+    return ret;
+}
+
+u32 TransformUtils::has_correlated_expr(ExprStmt_s &expr,
+                                        SubQueryStmt_s &subquery_expr,
+                                        bool &is_valid)
+{
+    u32 ret = SUCCESS;
+    is_valid = false;
+    if (subquery_expr->exec_params.empty()) {
+        return ret;
+    } else if (expr->has_flag(IS_EXEC_PARAM)) {
+        Vector<ExprStmt_s> exec_params;
+        append(exec_params, subquery_expr->exec_params);
+        is_valid = ExprUtils::find_equal_expr(exec_params, expr);
+    } else if (expr->has_flag(HAS_EXEC_PARAM)) {
+        CHECK(has_correlated_expr(expr->params, 
+                                  subquery_expr, 
+                                  is_valid));
+    }
+    return ret;
+}
+
+u32 TransformUtils::check_stmt_correlated(DMLStmt_s stmt, 
+                                          SubQueryStmt_s &subquery_expr, 
+                                          bool &is_correlated)
+{
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> all_exprs;
+    is_correlated = false;
+    if (subquery_expr->exec_params.empty()) {
+        return ret;
+    }
+    CHECK(stmt->get_stmt_exprs(all_exprs));
+    CHECK(has_correlated_expr(all_exprs, 
+                          subquery_expr, 
+                          is_correlated));
+    if (is_correlated) {
+        return ret;
+    }
+    Vector<SelectStmt_s> child_stmts;
+    CHECK(stmt->get_child_stmts(child_stmts));
+    for (u32 i = 0; !is_correlated && i < child_stmts.size(); ++i) {
+        CHECK(check_stmt_correlated(child_stmts[i], 
+                                    subquery_expr, 
+                                    is_correlated));
+    }
+    return ret;
+}
+
+u32 TransformUtils::create_dummy_select_expr(SelectStmt_s &stmt)
+{
+    u32 ret = SUCCESS;
+    ExprStmt_s const_expr;
+    CHECK(ExprUtils::make_int_expr(const_expr, 1));
+    stmt->select_expr_list.clear();
+    stmt->select_expr_list.push_back(const_expr);
+    if (stmt->is_set_stmt()) {
+        SetStmt_s set_stmt = stmt;
+        CHECK(create_dummy_select_expr(set_stmt->left_query));
+        CHECK(create_dummy_select_expr(set_stmt->right_query));
+    }
+    return ret;
+}
+
+u32 TransformUtils::is_dummy_select_expr(SelectStmt_s &stmt, bool &is_dummy)
+{
+    u32 ret = SUCCESS;
+    is_dummy = false;
+    if (stmt->select_expr_list.size() != 1) {
+        return ret;
+    }
+    is_dummy = stmt->select_expr_list[0]->has_flag(IS_CONST);
     return ret;
 }

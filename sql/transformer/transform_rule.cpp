@@ -13,7 +13,7 @@ using namespace CatDB::Parser;
 TransformRule::TransformRule(bool pre_order, HintType control_hint)
     :pre_order(pre_order),
     control_hint(control_hint),
-    happened(false)
+    trans_happened(false)
 {
 
 }
@@ -76,8 +76,11 @@ u32 TransformRule::transform_post_order(DMLStmt_s &stmt)
 u32 TransformRule::transform_self(DMLStmt_s &stmt)
 {
     u32 ret = SUCCESS;
+    if (!need_rewrite(stmt)) {
+        return ret;
+    }
     CHECK(transform_one_stmt(stmt));
-    if (happened) {
+    if (trans_happened) {
         CHECK(stmt->formalize());
     }
     return ret;

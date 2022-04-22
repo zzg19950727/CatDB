@@ -94,29 +94,6 @@
 	ret = list; \
 }
 
-#define make_aggr_stmt(stmt, function_name) \
-{ \
-	ExprStmt_s expr = AggrStmt::make_aggr_stmt(); \
-	check(expr); \
-	aggr = expr; \
-	stmt = aggr; \
-	if(function_name == "sum") \
-		aggr->aggr_func = SUM; \
-	else if(function_name == "avg") \
-		aggr->aggr_func = AVG; \
-	else if(function_name == "count") \
-		aggr->aggr_func = COUNT; \
-	else if(function_name == "min") \
-		aggr->aggr_func = MIN; \
-	else if(function_name == "max") \
-		aggr->aggr_func = MAX; \
-	else \
-	{ \
-		yyerror("unknow aggregate function %s", function_name.c_str()); \
-		YYABORT; \
-	} \
-}
-
 #define make_unary_stmt(stmt, stmt1, op) \
 { \
 	stmt = OpExprStmt::make_op_expr_stmt(op); \
@@ -274,6 +251,7 @@
 %token NO_MERGE
 %token NO_USE_HASH
 %token NO_USE_NL
+%token NO_SIMPLIFY_SQ
 %token NULLX
 %token NUMERIC_SYM
 %token ON
@@ -282,6 +260,7 @@
 %token ORDERED
 %token OUTER
 %token PARALLEL
+%token PARTITION
 %token PERIOD "."
 %token PLUS "+"
 %token PROCESSLIST
@@ -295,6 +274,7 @@
 %token SET
 %token SHOW
 %token SIZE
+%token SIMPLIFY_SQ
 %token SMALLINT
 %token SPLIT
 %token STATIS
@@ -321,6 +301,16 @@
 %token WHEN
 %token WHERE
 %token YEAR
+//aggr function
+%token SUM
+%token COUNT
+%token AVG
+%token MIN
+%token MAX
+%token RANK
+%token DENSE_RANK
+%token ROW_NUMBER
+%token OVER
 %token END 0
 
 %type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt 
@@ -330,7 +320,7 @@
 									set_var_stmt kill_stmt
 %type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref 
 									expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
-									seconds_expr
+									seconds_expr aggr_expr
 %type<OrderStmt_s>					order_by
 %type<LimitStmt_s>					opt_select_limit
 %type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
@@ -338,7 +328,7 @@
 %type<int>							limit_expr int_value opt_char_length opt_time_precision
 %type<DataType>						data_type
 %type<double>						opt_sample_size
-%type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name function_name 
+%type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name 
 									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
 %type<Vector<TableStmt_s>>			from_list 
 %type<BasicTableStmt_s> 			relation_factor
@@ -355,6 +345,7 @@
 %type<Vector<LeadingTable_s>> 		leading_hint_table_list
 %type<LeadingTable_s> 				leading_hint_table
 %type<OperationType> 				cmp_type sq_cmp_type
+%type<AggrType>						aggr_type
 %start sql_stmt
 %%
 
@@ -554,6 +545,16 @@ single_hint:
 	| NO_MERGE opt_qb_name_single
 	{
 		$$ = HintStmt::make_hint_stmt(MERGE, false);
+		$$->set_qb_name($2);
+	}
+	| SIMPLIFY_SQ opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(SIMPLIFY_SQ, true);
+		$$->set_qb_name($2);
+	}
+	| NO_SIMPLIFY_SQ opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(SIMPLIFY_SQ, false);
 		$$->set_qb_name($2);
 	}
 /*optiizer hint*/
@@ -1347,30 +1348,10 @@ expr_const:
   ;
   
 func_expr:
-    function_name "(" "*" ")"
-    {
-		AggrStmt_s aggr;
-		make_aggr_stmt(aggr, $1);
-		ExprStmt_s col = ColumnStmt::make_all_column_stmt();
-		check(col);
-		aggr->set_aggr_expr(col);
-		$$ = aggr;
-    }
-  | function_name "(" distinct_or_all arith_expr ")"
-    {
-		AggrStmt_s aggr;
-		make_aggr_stmt(aggr, $1);
-		aggr->distinct = $3;
-		aggr->set_aggr_expr($4);
-		$$ = aggr;
-    }
-  | function_name "(" arith_expr ")"
-    {
-		AggrStmt_s aggr;
-		make_aggr_stmt(aggr, $1);
-		aggr->set_aggr_expr($3);
-		$$ = aggr;
-    }
+  aggr_expr
+  {
+		$$ = $1;
+  }
   | TO_CHAR "(" arith_expr ")"
   {
 	make_unary_stmt($$, $3, OP_TO_CHAR);
@@ -1405,8 +1386,57 @@ func_expr:
   }
   ;
 
+aggr_expr:
+	aggr_type "(" "*" ")"
+	{
+		AggrStmt_s expr = AggrStmt::make_aggr_stmt();
+		check(expr);
+		expr->aggr_func = $1;
+		ExprStmt_s col = ColumnStmt::make_all_column_stmt();
+		check(col);
+		expr->set_aggr_expr(col);
+		$$ = expr;
+	}
+	| aggr_type "(" distinct_or_all arith_expr ")"
+    {
+		AggrStmt_s expr = AggrStmt::make_aggr_stmt();
+		check(expr);
+		expr->aggr_func = $1;
+		expr->distinct = $3;
+		expr->set_aggr_expr($4);
+		$$ = expr;
+    }
+	;
+
+aggr_type:
+	COUNT
+	{
+		$$ = COUNT;
+	}
+	| SUM
+	{
+		$$ = SUM;
+	}
+	| AVG
+	{
+		$$ = AVG;
+	}
+	| MIN
+	{
+		$$ = MIN;
+	}
+	| MAX
+	{
+		$$ = MAX;
+	}
+	;
+
 distinct_or_all:
-    ALL
+	/*empty*/
+	{
+		$$ = false;
+	}
+  | ALL
     {
 		$$ = false;
     }
@@ -2027,10 +2057,6 @@ relation_name:
   ;
 
 column_name:
-	ident		{ $$ = $1; }
-	;
-
-function_name:
 	ident		{ $$ = $1; }
 	;
 

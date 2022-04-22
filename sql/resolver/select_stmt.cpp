@@ -157,6 +157,13 @@ bool SelectStmt::has_distinct() const
 	return is_distinct;
 }
 
+void SelectStmt::get_order_by_exprs(Vector<ExprStmt_s> &order_by_exprs)
+{
+	for (u32 i = 0; i < order_exprs.size(); ++i) {
+		order_by_exprs.push_back(order_exprs[i]->order_expr);
+	}
+}
+
 u32 SelectStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
 {
 	u32 ret = SUCCESS;

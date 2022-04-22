@@ -1,5 +1,6 @@
 #include "log_expr_value.h"
 #include "opt_est_cost.h"
+#include "expr_utils.h"
 #include "expr_stmt.h"
 #include "obj_number.h"
 #include "object.h"
@@ -42,7 +43,8 @@ u32  LogExprValue::allocate_expr_pre()
     CHECK(LogicalOperator::allocate_expr_pre());
     if (!values.empty()) {
         for (u32 i = 0; i < values[0].size(); ++i) {
-            ExprStmt_s expr = ConstStmt::make_const_stmt(Common::Number::make_object((longlong)i));
+            ExprStmt_s expr;
+            CHECK(ExprUtils::make_int_expr(expr, i));
             output_exprs.push_back(expr);
         }
     }

@@ -249,6 +249,7 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c4], [t1.c4], [t1.c4])
+limit([0])
 1 - output([t1.c3], [t1.c4])
 access([t1.c3], [t1.c4])
 
@@ -273,6 +274,7 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c1], [7], [t1.c2])
+limit([0])
 1 - output([t1.c1], [t1.c2])
 access([t1.c1], [t1.c2])
 
@@ -297,6 +299,7 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [0], [70], [t1.c1])
+limit([0])
 1 - output([t1.c4], [t1.c1])
 access([t1.c4], [t1.c1])
 
@@ -321,6 +324,7 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
+limit([0])
 1 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
 
@@ -345,6 +349,7 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([30], [t1.c2], [t1.c2], [t1.c2])
+limit([0])
 1 - output([t1.c2])
 access([t1.c2])
 
@@ -370,6 +375,8 @@ Query Plan:
 +---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c3], [t1.c3], [t1.c1], [t1.c1])
+offset([4])
+limit([9])
 1 - output([t1.c3], [t1.c1])
 sort_keys([t1.c3 DESC], [t1.c3 DESC], [t1.c1 DESC], [t1.c1 ASC])
 top_n([13])
@@ -408,6 +415,8 @@ Query Plan:
 +---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [5], [t1.c2], [t1.c1])
+offset([4])
+limit([9])
 1 - output([t1.c1], [t1.c2])
 sort_keys([t1.c1 DESC], [5 ASC], [t1.c2 DESC], [t1.c1 ASC])
 top_n([13])
@@ -446,6 +455,8 @@ Query Plan:
 +---------------------------------------------+
 Outputs & filters:
 0 - output([t1.c4], [t1.c4], [t1.c4], [t1.c3])
+offset([6])
+limit([8])
 1 - output([t1.c4], [t1.c3])
 sort_keys([t1.c4 ASC], [t1.c4 DESC], [t1.c4 ASC], [t1.c3 DESC])
 top_n([14])
@@ -651,6 +662,8 @@ Query Plan:
 +---------------------------------------------+
 Outputs & filters:
 0 - output([19], [39], [t1.c2], [t1.c4])
+offset([6])
+limit([8])
 1 - output([t1.c2], [t1.c4])
 sort_keys([19 ASC], [39 ASC], [t1.c2 DESC], [t1.c4 ASC])
 top_n([14])

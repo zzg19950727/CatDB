@@ -17,6 +17,9 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
         case MERGE:
             hint = HintStmt_s(new MergeHintStmt(is_enable));
             break;
+        case SIMPLIFY_SQ:
+            hint = HintStmt_s(new SimplifySQHintStmt(is_enable));
+            break;
         case JOIN:
             hint = HintStmt_s(new JoinHintStmt(is_enable));
             break;
@@ -431,7 +434,7 @@ u32 QueryHint::init(Vector<HintStmt_s> &all_hints, bool is_outline)
     }
     global_hints = StmtHintManager::make_stmt_hint_manager();
 	optimizer_hints = StmtHintManager::make_stmt_hint_manager();
-	generate_hints = StmtHintManager::make_stmt_hint_manager();
+	generate_hints = OutlineHintManager::make_outline_hint_manager();
     for (u32 i = 0; i < all_hints.size(); ++i) {
         if (all_hints[i]->is_global_hint()) {
             CHECK(global_hints->add_hint(all_hints[i]));
@@ -489,6 +492,20 @@ bool QueryHint::enable_no_merge(const String &qb_name) const
 {
     HintManager::HintStatus status = HintManager::NOT_SET_HINT;
     transformer_hints->get_hint_status(qb_name, MERGE, status);
+    return HintManager::FORCE_DISABLE == status;
+}
+
+bool QueryHint::enable_simplify_sq(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, SIMPLIFY_SQ, status);
+    return HintManager::FORCE_ENABLE == status;
+}
+
+bool QueryHint::enable_no_simplify_sq(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, SIMPLIFY_SQ, status);
     return HintManager::FORCE_DISABLE == status;
 }
 

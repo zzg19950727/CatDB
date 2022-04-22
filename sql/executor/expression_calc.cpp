@@ -134,7 +134,7 @@ u32 do_minus(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
@@ -150,14 +150,14 @@ u32 do_add(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 	u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
     Number_s lhs = ctx->output_result;
     CHECK(params[1]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
@@ -173,14 +173,14 @@ u32 do_sub(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 	u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
     Number_s lhs = ctx->output_result;
     CHECK(params[1]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
@@ -196,14 +196,14 @@ u32 do_mul(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 	u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
     Number_s lhs = ctx->output_result;
     CHECK(params[1]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
@@ -219,14 +219,14 @@ u32 do_div(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 	u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
     Number_s lhs = ctx->output_result;
     CHECK(params[1]->get_result(ctx));
     if (ctx->output_result->is_null()) {
-        ctx->output_result = Number::make_object(0.0);
+        ctx->output_result = Number::make_int_object(0);
 		ctx->output_result->set_null();
         return ret;
     }
@@ -848,14 +848,7 @@ u32 do_not_like(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 
 u32 do_cast(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 {
-	u32 ret = SUCCESS;
-    CHECK(params[0]->get_result(ctx));
-    Object_s lhs = ctx->output_result;
-    CHECK(lhs->cast_to(params[1]->res_type, ctx->output_result));
-    if (lhs->is_null()) {
-        ctx->output_result->set_null();
-    }
-    return ret;
+	return ERR_UNEXPECTED;
 }
 
 u32 do_ifnull(const Vector<Expression_s> &params, ExecCtx_s &ctx)
@@ -913,7 +906,7 @@ u32 do_to_number(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 {
     u32 ret = SUCCESS;
     CHECK(params[0]->get_result(ctx));
-	ctx->output_result = Number::make_object(ctx->output_result->value());
+	ctx->output_result = Number::make_float_object(ctx->output_result->value());
     return ret;
 }
 

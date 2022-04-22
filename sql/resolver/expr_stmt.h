@@ -193,9 +193,10 @@ namespace CatDB {
 			u32 formalize() override;
 			u32 deduce_type() override;
 			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
-			bool same_as(const ExprStmt_s &other) override { return false;}
+			bool same_as(const ExprStmt_s &other) override;
 			void add_related_exprs(ExprStmt_s &related_expr, ExecParamStmt_s &exec_param);
 			void set_subquery_id(u32 id) { subquery_id = id; }
+			bool has_related_expr() const { return !exec_params.empty(); }
 			u32 get_subquery_id() const { return subquery_id; }
 			u32 get_all_exec_params(Vector< std::pair<ExecParamStmt_s, ExprStmt_s> > &all_exec_params);
 			DECLARE_KV_STRING_OVERRIDE;

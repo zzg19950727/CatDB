@@ -1,12 +1,41 @@
 #include "expr_utils.h"
 #include "dml_stmt.h"
 #include "expr_stmt.h"
+#include "obj_number.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
 
 using namespace CatDB::Common;
 using namespace CatDB::Parser;
+
+OperationType ExprUtils::remove_op_any(OperationType type)
+{
+    static OperationType map[] = {OP_EQ,
+                                OP_NE,
+                                OP_GE,
+                                OP_GT,
+                                OP_LE,
+                                OP_LT};
+    if (OP_EQ_ANY <= type && type <= OP_LT_ANY) {
+        type = map[type-OP_EQ_ANY];
+    }
+    return type;
+}
+
+OperationType ExprUtils::remove_op_all(OperationType type)
+{
+    static OperationType map[] = {OP_EQ,
+                                OP_NE,
+                                OP_GE,
+                                OP_GT,
+                                OP_LE,
+                                OP_LT};
+    if (OP_EQ_ALL <= type && type <= OP_LT_ALL) {
+        type = map[type-OP_EQ_ALL];
+    }
+    return type;
+}
 
 u32 ExprUtils::get_column_exprs(Vector<ExprStmt_s> &exprs, 
                                 u32 table_id, 
@@ -64,7 +93,8 @@ bool ExprUtils::find_equal_expr(const Vector<ExprStmt_s> &exprs,
 {
 	bool find = false;
 	for (u32 i = 0; !find && i < exprs.size(); ++i) {
-		if (exprs[i]->same_as(expr)) {
+        if (exprs[i] == expr ||
+            exprs[i]->same_as(expr)) {
 			find = true;
 			if (index != nullptr) {
 				*index = i;
@@ -164,11 +194,114 @@ u32 ExprUtils::make_is_null_expr(ExprStmt_s &old_expr, ExprStmt_s &new_expr)
     return ret;
 }
 
+u32 ExprUtils::make_or_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(2 <= old_exprs.size());
+    ExprStmt_s l_expr = old_exprs[0];
+    for (u32 i = 1; i < old_exprs.size(); ++i) {
+        new_expr = OpExprStmt::make_op_expr_stmt(OP_OR);
+        new_expr->params.push_back(l_expr);
+        new_expr->params.push_back(old_exprs[i]);
+        l_expr = new_expr;
+    }
+    CHECK(new_expr->formalize());
+    return ret;
+}
+
 u32 ExprUtils::make_null_expr(ExprStmt_s &null_expr)
 {
     u32 ret = SUCCESS;
     Object_s value = Object::make_null_object();
     null_expr = ConstStmt::make_const_stmt(value);
     CHECK(null_expr->formalize());
+    return ret;
+}
+
+u32 ExprUtils::make_bool_expr(ExprStmt_s &bool_expr, bool value)
+{
+    u32 ret = SUCCESS;
+    bool_expr = OpExprStmt::make_op_expr_stmt(OP_IS_NULL);
+    Object_s num = Number::make_int_object(0);
+    if (value) {
+        num->set_null();
+    }
+    ExprStmt_s const_expr = ConstStmt::make_const_stmt(num);
+	bool_expr->params.push_back(const_expr);
+    CHECK(bool_expr->formalize());
+    return ret;
+}
+
+u32 ExprUtils::make_int_expr(ExprStmt_s &int_expr, int value)
+{
+    u32 ret = SUCCESS;
+    Object_s num = Number::make_int_object(value);
+    int_expr = ConstStmt::make_const_stmt(num);
+    CHECK(int_expr->formalize());
+    return ret;
+}
+
+u32 ExprUtils::extract_aggr_exprs(Vector<ExprStmt_s> &exprs, Vector<ExprStmt_s> &aggr_exprs)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < exprs.size(); ++i) {
+        CHECK(extract_aggr_exprs(exprs[i], aggr_exprs));
+    }
+    return ret;
+}
+
+u32 ExprUtils::extract_aggr_exprs(ExprStmt_s &expr, Vector<ExprStmt_s> &aggr_exprs)
+{
+    u32 ret = SUCCESS;
+    if (!expr->has_flag(HAS_AGG)) {
+        return ret;
+    } else if (expr->has_flag(IS_AGG)) {
+        aggr_exprs.push_back(expr);
+    } else {
+        CHECK(extract_aggr_exprs(expr->params, aggr_exprs));
+    }
+    return ret;
+}
+
+u32 ExprUtils::extract_subquery_exprs(Vector<ExprStmt_s> &exprs, 
+                                      Vector<SubQueryStmt_s> &subquery_exprs,
+                                      bool ignore_aggr)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < exprs.size(); ++i) {
+        CHECK(extract_subquery_exprs(exprs[i], subquery_exprs));
+    }
+    return ret;
+}
+
+u32 ExprUtils::extract_subquery_exprs(ExprStmt_s &expr, 
+                                      Vector<SubQueryStmt_s> &subquery_exprs,
+                                      bool ignore_aggr)
+{
+    u32 ret = SUCCESS;
+    if (!expr->has_flag(HAS_SUBQUERY)) {
+        return ret;
+    } else if (expr->has_flag(IS_SUBQUERY)) {
+        subquery_exprs.push_back(expr);
+    } else if (ignore_aggr && expr->has_flag(IS_AGG)) {
+        //
+    } else {
+        CHECK(extract_subquery_exprs(expr->params, subquery_exprs));
+    }
+    return ret;
+}
+
+u32 ExprUtils::extract_subquery_exprs(Vector<ExprStmt_s> &exprs, 
+                                      Vector<ExprStmt_s> &subquery_exprs,
+                                      Vector<ExprStmt_s> &none_subquery_exprs)
+{
+    u32 ret =  SUCCESS;
+    for (u32 i = 0; i < exprs.size(); ++i) {
+        if (exprs[i]->has_flag(HAS_SUBQUERY)) {
+            subquery_exprs.push_back(exprs[i]);
+        } else {
+            none_subquery_exprs.push_back(exprs[i]);
+        }
+    }
     return ret;
 }

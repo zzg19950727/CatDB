@@ -29,10 +29,12 @@ bool TransformPostProcess::need_rewrite(DMLStmt_s stmt) const
 u32 TransformPostProcess::transform_one_stmt(DMLStmt_s &stmt)
 {
     u32 ret = SUCCESS;
-    bool trans_happend = false;
-    CHECK(update_table_hint(stmt, trans_happend));
-    happened = trans_happend;
-    LOG_TRACE("succeed to update table hint", K(trans_happend));
+    bool happened = false;
+    CHECK(update_table_hint(stmt, happened));
+    if (happened) {
+        set_transform_happened();
+    }
+    LOG_TRACE("succeed to update table hint", K(happened));
     return ret;
 }
 

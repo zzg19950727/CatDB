@@ -130,11 +130,13 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
         can_be = true;
     } else if (expr_consume->has_flag(IS_CONST)) {
         can_be = true;
-    } else if (expr_consume->has_flag(IS_AGG) && 
-			   type() != LOG_SCALAR_GROUP && 
-			   type() != LOG_GROUP_BY) {
+    } else if (expr_consume->has_flag(IS_AGG)) {
 		can_be = false;
-	} else if (expr_consume->get_params().size() > 0) {
+        LOG_TRACE("expr can not be consumed", K(expr_consume));
+	} else if (expr_consume->has_flag(IS_SUBQUERY)) {
+        can_be = false;
+        LOG_TRACE("expr can not be consumed", K(expr_consume));
+    } else if (expr_consume->get_params().size() > 0) {
         can_be = true;
         for (u32 i = 0; i < expr_consume->get_params().size() && can_be; ++i) {
             CHECK(expr_can_be_consumed(expr_consume->get_params()[i], 
@@ -143,6 +145,7 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
         }
     } else if (expr_consume->has_flag(IS_COLUMN)) {
         can_be = false;
+        LOG_TRACE("expr can not be consumed", K(expr_consume));
     } else {
         can_be = true;
     }

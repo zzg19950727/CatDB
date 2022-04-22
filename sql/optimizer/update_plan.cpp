@@ -36,10 +36,12 @@ u32 UpdatePlan::generate_plan_tree()
 	u32 ret = SUCCESS;
 	UpdateStmt_s stmt = lex_stmt;
 	CHECK(generate_join_order());
-	CHECK(generate_subplan());
 	Vector<ColumnStmt_s> column_exprs;
 	Vector<ExprStmt_s> value_exprs;
 	CHECK(check_assign_exprs(column_exprs, value_exprs));
+	CHECK(generate_subquery_evaluate(root_operator,
+									 value_exprs, 
+									 false));
 	root_operator = LogUpdate::make_update(root_operator,
 										   stmt->table,
 										   stmt->update_assign_stmt,

@@ -72,10 +72,19 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
         rt_expr = SetExpression::make_set_expression(set_expr->get_index());
         break;
     }
-	case SUBQUERY:
+    case SUBQUERY:
 	{
         SubQueryStmt_s subquery = expr;
-        CHECK(generate_subquery_expr(ctx, subquery, rt_expr));
+        auto iter = ctx.subplan_map.find(expr);
+        MY_ASSERT(iter != ctx.subplan_map.end());
+        Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> exec_params;
+        Vector<std::pair<ExecParamExpression_s, Expression_s>> rt_exec_params;
+        CHECK(subquery->get_all_exec_params(exec_params));
+        CHECK(generate_exec_params(ctx, exec_params, rt_exec_params));
+        PhyOperator_s phy_op = ctx.subplan_map[expr];
+        SubplanExpression_s subplan_expr = SubplanExpression::make_subplan_expression(phy_op);
+        subplan_expr->exec_params = rt_exec_params;
+        rt_expr = subplan_expr;
 		break;
 	}
 	case EXPR_LIST:
@@ -102,15 +111,21 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
 	case OP_EXPR:
 	{
         OpExprStmt_s op_expr = expr;
-        OpExpression_s rt_op_expr = OpExpression::make_op_expression(op_expr->op_type);
-        for (u32 i = 0; i < expr->params.size(); ++i) {
-            CHECK(generate_expr(ctx, expr->params[i], rt_expr));
-            rt_op_expr->param_exprs.push_back(rt_expr);
-            if (OP_CAST == op_expr->op_type && 1 == i) {
-                rt_expr->res_type = expr->params[i]->res_type;
+        if (OP_CAST == op_expr->op_type) {
+            MY_ASSERT(2 == expr->params.size());
+            CastExpression_s rt_cast_expr = CastExpression::make_cast_expression(op_expr->op_type);
+            CHECK(generate_expr(ctx, expr->params[0], rt_expr));
+            rt_cast_expr->add_param_expr(rt_expr);
+            rt_cast_expr->set_dst_type(expr->params[1]->res_type);
+            rt_expr = rt_cast_expr;
+        } else {
+            OpExpression_s rt_op_expr = OpExpression::make_op_expression(op_expr->op_type);
+            for (u32 i = 0; i < expr->params.size(); ++i) {
+                CHECK(generate_expr(ctx, expr->params[i], rt_expr));
+                rt_op_expr->add_param_expr(rt_expr);
             }
+            rt_expr = rt_op_expr;
         }
-        rt_expr = rt_op_expr;
 		break;
 	}
     case EXEC_PARAM:
@@ -125,28 +140,6 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
 	}
 	return ret;
 }
-
-u32 ExprGenerator::generate_subquery_expr(ExprGenerateCtx &ctx, 
-                                          const SubQueryStmt_s &expr, 
-                                          Expression_s &rt_expr)
-{
-    u32 ret = SUCCESS;
-    MY_ASSERT(expr);
-    auto iter = ctx.subplan_map.find(expr);
-    MY_ASSERT(iter != ctx.subplan_map.end());
-    Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> exec_params;
-    Vector<std::pair<ExecParamExpression_s, Expression_s>> rt_exec_params;
-    CHECK(expr->get_all_exec_params(exec_params));
-    CHECK(generate_exec_params(ctx, exec_params, rt_exec_params));
-    PhyOperator_s phy_op;
-    CHECK(CodeGenerator::generate_phy_plan(ctx, ctx.subplan_map[expr], phy_op));
-    ctx.phy_subplans.push_back(phy_op);
-    SubplanExpression_s subplan_expr = SubplanExpression::make_subplan_expression(phy_op);
-    subplan_expr->exec_params = rt_exec_params;
-    rt_expr = subplan_expr;
-    return ret;
-}
-
 
 u32 ExprGenerator::generate_exec_params(ExprGenerateCtx &ctx, 
                                         Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> &exprs, 

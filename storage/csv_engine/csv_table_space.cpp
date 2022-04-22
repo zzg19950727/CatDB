@@ -206,7 +206,7 @@ u32 CSVTableSpace::read_row(Row_s& row)
 			//TODO cast object
 			row->set_cell(i, value);
 		} else if (column_id == ROWID_COLUMN_ID) {
-			Object_s row_id_value = Number::make_object((longlong)row_id);
+			Object_s row_id_value = Number::make_int_object(row_id);
 			row->set_cell(i, row_id_value);
 		} else {
 			LOG_ERR("row desc error when project row", K(column_cnt), K(col_desc));

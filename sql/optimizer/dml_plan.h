@@ -10,14 +10,17 @@ namespace CatDB {
 		DECLARE(ExprStmt);
 		DECLARE(TableStmt);
 		DECLARE(SelectStmt);
+		DECLARE(SubQueryStmt);
 		DECLARE(LeadingTable);
 	}
 	namespace Optimizer {
 		DECLARE(EstInfo);
 		DECLARE(LogicalOperator);
+		DECLARE(LogSubQueryEvaluate);
 		using Parser::ExprStmt_s;
 		using Parser::TableStmt_s;
 		using Parser::SelectStmt_s;
+		using Parser::SubQueryStmt_s;
 		using Parser::BasicTableStmt_s;
 		using Parser::JoinedTableStmt_s;
 		using Parser::ViewTableStmt_s;
@@ -100,7 +103,7 @@ namespace CatDB {
 			virtual ~DMLPlan();
 			virtual u32 build_plan() override;
 			virtual PlanType type()const override = 0;
-			u32 generate_conflict_detecotrs(Vector<TableStmt_s> &tables, 
+			u32 generate_conflict_detectors(Vector<TableStmt_s> &tables, 
 											Vector<ExprStmt_s> &conds,
 											Vector<ConflictDetector_s> &detectors);
 			u32 generate_cross_product_detector(Vector<TableStmt_s> &tables, 
@@ -172,7 +175,16 @@ namespace CatDB {
 			u32 generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op);
 			virtual u32 generate_plan_tree() override = 0;
 			u32 set_table_access_columns(LogicalOperator_s &op);
-			u32 generate_subplan();
+			u32 add_filter(LogicalOperator_s &log_op, 
+						   Vector<ExprStmt_s> &exprs, 
+						   bool is_join_condition = false);
+			u32 generate_subquery_evaluate(LogicalOperator_s &log_op, 
+										   Vector<ExprStmt_s> &exprs, 
+										   bool is_filter, 
+										   bool ignore_aggr = true,
+										   bool ignore_used_expr = true);
+			u32 generate_subquery_evaluate(Vector<SubQueryStmt_s> &subquery_exprs, 
+										   LogSubQueryEvaluate_s &log_op);
 			u32 init_leading_info();
 			u32 get_leading_info(const LeadingTable_s &leading_table, BitSet &table_ids);
 			u32 generate_plan_hint();
@@ -183,6 +195,7 @@ namespace CatDB {
 		public:
 			Vector<Vector<LogicalOperator_s>> join_orders;
 			Vector<ConflictDetector_s> conflict_detectors;
+			Vector<ExprStmt_s> used_subquery_exprs;
 			LeadingInfo leading_info;
 			EstInfo_s est_info;
 		};

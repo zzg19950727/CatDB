@@ -20,8 +20,8 @@ namespace CatDB {
             virtual ~TransformRule();
             void set_transform_ctx(TransformCtx_s &ctx);
             u32 transform(DMLStmt_s stmt);
-            bool transform_happened() const { return happened; }
-            void set_happened() { happened = true; }
+            bool transform_happened() const { return trans_happened; }
+            void set_transform_happened() { trans_happened = true; }
             virtual bool need_rewrite(DMLStmt_s stmt) const;
 
         protected:
@@ -39,7 +39,7 @@ namespace CatDB {
 
         protected:
             TransformCtx_s ctx;
-            bool happened;
+            bool trans_happened;
         };
     }
 }

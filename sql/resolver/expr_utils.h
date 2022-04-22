@@ -10,6 +10,7 @@ namespace CatDB {
         DECLARE(DMLStmt);
         DECLARE(ExprStmt);
         DECLARE(ColumnStmt);
+        DECLARE(SubQueryStmt);
         using Sql::QueryCtx_s;
 
         class ExprUtils {
@@ -46,6 +47,9 @@ namespace CatDB {
                 src = new_items;
                 return 0;
             }
+
+            static OperationType remove_op_any(OperationType type);
+            static OperationType remove_op_all(OperationType type);
 
             static u32 get_column_exprs(Vector<ExprStmt_s> &exprs, 
                                         u32 table_id, 
@@ -85,7 +89,29 @@ namespace CatDB {
 
             static u32 make_is_null_expr(ExprStmt_s &old_expr, ExprStmt_s &new_expr);
 
+            static u32 make_or_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr);
+
             static u32 make_null_expr(ExprStmt_s &null_expr);
+
+            static u32 make_bool_expr(ExprStmt_s &bool_expr, bool value);
+
+            static u32 make_int_expr(ExprStmt_s &int_expr, int value);
+
+            static u32 extract_aggr_exprs(Vector<ExprStmt_s> &exprs, Vector<ExprStmt_s> &aggr_exprs);
+
+            static u32 extract_aggr_exprs(ExprStmt_s &expr, Vector<ExprStmt_s> &aggr_exprs);
+
+            static u32 extract_subquery_exprs(Vector<ExprStmt_s> &exprs, 
+                                              Vector<SubQueryStmt_s> &subquery_exprs,
+                                              bool ignore_aggr = false);
+
+            static u32 extract_subquery_exprs(ExprStmt_s &expr, 
+                                              Vector<SubQueryStmt_s> &subquery_exprs,
+                                              bool ignore_aggr = false);
+        
+            static u32 extract_subquery_exprs(Vector<ExprStmt_s> &exprs, 
+                                              Vector<ExprStmt_s> &subquery_exprs,
+                                              Vector<ExprStmt_s> &none_subquery_exprs);
         };
     }
 }

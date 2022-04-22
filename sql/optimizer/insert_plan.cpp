@@ -38,6 +38,11 @@ u32 InsertPlan::generate_value_plan_tree()
 	if (stmt->query_values) {
 		CHECK(generate_sub_select_plan_tree(stmt->query_values, root_operator));
 	} else {
+		for (u32 i = 0; i < stmt->value_list.size(); ++i) {
+			CHECK(generate_subquery_evaluate(root_operator,
+											stmt->value_list[i], 
+											false));
+		}
 		root_operator = LogExprValue::make_expr_value(stmt->value_list);
 		root_operator->init(query_ctx, est_info);
 		CHECK(root_operator->compute_property());
@@ -50,7 +55,6 @@ u32 InsertPlan::generate_plan_tree()
 	u32 ret = SUCCESS;
 	InsertStmt_s stmt = lex_stmt;
 	CHECK(generate_value_plan_tree());
-	CHECK(generate_subplan());
 	root_operator = LogInsert::make_insert(root_operator,
 										   stmt->table);
 	root_operator->init(query_ctx, est_info);

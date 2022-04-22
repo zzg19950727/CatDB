@@ -98,6 +98,12 @@ u32 PhyNestedLoopJoin::cache_right_table()
 	while (SUCC(right_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
 		right_cache.push_back(row);
+		//如果是semi、anti笛卡尔积，只需要取一行数据
+		if ((LeftSemi == JoinPhyOperator::type ||
+			LeftAnti == JoinPhyOperator::type) &&
+			join_condition.empty()) {
+			break;
+		}
 	}
 	if (ret == NO_MORE_ROWS) {
 		ret = SUCCESS;

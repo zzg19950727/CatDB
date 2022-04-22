@@ -32,8 +32,6 @@ namespace CatDB {
 			virtual ~Expression();
 			virtual u32 get_result(ExecCtx_s &ctx) = 0;
 			virtual ExprType get_type()const = 0;
-		public:
-			Common::DataType res_type;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Expression)
 		};
@@ -47,7 +45,7 @@ namespace CatDB {
 		public:
 			static Expression_s make_const_expression(const Object_s& object);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 		private:
 			Object_s const_object;
 		};
@@ -61,7 +59,7 @@ namespace CatDB {
 			static Expression_s make_exec_param_expression(u32 param_index);
 			u32 set_value(ExecCtx_s &ctx, Object_s &value);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 		private:
 			u32 param_index;
 		};
@@ -74,7 +72,7 @@ namespace CatDB {
 		public:
 			static Expression_s make_column_expression(u32 op_id, u32 column_id);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 		public:
 			u32 op_id;
 			u32 column_id;
@@ -88,7 +86,7 @@ namespace CatDB {
 		public:
 			static Expression_s make_set_expression(u32 idx);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 		public:
 			u32 index;
 		};
@@ -101,7 +99,7 @@ namespace CatDB {
 			~ListExpression();
 			static Expression_s make_list_expression();
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 			void add_param_expr(Expression_s& expr);
 
 		public:
@@ -110,14 +108,14 @@ namespace CatDB {
 
 		class OpExpression : public Expression
 		{
-		private:
+		protected:
 			OpExpression() = delete;
 			OpExpression(OperationType op);
 		public:
 			~OpExpression();
 			static Expression_s make_op_expression(OperationType op);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 			void add_param_expr(Expression_s& expr);
 
 		public:
@@ -135,7 +133,7 @@ namespace CatDB {
 			~AggregateExpression();
 			static Expression_s make_aggregate_expression(const Expression_s& expr, AggrType op, bool is_distinct);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 			u32 add_row(ExecCtx_s &ctx);
 			void set_exec_ctx(ExecCtx_s &ctx) { hash_table.set_exec_ctx(ctx); }
 			void reset();
@@ -162,7 +160,7 @@ namespace CatDB {
 		public:
 			static Expression_s make_subplan_expression(PhyOperator_s& subplan);
 			u32 get_result(ExecCtx_s &ctx) override;
-			ExprType get_type()const;
+			ExprType get_type()const override;
 			u32 set_exec_param(ExecCtx_s &ctx);
 			u32 get_next_result(Object_s &res);
 			
@@ -170,6 +168,21 @@ namespace CatDB {
 			Object_s result;
 			PhyOperator_s subplan;
 			Vector<std::pair<ExecParamExpression_s, Expression_s>> exec_params;
+		};
+
+		DECLARE(CastExpression);
+		class CastExpression : public OpExpression
+		{
+		private:
+			CastExpression() = delete;
+			CastExpression(OperationType op);
+		public:
+			~CastExpression();
+			static Expression_s make_cast_expression(OperationType op);
+			void set_dst_type(const Common::DataType& type);
+			u32 get_result(ExecCtx_s &ctx) override;
+		private:
+			Common::DataType dst_type;
 		};
 	}
 }

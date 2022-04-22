@@ -193,6 +193,11 @@ ExprType OpExpression::get_type() const
 	return OP_EXPR;
 }
 
+void OpExpression::add_param_expr(Expression_s& expr)
+{
+	param_exprs.push_back(expr);
+}
+
 AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op, bool is_distinct)
 	:expr(expr),
 	is_distinct(is_distinct),
@@ -201,7 +206,7 @@ AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op, 
 {
 	hash_table.set_hash_expr(this->expr);
 	hash_table.set_probe_expr(this->expr);
-	result = Number::make_object(0.0);
+	result = Number::make_int_object(0);
 }
 
 AggregateExpression::~AggregateExpression()
@@ -219,7 +224,7 @@ u32 AggregateExpression::get_result(ExecCtx_s &ctx)
 	if (op != COUNT && 0 == row_count) {
 		result->set_null();
 	} else if (op == COUNT) {
-		result = Number::make_object((longlong)row_count);
+		result = Number::make_int_object(row_count);
 	}
 	ctx->output_result = result;
 	return ret;
@@ -263,7 +268,7 @@ u32 AggregateExpression::add_row(ExecCtx_s &ctx)
 
 void AggregateExpression::reset()
 {
-	result = Number::make_object((longlong)0);
+	result = Number::make_int_object(0);
 	hash_table.clear();
 	row_count = 0;
 }
@@ -373,4 +378,37 @@ u32 SubplanExpression::get_next_result(Object_s &res)
 	CHECK(subplan->get_next_row(row));
 	CHECK(row->get_cell(0, res));
 	return ret;
+}
+
+CastExpression::CastExpression(OperationType op)
+			:OpExpression(op)
+{
+
+}
+
+CastExpression::~CastExpression()
+{
+
+}
+
+Expression_s CastExpression::make_cast_expression(OperationType op)
+{
+	return Expression_s(new CastExpression(op));
+}
+
+void CastExpression::set_dst_type(const Common::DataType& type)
+{
+	dst_type = type;
+}
+
+u32 CastExpression::get_result(ExecCtx_s &ctx)
+{
+	u32 ret = SUCCESS;
+    CHECK(param_exprs[0]->get_result(ctx));
+    Object_s lhs = ctx->output_result;
+    CHECK(lhs->cast_to(dst_type, ctx->output_result));
+    if (lhs->is_null()) {
+        ctx->output_result->set_null();
+    }
+    return ret;
 }

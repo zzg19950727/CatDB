@@ -4,6 +4,7 @@
 #include "schema_checker.h"
 #include "schema_guard.h"
 #include "select_stmt.h"
+#include "expr_utils.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "obj_number.h"
@@ -125,7 +126,8 @@ u32 SelectResolver::get_all_column_from_basic_table(BasicTableStmt_s table, Vect
 {
     u32 ret = SUCCESS;
     if (table->is_dual_table()) {
-        ExprStmt_s expr = ConstStmt::make_const_stmt(Number::make_object((longlong)1));
+        ExprStmt_s expr;
+        CHECK(ExprUtils::make_int_expr(expr, 1));
         expr->alias_name = "X";
         columns.push_back(expr);
     } else {

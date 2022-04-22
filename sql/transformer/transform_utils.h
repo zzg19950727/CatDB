@@ -8,6 +8,7 @@ namespace CatDB {
         DECLARE(SelectStmt);
         DECLARE(TableStmt);
         DECLARE(ExprStmt);
+        DECLARE(SubQueryStmt);
         DECLARE(ViewTableStmt);
     }
     namespace Sql {
@@ -20,6 +21,7 @@ namespace CatDB {
         using Parser::SelectStmt_s;
         using Parser::TableStmt_s;
         using Parser::ExprStmt_s;
+        using Parser::SubQueryStmt_s;
         using Parser::ViewTableStmt_s;
 
         class TransformUtils {
@@ -33,6 +35,10 @@ namespace CatDB {
                                                    SelectStmt_s &view,
                                                    TransformCtx_s &ctx);
         
+            static u32 create_table_with_view(SelectStmt_s &view,
+                                              ViewTableStmt_s &table,
+                                              TransformCtx_s &ctx);
+
             static u32 create_select_item_for_view_table(ViewTableStmt_s &view,
                                                          Vector<ExprStmt_s> &new_select_list,
                                                          Vector<ExprStmt_s> &new_column_list);
@@ -55,6 +61,22 @@ namespace CatDB {
         
             static u32 build_joined_table(Vector<TableStmt_s> &table_items,
                                           TableStmt_s &joined_table);
+        
+            static u32 has_correlated_expr(Vector<ExprStmt_s> &exprs,
+                                        SubQueryStmt_s &subquery_expr,
+                                        bool &is_valid);
+        
+            static u32 has_correlated_expr(ExprStmt_s &expr,
+                                        SubQueryStmt_s &subquery_expr,
+                                        bool &is_valid);
+        
+            static u32 check_stmt_correlated(DMLStmt_s stmt, 
+                                            SubQueryStmt_s &subquery_expr, 
+                                            bool &is_correlated);
+
+            static u32 create_dummy_select_expr(SelectStmt_s &stmt);
+
+            static u32 is_dummy_select_expr(SelectStmt_s &stmt, bool &is_dummy);
         };
     }
 }

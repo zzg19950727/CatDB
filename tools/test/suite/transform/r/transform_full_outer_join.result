@@ -57,8 +57,8 @@ access([t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -109,10 +109,10 @@ access([t1.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL3 t2, t1)
-USE_NL(@SEL3 t1)
-LEADING(@SEL2 t1, t2)
 USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -165,10 +165,10 @@ access([t1.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL3 t2, t1)
-USE_NL(@SEL3 t1)
-LEADING(@SEL2 t1, t2)
 USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -214,8 +214,8 @@ access([t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -266,10 +266,10 @@ access([t1.c1], [t1.c2])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL3 t2, t1)
-USE_NL(@SEL3 t1)
-LEADING(@SEL2 t1, t2)
 USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -312,7 +312,7 @@ Query Plan:
 +---------------------------------------------------------------+
 | ID | OPERATOR                      | NAME  | ROW COUNT | COST |
 +---------------------------------------------------------------+
-| 0  | HASH Inner JOIN               |       | 2         | 29   |
+| 0  | HASH Inner JOIN               |       | 1         | 29   |
 | 1  |  TABLE SCAN                   | T1    | 1         | 4    |
 | 2  |  VIEW                         | VIEW1 | 2         | 25   |
 | 3  |   UNION_ALL                   |       | 2         | 25   |
@@ -346,12 +346,12 @@ access([t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, VIEW1)
-USE_HASH(@SEL1 VIEW1)
-LEADING(@SEL3 t3, t2)
-USE_NL(@SEL3 t2)
-LEADING(@SEL2 t2, t3)
 USE_NL(@SEL2 t3)
+LEADING(@SEL2 t2, t3)
+USE_NL(@SEL3 t2)
+LEADING(@SEL3 t3, t2)
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL1 t1, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -429,12 +429,12 @@ access([t2.c2], [t2.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL3 t3, (t1, t2))
-USE_HASH(@SEL3 t2)
-USE_NL(@SEL3 t1, t2)
-LEADING(@SEL2 (t1, t2), t3)
 USE_HASH(@SEL2 t2)
 USE_NL(@SEL2 t3)
+LEADING(@SEL2 (t1, t2), t3)
+USE_HASH(@SEL3 t2)
+USE_NL(@SEL3 t1, t2)
+LEADING(@SEL3 t3, (t1, t2))
 END_OUTLINE_DATA
 */
 
@@ -498,12 +498,12 @@ access([t1.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t3, VIEW1)
-USE_HASH(@SEL1 VIEW1)
-LEADING(@SEL3 t2, t1)
-USE_NL(@SEL3 t1)
-LEADING(@SEL2 t1, t2)
 USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL1 t3, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -592,18 +592,18 @@ access([t1.c1])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL5 VIEW1, t3)
+USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
 USE_NL(@SEL5 t3)
-LEADING(@SEL6 t3, VIEW1)
+LEADING(@SEL5 VIEW1, t3)
+USE_NL(@SEL2 t2)
+LEADING(@SEL2 t1, t2)
+USE_NL(@SEL3 t1)
+LEADING(@SEL3 t2, t1)
 USE_NL(@SEL6 VIEW1)
-LEADING(@SEL3 t2, t1)
-LEADING(@SEL3 t2, t1)
-USE_NL(@SEL3 t1)
-USE_NL(@SEL3 t1)
-LEADING(@SEL2 t1, t2)
-LEADING(@SEL2 t1, t2)
-USE_NL(@SEL2 t2)
-USE_NL(@SEL2 t2)
+LEADING(@SEL6 t3, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -641,7 +641,7 @@ Query Plan:
 +---------------------------------------------------------------+
 | ID | OPERATOR                      | NAME  | ROW COUNT | COST |
 +---------------------------------------------------------------+
-| 0  | HASH Inner JOIN               |       | 4         | 50   |
+| 0  | HASH Inner JOIN               |       | 1         | 50   |
 | 1  |  VIEW                         | VIEW1 | 2         | 25   |
 | 2  |   UNION_ALL                   |       | 2         | 25   |
 | 3  |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
@@ -694,16 +694,16 @@ access([t3.c3])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 VIEW1, VIEW2)
-USE_HASH(@SEL1 VIEW2)
-LEADING(@SEL2 t1, t2)
 USE_NL(@SEL2 t2)
-LEADING(@SEL3 t2, t1)
+LEADING(@SEL2 t1, t2)
 USE_NL(@SEL3 t1)
-LEADING(@SEL6 t4, t3)
-USE_NL(@SEL6 t3)
-LEADING(@SEL5 t3, t4)
+LEADING(@SEL3 t2, t1)
 USE_NL(@SEL5 t4)
+LEADING(@SEL5 t3, t4)
+USE_NL(@SEL6 t3)
+LEADING(@SEL6 t4, t3)
+USE_HASH(@SEL1 VIEW2)
+LEADING(@SEL1 VIEW1, VIEW2)
 END_OUTLINE_DATA
 */
 

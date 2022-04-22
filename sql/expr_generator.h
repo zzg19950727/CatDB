@@ -7,10 +7,6 @@ namespace CatDB {
     namespace Parser {
         DECLARE(ExprStmt);
         DECLARE(ExecParamStmt);
-        DECLARE(SubQueryStmt);
-    }
-    namespace Optimizer {
-        DECLARE(LogicalOperator);
     }
     namespace Sql {
         DECLARE(ExecCtx);
@@ -20,16 +16,13 @@ namespace CatDB {
         DECLARE(ExecParamExpression);
         using Parser::ExprStmt_s;
         using Parser::ExecParamStmt_s;
-        using Parser::SubQueryStmt_s;
-        using Optimizer::LogicalOperator_s;
 
         struct ExprGenerateCtx {
             ExprGenerateCtx();
             ~ExprGenerateCtx();
-            HashMap<ExprStmt_s, LogicalOperator_s> subplan_map;
+            HashMap<ExprStmt_s, PhyOperator_s> subplan_map;
             HashMap<ExprStmt_s, Expression_s> access_expr_map;
             Vector<PhyOperator_s> child_ops;
-            Vector<PhyOperator_s> phy_subplans;
             ExecCtx_s exec_ctx;
         };
 
@@ -42,7 +35,6 @@ namespace CatDB {
             static u32 generate_expr(ExprGenerateCtx &ctx, const ExprStmt_s &expr, Expression_s &rt_expr);
         protected:
             static u32 inner_generate_expr(ExprGenerateCtx &ctx, const ExprStmt_s &expr, Expression_s &rt_expr);
-            static u32 generate_subquery_expr(ExprGenerateCtx &ctx, const SubQueryStmt_s &expr, Expression_s &rt_expr);
             static u32 generate_exec_params(ExprGenerateCtx &ctx, 
                                             Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> &exprs, 
                                             Vector<std::pair<ExecParamExpression_s, Expression_s>> &rt_exprs);

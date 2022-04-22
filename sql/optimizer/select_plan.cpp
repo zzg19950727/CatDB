@@ -56,6 +56,7 @@ u32 SelectPlan::generate_set_plan_tree()
 	u32 ret = SUCCESS;
 	SetStmt_s stmt = lex_stmt;
 	LogicalOperator_s left_op, right_op;
+	MY_ASSERT(stmt->left_query->select_expr_list.size() == stmt->right_query->select_expr_list.size());
 	CHECK(generate_sub_select_plan_tree(stmt->left_query, left_op));
 	CHECK(generate_sub_select_plan_tree(stmt->right_query, right_op));
 	root_operator = LogSet::make_set_op(left_op,
@@ -63,7 +64,6 @@ u32 SelectPlan::generate_set_plan_tree()
 										stmt->set_op);
 	root_operator->init(query_ctx, est_info);
 	CHECK(root_operator->compute_property());
-	CHECK(generate_subplan());
 	append(root_operator->output_exprs, stmt->select_expr_list);
 	return ret;
 }
@@ -81,6 +81,7 @@ u32 SelectPlan::generate_normal_plan_tree()
 			CHECK(generate_group_by());
 		}
 	}
+	
 	if (stmt->is_distinct) {
 		CHECK(generate_distinct());
 	}
@@ -90,7 +91,9 @@ u32 SelectPlan::generate_normal_plan_tree()
 	if (stmt->limit_stmt && need_limit) {
 		CHECK(generate_limit());
 	}
-	CHECK(generate_subplan());
+	CHECK(generate_subquery_evaluate(root_operator,
+									 stmt->select_expr_list, 
+									 false));
 	append(root_operator->output_exprs, stmt->select_expr_list);
 	return ret;
 }
@@ -99,8 +102,16 @@ u32 SelectPlan::generate_group_by()
 {
 	u32 ret = SUCCESS;
 	SelectStmt_s stmt = lex_stmt;
+	CHECK(generate_subquery_evaluate(root_operator,
+									 stmt->group_exprs, 
+									 false));
+	CHECK(generate_subquery_evaluate(root_operator,
+									 stmt->get_aggr_exprs(), 
+									 false, 
+									 false));
 	root_operator = LogGroupBy::make_group_by(root_operator, stmt->group_exprs, stmt->get_aggr_exprs());
 	root_operator->init(query_ctx, est_info);
+	CHECK(add_filter(root_operator, stmt->having_stmt));
 	CHECK(root_operator->compute_property());
 	return ret;
 }
@@ -109,8 +120,13 @@ u32 SelectPlan::generate_scalar_group_by()
 {
 	u32 ret = SUCCESS;
 	SelectStmt_s stmt = lex_stmt;
+	CHECK(generate_subquery_evaluate(root_operator,
+									 stmt->get_aggr_exprs(), 
+									 false, 
+									 false));
 	root_operator = LogScalarGroupBy::make_scalar_group_by(root_operator, stmt->get_aggr_exprs());
 	root_operator->init(query_ctx, est_info);
+	CHECK(add_filter(root_operator, stmt->having_stmt));
 	CHECK(root_operator->compute_property());
 	return ret;
 }
@@ -118,9 +134,12 @@ u32 SelectPlan::generate_scalar_group_by()
 u32 SelectPlan::generate_distinct()
 {
 	u32 ret = SUCCESS;
+	SelectStmt_s stmt = lex_stmt;
+	CHECK(generate_subquery_evaluate(root_operator,
+									 stmt->select_expr_list, 
+									 false));
 	root_operator = LogDistinct::make_distinct(root_operator);
 	root_operator->init(query_ctx, est_info);
-	SelectStmt_s stmt = lex_stmt;
 	LogDistinct_s distinct_op = root_operator;
 	distinct_op->set_distinct_exprs(stmt->select_expr_list);
 	CHECK(root_operator->compute_property());
@@ -144,6 +163,11 @@ u32 SelectPlan::generate_order_by(bool &need_limit)
 		}
 	}
 	if (need_sort) {
+		Vector<ExprStmt_s> order_by_exprs;
+		stmt->get_order_by_exprs(order_by_exprs);
+		CHECK(generate_subquery_evaluate(root_operator,
+										 order_by_exprs, 
+										 false));
 		root_operator = LogSort::make_sort(root_operator, stmt->order_exprs, top_n);
 		root_operator->init(query_ctx, est_info);
 		CHECK(root_operator->compute_property());

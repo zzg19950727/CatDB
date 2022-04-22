@@ -22,8 +22,8 @@ namespace CatDB {
 			Number(const char* buf, u32 size, const DataType& type);
 			static Number_s make_object(const my_decimal& data);
 		public:	
-			static Number_s make_object(f64 value);
-			static Number_s make_object(longlong value);
+			static Number_s make_float_object(f64 value);
+			static Number_s make_int_object(longlong value);
 			static Number_s make_object(const String& value);
 			u32 serialization(u8*& buffer) const override;
 			u32 hash()const override;
@@ -41,6 +41,7 @@ namespace CatDB {
 			static u32 num_div(const Number_s& lhs, const Number_s& rhs, Number_s& res);
             static u32 num_mod(const Number_s& lhs, const Number_s& rhs, Number_s& res);
 			static u32 num_minus(const Number_s& lhs, Number_s& res);
+			static bool is_valid_number(const String& value);
             
 			KV_STRING_OVERRIDE(
                 KV(data, to_string())
