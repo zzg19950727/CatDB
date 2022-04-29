@@ -265,7 +265,7 @@ namespace CatDB {
 			virtual void find_hints(const String &qb_name, HintType type, Vector<HintStmt_s> &hints)const override;
 			virtual u32 copy_hints(const String &src_qb_name, const String &dst_qb_name) override;
 			KV_STRING_OVERRIDE(
-				K(hint_map)
+				K("")
 			);
 		public:
 			typedef Vector<HintStmt_s> 	HintArray;

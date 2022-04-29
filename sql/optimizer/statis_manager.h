@@ -26,10 +26,10 @@ namespace CatDB {
         public:
             u32 tid;
             u32 cid;
-            u32 ndv;
-            u32 null_count;
-            u32 max_value;
-            u32 min_value;
+            double ndv;
+            double null_count;
+            double max_value;
+            double min_value;
 
             static ColumnStatis_s make_column_statis()
             { return ColumnStatis_s(new ColumnStatis()); }
@@ -45,8 +45,8 @@ namespace CatDB {
             {}
         public:
             u32 tid;
-            u32 row_count;
-            u32 space_size;
+            double row_count;
+            double space_size;
             UnorderedHashMap<u32, ColumnStatis_s> column_statis;
 
             static TableStatis_s make_table_statis()

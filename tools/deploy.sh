@@ -207,7 +207,7 @@ then
         read_conf
         stop_server
         sleep 1
-		build_server "debug"
+		build_server "$2"
 		sleep 1
         start_server
     elif [ "$1" == "stop" ]

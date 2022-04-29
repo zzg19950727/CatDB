@@ -31,6 +31,10 @@ Object_s Object::make_object(const u8* buf, u32 size, const DataType& type)
 	case T_VARCHAR:
 		ret = Object_s(new Varchar((const char*)buf, size, type));
 		break;
+	case T_BOOL:
+	case T_MAX_TYPE:
+	default:
+		break;
 	}
 	return ret;
 }
@@ -48,6 +52,10 @@ Object_s Object::make_object(const char* str, u32 size, const DataType& type)
 		break;
 	case T_VARCHAR:
 		ret = Object_s(new Varchar(str, size, type));
+		break;
+	case T_BOOL:
+	case T_MAX_TYPE:
+	default:
 		break;
 	}
 	return ret;
@@ -73,6 +81,10 @@ Object_s Object::make_null_object(const DataType& type)
 		break;
 	case T_VARCHAR:
 		ret = Object_s(new Varchar(""));
+		break;
+	case T_BOOL:
+	case T_MAX_TYPE:
+	default:
 		break;
 	}
 	if (ret) {

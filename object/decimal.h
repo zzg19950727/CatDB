@@ -46,7 +46,7 @@ typedef int32 decimal_digit_t;
     buf  is an array of decimal_digit_t's
  */
 typedef struct st_decimal_t {
-  int    intg, frac, len;
+  unsigned char    intg, frac, len;
   my_bool sign;
   decimal_digit_t *buf;
 } decimal_t;

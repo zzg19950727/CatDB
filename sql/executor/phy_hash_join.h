@@ -32,8 +32,8 @@ namespace CatDB {
 			u32 type() const override;
 		private:
 			u32 build_hash_table();
-			u32 build_hash_table_for_left_anti();
-			u32 build_hash_table_for_right_anti();
+			u32 build_hash_table_for_left_na_anti();
+			u32 build_hash_table_for_right_na_anti();
 			u32 join();
 			u32 left_semi_join();
 			u32 right_semi_join();

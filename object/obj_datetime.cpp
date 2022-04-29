@@ -9,34 +9,46 @@ long long DateTime::get_seconds(const char* str, u32 size)
 {
 	tm tm_;
 	int year=1970, month=1, day=1, hour=0, minute=0, second=0;
-	int type = 0;	//0 none, 1 time, 2 date, 3 datetime
-	for (int i = 0; i < size; ++i) {
-		if (str[i] == ':') {
-			if (type == 0) {
-				type = 1;
-			} else if (type == 2) {
-				type = 3;
+	int type = 0;   //0 none, 1 time, 2 date, 3 datetime
+	int value_list[6] = {1970,1,1,0,0,0};
+	int value = 0;
+	int pos = 0;
+	bool set_value = false;
+	for (int i = 0; i <= size; ++i) {
+		set_value = false;
+		if (i == size) {
+			set_value = true;
+		} else if (str[i] == ':') {
+			set_value = true;
+			if (pos <= 2) {
+				pos = 3;
+			} else if (pos > 5) {
+				return -1;
 			}
 		} else if (str[i] == '-' || str[i] == '/') {
-			if (type == 0) {
-				type = 2;
-			} else if (type == 1) {
-				type = 3;
+			set_value = true;
+			if (pos > 2) {
+				return -1;
 			}
 		} else if (str[i] == ' ') {
-
+			set_value = true;
 		} else if (str[i] < '0' || str[i] > '9') {
 			return -1;
+		} else {
+			value *= 10;
+			value += str[i] - '0';
+		}
+		if (set_value) {
+			value_list[pos++] = value;
+			value = 0;
 		}
 	}
-	if(1 == type)
-		sscanf(str, "%d:%d:%d", &hour, &minute, &second);
-	else if(2 == type)
-		sscanf(str, "%d-%d-%d", &year, &month, &day);
-	else if (3 == type)
-		sscanf(str, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
-	else
-		return -1;
+	year = value_list[0];
+	month = value_list[1];
+	day = value_list[2];
+	hour = value_list[3];
+	minute = value_list[4];
+	second = value_list[5];
 
 	if (month > 12 || day > 31 || hour > 24 || minute > 60 || second > 60)
 		return -1;
@@ -102,51 +114,28 @@ u32 DateTime::hash() const
 	}
 }
 
+double DateTime::value() const
+{
+    return data.to_double();
+}
+
 String DateTime::to_string() const
 {
 	String ret = "NULL";
 	if (!is_null()) {
-		char tmp[255];
-		time_t value = (time_t)data.to_longlong();
-		tm* time = localtime(&value);
-		if (time != NULL) {
-			switch (type) {
-				case TIME:
-					sprintf(tmp, "%02d:%02d:%02d",
-						time->tm_hour,
-						time->tm_min,
-						time->tm_sec
-					);
-					break;
-				case DATE:
-					sprintf(tmp, "%04d-%02d-%02d",
-						time->tm_year,
-						time->tm_mon + 1,
-						time->tm_mday
-					);
-					break;
-				case DATETIME:
-					sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
-						time->tm_year,
-						time->tm_mon + 1,
-						time->tm_mday,
-						time->tm_hour,
-						time->tm_min,
-						time->tm_sec
-					);
-					break;
-				case TIMESTAMP:
-					sprintf(tmp, "%04d-%02d-%02d %02d:%02d:%02d",
-						time->tm_year,
-						time->tm_mon + 1,
-						time->tm_mday,
-						time->tm_hour,
-						time->tm_min,
-						time->tm_sec
-					);
-					break;
-			}
-			ret = String(tmp);
+		switch (type) {
+			case TIME:
+				inner_format_datetime("hh:MM:ss", ret);
+				break;
+			case DATE:
+				inner_format_datetime("yyyy-mm-dd", ret);
+				break;
+			case DATETIME:
+				inner_format_datetime("yyyy-mm-dd hh:MM:ss", ret);
+				break;
+			case TIMESTAMP:
+				inner_format_datetime("yyyy-mm-dd hh:MM:ss", ret);
+				break;
 		}
 	}
 	return ret;
@@ -200,20 +189,27 @@ u32 DateTime::current_datetime(DateTime_s &cur)
 u32 DateTime::format_datetime(const DateTime_s &src_time, const String &format, String &res)
 {
 	u32 ret = SUCCESS;
+	CHECK(src_time->inner_format_datetime(format, res))
+	return ret;
+}
+
+u32 DateTime::inner_format_datetime(const String &format, String &str)const
+{
+	u32 ret = SUCCESS;
 	char tmp[255] = {0};
 	bool next = false;
-	if (src_time->is_null()) {
-		res = "NULL";
+	if (is_null()) {
+		str = "NULL";
 		return ret;
 	}
-	time_t value = (time_t)src_time->data.to_longlong();
+	time_t value = (time_t)data.to_longlong();
 	tm* time = localtime(&value);
 	if (time == NULL)
 	{
 		return ERR_UNEXPECTED;
 	}
 	//format yyyy
-	if("" == format || format.find('y') != String::npos) {
+	if("" == format || format.find('y') != String::npos || format.find('Y') != String::npos) {
 		sprintf(tmp + strlen(tmp), "%04d",
 			time->tm_year
 		);
@@ -234,7 +230,7 @@ u32 DateTime::format_datetime(const DateTime_s &src_time, const String &format, 
 		next = false;
 	}
 	//format dd
-	if("" == format || format.find('d') != String::npos) {
+	if("" == format || format.find('d') != String::npos || format.find('D') != String::npos) {
 		if (next) {
 			sprintf(tmp + strlen(tmp), "-");
 		}
@@ -246,7 +242,7 @@ u32 DateTime::format_datetime(const DateTime_s &src_time, const String &format, 
 		next = false;
 	}
 	//format hh
-	if("" == format || format.find('h') != String::npos) {
+	if("" == format || format.find('h') != String::npos || format.find('H') != String::npos) {
 		if (next) {
 			sprintf(tmp + strlen(tmp), " ");
 		}
@@ -270,7 +266,7 @@ u32 DateTime::format_datetime(const DateTime_s &src_time, const String &format, 
 		next = false;
 	}
 	//format ss
-	if("" == format || format.find('s') != String::npos) {
+	if("" == format || format.find('s') != String::npos || format.find('S') != String::npos) {
 		if (next) {
 			sprintf(tmp + strlen(tmp), ":");
 		}
@@ -281,7 +277,7 @@ u32 DateTime::format_datetime(const DateTime_s &src_time, const String &format, 
 	} else {
 		next = false;
 	}
-	res = String(tmp);
+	str = String(tmp);
 	return ret;
 }
 

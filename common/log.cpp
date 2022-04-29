@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <thread>
+#include <execinfo.h>
 #include "timer_manager.h"
 #include "type.h"
 #include "log.h"
@@ -121,14 +122,14 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	get_trace_id(trace_id);
-	*os << "[" << put_time(t) <<"] " << "[" << trace_id << "] ";
+	*os << "[" << put_time(t) <<"] ";
 	if (log_level == LOG_LEVEL_INFO)
 		*os << "[INFO ] ";
 	else if (log_level == LOG_LEVEL_ERR)
 		*os << "[ERR  ] ";
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
-	*os << "[" << module << "] " << "[" << file << ":" << line << "] " << "[ " << msg << " ]" << std::endl;
+	*os << "[" << module << "] " << "[" << trace_id << "] " << "[" << file << ":" << line << "] " << "[ " << msg << " ]" << std::endl;
 	os->flush();
 }
 
@@ -150,4 +151,17 @@ void CatDB::Common::set_debug_module(const String &module)
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)
 {
 	ostream.print_msg(log_level, file, line, function, msg);
+}
+
+std::string CatDB::Common::lbt() 
+{
+  void *array[128];
+  size_t size = backtrace(array, 128);
+  char tmp[32] = {0};
+  std::string ret;
+  for (int i = 0; i < size; ++i) {
+      sprintf(tmp, "%p ", array[i]);
+      ret += std::string(tmp);
+  }
+  return ret;
 }

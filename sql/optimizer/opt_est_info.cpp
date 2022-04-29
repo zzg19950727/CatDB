@@ -73,7 +73,7 @@ u32 EstInfo::set_table_output_rows(u32 table_id, double output_rows)
     }
     for (auto iter = table_statis->columns_statis.begin(); iter != table_statis->columns_statis.end(); ++iter) {
         ColumnEstInfo_s &column_statis = iter->second;
-        column_statis->ndv = (1 - std::pow((1 - output_rows / table_statis->table_rows), table_statis->table_rows / column_statis->ori_ndv));
+        column_statis->ndv *= (1 - std::pow((1 - output_rows / table_statis->table_rows), table_statis->table_rows / column_statis->ori_ndv));
     }
     return ret;
 }

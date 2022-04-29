@@ -24,6 +24,7 @@ namespace CatDB {
             OBJ_TYPE get_type()const override;
 			u32 width()const override;
 			u32 hash() const override;
+			double value() const override;
 			String to_string()const override;
 			u32 compare(const Object_s& rhs, int& res)const override;
 			u32 cast_to(const DataType& type, Object_s &res) override;
@@ -40,6 +41,8 @@ namespace CatDB {
 			KV_STRING_OVERRIDE(
 					KV(data, to_string()));
 
+		private:
+			u32 inner_format_datetime(const String &format, String &str) const;
 		private:
 			my_decimal data;
 			TimeType type;

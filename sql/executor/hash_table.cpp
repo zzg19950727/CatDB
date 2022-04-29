@@ -47,7 +47,7 @@ HashTable::~HashTable()
 }
 
 void HashTable::clear()
-{
+{return;
 	for (u32 i = 0; i < buckets.size(); ++i) {
 		buckets[i].clear();
 	}

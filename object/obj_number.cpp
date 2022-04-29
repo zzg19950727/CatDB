@@ -107,8 +107,10 @@ u32 Number::accumulate(Number_s rhs)
 	if (is_null() || rhs->is_null()) {
 		set_null();
 	} else {
-		int r = my_decimal::my_decimal_add(data, data, rhs->data);
+		my_decimal res;
+		int r = my_decimal::my_decimal_add(res, data, rhs->data);
 		MY_ASSERT(0 == r);
+		std::swap(res, data);
 	}
 	return ret;
 }

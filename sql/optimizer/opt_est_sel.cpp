@@ -67,6 +67,8 @@ u32 EstSelUtil::calc_selectivity(EstInfo_s &est_info, ExprStmt_s &expr, double &
                 break;
             case OP_INVALID:
                 ret = ERR_UNEXPECTED;
+            default:
+                selectivity = 1.0 / 3.0;
         }
     }
     refine_selectivity(selectivity);

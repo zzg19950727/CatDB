@@ -325,6 +325,7 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
+	session_status = query;
 	set_trace_id(trace_id);
 	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
 	u32 ret = engine->handle_query();
@@ -352,6 +353,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			ret = send_error_packet(ret, err_msg);
 		}
 	}
+	session_status = "SLEEP";
 	return ret;
 }
 
@@ -390,14 +392,14 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		{
 			String query(buf + 1, len - 1);
 			session_status = query;
-			LOG_TRACE("handle client command", K(query));
+			LOG_TRACE("handle client command", K(query));/*
 			if (query.find("SHOW SESSION") != String::npos)
 					query = "select * from system.sys_vars";
 			else if (query.find("SELECT CURRENT_USER") != String::npos)
 					query = "select * from system.current_user";
 			else if (query.find("SELECT CONNECTION_ID") != String::npos)
 					query = "select * from system.connection_id";
-			else if (query.find("SHOW CHAR") != String::npos)
+			else if (query.find("SHOW CHARSET") != String::npos)
 					query = "select * from system.charset";
 			else if (query.find("SHOW ENGINES") != String::npos)
 					query = "select * from system.engine";
@@ -410,9 +412,10 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			else if (query.find("SHOW FUNCTION") != String::npos)
 					{send_ok_packet();return;}
 			else if (query.find("VERSION_COMMENT") != String::npos)
-					{send_ok_packet();return;}
+					{send_ok_packet();return;}*/
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
+			session_status = "IN QUEUE";
 			break;
 		}
 		case COM_PING:
@@ -436,6 +439,5 @@ void RequestHandle::handle_request(char* buf, size_t len)
 			do_not_support();
 		}
 	}
-	session_status = "SLEEP";
 }
 

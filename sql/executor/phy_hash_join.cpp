@@ -27,6 +27,8 @@ PhyOperator_s PhyHashJoin::make_hash_join(const PhyOperator_s & left_child,
 	const Vector<Expression_s> &prob_exprs)
 {
 	PhyHashJoin* op = new PhyHashJoin(left_child, right_child);
+	op->hash_exprs = hash_exprs;
+	op->prob_exprs = prob_exprs;
 	op->hash_table.set_hash_exprs(hash_exprs);
 	op->hash_table.set_probe_exprs(prob_exprs);
 	op->hash_table.set_other_condition(other_join_cond);
@@ -102,25 +104,19 @@ u32 PhyHashJoin::type() const
 u32 PhyHashJoin::build_hash_table()
 {
 	u32 ret = SUCCESS;
-	if (LeftAnti == JoinPhyOperator::type) {
-		return build_hash_table_for_left_anti();
-	} else if (RightSemi == JoinPhyOperator::type) {
-		return build_hash_table_for_right_anti();
-	} else {
-		Row_s row;
-		while (SUCC(left_child->get_next_row(row))) {
-			row = Row::deep_copy(row);
-			hash_table.build(row);
-		}
-		if (ret == NO_MORE_ROWS) {
-			ret = SUCCESS;
-		}
+	Row_s row;
+	while (SUCC(left_child->get_next_row(row))) {
+		row = Row::deep_copy(row);
+		hash_table.build(row);
+	}
+	if (ret == NO_MORE_ROWS) {
+		ret = SUCCESS;
 	}
 	is_build_hash_table = true;
 	return ret;
 }
 
-u32 PhyHashJoin::build_hash_table_for_left_anti()
+u32 PhyHashJoin::build_hash_table_for_left_na_anti()
 {
 	u32 ret = SUCCESS;
 	if (hash_exprs.size() != 1 || prob_exprs.size() != 1) {
@@ -153,11 +149,14 @@ u32 PhyHashJoin::build_hash_table_for_left_anti()
 				CHECK(hash_table.build(row));
 			}
 		}
+		if (ret == NO_MORE_ROWS) {
+			ret = SUCCESS;
+		}
 	}
 	return ret;
 }
 
-u32 PhyHashJoin::build_hash_table_for_right_anti()
+u32 PhyHashJoin::build_hash_table_for_right_na_anti()
 {
 	if (hash_exprs.size() != 1) {
 		LOG_ERR("hash anti join only support one join condition");

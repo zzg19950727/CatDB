@@ -1846,7 +1846,14 @@ opt_if_exists:
  *
  **************************************************************/
  show_stmt:
-    SHOW DATABASES
+	SELECT DATABASES
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
+		check(cmd_stmt);
+		cmd_stmt->params.show_databases_params.is_select_current_database = true;
+		$$ = cmd_stmt;
+	}
+    | SHOW DATABASES
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);

@@ -108,9 +108,9 @@ public:
 	my_decimal(const uchar *bin, int size, int prec, int scale)
 	{
 		init();
-		memcpy(&prec, bin, sizeof(prec));
-		memcpy(&scale, bin + sizeof(prec), sizeof(scale));
-		bin2decimal(bin + sizeof(prec) + sizeof(prec), this, prec + scale, scale);
+		memcpy(&intg, bin, sizeof(intg));
+		memcpy(&frac, bin + sizeof(intg), sizeof(frac));
+		bin2decimal(bin + sizeof(intg) + sizeof(frac), this, intg + frac, frac);
 	}
 
 	my_decimal(const String& str)

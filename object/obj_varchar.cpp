@@ -173,7 +173,7 @@ void kmp_next(const char *s, int beg, int end, int* next)
 
 bool kmp(const char *s1, const char *s2, int& beg1, int& beg2, int end1, int end2)
 {
-	int next[1024];
+	int next[1024] = {-1};
 	kmp_next(s2, beg2, end2, next);
 	int k = -1;
 	int i = beg1;
@@ -255,9 +255,13 @@ u32 Varchar::like(const Varchar_s& str, const String& pattern, const String& esc
 u32 Varchar::substr(const Varchar_s& str, u32 pos, u32 size, Varchar_s &res)
 {
 	u32 ret = SUCCESS;
-	if (pos >= str->length) {
+	if (0 == pos) {
+		++pos;
+	}
+	if (pos > str->length) {
 		res = Varchar_s(new Varchar(""));
 	} else {
+		--pos;
 		size = str->length - pos > size ? size : str->length - pos;
 		res = Varchar_s(new Varchar(str->data+pos, size));
 	}

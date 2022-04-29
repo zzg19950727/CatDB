@@ -98,7 +98,9 @@ ExprStmt_s ConstStmt::make_const_stmt(const Object_s& value)
 String ConstStmt::to_string() const
 {
 	if (value) {
-		if (res_type.is_varchar()) {
+		if (value->is_null()) {
+			return "NULL";
+		} else if (res_type.is_varchar()) {
 			return "'" + value->to_string() + "'";
 		} else {
 			return value->to_string();
@@ -154,6 +156,10 @@ u32 ConstStmt::deduce_type()
 		case T_DATETIME:
 			res_type = DataType::default_datetime_type(DATETIME);
 			break;
+		case T_BOOL:
+		case T_MAX_TYPE:
+		default:
+			ret = ERR_UNEXPECTED;
 	}
 	return ret;
 }
@@ -715,6 +721,7 @@ String OpExprStmt::to_string()const
 {
 	String ret;
 	switch (op_type) {
+		case OP_MAX:
 		case OP_INVALID:
 			ret += "UNKNOWN";
 			break;
@@ -1113,6 +1120,10 @@ u32 OpExprStmt::deduce_type()
 	DataType r_dst_type;
 	DataType dst_type;
 	switch (op_type) {
+		case OP_INVALID:
+		case OP_MAX:
+			ret = ERR_UNEXPECTED;
+			break;
 		case OP_MINUS:
 		case OP_NOT:
 		case OP_IS_NULL:
@@ -1284,11 +1295,11 @@ u32 OpExprStmt::deduce_type()
 			break;
 		case OP_TO_NUMBER:
 			if (params[0]->res_type.is_varchar() ||
-				params[1]->res_type.is_number()) {
+				params[0]->res_type.is_number()) {
 				
 			} else {
-				ret = INVALID_CAST;
-				return ret;
+				//ret = INVALID_CAST;
+				//return ret;
 			}
 			dst_type = DataType::default_number_type();
 			break;

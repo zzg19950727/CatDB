@@ -1599,9 +1599,9 @@ namespace CatDB {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 1122,     ///< Last index in yytable_.
+      yylast_ = 1024,     ///< Last index in yytable_.
       yynnts_ = 97,  ///< Number of nonterminal symbols.
-      yyfinal_ = 77, ///< Termination state number.
+      yyfinal_ = 79, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 155  ///< Number of tokens.
