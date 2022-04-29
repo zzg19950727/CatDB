@@ -269,7 +269,7 @@ namespace CatDB {
 			);
 		public:
 			typedef Vector<HintStmt_s> 	HintArray;
-			typedef UnorderedHashMap<HintType, HintArray>	HintTypeMap;
+			typedef HashMap<HintType, HintArray>	HintTypeMap;
 			UnorderedHashMap<String, HintTypeMap> hint_map;
 		};
 

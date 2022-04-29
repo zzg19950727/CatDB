@@ -1846,7 +1846,7 @@ opt_if_exists:
  *
  **************************************************************/
  show_stmt:
-	SELECT DATABASES
+	SELECT DATABASE "(" ")"
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);
