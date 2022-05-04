@@ -25,6 +25,7 @@ namespace CatDB {
 			static Number_s make_float_object(f64 value);
 			static Number_s make_int_object(longlong value);
 			static Number_s make_object(const String& value);
+			static Number_s make_object(Number_s value);
 			u32 serialization(u8*& buffer) const override;
 			u32 hash()const override;
 			String to_string()const override;

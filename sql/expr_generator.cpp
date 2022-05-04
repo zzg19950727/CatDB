@@ -1,6 +1,7 @@
 #include "expr_generator.h"
 #include "code_generator.h"
 #include "phy_expression.h"
+#include "phy_aggr_expression.h"
 #include "logical_operator.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -75,14 +76,11 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
     case SUBQUERY:
 	{
         SubQueryStmt_s subquery = expr;
-        auto iter = ctx.subplan_map.find(expr);
-        MY_ASSERT(iter != ctx.subplan_map.end());
         Vector<std::pair<ExecParamStmt_s, ExprStmt_s>> exec_params;
         Vector<std::pair<ExecParamExpression_s, Expression_s>> rt_exec_params;
         CHECK(subquery->get_all_exec_params(exec_params));
         CHECK(generate_exec_params(ctx, exec_params, rt_exec_params));
-        PhyOperator_s phy_op = ctx.subplan_map[expr];
-        SubplanExpression_s subplan_expr = SubplanExpression::make_subplan_expression(phy_op);
+        SubplanExpression_s subplan_expr = SubplanExpression::make_subplan_expression(subquery->subquery_id);
         subplan_expr->exec_params = rt_exec_params;
         rt_expr = subplan_expr;
 		break;

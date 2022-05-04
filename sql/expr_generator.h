@@ -11,7 +11,6 @@ namespace CatDB {
     namespace Sql {
         DECLARE(ExecCtx);
         DECLARE(Expression);
-        DECLARE(ColumnExpression);
         DECLARE(PhyOperator);
         DECLARE(ExecParamExpression);
         using Parser::ExprStmt_s;
@@ -20,7 +19,6 @@ namespace CatDB {
         struct ExprGenerateCtx {
             ExprGenerateCtx();
             ~ExprGenerateCtx();
-            HashMap<ExprStmt_s, PhyOperator_s> subplan_map;
             HashMap<ExprStmt_s, Expression_s> access_expr_map;
             Vector<PhyOperator_s> child_ops;
             ExecCtx_s exec_ctx;

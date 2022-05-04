@@ -1,21 +1,18 @@
 ﻿#ifndef PHY_SCALAR_GROUP_H
 #define PHY_SCALAR_GROUP_H
-
+#include "phy_aggr_expression.h"
 #include "phy_operator.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
-		DECLARE(Object);
 	}
 	namespace Sql {
 		using Common::Row_s;
-		using Common::Object_s;
-		DECLARE(Filter);
 		DECLARE(Expression);
 
-		class PhyScalarGroup : public SingleChildPhyOperator
+		class PhyScalarGroup : public SingleChildPhyOperator, public AggregateExpCalculator
 		{
 		public:
 			PhyScalarGroup() = delete;
@@ -33,11 +30,7 @@ namespace CatDB {
 			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
-			void reset_agg_func();
-			void init_agg_func();
-			u32 add_row_to_agg_func(Row_s& row);
-
-			Vector<Expression_s> agg_funcs;
+			Row_s aggr_result_row;
 			bool is_start;
 		};
 

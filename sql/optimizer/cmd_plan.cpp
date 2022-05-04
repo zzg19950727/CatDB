@@ -476,12 +476,18 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 	u32 ret = SUCCESS;
 	Vector<String> title;
 	title.push_back(String("PID"));
+	title.push_back(String("TraceID"));
+	title.push_back(String("Time(s)"));
 	title.push_back(String("Status"));
 	CHECK(init_command_result_head(title, query_result));
 	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
 		Vector<Object_s> cells;
 		Object_s thread_id = Varchar::make_object(std::to_string(iter->first));
 		cells.push_back(thread_id);
+		Object_s trace_id = Varchar::make_object(iter->second->get_trace_id());
+		cells.push_back(trace_id);
+		Object_s time = Varchar::make_object(std::to_string(iter->second->get_session_time()));
+		cells.push_back(time);
 		Object_s sql=Varchar::make_object(iter->second->get_session_status());
 		cells.push_back(sql);
 		CHECK(add_objects_to_result_set(cells, query_result));

@@ -1,7 +1,6 @@
 ﻿#ifndef PHY_HASH_DISTINCT_H
 #define PHY_HASH_DISTINCT_H
 #include "phy_operator.h"
-#include "hash_table.h"
 #include "type.h"
 
 namespace CatDB {
@@ -11,6 +10,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		DECLARE(Expression);
+		DECLARE(HashTable);
 
 		class PhyHashDistinct : public SingleChildPhyOperator
 		{
@@ -28,7 +28,7 @@ namespace CatDB {
 			u32 inner_get_next_row() override;
 			u32 type() const override;
 		private:
-			HashTable hash_table;
+			HashTable_s hash_table;
 		};
 
 	}

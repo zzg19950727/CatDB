@@ -1,5 +1,6 @@
 #include "phy_hash_join.h"
 #include "phy_expression.h"
+#include "hash_table.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -29,9 +30,10 @@ PhyOperator_s PhyHashJoin::make_hash_join(const PhyOperator_s & left_child,
 	PhyHashJoin* op = new PhyHashJoin(left_child, right_child);
 	op->hash_exprs = hash_exprs;
 	op->prob_exprs = prob_exprs;
-	op->hash_table.set_hash_exprs(hash_exprs);
-	op->hash_table.set_probe_exprs(prob_exprs);
-	op->hash_table.set_other_condition(other_join_cond);
+	op->hash_table = HashTable::make_hash_table();
+	op->hash_table->set_hash_exprs(hash_exprs);
+	op->hash_table->set_probe_exprs(prob_exprs);
+	op->hash_table->set_other_condition(other_join_cond);
 	return PhyOperator_s(op);
 }
 
@@ -40,7 +42,7 @@ u32 PhyHashJoin::inner_open()
 	u32 ret = SUCCESS;
 	CHECK(left_child->open());
 	CHECK(right_child->open());
-	hash_table.set_exec_ctx(exec_ctx);
+	hash_table->set_exec_ctx(exec_ctx);
 	return ret;
 }
 
@@ -61,7 +63,7 @@ u32 PhyHashJoin::reset()
 	CHECK(left_child->reset());
 	CHECK(right_child->reset());
 	last_probe_row.reset();
-	hash_table.clear();
+	hash_table->clear();
 	is_build_hash_table = false;
 	has_null_in_hash_table = false;
 	prepare_output_hash_table = true;
@@ -107,7 +109,7 @@ u32 PhyHashJoin::build_hash_table()
 	Row_s row;
 	while (SUCC(left_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
-		hash_table.build(row);
+		hash_table->build(row);
 	}
 	if (ret == NO_MORE_ROWS) {
 		ret = SUCCESS;
@@ -129,7 +131,7 @@ u32 PhyHashJoin::build_hash_table_for_left_na_anti()
 	bool right_is_empty = true;
 	while (SUCC(right_child->get_next_row(row))) {
 		right_is_empty = false;
-		exec_ctx->set_input_rows(row);
+		set_input_rows(row);
 		CHECK(prob_expr->get_result(exec_ctx));
 		if (exec_ctx->output_result->is_null()) {
 			has_null_in_hash_table = true;
@@ -142,11 +144,11 @@ u32 PhyHashJoin::build_hash_table_for_left_na_anti()
 	}
 	if (!has_null_in_hash_table) {
 		while (SUCC(ret) && SUCC(left_child->get_next_row(row))) {
-			exec_ctx->set_input_rows(row);
+			set_input_rows(row);
 			CHECK(hash_expr->get_result(exec_ctx));
 			if (!exec_ctx->output_result->is_null() || right_is_empty) {
 				row = Row::deep_copy(row);
-				CHECK(hash_table.build(row));
+				CHECK(hash_table->build(row));
 			}
 		}
 		if (ret == NO_MORE_ROWS) {
@@ -166,14 +168,14 @@ u32 PhyHashJoin::build_hash_table_for_right_na_anti()
 	Expression_s hash_expr = hash_exprs[0];
 	Row_s row;
 	while (SUCC(left_child->get_next_row(row))) {
-		exec_ctx->set_input_rows(row);
+		set_input_rows(row);
 		CHECK(hash_expr->get_result(exec_ctx));
 		if (exec_ctx->output_result->is_null()) {
 			has_null_in_hash_table = true;
 			break;
 		}
 		row = Row::deep_copy(row);
-		CHECK(hash_table.build(row));
+		CHECK(hash_table->build(row));
 	}
 	if (NO_MORE_ROWS == ret) {
 		ret = SUCCESS;
@@ -192,7 +194,7 @@ u32 PhyHashJoin::join()
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe_all_rows(row, probe_result))) {
+		if (SUCC(hash_table->probe_all_rows(row, probe_result))) {
 			last_probe_row = row;
 			Row_s left_row = probe_result.front();
 			probe_result.pop();
@@ -217,7 +219,7 @@ u32 PhyHashJoin::left_semi_join()
 		return SUCCESS;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe_all_rows(row, probe_result, true))) {
+		if (SUCC(hash_table->probe_all_rows(row, probe_result, true))) {
 			row = probe_result.front();
 			probe_result.pop();
 			set_input_rows(row);
@@ -236,7 +238,7 @@ u32 PhyHashJoin::right_semi_join()
 	u32 ret = SUCCESS;
 	Row_s row;
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe(row))) {
+		if (SUCC(hash_table->probe(row))) {
 			set_input_rows(row);
 			return ret;
 		} else if (ROW_NOT_FOUND != ret) {
@@ -256,7 +258,7 @@ u32 PhyHashJoin::left_anti_join()
 		return NO_MORE_ROWS;
 	} else if (prepare_output_hash_table) {
 		while (SUCC(right_child->get_next_row(row))) {
-			if (SUCC(hash_table.probe_all_rows(row))) {
+			if (SUCC(hash_table->probe_all_rows(row))) {
 
 			} else if (ROW_NOT_FOUND != ret) {
 				return ret;
@@ -270,7 +272,7 @@ u32 PhyHashJoin::left_anti_join()
 			return ret;
 		}
 	}
-	CHECK(hash_table.get_next_row(row, true));
+	CHECK(hash_table->get_next_row(row, true));
 	set_input_rows(row);
 	return ret;
 }
@@ -284,18 +286,17 @@ u32 PhyHashJoin::right_anti_join()
 	}
 	Expression_s prob_expr = prob_exprs[0];
 	while (SUCC(right_child->get_next_row(row))) {
-		if (hash_table.empty()) {
-			set_input_rows(row);
+		set_input_rows(row);
+		if (hash_table->empty()) {
 			return SUCCESS;
+		} else {
+			CHECK(prob_expr->get_result(exec_ctx));
 		}
-		exec_ctx->set_input_rows(row);
-		CHECK(prob_expr->get_result(exec_ctx));
 		if (exec_ctx->output_result->is_null()) {
 			continue;
 		} else {
-			ret = hash_table.probe(row);
+			ret = hash_table->probe(row);
 			if (ROW_NOT_FOUND == ret) {
-				set_input_rows(row);
 				ret = SUCCESS;
 			}
 			return ret;
@@ -315,7 +316,7 @@ u32 PhyHashJoin::left_outer_join()
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe_all_rows(row, probe_result))) {
+		if (SUCC(hash_table->probe_all_rows(row, probe_result))) {
 			last_probe_row = row;
 			Row_s left_row = probe_result.front();
 			probe_result.pop();
@@ -328,7 +329,7 @@ u32 PhyHashJoin::left_outer_join()
 		}
 	}
 	if (NO_MORE_ROWS == ret) {
-		CHECK(hash_table.get_next_row(row, true));
+		CHECK(hash_table->get_next_row(row, true));
 		Row_s right_row;
 		CHECK(right_child->make_const_row(outer_const_value, right_row));
 		set_input_rows(row, right_row);
@@ -347,7 +348,7 @@ u32 PhyHashJoin::right_outer_join()
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		ret = hash_table.probe_all_rows(row, probe_result);
+		ret = hash_table->probe_all_rows(row, probe_result);
 		if (ret == SUCCESS) {
 			last_probe_row = row;
 			Row_s left_row = probe_result.front();
@@ -374,7 +375,7 @@ u32 PhyHashJoin::full_outer_join()
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		ret = hash_table.probe_all_rows(row, probe_result);
+		ret = hash_table->probe_all_rows(row, probe_result);
 		if (ret == SUCCESS) {
 			last_probe_row = row;
 			Row_s left_row = probe_result.front();
@@ -388,7 +389,7 @@ u32 PhyHashJoin::full_outer_join()
 		return ret;
 	}
 	if (NO_MORE_ROWS == ret) {
-		CHECK(hash_table.get_next_row(row, true));
+		CHECK(hash_table->get_next_row(row, true));
 		Row_s right_row;
 		CHECK(right_child->make_const_row(outer_const_value, right_row));
 		set_input_rows(row, right_row);

@@ -110,12 +110,12 @@ bool PhySort::compare(const Row_s& lhs, const Row_s& rhs)
 	Object_s left;
 	Object_s right;
 	for (u32 i = 0; i < sort_exprs.size(); ++i) {
-		exec_ctx->set_input_rows(lhs);
+		set_input_rows(lhs);
 		if (FAIL(sort_exprs[i]->get_result(exec_ctx))) {
 			return false;
 		}
 		left = exec_ctx->output_result;
-		exec_ctx->set_input_rows(rhs);
+		set_input_rows(rhs);
 		if (FAIL(sort_exprs[i]->get_result(exec_ctx))) {
 			return false;
 		}

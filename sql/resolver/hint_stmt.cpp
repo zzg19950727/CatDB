@@ -20,6 +20,9 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
         case SIMPLIFY_SQ:
             hint = HintStmt_s(new SimplifySQHintStmt(is_enable));
             break;
+        case EXPR_NORMALIZE:
+            hint = HintStmt_s(new ExprNormalizeHintStmt(is_enable));
+            break;
         case JOIN:
             hint = HintStmt_s(new JoinHintStmt(is_enable));
             break;
@@ -506,6 +509,20 @@ bool QueryHint::enable_no_simplify_sq(const String &qb_name) const
 {
     HintManager::HintStatus status = HintManager::NOT_SET_HINT;
     transformer_hints->get_hint_status(qb_name, SIMPLIFY_SQ, status);
+    return HintManager::FORCE_DISABLE == status;
+}
+
+bool QueryHint::enable_expr_normalize(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, EXPR_NORMALIZE, status);
+    return HintManager::FORCE_ENABLE == status;
+}
+
+bool QueryHint::enable_no_expr_normalize(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, EXPR_NORMALIZE, status);
     return HintManager::FORCE_DISABLE == status;
 }
 

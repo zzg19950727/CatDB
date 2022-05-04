@@ -4,7 +4,11 @@
 #include "type.h"
 
 namespace CatDB {
+	namespace Common {
+		DECLARE(Row);
+	}
 	namespace Sql {
+		using Common::Row_s;
         DECLARE(PhySubqueryEvaluate);
 		class PhySubqueryEvaluate : public MultiChildPhyOperator
 		{
@@ -19,6 +23,9 @@ namespace CatDB {
 			u32 reset() override;
 			u32 inner_get_next_row() override;
 			u32 type() const override;
+
+			u32 reset_subplan(u32 subplan_id);
+			u32 get_subplan_next_row(u32 subplan_id, Row_s &row);
 		};
 	}
 }

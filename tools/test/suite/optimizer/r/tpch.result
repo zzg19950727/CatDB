@@ -1307,28 +1307,31 @@ AND l_shipmode IN ( 'AIR', 'AIR REG' )
 AND l_shipinstruct = 'DELIVER IN PERSON' )
 
 Query Plan:
-+------------------------------------------------------------+
-| ID | OPERATOR                | NAME     | ROW COUNT | COST |
-+------------------------------------------------------------+
-| 0  | SCALAR GROUP BY         |          | 1         | 13   |
-| 1  |  NESTED LOOP Inner JOIN |          | 1         | 13   |
-| 2  |   TABLE SCAN            | LINEITEM | 1         | 4    |
-| 3  |   TABLE SCAN            | PART     | 1         | 4    |
-+------------------------------------------------------------+
++-----------------------------------------------------+
+| ID | OPERATOR         | NAME     | ROW COUNT | COST |
++-----------------------------------------------------+
+| 0  | SCALAR GROUP BY  |          | 1         | 9    |
+| 1  |  HASH Inner JOIN |          | 1         | 8    |
+| 2  |   TABLE SCAN     | LINEITEM | 1         | 4    |
+| 3  |   TABLE SCAN     | PART     | 1         | 4    |
++-----------------------------------------------------+
 Outputs & filters:
 0 - output([SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
 aggr_exprs([SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
 1 - output([lineitem.l_extendedprice], [lineitem.l_discount])
-other_join_conditions([part.p_partkey = lineitem.l_partkey AND part.p_brand = 'Brand#12' AND part.p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG') AND lineitem.l_quantity >= 1 AND lineitem.l_quantity <= 1 + 10 AND part.p_size BETWEEN 1 AND 5 AND lineitem.l_shipmode IN ('AIR', 'AIR REG') AND lineitem.l_shipinstruct = 'DELIVER IN PERSON' OR part.p_partkey = lineitem.l_partkey AND part.p_brand = 'Brand#23' AND part.p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK') AND lineitem.l_quantity >= 10 AND lineitem.l_quantity <= 10 + 10 AND part.p_size BETWEEN 1 AND 10 AND lineitem.l_shipmode IN ('AIR', 'AIR REG') AND lineitem.l_shipinstruct = 'DELIVER IN PERSON' OR part.p_partkey = lineitem.l_partkey AND part.p_brand = 'Brand#34' AND part.p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG') AND lineitem.l_quantity >= 20 AND lineitem.l_quantity <= 20 + 10 AND part.p_size BETWEEN 1 AND 15 AND lineitem.l_shipmode IN ('AIR', 'AIR REG') AND lineitem.l_shipinstruct = 'DELIVER IN PERSON'])
-2 - output([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_shipmode], [lineitem.l_shipinstruct], [lineitem.l_extendedprice], [lineitem.l_discount])
-access([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_shipmode], [lineitem.l_shipinstruct], [lineitem.l_extendedprice], [lineitem.l_discount])
+equal_join_conditions([part.p_partkey = lineitem.l_partkey])
+other_join_conditions([part.p_brand = 'Brand#12' AND part.p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG') AND lineitem.l_quantity >= 1 AND lineitem.l_quantity <= 1 + 10 AND part.p_size BETWEEN 1 AND 5 OR part.p_brand = 'Brand#23' AND part.p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK') AND lineitem.l_quantity >= 10 AND lineitem.l_quantity <= 10 + 10 AND part.p_size BETWEEN 1 AND 10 OR part.p_brand = 'Brand#34' AND part.p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG') AND lineitem.l_quantity >= 20 AND lineitem.l_quantity <= 20 + 10 AND part.p_size BETWEEN 1 AND 15])
+2 - output([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount])
+filters([lineitem.l_shipmode IN ('AIR', 'AIR REG')], [lineitem.l_shipinstruct = 'DELIVER IN PERSON'])
+access([lineitem.l_partkey], [lineitem.l_shipmode], [lineitem.l_shipinstruct], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount])
 3 - output([part.p_partkey], [part.p_brand], [part.p_container], [part.p_size])
 access([part.p_partkey], [part.p_brand], [part.p_container], [part.p_size])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-USE_NL(@SEL1 part)
+EXPR_NORMALIZE(@SEL1)
+USE_HASH(@SEL1 part)
 LEADING(@SEL1 lineitem, part)
 END_OUTLINE_DATA
 */

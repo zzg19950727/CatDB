@@ -91,6 +91,8 @@ namespace CatDB {
 
             static u32 make_or_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr);
 
+            static u32 make_and_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr);
+
             static u32 make_null_expr(ExprStmt_s &null_expr);
 
             static u32 make_bool_expr(ExprStmt_s &bool_expr, bool value);
@@ -112,6 +114,15 @@ namespace CatDB {
             static u32 extract_subquery_exprs(Vector<ExprStmt_s> &exprs, 
                                               Vector<ExprStmt_s> &subquery_exprs,
                                               Vector<ExprStmt_s> &none_subquery_exprs);
+        
+            static u32 is_calculable_expr(ExprStmt_s &expr, bool &is_calculable);
+
+            static u32 expr_intersect(const Vector<ExprStmt_s> &lhs,
+                                      const Vector<ExprStmt_s> &rhs,
+                                      Vector<ExprStmt_s> &res);
+        
+            static u32 remove_equal_exprs(Vector<ExprStmt_s> &src,
+                                          const Vector<ExprStmt_s> &dst);
         };
     }
 }

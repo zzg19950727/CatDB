@@ -1,8 +1,6 @@
 ﻿#include "phy_expression.h"
 #include "expression_calc.h"
-#include "phy_operator.h"
-#include "sql_engine.h"
-#include "obj_number.h"
+#include "phy_subquery_evaluate.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
@@ -68,14 +66,14 @@ Expression_s ExecParamExpression::make_exec_param_expression(u32 param_index)
 u32 ExecParamExpression::set_value(ExecCtx_s &ctx, Object_s &value)
 {
 	u32 ret = SUCCESS;
-	ctx->param_store[param_index] = value;
+	ctx->param_store->set_value(param_index, value);
 	return ret;
 }
 
 u32 ExecParamExpression::get_result(ExecCtx_s &ctx)
 {
 	u32 ret = SUCCESS;
-	ctx->output_result = ctx->param_store[param_index];
+	ctx->output_result = ctx->param_store->get_value(param_index);
 	return ret;
 }
 
@@ -98,11 +96,17 @@ Expression_s ColumnExpression::make_column_expression(u32 op_id, u32 column_id)
 u32 ColumnExpression::get_result(ExecCtx_s &ctx)
 {
 	u32 ret = SUCCESS;
+	bool find = false;
 	for (u32 i = 0; i < ctx->input_rows.size(); ++i) {
 		if (op_id == ctx->input_rows[i]->get_op_id()) {
 			CHECK(ctx->input_rows[i]->get_cell(column_id, ctx->output_result));
+			find = true;
 			break;
 		}
+	}
+	if (!find) {
+		ret = ERR_UNEXPECTED;
+		LOG_ERR("unexpect column value", K(op_id), K(column_id), K(ctx->input_rows));
 	}
 	return ret;
 }
@@ -198,139 +202,14 @@ void OpExpression::add_param_expr(Expression_s& expr)
 	param_exprs.push_back(expr);
 }
 
-AggregateExpression::AggregateExpression(const Expression_s& expr, AggrType op, bool is_distinct)
-	:expr(expr),
-	is_distinct(is_distinct),
-	op(op),
-	row_count(0)
-{
-	hash_table.set_hash_expr(this->expr);
-	hash_table.set_probe_expr(this->expr);
-	result = Number::make_int_object(0);
-}
-
-AggregateExpression::~AggregateExpression()
+SubplanExpression::SubplanExpression(u32 subplan_id)
+	:subplan_id(subplan_id)
 {
 }
 
-Expression_s AggregateExpression::make_aggregate_expression(const Expression_s& expr, AggrType op, bool is_distinct)
+Expression_s SubplanExpression::make_subplan_expression(u32 subplan_id)
 {
-	return Expression_s(new AggregateExpression(expr, op, is_distinct));
-}
-
-u32 AggregateExpression::get_result(ExecCtx_s &ctx)
-{
-	u32 ret = SUCCESS;
-	if (op != COUNT && 0 == row_count) {
-		result->set_null();
-	} else if (op == COUNT) {
-		result = Number::make_int_object(row_count);
-	}
-	ctx->output_result = result;
-	return ret;
-}
-
-ExprType AggregateExpression::get_type() const
-{
-	return AGG_EXPR;
-}
-
-u32 AggregateExpression::add_row(ExecCtx_s &ctx)
-{
-	u32 ret = SUCCESS;
-	Row_s row = ctx->input_rows[0];
-	if (is_distinct && op != MIN && op != MAX) {
-		if (SUCC(hash_table.probe(row))) {
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
-			CHECK(hash_table.build(row));
-		}
-	}
-	ctx->set_input_rows(row);
-	CHECK(expr->get_result(ctx));
-	switch (op)
-	{
-	case SUM:
-		return sum(ctx->output_result);
-	case COUNT:
-		return count(ctx->output_result);
-	case MIN:
-		return min(ctx->output_result);
-	case MAX:
-		return max(ctx->output_result);
-	default:
-		return UNKNOWN_AGG_FUNC;
-	}
-	return ret;
-}
-
-void AggregateExpression::reset()
-{
-	result = Number::make_int_object(0);
-	hash_table.clear();
-	row_count = 0;
-}
-
-u32 AggregateExpression::sum(Object_s &value)
-{
-	u32 ret = SUCCESS;
-	Number_s sum_result = result;
-	sum_result->accumulate(value);
-	++row_count;
-	return ret;
-}
-
-u32 AggregateExpression::count(Object_s &value)
-{
-	u32 ret = SUCCESS;
-	if (!value->is_null()) {
-		++row_count;
-	}
-	return ret;
-}
-
-u32 AggregateExpression::max(Object_s &value)
-{
-	u32 ret = SUCCESS;
-	if (0 == row_count) {
-		result = value;
-	} else {
-		int res = 0;
-		CHECK(value->compare(result, res));
-		if (res > 0) {
-			result = value;
-		}
-	}
-	++row_count;
-	return ret;
-}
-
-u32 AggregateExpression::min(Object_s &value)
-{
-	u32 ret = SUCCESS;
-	if (0 == row_count) {
-		result = value;
-	} else {
-		int res = 0;
-		CHECK(value->compare(result, res));
-		if (res < 0) {
-			result = value;
-		}
-	}
-	++row_count;
-	return ret;
-}
-
-SubplanExpression::SubplanExpression(PhyOperator_s& subplan)
-	:subplan(subplan)
-{
-}
-
-Expression_s SubplanExpression::make_subplan_expression(PhyOperator_s& subplan)
-{
-	SubplanExpression* expr = new SubplanExpression(subplan);
+	SubplanExpression* expr = new SubplanExpression(subplan_id);
 	return Expression_s(expr);
 }
 
@@ -340,11 +219,12 @@ u32 SubplanExpression::get_result(ExecCtx_s &ctx)
 	CHECK(set_exec_param(ctx));
 	Row_s row;
 	u32 row_count = 0;
-	ret = subplan->get_next_row(row);
+	PhySubqueryEvaluate *subquery_evaluate = static_cast<PhySubqueryEvaluate*>(ctx->cur_op);
+	ret = subquery_evaluate->get_subplan_next_row(subplan_id, row);
 	if (FAIL(ret)) {
 		ctx->output_result = Object::make_null_object();
 	}
-	ret = subplan->get_next_row(row);
+	ret = subquery_evaluate->get_subplan_next_row(subplan_id, row);
 	if (SUCC(ret)) {
 		ret = MORE_THAN_ONE_ROW;
 	} else {
@@ -361,7 +241,8 @@ ExprType SubplanExpression::get_type() const
 u32 SubplanExpression::set_exec_param(ExecCtx_s &ctx)
 {
 	u32 ret = SUCCESS;
-	CHECK(subplan->reset());
+	PhySubqueryEvaluate *subquery_evaluate = static_cast<PhySubqueryEvaluate*>(ctx->cur_op);
+	CHECK(subquery_evaluate->reset_subplan(subplan_id));
 	for (u32 i = 0; i < exec_params.size(); ++i) {
 		ExecParamExpression_s &exec_param = exec_params[i].first;
 		Expression_s &ref_expr = exec_params[i].second;
@@ -371,11 +252,12 @@ u32 SubplanExpression::set_exec_param(ExecCtx_s &ctx)
 	return ret;
 }
 
-u32 SubplanExpression::get_next_result(Object_s &res)
+u32 SubplanExpression::get_next_result(ExecCtx_s &ctx, Object_s &res)
 {
 	u32 ret = SUCCESS;
 	Row_s row;
-	CHECK(subplan->get_next_row(row));
+	PhySubqueryEvaluate *subquery_evaluate = static_cast<PhySubqueryEvaluate*>(ctx->cur_op);
+	CHECK(subquery_evaluate->get_subplan_next_row(subplan_id, row));
 	CHECK(row->get_cell(0, res));
 	return ret;
 }

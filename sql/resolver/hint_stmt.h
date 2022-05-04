@@ -131,6 +131,17 @@ namespace CatDB {
 			~SimplifySQHintStmt() {}
 		};
 
+		DECLARE(ExprNormalizeHintStmt);
+		class ExprNormalizeHintStmt : public TransformHint {
+		private:
+			ExprNormalizeHintStmt(bool is_enable) 
+			: TransformHint(EXPR_NORMALIZE, is_enable)
+			{}
+		friend class HintStmt;
+		public:
+			~ExprNormalizeHintStmt() {}
+		};
+
 		DECLARE(JoinHintStmt);
 		class JoinHintStmt : public OptimizerHint
 		{
@@ -314,6 +325,8 @@ namespace CatDB {
 			bool enable_no_merge(const String &qb_name) const;
 			bool enable_simplify_sq(const String &qb_name) const;
 			bool enable_no_simplify_sq(const String &qb_name) const;
+			bool enable_expr_normalize(const String &qb_name) const;
+			bool enable_no_expr_normalize(const String &qb_name) const;
 			void get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints);
 			LeadingHintStmt_s get_leading_hint(const String &qb_name);
 			bool has_leading_hint(const String &qb_name);

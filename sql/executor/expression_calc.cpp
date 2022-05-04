@@ -324,7 +324,7 @@ u32 do_equal_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 == res) {
             ctx->bool_result = true;
@@ -347,7 +347,7 @@ u32 do_not_equal_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 != res) {
             ctx->bool_result = true;
@@ -370,7 +370,7 @@ u32 do_greater_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (1 == res) {
             ctx->bool_result = true;
@@ -393,7 +393,7 @@ u32 do_GE_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 <= res) {
             ctx->bool_result = true;
@@ -416,7 +416,7 @@ u32 do_less_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (-1 == res) {
             ctx->bool_result = true;
@@ -439,7 +439,7 @@ u32 do_LE_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 == res || -1 == res) {
             ctx->bool_result = true;
@@ -462,7 +462,7 @@ u32 do_equal_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 != res) {
             ctx->bool_result = false;
@@ -485,7 +485,7 @@ u32 do_not_equal_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 == res) {
             ctx->bool_result = false;
@@ -508,7 +508,7 @@ u32 do_greater_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (1 != res) {
             ctx->bool_result = false;
@@ -531,7 +531,7 @@ u32 do_GE_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 > res) {
             ctx->bool_result = false;
@@ -554,7 +554,7 @@ u32 do_less_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (-1 != res) {
             ctx->bool_result = false;
@@ -577,7 +577,7 @@ u32 do_LE_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 != res && -1 != res) {
             ctx->bool_result = false;
@@ -710,7 +710,7 @@ u32 do_in(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (0 == res) {
             ctx->bool_result = true;
@@ -737,7 +737,7 @@ u32 do_not_in(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
     int res;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
         if (rhs->is_null()) {
             ctx->bool_result = false;
@@ -761,7 +761,7 @@ u32 do_exists(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     SubplanExpression_s subquery = params[0];
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         ctx->bool_result = true;
         return ret;
     }
@@ -778,7 +778,7 @@ u32 do_not_exists(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     SubplanExpression_s subquery = params[0];
     CHECK(subquery->set_exec_param(ctx));
     Object_s rhs;
-    while (SUCC(subquery->get_next_result(rhs))) {
+    while (SUCC(subquery->get_next_result(ctx, rhs))) {
         ctx->bool_result = false;
         return ret;
     }

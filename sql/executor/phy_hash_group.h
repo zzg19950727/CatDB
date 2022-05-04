@@ -1,26 +1,24 @@
 ﻿#ifndef PHY_HASH_GROUP_H
 #define PHY_HASH_GROUP_H
-
+#include "phy_aggr_expression.h"
 #include "phy_operator.h"
-#include "hash_table.h"
 #include "type.h"
 
 namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
-		DECLARE(Object);
 	}
 	namespace Sql {
 		using Common::Row_s;
-		using Common::Object_s;
-		DECLARE(Filter);
 		DECLARE(Expression);
+		DECLARE(HashTable);
 
-		class PhyHashGroup : public SingleChildPhyOperator
+		class PhyHashGroup : public SingleChildPhyOperator, public AggregateExpCalculator
 		{
 		private:
 			PhyHashGroup() = delete;
-			PhyHashGroup(PhyOperator_s& child);
+			PhyHashGroup(PhyOperator_s& child,
+						 const Vector<Expression_s>& agg_funcs);
 		public:
 			~PhyHashGroup();
 			static PhyOperator_s make_hash_group(PhyOperator_s& child, 
@@ -36,18 +34,14 @@ namespace CatDB {
 		private:
 			u32 build_hash_table();
 			u32 euqal(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
-			void reset_agg_func();
-			void init_agg_func();
-			u32 add_row_to_agg_func(Row_s& row);
+
 		private:
-			HashTable hash_table;
+			HashTable_s hash_table;
 			Vector<Expression_s> group_exprs;
-			Vector<Expression_s> agg_funcs;
+			Row_s aggr_result_row;
 			//当前集合函数计算状态
-			Row_s first_group_row;
-			//当没有输入的时候需要输出一行结果
+			Row_s group_first_row;
 			bool is_build_hash_table;
-			bool start_new_group;
 		};
 
 	}

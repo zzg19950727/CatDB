@@ -20,7 +20,9 @@ namespace CatDB {
 			static MilliSeconds NanoToMilli(const NanoSeconds& nano);
 			static Rep now_steady_nano();
 			static Rep now_steady_miil();
+			static Rep now_steady_second();
 			static Rep now_steady();
+			static Rep steady_second(Rep start);
 			static void sleep_nano(unsigned int nano);
 			static void sleep_milli(unsigned int msec);
 			static void sleep(unsigned int intervals);

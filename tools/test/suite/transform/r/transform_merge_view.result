@@ -453,8 +453,8 @@ Query Plan:
 | 4  |   TABLE SCAN        | T3   | 1         | 4    |
 +----------------------------------------------------+
 Outputs & filters:
-0 - output([CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END], [t2.c2])
-equal_join_conditions([t1.c1 = CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END])
+0 - output([CASE WHEN t2.ROWID IS NULL THEN CAST(NULL AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END], [t2.c2])
+equal_join_conditions([t1.c1 = CASE WHEN t2.ROWID IS NULL THEN CAST(NULL AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END])
 1 - output([t1.c1])
 access([t1.c1])
 2 - output([t2.ROWID], [t2.c1], [t3.c2], [t2.c2])
@@ -476,15 +476,15 @@ END_OUTLINE_DATA
 
 select v1.* from (select t2.c1 + t3.c2 as c1, t2.c2 from t2, t3 where t2.c1 = t3.c1)v1 right join t1 on t1.c1 = v1.c1
 
-+---------------------------------------------------------------------------------------+-------+
-| CASE WHEN t2.ROWID IS NULL THEN CAST('NULL' AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END | t2.c2 |
-+---------------------------------------------------------------------------------------+-------+
-| 2                                                                                     | 1     |
-| 4                                                                                     | 2     |
-| NULL                                                                                  | NULL  |
-| NULL                                                                                  | NULL  |
-| NULL                                                                                  | NULL  |
-+---------------------------------------------------------------------------------------+-------+
++-------------------------------------------------------------------------------------+-------+
+| CASE WHEN t2.ROWID IS NULL THEN CAST(NULL AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END | t2.c2 |
++-------------------------------------------------------------------------------------+-------+
+| 2                                                                                   | 1     |
+| 4                                                                                   | 2     |
+| NULL                                                                                | NULL  |
+| NULL                                                                                | NULL  |
+| NULL                                                                                | NULL  |
++-------------------------------------------------------------------------------------+-------+
 5 rows in set
 
 Bye

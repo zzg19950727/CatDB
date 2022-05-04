@@ -73,8 +73,8 @@ Query Plan:
 +--------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([t1.c1 > ANY subquery(0)])
-subquery(0) - exec_params()
+filters([t1.c1 > ANY subquery(1)])
+subquery(1) - exec_params()
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 2 - output([t2.c2])
@@ -93,10 +93,10 @@ select * from t1 where c1 > any (select /*+no_unnest*/ c2 from t2 limit 1)
 +------+------+------+
 | c1   | c2   | c3   |
 +------+------+------+
-| 1    | 1    | 1    |
-| 1    | 1    | 1    |
-| 1    | 1    | 1    |
-| 1    | 1    | 1    |
+| 5    | 5    | 5    |
+| 4    | 4    | 4    |
+| 3    | 3    | 3    |
+| 2    | 2    | 2    |
 +------+------+------+
 4 rows in set
 
@@ -110,13 +110,13 @@ Query Plan:
 +-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([NULL IS NULL])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
 SIMPLIFY_SQ(@SEL2)
+EXPR_NORMALIZE(@SEL1)
 END_OUTLINE_DATA
 */
 
@@ -167,13 +167,13 @@ Query Plan:
 +-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([NULL IS NULL])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
 SIMPLIFY_SQ(@SEL2)
+EXPR_NORMALIZE(@SEL1)
 END_OUTLINE_DATA
 */
 
@@ -199,7 +199,7 @@ Query Plan:
 | 0  | TABLE SCAN | T1   | 1         | 4    |
 +-------------------------------------------+
 Outputs & filters:
-0 - output(['NULL'])
+0 - output([NULL])
 
 outline:
 /*+
@@ -210,15 +210,15 @@ END_OUTLINE_DATA
 
 select (select count(*) from t2 limit 1,1) as c1 from t1
 
-+--------+
-| 'NULL' |
-+--------+
-| NULL   |
-| NULL   |
-| NULL   |
-| NULL   |
-| NULL   |
-+--------+
++------+
+| NULL |
++------+
+| NULL |
+| NULL |
+| NULL |
+| NULL |
+| NULL |
++------+
 5 rows in set
 
 explain select (select count(*) from t2 limit 1) as c1 from t1
@@ -275,8 +275,8 @@ Query Plan:
 +--------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([t1.c1 > subquery(0)])
-subquery(0) - exec_params()
+filters([t1.c1 > subquery(1)])
+subquery(1) - exec_params()
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 2 - output([COUNT(1)])
@@ -306,8 +306,8 @@ Query Plan:
 +--------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([t1.c1 > subquery(0)])
-subquery(0) - exec_params()
+filters([t1.c1 > subquery(1)])
+subquery(1) - exec_params()
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 2 - output([SUM(t2.c2)])
@@ -336,13 +336,13 @@ Query Plan:
 +-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
-filters([NULL IS NULL])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
 SIMPLIFY_SQ(@SEL2)
+EXPR_NORMALIZE(@SEL1)
 END_OUTLINE_DATA
 */
 

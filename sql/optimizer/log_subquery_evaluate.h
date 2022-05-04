@@ -23,7 +23,7 @@ namespace CatDB {
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;
             void add_subplan(SubQueryStmt_s& subquery_expr, LogicalOperator_s &subplan);
-			u32 get_next_subquery_id() const { return subqueries.size(); }
+			u32 get_next_subquery_id() const { return subqueries.size()+1; }
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
 		public:
             Vector<SubQueryStmt_s> subqueries;

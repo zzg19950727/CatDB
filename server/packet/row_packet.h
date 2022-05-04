@@ -109,7 +109,9 @@ namespace CatDB
 			int number_cell_str(const Object_s &obj, char *buf, const int64_t len, int64_t &pos) const;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(RowPacket);
+			static const int MAX_ROW_SIZE = 16*1024;
 			Row_s row_;
+			int packet_len;
 		};
 	}
 }

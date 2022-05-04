@@ -1,5 +1,6 @@
 #ifndef REQUEST_HANDLE_H
 #define REQUEST_HANDLE_H
+#include "timer_manager.h"
 #include "socket_buffer.h"
 #include "net_service.h"
 #include "loginer.h"
@@ -28,6 +29,8 @@ namespace CatDB {
 			void set_login_info(const Loginer::LoginInfo& info, int thread_id);
 			QueryCtx_s &get_query_ctx() { return query_ctx; }
 			const String &get_session_status() const { return session_status; }
+			DateTime::Rep get_session_time() const { return DateTime::steady_second(start_time); }
+			const String &get_trace_id() const { return trace_id; }
 
 		private:
 			void notify_socket(int fd, NetService::Event e);
@@ -57,6 +60,7 @@ namespace CatDB {
 			QueryCtx_s query_ctx;
 			String session_status;
 			String trace_id;
+			DateTime::Rep start_time;
 			
 			bool is_com_field_list;
 			int seq;

@@ -209,6 +209,21 @@ u32 ExprUtils::make_or_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr)
     return ret;
 }
 
+u32 ExprUtils::make_and_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(2 <= old_exprs.size());
+    ExprStmt_s l_expr = old_exprs[0];
+    for (u32 i = 1; i < old_exprs.size(); ++i) {
+        new_expr = OpExprStmt::make_op_expr_stmt(OP_AND);
+        new_expr->params.push_back(l_expr);
+        new_expr->params.push_back(old_exprs[i]);
+        l_expr = new_expr;
+    }
+    CHECK(new_expr->formalize());
+    return ret;
+}
+
 u32 ExprUtils::make_null_expr(ExprStmt_s &null_expr)
 {
     u32 ret = SUCCESS;
@@ -303,5 +318,46 @@ u32 ExprUtils::extract_subquery_exprs(Vector<ExprStmt_s> &exprs,
             none_subquery_exprs.push_back(exprs[i]);
         }
     }
+    return ret;
+}
+
+u32 ExprUtils::is_calculable_expr(ExprStmt_s &expr, bool &is_calculable)
+{
+    u32 ret = SUCCESS;
+    is_calculable = !expr->has_flag(HAS_COLUMN) &&
+                    !expr->has_flag(HAS_SET_EXPR) &&
+                    !expr->has_flag(HAS_AGG) &&
+                    !expr->has_flag(HAS_SUBQUERY) &&
+                    !expr->has_flag(HAS_EXEC_PARAM) &&
+                    !expr->has_flag(HAS_WINFUNC);
+    return ret;
+}
+
+u32 ExprUtils::expr_intersect(const Vector<ExprStmt_s> &lhs,
+                              const Vector<ExprStmt_s> &rhs,
+                              Vector<ExprStmt_s> &res)
+{
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> new_exprs;
+    for (u32 i = 0; i < lhs.size(); ++i) {
+        if (find_equal_expr(rhs, lhs[i])) {
+            new_exprs.push_back(lhs[i]);
+        }
+    }
+    res = new_exprs;
+    return ret;
+}
+
+u32 ExprUtils::remove_equal_exprs(Vector<ExprStmt_s> &src,
+                                  const Vector<ExprStmt_s> &dst)
+{
+    u32 ret = SUCCESS;
+    Vector<ExprStmt_s> new_exprs;
+    for (u32 i = 0; i < src.size(); ++i) {
+        if (!find_equal_expr(dst, src[i])) {
+            new_exprs.push_back(src[i]);
+        }
+    }
+    src = new_exprs;
     return ret;
 }

@@ -169,9 +169,10 @@ end_comment		\*\/
 "row_number"			{ return CatDB::SqlParser::make_ROW_NUMBER(loc); }
 "begin_outline_data"	{ return CatDB::SqlParser::make_BEGIN_OUTLINE_DATA(loc); }
 "end_outline_data"		{ return CatDB::SqlParser::make_END_OUTLINE_DATA(loc); }
-"simplify_sq"	{ return CatDB::SqlParser::make_SIMPLIFY_SQ(loc); }
-"no_simplify_sq" { return CatDB::SqlParser::make_NO_SIMPLIFY_SQ(loc); }
-
+"simplify_sq"			{ return CatDB::SqlParser::make_SIMPLIFY_SQ(loc); }
+"no_simplify_sq" 		{ return CatDB::SqlParser::make_NO_SIMPLIFY_SQ(loc); }
+"expr_normalize"		{ return CatDB::SqlParser::make_EXPR_NORMALIZE(loc); }
+"no_expr_normalize"		{ return CatDB::SqlParser::make_NO_EXPR_NORMALIZE(loc); }
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
 ","				{ return CatDB::SqlParser::make_COMMA(loc); }

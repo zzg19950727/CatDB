@@ -1,8 +1,6 @@
 ﻿#ifndef PHY_HASH_SET_H
 #define PHY_HASH_SET_H
-
 #include "phy_operator.h"
-#include "hash_table.h"
 #include "type.h"
 
 namespace CatDB {
@@ -12,6 +10,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		DECLARE(Expression);
+		DECLARE(HashTable);
 		
 		//右表构建hash表，左表探测
 		class PhyHashSetOp : public DoubleChildPhyOperator
@@ -39,7 +38,7 @@ namespace CatDB {
 			u32 build_hash_table();
 			u32 type() const override;
 		private:
-			HashTable hash_table;
+			HashTable_s hash_table;
 			bool init_hash_table;
 			SetOpType set_type;
 		};

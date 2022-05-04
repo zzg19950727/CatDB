@@ -11,10 +11,11 @@ show databases
 +-------------+
 | test        |
 | random_test |
-| tpch        |
 | system      |
+| tpch_csv    |
+| tpch        |
 +-------------+
-4 rows in set
+5 rows in set
 
 drop database test
 
@@ -24,10 +25,11 @@ show databases
 | databases   |
 +-------------+
 | random_test |
-| tpch        |
 | system      |
+| tpch_csv    |
+| tpch        |
 +-------------+
-3 rows in set
+4 rows in set
 
 create database test
 

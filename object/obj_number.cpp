@@ -60,6 +60,11 @@ Number_s Number::make_object(const String & value)
 	return Number_s(new Number(value));
 }
 
+Number_s Number::make_object(Number_s value)
+{
+	return Number_s(new Number(value->data));
+}
+
 u32 Number::serialization(u8* & buffer) const
 {
 	u32 ret = data.to_binary(buffer);

@@ -210,7 +210,7 @@ u32 CodeGenerator::generate_group_by_op(ExprGenerateCtx &ctx, LogGroupBy_s log_o
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->agg_items, rt_aggr_items));
     MY_ASSERT(log_op->agg_items.size() == rt_aggr_items.size());
     for (u32 i = 0; i < log_op->agg_items.size(); ++i) {
-        ctx.access_expr_map[log_op->agg_items[i]] = rt_aggr_items[i];
+        ctx.access_expr_map[log_op->agg_items[i]] = ColumnExpression::make_column_expression(log_op->operator_id, i);
     }
     phy_op = PhyHashGroup::make_hash_group(ctx.child_ops[0], 
                                            rt_group_exprs, 
@@ -317,7 +317,7 @@ u32 CodeGenerator::generate_scalar_group_by_op(ExprGenerateCtx &ctx, LogScalarGr
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->agg_items, rt_aggr_items));
     MY_ASSERT(log_op->agg_items.size() == rt_aggr_items.size());
     for (u32 i = 0; i < log_op->agg_items.size(); ++i) {
-        ctx.access_expr_map[log_op->agg_items[i]] = rt_aggr_items[i];
+        ctx.access_expr_map[log_op->agg_items[i]] = ColumnExpression::make_column_expression(log_op->operator_id, i);
     }
     phy_op = PhyScalarGroup::make_scalar_group(ctx.child_ops[0],
                                                rt_aggr_items);
@@ -386,10 +386,7 @@ u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOp
     LogSubQueryEvaluate_s subquery_evaluate_op = log_op;
     PhySubqueryEvaluate_s phy_subquery_evaluate = PhySubqueryEvaluate::make_subquery_evaluate(ctx.child_ops[0]);
     MY_ASSERT(ctx.child_ops.size()-1 == subquery_evaluate_op->subqueries.size());
-    ctx.subplan_map.clear();
     for (u32 i = 1; i < ctx.child_ops.size(); ++i) {
-        SubQueryStmt_s &subquery = subquery_evaluate_op->subqueries[i-1];
-        ctx.subplan_map[subquery] = ctx.child_ops[i];
         phy_subquery_evaluate->add_child(ctx.child_ops[i]);
     }
     phy_op = phy_subquery_evaluate;
@@ -458,37 +455,7 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
     u32 ret = SUCCESS;
     MY_ASSERT(log_root);
     ctx.access_expr_map.clear();
-    if (!log_root->childs.empty() && !log_root->access_exprs.empty()) {
-        if (LOG_VIEW == log_root->type()) {
-            MY_ASSERT(log_root->childs.size() == 1);
-            LogicalOperator_s &child = log_root->childs[0];
-            Expression_s rt_expr;
-            for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
-                ExprStmt_s &expr = log_root->access_exprs[i];
-                MY_ASSERT(COLUMN == expr->expr_type());
-                ColumnStmt_s col_expr = expr;
-                rt_expr = ColumnExpression::make_column_expression(child->operator_id, col_expr->column_id);
-                ctx.access_expr_map[expr] = rt_expr;
-            }
-        } else {
-            Expression_s rt_expr;
-            for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
-                ExprStmt_s &expr = log_root->access_exprs[i];
-                u32 index;
-                bool find_expr = false;;
-                for (u32 j = 0; !find_expr && j < log_root->childs.size(); ++j) {
-                    LogicalOperator_s &child = log_root->childs[j];
-                    if (ExprUtils::find_item(child->output_exprs, expr, &index)) {
-                        find_expr = true;
-                        rt_expr = ColumnExpression::make_column_expression(child->operator_id, index);
-                        ctx.access_expr_map[expr] = rt_expr;
-                        break;
-                    }
-                }
-                MY_ASSERT(find_expr);
-            }
-        }
-    } else if (LOG_TABLE_SCAN == log_root->type()) {
+    if (LOG_TABLE_SCAN == log_root->type()) {
         Expression_s rt_expr;
         for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
             ExprStmt_s &expr = log_root->access_exprs[i];
@@ -496,7 +463,35 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
             rt_expr = ColumnExpression::make_column_expression(log_root->operator_id, i);
             ctx.access_expr_map[expr] = rt_expr;
         }
-    } 
+    } else if (LOG_VIEW == log_root->type()) {
+        MY_ASSERT(log_root->childs.size() == 1);
+        LogicalOperator_s &child = log_root->childs[0];
+        Expression_s rt_expr;
+        for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
+            ExprStmt_s &expr = log_root->access_exprs[i];
+            MY_ASSERT(COLUMN == expr->expr_type());
+            ColumnStmt_s col_expr = expr;
+            rt_expr = ColumnExpression::make_column_expression(child->operator_id, col_expr->column_id);
+            ctx.access_expr_map[expr] = rt_expr;
+        }
+    } else {
+        Expression_s rt_expr;
+        for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {
+            ExprStmt_s &expr = log_root->access_exprs[i];
+            u32 index;
+            bool find_expr = false;;
+            for (u32 j = 0; !find_expr && j < log_root->childs.size(); ++j) {
+                LogicalOperator_s &child = log_root->childs[j];
+                if (ExprUtils::find_item(child->output_exprs, expr, &index)) {
+                    find_expr = true;
+                    rt_expr = ColumnExpression::make_column_expression(child->operator_id, index);
+                    ctx.access_expr_map[expr] = rt_expr;
+                    break;
+                }
+            }
+            MY_ASSERT(find_expr);
+        }
+    }
     return ret;
 }
 

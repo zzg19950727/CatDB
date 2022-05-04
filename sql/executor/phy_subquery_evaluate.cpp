@@ -56,10 +56,25 @@ u32 PhySubqueryEvaluate::inner_get_next_row()
     Row_s row;
     ret = children[0]->get_next_row(row);
     set_input_rows(row);
+    exec_ctx->cur_op = this;
     return ret;
 }
 
 u32 PhySubqueryEvaluate::type() const
 {
 	return PhyOperator::SUBQUERY_EVALUATE;
+}
+
+u32 PhySubqueryEvaluate::reset_subplan(u32 subplan_id)
+{
+    u32 ret = SUCCESS;
+    CHECK(children[subplan_id]->reset());
+    return ret;
+}
+
+u32 PhySubqueryEvaluate::get_subplan_next_row(u32 subplan_id, Row_s &row)
+{
+    u32 ret = SUCCESS;
+    CHECK(children[subplan_id]->get_next_row(row));
+    return ret;
 }

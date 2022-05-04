@@ -17,14 +17,24 @@ namespace CatDB {
 		DECLARE(QueryCtx);
 		
 		DECLARE(ExecCtx);
+		DECLARE(ParamStore);
+		class ParamStore {
+		public:
+			static ParamStore_s make_param_store();
+			const Object_s& get_value(u32 index);
+			void set_value(u32 index, const Object_s &value);
+			HashMap<u32, Object_s> value_map;
+		};
 		class ExecCtx {
 		public:
 			static ExecCtx_s make_exec_ctx();
+			static ExecCtx_s make_exec_ctx(const ParamStore_s& param_store);
 			u32 set_input_rows(const Row_s &row);
 			u32 set_input_rows(const Row_s &row1, const Row_s &row2);
-			HashMap<u32, Object_s> param_store;
 			Vector<Row_s> input_rows;
+			ParamStore_s param_store;
 			Object_s output_result;
+			PhyOperator* cur_op;
 			bool bool_result;
 		};
 		

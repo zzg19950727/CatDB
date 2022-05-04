@@ -7,6 +7,7 @@
 #include "transform_unnest_J_N_subquery.h"
 #include "transform_unnest_JA_subquery.h"
 #include "transform_simplify_subquery.h"
+#include "transform_expr_normalize.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -45,6 +46,8 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
         //must transfrom at first time
         TRANSFORM(TransformFullOuterJoin, stmt, ctx, happened);
         //
+        TRANSFORM(TransformExprNormalize, stmt, ctx, happened);
+        //
         TRANSFORM(TransformMergeView, stmt, ctx, happened);
         //
         TRANSFORM(TransformSimplifySubquery, stmt, ctx, happened);
@@ -52,10 +55,9 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
         TRANSFORM(TransformUnnestJASubquery, stmt, ctx, happened);
         //
         TRANSFORM(TransformUnnestJNSubquery, stmt, ctx, happened);
+        LOG_TRACE("success to transform once", K(i), K(stmt));
         if (!happened) {
             break;
-        } else {
-            LOG_TRACE("success to transform once", K(i), K(stmt));
         }
     }
     TRANSFORM(TransformPostProcess, stmt, ctx, happened);

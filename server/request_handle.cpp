@@ -202,7 +202,7 @@ u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 	{
 		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
 		{
-				LOG_ERR("process row packet failed", K(ret));
+				LOG_ERR("process field packet failed", K(ret));
 		}
 		else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
 		{
@@ -354,6 +354,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 		}
 	}
 	session_status = "SLEEP";
+	start_time = DateTime::now_steady_second();
 	return ret;
 }
 
@@ -377,6 +378,7 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	seq = 0;
 	is_com_field_list = false;
 	query_ctx->reset();
+	start_time = DateTime::now_steady_second();
 	switch (command)
 	{
 		case COM_INIT_DB:

@@ -1,7 +1,6 @@
 ﻿#ifndef PHY_HASH_JOIN_H
 #define PHY_HASH_JOIN_H
 #include "phy_operator.h"
-#include "hash_table.h"
 #include "type.h"
 
 namespace CatDB {
@@ -11,6 +10,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		DECLARE(Expression);
+		DECLARE(HashTable);
 
 		class PhyHashJoin : public JoinPhyOperator
 		{
@@ -44,7 +44,7 @@ namespace CatDB {
 			u32 full_outer_join();
 
 		private:
-			HashTable hash_table;
+			HashTable_s hash_table;
 			Vector<Expression_s> hash_exprs;
 			Vector<Expression_s> prob_exprs;
 		private:

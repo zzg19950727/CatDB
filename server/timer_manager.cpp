@@ -29,6 +29,17 @@ DateTime::Rep DateTime::now_steady()
 	return now_steady_miil();
 #endif
 }
+
+DateTime::Rep DateTime::now_steady_second()
+{
+	return now_steady_miil()/1000;
+}
+
+DateTime::Rep DateTime::steady_second(Rep start)
+{
+	return now_steady_miil()/1000 - start;
+}
+
 void DateTime::sleep_nano(unsigned int nano)
 {
 	std::this_thread::sleep_for(std::chrono::nanoseconds(nano));

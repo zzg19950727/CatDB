@@ -7,9 +7,37 @@
 using namespace CatDB::Sql;
 using namespace CatDB::Common;
 
+ParamStore_s ParamStore::make_param_store()
+{
+	return ParamStore_s(new ParamStore);
+}
+
+const Object_s& ParamStore::get_value(u32 index)
+{
+	return value_map[index];
+}
+
+void ParamStore::set_value(u32 index, const Object_s &value)
+{
+	value_map[index] = value;
+}
+
 ExecCtx_s ExecCtx::make_exec_ctx()
 {
-	return ExecCtx_s(new ExecCtx);
+	ExecCtx *ctx = new ExecCtx();
+	ctx->cur_op = NULL;
+	ctx->bool_result = false;
+	ctx->param_store = ParamStore::make_param_store();
+	return ExecCtx_s(ctx);
+}
+
+ExecCtx_s ExecCtx::make_exec_ctx(const ParamStore_s& param_store)
+{
+	ExecCtx *ctx = new ExecCtx();
+	ctx->cur_op = NULL;
+	ctx->bool_result = false;
+	ctx->param_store = param_store;
+	return ExecCtx_s(ctx);
 }
 
 u32 ExecCtx::set_input_rows(const Row_s &row)
@@ -114,7 +142,7 @@ void PhyOperator::set_query_ctx(QueryCtx_s &ctx)
 
 void PhyOperator::set_exec_ctx(ExecCtx_s &ctx)
 {
-	exec_ctx = ctx;
+	exec_ctx = ExecCtx::make_exec_ctx(ctx->param_store);
 }
 
 void PhyOperator::set_input_rows(const Row_s &row)

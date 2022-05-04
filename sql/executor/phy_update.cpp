@@ -79,7 +79,7 @@ u32 PhyUpdate::inner_get_next_row()
     u32 ret = SUCCESS;
     Row_s row;
     while(SUCC(child->get_next_row(row))){
-        exec_ctx->set_input_rows(row);
+        set_input_rows(row);
         CHECK(row_id->get_result(exec_ctx));
         Object_s &result = exec_ctx->output_result;
         if (result->is_null()) {

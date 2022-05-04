@@ -46,8 +46,13 @@ HashTable::~HashTable()
 
 }
 
+HashTable_s HashTable::make_hash_table(u32 bucket_num)
+{
+	return HashTable_s(new HashTable(bucket_num));
+}
+
 void HashTable::clear()
-{return;
+{
 	for (u32 i = 0; i < buckets.size(); ++i) {
 		buckets[i].clear();
 	}
@@ -63,7 +68,7 @@ bool HashTable::empty() const
 
 void HashTable::set_exec_ctx(ExecCtx_s& ctx)
 {
-	exec_ctx = ctx;
+	exec_ctx = ExecCtx::make_exec_ctx(ctx->param_store);
 }
 
 u32 HashTable::build(const Row_s & row)
@@ -157,6 +162,7 @@ u32 HashTable::probe_all_rows(const Row_s & row, bool ignore_mark)
 u32 HashTable::set_hash_exprs(const Vector<Expression_s> & exprs)
 {
 	hash_exprs = exprs;
+	append(sort_exprs, exprs);
 	return SUCCESS;
 }
 
@@ -166,9 +172,16 @@ u32 HashTable::set_probe_exprs(const Vector<Expression_s> & exprs)
 	return SUCCESS;
 }
 
+u32 HashTable::set_extra_sort_exprs(const Vector<Expression_s>& exprs)
+{
+	append(sort_exprs, exprs);
+	return SUCCESS;
+}
+
 u32 HashTable::set_hash_expr(Expression_s & expr)
 {
 	hash_exprs.push_back(expr);
+	sort_exprs.push_back(expr);
 	return SUCCESS;
 }
 
@@ -222,12 +235,12 @@ bool HashTable::less(const Element & lhs, const Element & rhs)
 	u32 ret = SUCCESS;
 	int res = 0;
 	Object_s l_obj, r_obj;
-	for (u32 i = 0; i < hash_exprs.size(); ++i){
+	for (u32 i = 0; i < sort_exprs.size(); ++i) {
 		ret = exec_ctx->set_input_rows(lhs.first);
 		if (FAIL(ret)) {
 			return false;
 		}
-		ret = hash_exprs[i]->get_result(exec_ctx);
+		ret = sort_exprs[i]->get_result(exec_ctx);
 		if (FAIL(ret)) {
 			return false;
 		}
@@ -239,7 +252,7 @@ bool HashTable::less(const Element & lhs, const Element & rhs)
 		if (FAIL(ret)) {
 			return false;
 		}
-		ret = hash_exprs[i]->get_result(exec_ctx);
+		ret = sort_exprs[i]->get_result(exec_ctx);
 		if (FAIL(ret)) {
 			return false;
 		}
@@ -269,8 +282,8 @@ u32 HashTable::hash(Vector<Expression_s>& exprs, const Row_s & row)
 			value = hash(value + obj->hash());
 		}
 	} else {
+		CHECK(exec_ctx->set_input_rows(row));
 		for (u32 i = 0; i < exprs.size(); ++i) {
-			CHECK(exec_ctx->set_input_rows(row));
 			CHECK(exprs[i]->get_result(exec_ctx));
 			value = hash(value + exec_ctx->output_result->hash());
 		}

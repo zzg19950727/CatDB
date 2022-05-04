@@ -212,6 +212,7 @@
 %token EXCEPT
 %token EXISTS
 %token EXPLAIN
+%token EXPR_NORMALIZE
 %token FIELD
 %token FLOAT
 %token FROM
@@ -252,6 +253,7 @@
 %token NO_USE_HASH
 %token NO_USE_NL
 %token NO_SIMPLIFY_SQ
+%token NO_EXPR_NORMALIZE
 %token NULLX
 %token NUMERIC_SYM
 %token ON
@@ -555,6 +557,16 @@ single_hint:
 	| NO_SIMPLIFY_SQ opt_qb_name_single
 	{
 		$$ = HintStmt::make_hint_stmt(SIMPLIFY_SQ, false);
+		$$->set_qb_name($2);
+	}
+	| EXPR_NORMALIZE opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(EXPR_NORMALIZE, true);
+		$$->set_qb_name($2);
+	}
+	| NO_EXPR_NORMALIZE opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(EXPR_NORMALIZE, false);
 		$$->set_qb_name($2);
 	}
 /*optiizer hint*/

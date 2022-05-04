@@ -1,5 +1,6 @@
 #include "phy_hash_set.h"
 #include "phy_expression.h"
+#include "hash_table.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -32,7 +33,8 @@ u32 CatDB::Sql::PhyHashSetOp::inner_open()
 	u32 ret = SUCCESS;
 	CHECK(right_child->open());
 	CHECK(left_child->open());
-	hash_table.set_exec_ctx(exec_ctx);
+	hash_table = HashTable::make_hash_table();
+	hash_table->set_exec_ctx(exec_ctx);
 	return ret;
 }
 
@@ -52,7 +54,7 @@ u32 CatDB::Sql::PhyHashSetOp::reset()
 {
 	u32 ret1 = left_child->reset();
 	u32 ret2 = right_child->reset();
-	hash_table.clear();
+	hash_table->clear();
 	init_hash_table = false;
 	if (ret1 != SUCCESS)
 		return ret1;
@@ -103,13 +105,13 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_union(Row_s &row)
 {
 	u32 ret = SUCCESS;
 	while (SUCC(left_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe(row))) {
+		if (SUCC(hash_table->probe(row))) {
 			continue;
 		} else if (ROW_NOT_FOUND != ret) {
 			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			CHECK(hash_table.build(row));
+			CHECK(hash_table->build(row));
 			return ret;
 		}
 	}
@@ -117,13 +119,13 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_union(Row_s &row)
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe(row))) {
+		if (SUCC(hash_table->probe(row))) {
 			continue;
 		} else if (ROW_NOT_FOUND != ret) {
 			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			CHECK(hash_table.build(row));
+			CHECK(hash_table->build(row));
 			return ret;
 		}
 	}
@@ -137,7 +139,7 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_intersect(Row_s &row)
 		CHECK(build_hash_table());
 	}
 	while (SUCC(left_child->get_next_row(row))) {
-		if (SUCC(hash_table.probe_all_rows(row, true))) {
+		if (SUCC(hash_table->probe_all_rows(row, true))) {
 			return ret;
 		} else if (ROW_NOT_FOUND != ret) {
 			return ret;
@@ -155,13 +157,13 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_except(Row_s &row)
 		CHECK(build_hash_table());
 	}
 	while (SUCC(left_child->get_next_row(row))){
-		if (SUCC(hash_table.probe(row))) {
+		if (SUCC(hash_table->probe(row))) {
 			continue;
 		} else if (ROW_NOT_FOUND != ret) {
 			return ret;
 		} else {
 			row = Row::deep_copy(row);
-			CHECK(hash_table.build(row));
+			CHECK(hash_table->build(row));
 			return ret;
 		}
 	}
@@ -174,7 +176,7 @@ u32 CatDB::Sql::PhyHashSetOp::build_hash_table()
 	Row_s row;
 	while (SUCC(right_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
-		CHECK(hash_table.build(row));
+		CHECK(hash_table->build(row));
 	}
 	init_hash_table = true;
 	return ret;

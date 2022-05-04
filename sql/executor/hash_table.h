@@ -10,6 +10,8 @@ namespace CatDB {
 		using Common::Row_s;
 		DECLARE(Expression);
 		DECLARE(ExecCtx);
+		DECLARE(HashTable);
+
 
 		class HashTable
 		{
@@ -19,6 +21,7 @@ namespace CatDB {
 			typedef TableType::iterator BucketIterator;
 			HashTable(u32 bucket_num =10000);
 			~HashTable();
+			static HashTable_s make_hash_table(u32 bucket_num =10000);
 			void clear();
 			bool empty()const;
 			void set_exec_ctx(ExecCtx_s& ctx);
@@ -32,6 +35,7 @@ namespace CatDB {
 
 			u32 set_hash_exprs(const Vector<Expression_s>& exprs);
 			u32 set_probe_exprs(const Vector<Expression_s>& exprs);
+			u32 set_extra_sort_exprs(const Vector<Expression_s>& exprs);
 			u32 set_hash_expr(Expression_s& expr);
 			u32 set_probe_expr(Expression_s& expr);
 			u32 set_other_condition(const Vector<Expression_s>& expr);
@@ -49,6 +53,7 @@ namespace CatDB {
 			Vector<Expression_s> hash_exprs;
 			Vector<Expression_s> probe_exprs;
 			Vector<Expression_s> other_conditions;
+			Vector<Expression_s> sort_exprs;
 			BucketIterator cur_bucket;
 			ExecCtx_s exec_ctx;
 			u32 cur_bucket_pos;

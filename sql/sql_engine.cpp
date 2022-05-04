@@ -4,6 +4,7 @@
 #include "update_plan.h"
 #include "select_plan.h"
 #include "phy_operator.h"
+#include "phy_expression.h"
 #include "cmd_plan.h"
 #include "stmt.h"
 #include "sql_driver.h"
@@ -223,6 +224,22 @@ u32 SqlEngine::handle_user_view(const String &view, QueryCtx_s &query_ctx,  Reso
         query_ctx->set_error_msg("");
         CHECK(ref_query->formalize());
     }
+    return ret;
+}
+
+u32 SqlEngine::handle_const_expr(ExprStmt_s &expr, 
+                                Object_s &obj_result, 
+                                bool &bool_result)
+{
+    u32 ret = SUCCESS;
+    bool_result = false;
+    ExprGenerateCtx expr_ctx;
+    Expression_s rt_expr;
+    ExecCtx_s exec_ctx = ExecCtx::make_exec_ctx();
+    CHECK(ExprGenerator::generate_expr(expr_ctx, expr, rt_expr));
+    CHECK(rt_expr->get_result(exec_ctx));
+    obj_result = exec_ctx->output_result;
+    bool_result = exec_ctx->bool_result;
     return ret;
 }
 

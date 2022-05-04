@@ -16,18 +16,21 @@ RowPacket::RowPacket(const Row_s& row)
 
 int RowPacket::serialize(char* buffer, int64_t length, int64_t& pos)
 {
+	int ret = SUCCESS;
+	packet_len = pos;
 	for (u32 i = 0; i < row_->get_cell_num(); ++i)
 	{
 		Object_s cell;
 		row_->get_cell(i, cell);
-		cell_str(cell, buffer, length, pos, i);
+		CHECK(cell_str(cell, buffer, length, pos, i));
 	}
-	return SUCCESS;
+	packet_len = pos - packet_len;
+	return ret;
 }
 
 uint64_t RowPacket::get_serialize_size()
 {
-	return 1020;
+	return MAX_ROW_SIZE;
 }
 
 int RowPacket::cell_str(const Object_s & obj, char * buf, const int64_t len, int64_t & pos, int64_t cell_index) const
