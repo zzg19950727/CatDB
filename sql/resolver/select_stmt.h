@@ -9,28 +9,8 @@ namespace CatDB {
 		DECLARE(ColumnStmt);
 		DECLARE(AggrStmt);
 		DECLARE(ExprStmt);
-		DECLARE(OrderStmt);
 		DECLARE(LimitStmt);
 		DECLARE(HintStmt);
-
-		class OrderStmt
-		{
-		private:
-			OrderStmt();
-		public:
-			~OrderStmt();
-			static OrderStmt_s make_order_stmt(const ExprStmt_s& order_expr, bool asc = true);
-			u32 deep_copy(OrderStmt_s &order, QueryCtx_s &ctx, u32 flag)const;
-			u32 formalize();
-			KV_STRING(
-				K(order_expr),
-				K(asc)
-			);
-
-		public:
-			ExprStmt_s order_expr;
-			bool asc;//升序还是降序,true为asc，false为desc，默认asc
-		};
 
 		class LimitStmt
 		{
@@ -65,8 +45,9 @@ namespace CatDB {
 			bool has_order_by() const;
 			bool has_limit() const;
 			bool has_distinct() const;
+			bool has_window_func() const;
 			Vector<ExprStmt_s> &get_aggr_exprs()	{ return aggr_exprs; }
-			void get_order_by_exprs(Vector<ExprStmt_s> &order_by_exprs);
+			Vector<ExprStmt_s> &get_win_func_exprs() { return win_func_exprs; }
 		protected:
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs) override;
 			virtual u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
@@ -91,7 +72,7 @@ namespace CatDB {
 			Vector<ExprStmt_s> select_expr_list;	//select语句块
 			Vector<ExprStmt_s> group_exprs;		//groupby 列
 			Vector<ExprStmt_s> having_stmt;			//having语句块
-			Vector<OrderStmt_s> order_exprs;		//order by列
+			Vector<ExprStmt_s> order_exprs;		//order by列
 			LimitStmt_s limit_stmt;
 		};
 

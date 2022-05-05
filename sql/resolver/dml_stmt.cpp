@@ -107,6 +107,8 @@ u32 DMLStmt::collect_special_exprs(ExprStmt_s& expr)
         aggr_exprs.push_back(expr);
     } else if (SUBQUERY == expr->expr_type()) {
         subquery_exprs.push_back(expr);
+    } else if (WIN_EXPR == expr->expr_type()) {
+        win_func_exprs.push_back(expr);
     }
     for (u32 i = 0; i < expr->get_params().size(); ++i) {
         CHECK(collect_special_exprs(expr->get_params()[i]));

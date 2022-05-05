@@ -48,6 +48,7 @@ namespace CatDB {
 				NESTED_LOOP_JOIN,
 				SORT,
 				TOP_N_SORT,
+				PARTITION_SORT,
 				HASH_DISTINCT,
 				HASH_GROUP,
 				SCALAR_GROUP,
@@ -59,7 +60,8 @@ namespace CatDB {
 				DELETE,
 				EXPR_VALUE,
 				DUAL_TABLE,
-				SUBQUERY_EVALUATE
+				SUBQUERY_EVALUATE,
+				WINDOWN_FUNCTION
 			};
 			PhyOperator();
 			virtual ~PhyOperator();

@@ -16,6 +16,7 @@ double COST_DELETE_PER_ROW = 0.001;
 double COST_GET_ONE_ROW = 0.02;
 double COST_PER_AGG_EXPR = 0.035;
 double COST_INSERT_PER_ROW = 1.0;
+double COST_PER_WIN_EXPR = 0.046;
 
 double EstCostUtil::sample_formula(double size, double red, double sample_size)
 {
@@ -178,5 +179,11 @@ double EstCostUtil::cost_update(double table_rows,
     op_cost += read_block_count * COST_READ_ONE_BLOCK;
     op_cost += update_rows * COST_DELETE_PER_ROW;
     op_cost += update_rows * COST_INSERT_PER_ROW;
+    return op_cost;
+}
+
+double EstCostUtil::cost_win_func(double rows, const Vector<ExprStmt_s> &win_exprs)
+{
+    double op_cost = rows * COST_PER_WIN_EXPR * win_exprs.size();
     return op_cost;
 }

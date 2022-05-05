@@ -163,6 +163,9 @@ u32 HashTable::set_hash_exprs(const Vector<Expression_s> & exprs)
 {
 	hash_exprs = exprs;
 	append(sort_exprs, exprs);
+	for (u32 i = 0; i < exprs.size(); ++i) {
+		asc.push_back(true);
+	}
 	return SUCCESS;
 }
 
@@ -172,9 +175,10 @@ u32 HashTable::set_probe_exprs(const Vector<Expression_s> & exprs)
 	return SUCCESS;
 }
 
-u32 HashTable::set_extra_sort_exprs(const Vector<Expression_s>& exprs)
+u32 HashTable::set_extra_sort_exprs(const Vector<Expression_s>& exprs, const Vector<bool> &asc)
 {
 	append(sort_exprs, exprs);
+	append(this->asc, asc);
 	return SUCCESS;
 }
 
@@ -182,6 +186,7 @@ u32 HashTable::set_hash_expr(Expression_s & expr)
 {
 	hash_exprs.push_back(expr);
 	sort_exprs.push_back(expr);
+	asc.push_back(true);
 	return SUCCESS;
 }
 
@@ -263,8 +268,10 @@ bool HashTable::less(const Element & lhs, const Element & rhs)
 		CHECK(l_obj->compare(r_obj, res));
 		if (0 == res) {
 			continue;
+		} else if (res > 0) {
+			return !asc[i];
 		} else {
-			return res < 0;
+			return asc[i];
 		}
 	}
 	return false;

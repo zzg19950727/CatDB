@@ -9,39 +9,6 @@
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
 
-OrderStmt::OrderStmt()
-	:asc(false)
-{
-}
-
-OrderStmt::~OrderStmt()
-{
-}
-
-OrderStmt_s OrderStmt::make_order_stmt(const ExprStmt_s& order_expr, bool asc)
-{
-	OrderStmt* stmt = new OrderStmt;
-	stmt->order_expr = order_expr;
-	stmt->asc = asc;
-	return OrderStmt_s(stmt);
-}
-
-u32 OrderStmt::deep_copy(OrderStmt_s &order, QueryCtx_s &ctx, u32 flag)const
-{
-	u32 ret = SUCCESS;
-	ExprStmt_s copy_expr;
-	CHECK(ExprUtils::deep_copy_expr(order_expr, copy_expr, ctx, flag));
-	order = make_order_stmt(copy_expr, asc);
-	return ret;
-}
-
-u32 OrderStmt::formalize()
-{
-	u32 ret = SUCCESS;
-	CHECK(order_expr->formalize());
-	return ret;
-}
-
 LimitStmt::LimitStmt()
 	:limit_offset(0),
 	limit_size(0)
@@ -117,11 +84,7 @@ u32 SelectStmt::deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const
 	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, ctx, flag));
 	CHECK(ExprUtils::deep_copy_exprs(group_exprs, stmt->group_exprs, ctx, flag));
 	CHECK(ExprUtils::deep_copy_exprs(having_stmt, stmt->having_stmt, ctx, flag));
-	OrderStmt_s copy_order;
-	for (u32 i = 0; i < order_exprs.size(); ++i) {
-		CHECK(order_exprs[i]->deep_copy(copy_order, ctx, flag));
-		stmt->order_exprs.push_back(copy_order);
-	}
+	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, ctx, flag));
 	return ret;
 }
 
@@ -157,11 +120,14 @@ bool SelectStmt::has_distinct() const
 	return is_distinct;
 }
 
-void SelectStmt::get_order_by_exprs(Vector<ExprStmt_s> &order_by_exprs)
+bool SelectStmt::has_window_func() const 
 {
-	for (u32 i = 0; i < order_exprs.size(); ++i) {
-		order_by_exprs.push_back(order_exprs[i]->order_expr);
+	for (u32 i = 0; i < select_expr_list.size(); ++i) {
+		if (select_expr_list[i]->has_flag(HAS_WINFUNC)) {
+			return true;
+		}
 	}
+	return false;
 }
 
 u32 SelectStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
@@ -171,9 +137,7 @@ u32 SelectStmt::inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs)
 	append(exprs, select_expr_list);
 	append(exprs, group_exprs);
 	append(exprs, having_stmt);
-	for (u32 i = 0; i < order_exprs.size(); ++i) {
-		exprs.push_back(order_exprs[i]->order_expr);
-	}
+	append(exprs, order_exprs);
 	return ret;
 }
 
@@ -185,9 +149,7 @@ u32 SelectStmt::inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs,
 	CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, select_expr_list));
 	CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, group_exprs));
 	CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, having_stmt));
-	for (u32 i = 0; i < order_exprs.size(); ++i) {
-		CHECK(ExprUtils::replace_expr(old_exprs, new_exprs, order_exprs[i]->order_expr));
-	}
+	CHECK(ExprUtils::replace_exprs(old_exprs, new_exprs, order_exprs));
 	return ret;
 }
 
@@ -233,11 +195,7 @@ u32 SetStmt::deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const
 	CHECK(inner_deep_copy(stmt, ctx, flag));
 	stmt->limit_stmt = limit_stmt;
 	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, ctx, flag));
-	OrderStmt_s copy_order;
-	for (u32 i = 0; i < order_exprs.size(); ++i) {
-		CHECK(order_exprs[i]->deep_copy(copy_order, ctx, flag));
-		stmt->order_exprs.push_back(copy_order);
-	}
+	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, ctx, flag));
 	return ret;
 }
 

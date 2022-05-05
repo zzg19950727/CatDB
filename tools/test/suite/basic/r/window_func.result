@@ -1,0 +1,627 @@
+
+
+DROP DATABASE IF EXISTS RANDOM_TEST
+
+CREATE DATABASE RANDOM_TEST
+
+DROP TABLE IF EXISTS T1
+
+CREATE TABLE T1(C1 INT, C2 INT, C3 INT, C4 INT)
+
+SELECT * FROM T1
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 5    | 4    | 3    | 1    |
+| 5    | 7    | 3    | 7    |
+| 8    | 5    | 3    | 5    |
+| 8    | 5    | 6    | 1    |
+| 3    | 4    | 5    | 5    |
+| 9    | 4    | 9    | 2    |
+| 6    | 3    | 1    | 2    |
+| 4    | 6    | 8    | 8    |
+| 9    | 8    | 1    | 6    |
+| 6    | 1    | 2    | 6    |
++------+------+------+------+
+10 rows in set
+
+DROP TABLE IF EXISTS T2
+
+CREATE TABLE T2(C1 INT, C2 INT, C3 INT, C4 INT)
+
+SELECT * FROM T2
+
++------+------+------+------+
+| c1   | c2   | c3   | c4   |
++------+------+------+------+
+| 3    | 6    | 1    | 3    |
+| 3    | 8    | 4    | 4    |
+| 9    | 9    | 2    | 6    |
+| 7    | 6    | 5    | 1    |
+| 6    | 1    | 1    | 4    |
+| 4    | 7    | 7    | 1    |
+| 2    | 7    | 3    | 2    |
+| 1    | 7    | 1    | 1    |
+| 1    | 5    | 1    | 4    |
+| 7    | 4    | 4    | 8    |
++------+------+------+------+
+10 rows in set
+
+explain select sum(c1) over (partition by c2 order by c3 desc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([SUM(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+win_func_exprs([SUM(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+sort_keys([t1.c3 DESC])
+partition_keys([t1.c2])
+2 - output([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select sum(c1) over (partition by c2 order by c3 desc) from t1
+
++-----------------------------------------------+
+| SUM(c1)OVER(PARTITION BY c2 ORDER BY c3 DESC) |
++-----------------------------------------------+
+| 5                                             |
+| 4                                             |
+| 6                                             |
+| 16                                            |
+| 16                                            |
+| 17                                            |
+| 17                                            |
+| 17                                            |
+| 9                                             |
+| 6                                             |
++-----------------------------------------------+
+10 rows in set
+
+explain select avg(c1) over (partition by c2 order by c3 desc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([AVG(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+win_func_exprs([AVG(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+sort_keys([t1.c3 DESC])
+partition_keys([t1.c2])
+2 - output([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select avg(c1) over (partition by c2 order by c3 desc) from t1
+
++-----------------------------------------------+
+| AVG(c1)OVER(PARTITION BY c2 ORDER BY c3 DESC) |
++-----------------------------------------------+
+| 5.000000000                                   |
+| 4.000000000                                   |
+| 6.000000000                                   |
+| 8.000000000                                   |
+| 8.000000000                                   |
+| 5.666666666                                   |
+| 5.666666666                                   |
+| 5.666666666                                   |
+| 9.000000000                                   |
+| 6.000000000                                   |
++-----------------------------------------------+
+10 rows in set
+
+explain select count(c1) over (partition by c2 order by c3 desc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([COUNT(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+win_func_exprs([COUNT(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+sort_keys([t1.c3 DESC])
+partition_keys([t1.c2])
+2 - output([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select count(c1) over (partition by c2 order by c3 desc) from t1
+
++-------------------------------------------------+
+| COUNT(c1)OVER(PARTITION BY c2 ORDER BY c3 DESC) |
++-------------------------------------------------+
+| 1                                               |
+| 1                                               |
+| 1                                               |
+| 2                                               |
+| 2                                               |
+| 3                                               |
+| 3                                               |
+| 3                                               |
+| 1                                               |
+| 1                                               |
++-------------------------------------------------+
+10 rows in set
+
+explain select max(c1) over (partition by c2 order by c3 desc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([MAX(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+win_func_exprs([MAX(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+sort_keys([t1.c3 DESC])
+partition_keys([t1.c2])
+2 - output([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select max(c1) over (partition by c2 order by c3 desc) from t1
+
++-----------------------------------------------+
+| MAX(c1)OVER(PARTITION BY c2 ORDER BY c3 DESC) |
++-----------------------------------------------+
+| 5                                             |
+| 4                                             |
+| 6                                             |
+| 8                                             |
+| 8                                             |
+| 9                                             |
+| 9                                             |
+| 9                                             |
+| 9                                             |
+| 6                                             |
++-----------------------------------------------+
+10 rows in set
+
+explain select min(c1) over (partition by c2 order by c3 desc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([MIN(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+win_func_exprs([MIN(t1.c1)OVER(PARTITION BY t1.c2 ORDER BY t1.c3 DESC)])
+1 - output([t1.c1], [t1.c2], [t1.c3])
+sort_keys([t1.c3 DESC])
+partition_keys([t1.c2])
+2 - output([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select min(c1) over (partition by c2 order by c3 desc) from t1
+
++-----------------------------------------------+
+| MIN(c1)OVER(PARTITION BY c2 ORDER BY c3 DESC) |
++-----------------------------------------------+
+| 5                                             |
+| 4                                             |
+| 6                                             |
+| 8                                             |
+| 8                                             |
+| 3                                             |
+| 3                                             |
+| 3                                             |
+| 9                                             |
+| 6                                             |
++-----------------------------------------------+
+10 rows in set
+
+explain select rank() over (partition by c1 order by c2 asc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([RANK()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+win_func_exprs([RANK()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+1 - output([t1.c1], [t1.c2])
+sort_keys([t1.c2 ASC])
+partition_keys([t1.c1])
+2 - output([t1.c2], [t1.c1])
+access([t1.c1], [t1.c2])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select rank() over (partition by c1 order by c2 asc) from t1
+
++---------------------------------------------+
+| RANK()OVER(PARTITION BY c1 ORDER BY c2 ASC) |
++---------------------------------------------+
+| 1                                           |
+| 2                                           |
+| 1                                           |
+| 2                                           |
+| 1                                           |
+| 1                                           |
+| 2                                           |
+| 1                                           |
+| 1                                           |
+| 1                                           |
++---------------------------------------------+
+10 rows in set
+
+explain select dense_rank() over (partition by c1 order by c2 asc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([DENSE_RANK()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+win_func_exprs([DENSE_RANK()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+1 - output([t1.c1], [t1.c2])
+sort_keys([t1.c2 ASC])
+partition_keys([t1.c1])
+2 - output([t1.c2], [t1.c1])
+access([t1.c1], [t1.c2])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select dense_rank() over (partition by c1 order by c2 asc) from t1
+
++---------------------------------------------------+
+| DENSE_RANK()OVER(PARTITION BY c1 ORDER BY c2 ASC) |
++---------------------------------------------------+
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 1                                                 |
+| 1                                                 |
++---------------------------------------------------+
+10 rows in set
+
+explain select row_number() over (partition by c1 order by c2 asc) from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  PARTITION SORT |      | 1         | 4    |
+| 2  |   TABLE SCAN    | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([ROW_NUMBER()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+win_func_exprs([ROW_NUMBER()OVER(PARTITION BY t1.c1 ORDER BY t1.c2 ASC)])
+1 - output([t1.c1], [t1.c2])
+sort_keys([t1.c2 ASC])
+partition_keys([t1.c1])
+2 - output([t1.c2], [t1.c1])
+access([t1.c1], [t1.c2])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select row_number() over (partition by c1 order by c2 asc) from t1
+
++---------------------------------------------------+
+| ROW_NUMBER()OVER(PARTITION BY c1 ORDER BY c2 ASC) |
++---------------------------------------------------+
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 1                                                 |
+| 2                                                 |
+| 1                                                 |
+| 1                                                 |
+| 2                                                 |
++---------------------------------------------------+
+10 rows in set
+
+explain select sum(c1) over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([SUM(t1.c1)OVER()])
+win_func_exprs([SUM(t1.c1)OVER()])
+1 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select sum(c1) over () from t1
+
++---------------+
+| SUM(c1)OVER() |
++---------------+
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
+| 63            |
++---------------+
+10 rows in set
+
+explain select avg(c1) over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([AVG(t1.c1)OVER()])
+win_func_exprs([AVG(t1.c1)OVER()])
+1 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select avg(c1) over () from t1
+
++---------------+
+| AVG(c1)OVER() |
++---------------+
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
+| 6.300000000   |
++---------------+
+10 rows in set
+
+explain select count(c1) over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([COUNT(t1.c1)OVER()])
+win_func_exprs([COUNT(t1.c1)OVER()])
+1 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select count(c1) over () from t1
+
++-----------------+
+| COUNT(c1)OVER() |
++-----------------+
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
+| 10              |
++-----------------+
+10 rows in set
+
+explain select max(c1) over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([MAX(t1.c1)OVER()])
+win_func_exprs([MAX(t1.c1)OVER()])
+1 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select max(c1) over () from t1
+
++---------------+
+| MAX(c1)OVER() |
++---------------+
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
+| 9             |
++---------------+
+10 rows in set
+
+explain select min(c1) over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([MIN(t1.c1)OVER()])
+win_func_exprs([MIN(t1.c1)OVER()])
+1 - output([t1.c1])
+access([t1.c1])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select min(c1) over () from t1
+
++---------------+
+| MIN(c1)OVER() |
++---------------+
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
+| 3             |
++---------------+
+10 rows in set
+
+explain select row_number() over () from t1
+
+Query Plan:
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | WINDOW FUNCTION |      | 1         | 4    |
+| 1  |  TABLE SCAN     | T1   | 1         | 4    |
++------------------------------------------------+
+Outputs & filters:
+0 - output([ROW_NUMBER()OVER()])
+win_func_exprs([ROW_NUMBER()OVER()])
+
+outline:
+/*+
+BEGIN_OUTLINE_DATA
+END_OUTLINE_DATA
+*/
+
+select row_number() over () from t1
+
++--------------------+
+| ROW_NUMBER()OVER() |
++--------------------+
+| 1                  |
+| 2                  |
+| 3                  |
+| 4                  |
+| 5                  |
+| 6                  |
+| 7                  |
+| 8                  |
+| 9                  |
+| 10                 |
++--------------------+
+10 rows in set
+
+Bye

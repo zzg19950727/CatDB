@@ -36,6 +36,7 @@ namespace CatDB {
 			u32 get_table_items(Vector<TableStmt_s> &tables);
 			Vector<ExprStmt_s> &get_column_exprs() { return column_exprs; }
 			Vector<SubQueryStmt_s> &get_subquery_exprs() { return subquery_exprs; }
+			
 			u32 get_child_stmts(Vector<SelectStmt_s> &child_stms);
 			u32 reset_stmt_id(u32 stmt_id);
 			const String& get_qb_name() const { return stmt_hint.qb_name; }
@@ -69,6 +70,7 @@ namespace CatDB {
 
 			Vector<ExprStmt_s> column_exprs;
 			Vector<ExprStmt_s> aggr_exprs;
+			Vector<ExprStmt_s> win_func_exprs;
 			Vector<SubQueryStmt_s> subquery_exprs;
 		};
 	}

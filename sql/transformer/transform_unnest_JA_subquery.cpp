@@ -57,15 +57,9 @@ u32 TransformUnnestJASubquery::transform_one_stmt(DMLStmt_s &stmt)
                               sel_stmt->select_expr_list, 
                               helper));
         //check order by 
-        for (u32 i = 0; i < sel_stmt->order_exprs.size(); ++i) {
-            CHECK(transform_one_expr(stmt,
-                                    sel_stmt->order_exprs[i]->order_expr, 
-                                    helper, 
-                                    happened));
-            if (happened) {
-                LOG_TRACE("succeed to transfom one order by expr", K(helper));
-            }
-        }
+        CHECK(transform_exprs(stmt,
+                              sel_stmt->order_exprs, 
+                              helper));
     }
     if (stmt->is_update_stmt()) {
         UpdateStmt_s upd_stmt = stmt;

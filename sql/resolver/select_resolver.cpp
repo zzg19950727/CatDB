@@ -171,14 +171,20 @@ u32 SelectResolver::resolve_order_exprs(Vector<ExprStmt_s> &order_exprs)
     u32 ret = SUCCESS;
     for (u32 i = 0; i < select_stmt->order_exprs.size(); ++i) {
         bool is_valid = false;
-        CHECK(resolve_order_by_123(select_stmt->order_exprs[i]->order_expr, is_valid));
+        OrderStmt_s order_by = select_stmt->order_exprs[i];
+        ExprStmt_s order_expr = order_by->get_order_by_expr();
+        CHECK(resolve_order_by_123(order_expr, is_valid));
         if (!is_valid) {
-            CHECK(resolve_order_by_select_list(select_stmt->order_exprs[i]->order_expr, is_valid));
+            CHECK(resolve_order_by_select_list(order_expr, is_valid));
             if (!is_valid) {
-                CHECK(resolve_expr(select_stmt->order_exprs[i]->order_expr, resolve_ctx));
+                CHECK(resolve_expr(order_expr, resolve_ctx));
+            } else {
+                order_by->set_order_by_expr(order_expr);
             }
+        } else {
+            order_by->set_order_by_expr(order_expr);
         }
-        order_exprs.push_back(select_stmt->order_exprs[i]->order_expr);
+        order_exprs.push_back(order_expr);
     }
     return ret;
 }

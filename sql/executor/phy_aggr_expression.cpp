@@ -62,6 +62,12 @@ u32 AggregateExpression::get_result(ExecCtx_s &ctx, AggrExprCtx_s &aggr_ctx)
         ctx->output_result = Object::make_null_object();
 	} else if (op == COUNT) {
 		ctx->output_result = Number::make_int_object(aggr_ctx->row_count);
+	} else if (op == AVG) {
+		Number_s sum = aggr_ctx->value;
+		Number_s count = Number::make_float_object(aggr_ctx->row_count);
+		Number_s res;
+		CHECK(Number::num_div(sum, count, res));
+		ctx->output_result = res;
 	} else {
         ctx->output_result = aggr_ctx->value;
     }
@@ -90,6 +96,7 @@ u32 AggregateExpression::add_row(ExecCtx_s &ctx, AggrExprCtx_s &aggr_ctx)
 	CHECK(expr->get_result(ctx));
 	switch (op)
 	{
+	case AVG:
 	case SUM:
 		return sum(ctx->output_result, aggr_ctx);
 	case COUNT:

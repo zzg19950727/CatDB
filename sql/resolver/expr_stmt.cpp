@@ -652,17 +652,17 @@ u32 AggrStmt::deduce_type()
 											   need_cast));
 			if (need_cast) {
 				CHECK(ObjCastUtil::add_cast(aggr_expr, res_type, aggr_expr));
+				set_aggr_expr(aggr_expr);
 			}
 			break;
 		case COUNT:
-			res_type = DataType::default_number_type();
+			res_type = DataType::default_int_type();
 			break;
 		case MAX:
 		case MIN:
 			res_type = aggr_expr->res_type;
 			break;
 	}
-	set_aggr_expr(aggr_expr);
 	return ret;
 }
 
@@ -1382,5 +1382,282 @@ bool OpExprStmt::same_as(const ExprStmt_s &other)
 			}
 		}
 		return true;
+	}
+}
+
+
+OrderStmt::OrderStmt()
+	:asc(true)
+{
+}
+
+OrderStmt::~OrderStmt()
+{
+}
+
+ExprType OrderStmt::expr_type()const
+{
+	return ORDER_EXPR;
+}
+
+OrderStmt_s OrderStmt::make_order_stmt(const ExprStmt_s& order_expr, bool asc)
+{
+	OrderStmt* stmt = new OrderStmt;
+	stmt->set_order_by_expr(order_expr);
+	stmt->asc = asc;
+	return OrderStmt_s(stmt);
+}
+
+String OrderStmt::to_string()const 
+{
+	String ret = get_order_by_expr()->to_string();
+	if (asc) {
+		ret += " ASC";
+	} else {
+		ret += " DESC";
+	}
+	return ret;
+}
+
+u32 OrderStmt::formalize()
+{
+	u32 ret = SUCCESS;
+	table_ids.clear();
+	clear_flag();
+	set_is_flag(IS_ORDER_EXPR);
+	for (u32 i = 0; i < params.size(); ++i) {
+		CHECK(params[i]->formalize());
+		table_ids.add_members(params[i]->table_ids);
+		add_flags(params[i]->get_flags());
+	}
+	CHECK(deduce_type());
+	return ret;
+}
+
+u32 OrderStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	res_type = get_order_by_expr()->res_type;
+	return ret;
+}
+
+u32 OrderStmt::deep_copy(ExprStmt_s &order, QueryCtx_s &ctx, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	ExprStmt_s copy_expr;
+	CHECK(ExprUtils::deep_copy_expr(get_order_by_expr(), copy_expr, ctx, flag));
+	order = make_order_stmt(copy_expr, asc);
+	return ret;
+}
+
+bool OrderStmt::same_as(const ExprStmt_s &other)
+{
+	if (ORDER_EXPR != other->expr_type()) {
+		return false;
+	}
+	OrderStmt_s expr = other;
+	if (asc != expr->asc) {
+		return false;
+	} else {
+		return get_order_by_expr()->same_as(expr->get_order_by_expr());
+	}
+}
+
+void OrderStmt::set_order_by_expr(const ExprStmt_s& expr)
+{
+	params.clear();
+	params.push_back(expr);
+}
+
+ExprStmt_s OrderStmt::get_order_by_expr() const
+{
+	return params[0];
+}
+
+WinExprStmt::WinExprStmt(WinType win_func)
+	:win_func(win_func)
+{
+
+}
+
+WinExprStmt::~WinExprStmt()
+{
+
+}
+
+ExprType WinExprStmt::expr_type()const
+{
+	return WIN_EXPR;
+}
+
+ExprStmt_s WinExprStmt::make_win_expr_stmt(WinType win_func)
+{
+	return ExprStmt_s(new WinExprStmt(win_func));
+}
+
+String WinExprStmt::to_string()const
+{
+	String ret = WinTypeString[win_func];
+	ret += "(";
+	if (has_win_func_expr()) {
+		ret += get_win_func_expr()->to_string();
+	}
+	ret += ")OVER(";
+	if (has_part_by_expr()) {
+		Vector<ExprStmt_s> exprs;
+		get_win_part_by_exprs(exprs);
+		ret += "PARTITION BY ";
+		for (u32 i = 0; i < exprs.size(); ++i) {
+			if (i > 0) {
+				ret += ", ";
+			}
+			ret += exprs[i]->to_string();
+		}
+		ret += " ";
+	}
+	if (has_order_by_expr()) {
+		Vector<ExprStmt_s> exprs;
+		get_win_order_by_exprs(exprs);
+		ret += "ORDER BY ";
+		for (u32 i = 0; i < exprs.size(); ++i) {
+			if (i > 0) {
+				ret += ", ";
+			}
+			ret += exprs[i]->to_string();
+		}
+	}
+	ret += ")";
+	return ret;
+}
+
+u32 WinExprStmt::formalize()
+{
+	u32 ret = SUCCESS;
+	table_ids.clear();
+	clear_flag();
+	set_is_flag(IS_WINFUNC);
+	add_flag(HAS_WINFUNC);
+	for (u32 i = 0; i < params.size(); ++i) {
+		CHECK(params[i]->formalize());
+		table_ids.add_members(params[i]->table_ids);
+		add_flags(params[i]->get_flags());
+	}
+	CHECK(deduce_type());
+	return ret;
+}
+
+u32 WinExprStmt::deduce_type()
+{
+	u32 ret = SUCCESS;
+	bool need_cast = false;
+	ExprStmt_s win_func_expr;
+	switch (win_func) {
+		case WIN_SUM:
+		case WIN_AVG:
+			win_func_expr = get_win_func_expr();
+			res_type = DataType::default_number_type();
+			CHECK(ObjCastUtil::check_need_cast(win_func_expr->res_type, 
+											   res_type, 
+											   need_cast));
+			if (need_cast) {
+				CHECK(ObjCastUtil::add_cast(win_func_expr, res_type, win_func_expr));
+				set_win_func_expr(win_func_expr);
+			}
+			break;
+		case WIN_COUNT:
+			res_type = DataType::default_int_type();
+			break;
+		case WIN_MAX:
+		case WIN_MIN:
+			win_func_expr = get_win_func_expr();
+			res_type = win_func_expr->res_type;
+		case WIN_RANK:
+		case WIN_DENSE_RANK:
+		case WIN_ROW_NUMBER:
+			res_type = DataType::default_int_type();
+			break;
+	}
+	return ret;
+}
+
+u32 WinExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+{
+	u32 ret = SUCCESS;
+	expr = make_win_expr_stmt(win_func);
+	WinExprStmt_s win_expr = expr;
+	win_expr->func_expr_idx = func_expr_idx;
+	win_expr->partition_by_idx = partition_by_idx;
+	win_expr->order_by_idx = order_by_idx;
+	ExprStmt::deep_copy(expr, ctx, flag);
+	return ret;
+}
+
+bool WinExprStmt::same_as(const ExprStmt_s &other)
+{
+	if (WIN_EXPR != other->expr_type()) {
+		return false;
+	}
+	WinExprStmt_s expr = other;
+	if (win_func != expr->win_func) {
+		return false;
+	} else if (params.size() != other->params.size() ||
+			   func_expr_idx.size() != expr->func_expr_idx.size() ||
+			   partition_by_idx.size() != expr->partition_by_idx.size() ||
+			   order_by_idx.size() != expr->order_by_idx.size()) {
+		return false;
+	} else {
+		for (u32 i = 0; i < params.size(); ++i) {
+			if (!params[i]->same_as(other->params[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+void WinExprStmt::set_win_func_expr(const ExprStmt_s& expr)
+{
+	if (params.empty()) {
+		params.push_back(expr);
+		func_expr_idx.push_back(0);
+	} else {
+		params[0] = expr;
+	}
+	
+}
+
+const ExprStmt_s& WinExprStmt::get_win_func_expr() const
+{
+	//MY_ASSERT(has_win_func_expr());
+	return params[ func_expr_idx[0] ];
+}
+
+void WinExprStmt::set_win_part_by_exprs(const Vector<ExprStmt_s>& exprs)
+{
+	for (u32 i = 0; i < exprs.size(); ++i) {
+		partition_by_idx.push_back( params.size() );
+		params.push_back(exprs[i]);
+	}
+}
+
+void WinExprStmt::get_win_part_by_exprs(Vector<ExprStmt_s>& exprs)const
+{
+	for (u32 i = 0; i < partition_by_idx.size(); ++i) {
+		exprs.push_back(params[partition_by_idx[i]]);
+	}
+}
+
+void WinExprStmt::set_win_order_by_exprs(const Vector<ExprStmt_s>& exprs)
+{
+	for (u32 i = 0; i < exprs.size(); ++i) {
+		order_by_idx.push_back( params.size() );
+		params.push_back(exprs[i]);
+	}
+}
+
+void WinExprStmt::get_win_order_by_exprs(Vector<ExprStmt_s>& exprs)const
+{
+	for (u32 i = 0; i < order_by_idx.size(); ++i) {
+		exprs.push_back(params[order_by_idx[i]]);
 	}
 }

@@ -2,6 +2,7 @@
 #include "select_stmt.h"
 #include "log_group_by.h"
 #include "log_scalar_group_by.h"
+#include "log_window_func.h"
 #include "log_distinct.h"
 #include "log_sort.h"
 #include "log_limit.h"
@@ -81,7 +82,9 @@ u32 SelectPlan::generate_normal_plan_tree()
 			CHECK(generate_group_by());
 		}
 	}
-	
+	if (stmt->has_window_func()) {
+		CHECK(generate_window_function());
+	}
 	if (stmt->is_distinct) {
 		CHECK(generate_distinct());
 	}
@@ -131,6 +134,49 @@ u32 SelectPlan::generate_scalar_group_by()
 	return ret;
 }
 
+u32 SelectPlan::generate_window_function()
+{
+	u32 ret = SUCCESS;
+	SelectStmt_s stmt = lex_stmt;
+	Vector<ExprStmt_s> &win_func_exprs = stmt->get_win_func_exprs();
+	CHECK(generate_subquery_evaluate(root_operator,
+									 win_func_exprs, 
+									 false, 
+									 false));
+	for (u32 i = 0; i < win_func_exprs.size(); ++i) {
+		CHECK(generate_one_window_function(win_func_exprs[i]));
+	}
+	return ret;
+}
+
+u32 SelectPlan::generate_one_window_function(WinExprStmt_s win_expr)
+{
+	u32 ret = SUCCESS;
+	Vector<ExprStmt_s> part_by_exprs;
+	Vector<ExprStmt_s> order_by_exprs;
+	win_expr->get_win_part_by_exprs(part_by_exprs);
+	win_expr->get_win_order_by_exprs(order_by_exprs);
+	if (!part_by_exprs.empty()) {
+		root_operator = LogSort::make_sort(root_operator, order_by_exprs, 0);
+		root_operator->init(query_ctx, est_info);
+		LogSort_s log_sort = root_operator;
+		log_sort->set_partition_keys(part_by_exprs);
+		CHECK(root_operator->compute_property());
+	} else if (!order_by_exprs.empty()) {
+		root_operator = LogSort::make_sort(root_operator, order_by_exprs, 0);
+		root_operator->init(query_ctx, est_info);
+		CHECK(root_operator->compute_property());
+	}
+	Vector<ExprStmt_s> win_func_exprs;
+	win_func_exprs.push_back(win_expr);
+	root_operator = LogWindowFunc::make_window_func(root_operator, 
+													win_func_exprs,
+													part_by_exprs);
+	root_operator->init(query_ctx, est_info);
+	CHECK(root_operator->compute_property());
+	return ret;
+}
+
 u32 SelectPlan::generate_distinct()
 {
 	u32 ret = SUCCESS;
@@ -163,10 +209,8 @@ u32 SelectPlan::generate_order_by(bool &need_limit)
 		}
 	}
 	if (need_sort) {
-		Vector<ExprStmt_s> order_by_exprs;
-		stmt->get_order_by_exprs(order_by_exprs);
 		CHECK(generate_subquery_evaluate(root_operator,
-										 order_by_exprs, 
+										 stmt->order_exprs, 
 										 false));
 		root_operator = LogSort::make_sort(root_operator, stmt->order_exprs, top_n);
 		root_operator->init(query_ctx, est_info);

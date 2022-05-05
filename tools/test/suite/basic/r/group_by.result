@@ -158,11 +158,11 @@ Query Plan:
 | 2  |   TABLE SCAN   | T4   | 1         | 4    |
 +-----------------------------------------------+
 Outputs & filters:
-0 - output([t4.c2], [69], [MAX(DISTINCT t4.c4)], [6])
-sort_keys([t4.c2 DESC], [69 ASC], [MAX(DISTINCT t4.c4) ASC], [6 ASC])
-1 - output([t4.c2], [MAX(DISTINCT t4.c4)])
+0 - output([t4.c2], [69], [MAX(t4.c4)], [6])
+sort_keys([t4.c2 DESC], [69 ASC], [MAX(t4.c4) ASC], [6 ASC])
+1 - output([t4.c2], [MAX(t4.c4)])
 group_by_exprs([t4.c1], [44], [63 + t4.c1 / t4.c3], [t4.c2], [t4.c4])
-aggr_exprs([MAX(DISTINCT t4.c4)], [MAX(DISTINCT t4.c4)])
+aggr_exprs([MAX(t4.c4)], [MAX(t4.c4)])
 2 - output([t4.c1], [t4.c3], [t4.c2], [t4.c4])
 access([t4.c2], [t4.c4], [t4.c1], [t4.c3])
 
@@ -323,11 +323,11 @@ Query Plan:
 | 2  |   TABLE SCAN   | T9   | 1         | 4    |
 +-----------------------------------------------+
 Outputs & filters:
-0 - output([94], [40], [MIN(48)], [MIN(DISTINCT 92)])
-sort_keys([94 ASC], [40 DESC], [MIN(48) DESC], [MIN(DISTINCT 92) ASC])
-1 - output([MIN(48)], [MIN(DISTINCT 92)])
+0 - output([94], [40], [MIN(48)], [MIN(92)])
+sort_keys([94 ASC], [40 DESC], [MIN(48) DESC], [MIN(92) ASC])
+1 - output([MIN(48)], [MIN(92)])
 group_by_exprs([t9.c4], [57 - t9.c1 * t9.c4], [t9.c1])
-aggr_exprs([MIN(48)], [MIN(DISTINCT 92)], [MIN(48)], [MIN(DISTINCT 92)])
+aggr_exprs([MIN(48)], [MIN(92)], [MIN(48)], [MIN(92)])
 2 - output([t9.c4], [t9.c1])
 access([t9.c4], [t9.c1])
 

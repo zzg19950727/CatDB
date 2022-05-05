@@ -23,6 +23,7 @@ namespace CatDB {
 		DECLARE(ColumnStmt);
 		DECLARE(OpExprStmt);
 		DECLARE(ListStmt);
+		DECLARE(OrderStmt);
 
 		//表达式语句
 		DECLARE(ExprStmt);
@@ -289,6 +290,71 @@ namespace CatDB {
 
 		public:
 			OperationType op_type;
+		};
+
+		class OrderStmt : public ExprStmt
+		{
+		private:
+			OrderStmt();
+		public:
+			~OrderStmt();
+			ExprType expr_type()const override;
+			static OrderStmt_s make_order_stmt(const ExprStmt_s& order_expr, bool asc = true);
+			String to_string()const override;
+			u32 formalize() override;
+			u32 deduce_type() override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			bool same_as(const ExprStmt_s &other) override;
+			void set_order_by_expr(const ExprStmt_s& expr);
+			ExprStmt_s get_order_by_expr() const;
+
+			KV_STRING(
+				KV(order_expr, get_order_by_expr()),
+				K(asc)
+			);
+
+		public:
+			bool asc;//升序还是降序,true为asc，false为desc，默认asc
+		};
+
+				DECLARE(WinExprStmt);
+		class WinExprStmt : public ExprStmt
+		{
+		private:
+			WinExprStmt(WinType win_func);
+		public:
+			~WinExprStmt();
+			ExprType expr_type()const override;
+			static ExprStmt_s make_win_expr_stmt(WinType win_func);
+			String to_string()const override;
+			u32 formalize() override;
+			u32 deduce_type() override;
+			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			bool same_as(const ExprStmt_s &other) override;
+			void set_win_func_expr(const ExprStmt_s& expr);
+			const ExprStmt_s& get_win_func_expr() const;
+			void set_win_part_by_exprs(const Vector<ExprStmt_s>& exprs);
+			void get_win_part_by_exprs(Vector<ExprStmt_s>& exprs)const;
+			void set_win_order_by_exprs(const Vector<ExprStmt_s>& exprs);
+			void get_win_order_by_exprs(Vector<ExprStmt_s>& exprs)const;
+			bool has_win_func_expr() const { return !func_expr_idx.empty(); }
+			bool has_part_by_expr() const { return !partition_by_idx.empty(); }
+			bool has_order_by_expr() const { return !order_by_idx.empty(); }
+
+			KV_STRING_OVERRIDE(
+				KV(win_func, WinTypeString[win_func]),
+				K(is_distinct),
+				K(params),
+				KV(flags, flags_to_string()),
+				K(res_type),
+				K(table_ids)
+			);
+		public:
+			WinType win_func;
+			bool is_distinct;
+			Vector<u32> func_expr_idx;
+			Vector<u32> partition_by_idx;
+			Vector<u32> order_by_idx;
 		};
 	}
 }

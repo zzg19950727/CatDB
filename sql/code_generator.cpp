@@ -16,6 +16,7 @@
 #include "log_table_scan.h"
 #include "log_update.h"
 #include "log_view.h"
+#include "log_window_func.h"
 
 #include "phy_delete.h"
 #include "phy_hash_distinct.h"
@@ -34,6 +35,7 @@
 #include "phy_view.h"
 #include "phy_expression.h"
 #include "phy_subquery_evaluate.h"
+#include "phy_window_func.h"
 
 #include "schema_guard.h"
 #include "query_ctx.h"
@@ -139,6 +141,9 @@ u32 CodeGenerator::generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_
         break;
     case LOG_SUBQUERY_EVALUATE:
         CHECK(generate_subquery_evaluate_op(ctx, log_root, phy_root));
+        break;
+    case LOG_WINDOW_FUNC:
+        CHECK(generate_window_func_op(ctx, log_root, phy_root));
         break;
     default:
         ret = ERR_UNEXPECTED;
@@ -337,7 +342,9 @@ u32 CodeGenerator::generate_set_op(ExprGenerateCtx &ctx, LogSet_s log_op, PhyOpe
 u32 CodeGenerator::generate_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op)
 {
 	u32 ret = SUCCESS;
-    if (log_op->top_n > 0) {
+    if (!log_op->partition_keys.empty()) {
+        CHECK(generate_partition_sort_op(ctx, log_op, phy_op));
+    } else if (log_op->top_n > 0) {
         CHECK(generate_topn_sort_op(ctx, log_op, phy_op));
     } else {
         CHECK(generate_normal_sort_op(ctx, log_op, phy_op));
@@ -353,7 +360,7 @@ u32 CodeGenerator::generate_normal_sort_op(ExprGenerateCtx &ctx, LogSort_s log_o
     Vector<Expression_s> rt_sort_exprs;
     Vector<bool> asc;
     for (u32 i = 0; i < log_op->sort_keys.size(); ++i) {
-        sort_exprs.push_back(log_op->sort_keys[i]->order_expr);
+        sort_exprs.push_back(log_op->sort_keys[i]->get_order_by_expr());
         asc.push_back(log_op->sort_keys[i]->asc);
     }
     CHECK(ExprGenerator::generate_exprs(ctx, sort_exprs, rt_sort_exprs));
@@ -369,11 +376,29 @@ u32 CodeGenerator::generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op,
     Vector<Expression_s> rt_sort_exprs;
     Vector<bool> asc;
     for (u32 i = 0; i < log_op->sort_keys.size(); ++i) {
-        sort_exprs.push_back(log_op->sort_keys[i]->order_expr);
+        sort_exprs.push_back(log_op->sort_keys[i]->get_order_by_expr());
         asc.push_back(log_op->sort_keys[i]->asc);
     }
     CHECK(ExprGenerator::generate_exprs(ctx, sort_exprs, rt_sort_exprs));
     phy_op = PhyTopNSort::make_topn_sort(ctx.child_ops[0], rt_sort_exprs, asc, log_op->top_n);
+	return ret;
+}
+
+u32 CodeGenerator::generate_partition_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op)
+{
+	u32 ret = SUCCESS;
+    MY_ASSERT(log_op, ctx.child_ops.size() == 1);
+    Vector<ExprStmt_s> sort_exprs;
+    Vector<Expression_s> rt_sort_exprs;
+    Vector<Expression_s> rt_partition_exprs;
+    Vector<bool> asc;
+    for (u32 i = 0; i < log_op->sort_keys.size(); ++i) {
+        sort_exprs.push_back(log_op->sort_keys[i]->get_order_by_expr());
+        asc.push_back(log_op->sort_keys[i]->asc);
+    }
+    CHECK(ExprGenerator::generate_exprs(ctx, sort_exprs, rt_sort_exprs));
+    CHECK(ExprGenerator::generate_exprs(ctx, log_op->partition_keys, rt_partition_exprs));
+    phy_op = PhyPartitionSort::make_partition_sort(ctx.child_ops[0], rt_sort_exprs, asc, rt_partition_exprs);
 	return ret;
 }
 
@@ -447,6 +472,23 @@ u32 CodeGenerator::generate_view_op(ExprGenerateCtx &ctx, LogView_s log_op, PhyO
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
     phy_op = PhyView::make_view(ctx.child_ops[0]);
+	return ret;
+}
+
+u32 CodeGenerator::generate_window_func_op(ExprGenerateCtx &ctx, LogWindowFunc_s log_op, PhyOperator_s &phy_op)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(log_op, ctx.child_ops.size() == 1);
+    Vector<Expression_s> rt_win_items;
+    Vector<Expression_s> rt_partition_by_exprs;
+    CHECK(ExprGenerator::generate_exprs(ctx, log_op->win_items, rt_win_items));
+    CHECK(ExprGenerator::generate_exprs(ctx, log_op->partition_by_exprs, rt_partition_by_exprs));
+    for (u32 i = 0; i < log_op->win_items.size(); ++i) {
+        ctx.access_expr_map[log_op->win_items[i]] = ColumnExpression::make_column_expression(log_op->operator_id, i);
+    }
+    phy_op = PhyWindowFunc::make_window_func(ctx.child_ops[0], 
+                                             rt_win_items, 
+                                             rt_partition_by_exprs);
 	return ret;
 }
 

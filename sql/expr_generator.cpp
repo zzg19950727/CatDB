@@ -2,6 +2,7 @@
 #include "code_generator.h"
 #include "phy_expression.h"
 #include "phy_aggr_expression.h"
+#include "phy_win_expression.h"
 #include "logical_operator.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -105,6 +106,29 @@ u32 ExprGenerator::inner_generate_expr(ExprGenerateCtx &ctx,
                                                                  aggr_expr->aggr_func, 
                                                                  aggr_expr->distinct);
 		break;
+	}
+    case WIN_EXPR:
+	{
+        WinExprStmt_s win_expr = expr;
+		WindowFuncExpression_s rt_win_expr;
+        Expression_s rt_func_expr;
+        if (win_expr->has_win_func_expr()) {
+            CHECK(generate_expr(ctx, win_expr->get_win_func_expr(), rt_func_expr));
+        }
+        rt_win_expr = WindowFuncExpression::make_window_func_expression(rt_func_expr,
+                                                                    win_expr->win_func, 
+                                                                    win_expr->is_distinct);
+		Vector<ExprStmt_s> order_by_exprs;
+        win_expr->get_win_order_by_exprs(order_by_exprs);
+        for (u32 i = 0; i < order_by_exprs.size(); ++i) {
+            OrderStmt_s order_expr = order_by_exprs[i];
+            CHECK(generate_expr(ctx, 
+                                order_expr->get_order_by_expr(), 
+                                rt_expr));
+            rt_win_expr->order_by_exprs.push_back(rt_expr);
+        }
+        rt_expr = rt_win_expr;
+        break;
 	}
 	case OP_EXPR:
 	{

@@ -133,6 +133,9 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
     } else if (expr_consume->has_flag(IS_AGG)) {
 		can_be = false;
         LOG_TRACE("expr can not be consumed", K(expr_consume));
+	} else if (expr_consume->has_flag(IS_WINFUNC)) {
+		can_be = false;
+        LOG_TRACE("expr can not be consumed", K(expr_consume));
 	} else if (expr_consume->has_flag(IS_SUBQUERY)) {
         can_be = false;
         LOG_TRACE("expr can not be consumed", K(expr_consume));

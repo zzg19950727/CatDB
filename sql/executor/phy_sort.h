@@ -10,6 +10,7 @@ namespace CatDB {
 	namespace Sql {
 		using Common::Row_s;
 		DECLARE(Expression);
+		DECLARE(HashTable);
 
 		class PhySort : public SingleChildPhyOperator
 		{
@@ -21,10 +22,10 @@ namespace CatDB {
 										const Vector<Expression_s>& sort_exprs, 
 										const Vector<bool> &asc);
 			//物理算子必须提供的接口
-			u32 inner_open() override;
+			virtual u32 inner_open() override;
 			u32 close() override;
 			u32 reset() override;
-			u32 inner_get_next_row() override;
+			virtual u32 inner_get_next_row() override;
 			u32 type() const override;
 		protected:
 			u32 quick_sort(Vector<Row_s> &arr, int begin, int end);
@@ -53,6 +54,25 @@ namespace CatDB {
 		private:
 			u32 sort_rows() override;
 			u32 topn;
+		};
+
+		class PhyPartitionSort : public PhySort
+		{
+		public:
+			PhyPartitionSort() = delete;
+			PhyPartitionSort(PhyOperator_s& child, const Vector<Expression_s>& partition_exprs);
+
+			static PhyOperator_s make_partition_sort(PhyOperator_s& child,
+													const Vector<Expression_s>& sort_exprs,
+													const Vector<bool> &asc,
+													const Vector<Expression_s>& partition_exprs);
+			u32 type() const override;
+			virtual u32 inner_open() override;
+			virtual u32 inner_get_next_row() override;
+		private:
+			u32 sort_rows() override;
+			Vector<Expression_s> partition_exprs;
+			HashTable_s hash_table;
 		};
 	}
 }

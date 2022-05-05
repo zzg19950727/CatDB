@@ -58,7 +58,8 @@ ENUM_DEFINE(StmtFlag,
 			IS_LIST,
 			IS_OP_EXPR,
 			IS_EXEC_PARAM,
-			HAS_EXEC_PARAM
+			HAS_EXEC_PARAM,
+			IS_ORDER_EXPR
 		);
 
 ENUM_DEFINE(TableType,
@@ -73,9 +74,11 @@ ENUM_DEFINE(ExprType,
 			COLUMN,
 			SET_EXPR,
 			AGG_EXPR,
+			WIN_EXPR,
 			SUBQUERY,
 			EXPR_LIST,
-			OP_EXPR
+			OP_EXPR,
+			ORDER_EXPR
 		);
 
 ENUM_DEFINE(OperationType,
@@ -140,6 +143,27 @@ ENUM_DEFINE(AggrType,
 			MAX
 		);
 
+enum WinType {
+			WIN_SUM = 0,
+			WIN_AVG,
+			WIN_COUNT,
+			WIN_MIN,
+			WIN_MAX,
+			WIN_RANK,
+			WIN_DENSE_RANK,
+			WIN_ROW_NUMBER
+		};
+static const char* WinTypeString[] = {
+			"SUM",
+			"AVG",
+			"COUNT",	
+			"MIN",
+			"MAX",
+			"RANK",
+			"DENSE_RANK",
+			"ROW_NUMBER"
+		};
+
 ENUM_DEFINE(SetOpType,
 			UNION_ALL, 
 			UNION, 
@@ -202,7 +226,8 @@ ENUM_DEFINE(LogOperatorType,
 			LOG_DELETE,
 			LOG_EXPR_VALUE,
 			LOG_DUAL_TABLE,
-			LOG_SUBQUERY_EVALUATE
+			LOG_SUBQUERY_EVALUATE,
+			LOG_WINDOW_FUNC
 		);
 
 ENUM_DEFINE(PhyTableType,

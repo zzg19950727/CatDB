@@ -67,6 +67,8 @@ namespace CatDB {
             static double cost_update(double table_rows, 
                                       double block_count, 
                                       double update_rows);
+        
+            static double cost_win_func(double rows, const Vector<ExprStmt_s> &win_exprs);
         };
     }
 }

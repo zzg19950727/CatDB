@@ -322,6 +322,10 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
                     ret = HAVE_ALL_COLUMN_STMT;
                 }
             }
+            if (MIN == agg_stmt->aggr_func ||
+                MAX == agg_stmt->aggr_func) {
+                agg_stmt->distinct = false;
+            }
             if (SUCC(ret) && AVG == agg_stmt->aggr_func) {
                 AggrStmt_s sum_expr = AggrStmt::make_aggr_stmt();
                 sum_expr->set_aggr_expr(aggr_expr);
@@ -365,6 +369,55 @@ u32 DMLResolver::resolve_expr(ExprStmt_s& expr_stmt, ResolveCtx &resolve_ctx)
         }
 		break;
 	}
+    case ORDER_EXPR:
+    {
+        for (u32 i = 0; i < expr_stmt->params.size(); ++i) {
+            CHECK(resolve_expr(expr_stmt->params[i], resolve_ctx));
+        }
+		break;
+    }
+    case WIN_EXPR:
+    {
+        WinExprStmt_s win_stmt = expr_stmt;
+        if (win_stmt->has_win_func_expr()) {
+            //resolve func expr
+            ExprStmt_s win_func_expr = win_stmt->get_win_func_expr();
+            ret = resolve_expr(win_func_expr, resolve_ctx);
+            if (ret == IS_ALL_COLUMN_STMT) {
+                if (WIN_COUNT == win_stmt->win_func && 
+                    !win_stmt->is_distinct) {
+                    ExprStmt_s new_win_func_expr;
+                    CHECK(ExprUtils::make_int_expr(new_win_func_expr, 1));
+                    win_stmt->set_win_func_expr(new_win_func_expr);
+                    ret = SUCCESS;
+                } else {
+                    ret = HAVE_ALL_COLUMN_STMT;
+                }
+            }
+        }
+        //resolve partition by and order by
+        u32 start_pos = win_stmt->has_win_func_expr() ? 1 : 0;
+        for (u32 i = start_pos; i < expr_stmt->params.size(); ++i) {
+            CHECK(resolve_expr(expr_stmt->params[i], resolve_ctx));
+        }
+        if (WIN_MIN == win_stmt->win_func ||
+            WIN_MAX == win_stmt->win_func) {
+            win_stmt->is_distinct = false;    
+        } else if (WIN_RANK == win_stmt->win_func ||
+            WIN_DENSE_RANK == win_stmt->win_func ||
+            WIN_ROW_NUMBER == win_stmt->win_func) {
+            win_stmt->is_distinct = false;
+            Vector<ExprStmt_s> order_by_exprs;
+            win_stmt->get_win_order_by_exprs(order_by_exprs);
+            if (win_stmt->has_win_func_expr()) {
+                ret = ERR_UNEXPECTED;
+            } else if (order_by_exprs.empty() &&
+                       WIN_ROW_NUMBER != win_stmt->win_func) {
+                ret = EMPTY_ORDER_BY;
+            }
+        }
+		break;
+    }
 	default:
 		LOG_ERR("unknown expr stmt");
 		ret = ERROR_LEX_STMT;

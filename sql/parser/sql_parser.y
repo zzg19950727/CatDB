@@ -322,8 +322,7 @@
 									set_var_stmt kill_stmt
 %type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref 
 									expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
-									seconds_expr aggr_expr
-%type<OrderStmt_s>					order_by
+									seconds_expr order_by opt_arith_expr
 %type<LimitStmt_s>					opt_select_limit
 %type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
 %type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
@@ -334,9 +333,8 @@
 									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
 %type<Vector<TableStmt_s>>			from_list 
 %type<BasicTableStmt_s> 			relation_factor
-%type<Vector<OrderStmt_s>>			opt_order_by order_by_list
 %type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list 
-									when_then_list1 when_then_list2
+									when_then_list1 when_then_list2 opt_order_by order_by_list opt_partition_by
 %type<Vector<Vector<ExprStmt_s>>>	insert_value_list
 %type<ColumnDefineStmt_s>			column_definition
 %type<Vector<ColumnDefineStmt_s>>	table_element_list
@@ -347,7 +345,7 @@
 %type<Vector<LeadingTable_s>> 		leading_hint_table_list
 %type<LeadingTable_s> 				leading_hint_table
 %type<OperationType> 				cmp_type sq_cmp_type
-%type<AggrType>						aggr_type
+%type<WinType>						win_type
 %start sql_stmt
 %%
 
@@ -740,14 +738,14 @@ opt_having:
   ;
 
 opt_order_by:
-	/*EMPTY*/             		{ $$ = Vector<OrderStmt_s>(); }
+	/*EMPTY*/             		{ $$ = Vector<ExprStmt_s>(); }
   | ORDER BY order_by_list	    { $$ = $3; }
   ;
 
 order_by_list:
 	order_by
 	{
-		$$ = Vector<OrderStmt_s>();
+		$$ = Vector<ExprStmt_s>();
 		$$.push_back($1);
 	}
 	| order_by_list "," order_by
@@ -1360,9 +1358,42 @@ expr_const:
   ;
   
 func_expr:
-  aggr_expr
+  win_type "(" distinct_or_all opt_arith_expr ")"
   {
-		$$ = $1;
+	if (!$4) {
+		yyerror("expect aggr expr");
+		YYABORT;
+	}
+	AggrType type;
+	if (WIN_COUNT == $1) {
+		type = COUNT;
+	} else if (WIN_SUM == $1) {
+		type = SUM;
+	} else if (WIN_AVG == $1) {
+		type = AVG;
+	} else if (WIN_MIN == $1) {
+		type = MIN;
+	} else if (WIN_MAX == $1) {
+		type = MAX;
+	}
+	AggrStmt_s expr = AggrStmt::make_aggr_stmt();
+	check(expr);
+	expr->aggr_func = type;
+	expr->distinct = $3;
+	expr->set_aggr_expr($4);
+	$$ = expr;
+  }
+  | win_type "(" distinct_or_all opt_arith_expr ")" OVER "(" opt_partition_by opt_order_by ")" 
+  {
+	WinExprStmt_s expr = WinExprStmt::make_win_expr_stmt($1);
+	check(expr);
+	expr->is_distinct = $3;
+	if ($4) {
+		expr->set_win_func_expr($4);
+	}
+	expr->set_win_part_by_exprs($8);
+	expr->set_win_order_by_exprs($9);
+	$$ = expr;
   }
   | TO_CHAR "(" arith_expr ")"
   {
@@ -1398,50 +1429,6 @@ func_expr:
   }
   ;
 
-aggr_expr:
-	aggr_type "(" "*" ")"
-	{
-		AggrStmt_s expr = AggrStmt::make_aggr_stmt();
-		check(expr);
-		expr->aggr_func = $1;
-		ExprStmt_s col = ColumnStmt::make_all_column_stmt();
-		check(col);
-		expr->set_aggr_expr(col);
-		$$ = expr;
-	}
-	| aggr_type "(" distinct_or_all arith_expr ")"
-    {
-		AggrStmt_s expr = AggrStmt::make_aggr_stmt();
-		check(expr);
-		expr->aggr_func = $1;
-		expr->distinct = $3;
-		expr->set_aggr_expr($4);
-		$$ = expr;
-    }
-	;
-
-aggr_type:
-	COUNT
-	{
-		$$ = COUNT;
-	}
-	| SUM
-	{
-		$$ = SUM;
-	}
-	| AVG
-	{
-		$$ = AVG;
-	}
-	| MIN
-	{
-		$$ = MIN;
-	}
-	| MAX
-	{
-		$$ = MAX;
-	}
-	;
 
 distinct_or_all:
 	/*empty*/
@@ -1457,6 +1444,63 @@ distinct_or_all:
 		$$ = true;
     }
   ;
+
+win_type:
+	COUNT
+	{
+		$$ = WIN_COUNT;
+	}
+	| SUM
+	{
+		$$ = WIN_SUM;
+	}
+	| AVG
+	{
+		$$ = WIN_AVG;
+	}
+	| MIN
+	{
+		$$ = WIN_MIN;
+	}
+	| MAX
+	{
+		$$ = WIN_MAX;
+	}
+	| RANK
+	{
+		$$ = WIN_RANK;
+	}
+	| DENSE_RANK
+	{
+		$$ = WIN_DENSE_RANK;
+	}
+	| ROW_NUMBER
+	{
+		$$ = WIN_ROW_NUMBER;
+	}
+	;
+
+opt_arith_expr:
+	/*empty*/
+	{
+		$$ = ExprStmt_s();
+	}
+	| arith_expr
+	{
+		$$ = $1;
+	}
+	;
+
+opt_partition_by:
+	/*empty*/
+	{
+		$$ = Vector<ExprStmt_s>();
+	}
+	| PARTITION BY arith_expr_list
+	{
+		$$ = $3;
+	}
+	;
 
 /**************************************************************
  *

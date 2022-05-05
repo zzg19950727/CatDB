@@ -2,6 +2,7 @@
 #include "object.h"
 #include "error.h"
 #include "phy_sort.h"
+#include "hash_table.h"
 #include "row.h"
 #include "log.h"
 using namespace CatDB::Sql;
@@ -219,5 +220,68 @@ u32 PhyTopNSort::sort_rows()
 	if (NO_MORE_ROWS == ret) {
 		ret = SUCCESS;
 	}
+	return ret;
+}
+
+PhyPartitionSort::PhyPartitionSort(PhyOperator_s& child, const Vector<Expression_s>& partition_exprs)
+	:PhySort(child),
+	partition_exprs(partition_exprs)
+{
+}
+
+PhyOperator_s PhyPartitionSort::make_partition_sort(PhyOperator_s& child,
+										const Vector<Expression_s>& sort_exprs,
+										const Vector<bool> &asc,
+										const Vector<Expression_s>& partition_exprs)
+{
+	PhyPartitionSort* op = new PhyPartitionSort(child, partition_exprs);
+	op->sort_exprs = sort_exprs;
+	op->asc = asc;
+	op->hash_table = HashTable::make_hash_table();
+	op->hash_table->set_hash_exprs(partition_exprs);
+	op->hash_table->set_probe_exprs(partition_exprs);
+	op->hash_table->set_extra_sort_exprs(sort_exprs, asc);
+	return PhyOperator_s(op);
+}
+
+u32 PhyPartitionSort::type() const
+{
+	return PhyOperator::PARTITION_SORT;
+}
+
+u32 PhyPartitionSort::inner_open()
+{
+	u32 ret = SUCCESS;
+	hash_table->set_exec_ctx(exec_ctx);
+	CHECK(PhySort::inner_open());
+	return ret;
+}
+
+u32 PhyPartitionSort::inner_get_next_row()
+{
+	u32 ret = SUCCESS;
+	Row_s row;
+	if (!is_start) {
+		CHECK(sort_rows());
+	}
+	if (SUCC(hash_table->get_next_row(row))) {
+		set_input_rows(row);
+	}
+	return ret;
+}
+
+u32 PhyPartitionSort::sort_rows() 
+{
+	u32 ret = SUCCESS;
+	Row_s row;
+	while (SUCC(child->get_next_row(row))){
+		row = Row::deep_copy(row);
+		CHECK(hash_table->build(row));
+	}
+	if (ret != NO_MORE_ROWS) {
+		return ret;
+	}
+	CHECK(hash_table->sort_bucket());
+	is_start = true;
 	return ret;
 }

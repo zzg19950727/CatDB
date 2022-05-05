@@ -27,6 +27,7 @@ namespace CatDB {
         DECLARE(LogTableScan);
         DECLARE(LogUpdate);
         DECLARE(LogView);
+        DECLARE(LogWindowFunc);
     }
     namespace Sql {
         DECLARE(PhyOperator);
@@ -46,6 +47,7 @@ namespace CatDB {
         DECLARE(PhyTableScan);
         DECLARE(PhyUpdate);
         DECLARE(PhyView);
+        DECLARE(PhyWindowFunc);
 
         using Optimizer::LogicalOperator_s;
         using Optimizer::LogDelete_s;
@@ -63,6 +65,7 @@ namespace CatDB {
         using Optimizer::LogTableScan_s;
         using Optimizer::LogUpdate_s;
         using Optimizer::LogView_s;
+        using Optimizer::LogWindowFunc_s;
         using Storage::TableSpace_s;
         using Parser::BasicTableStmt_s;
 
@@ -91,10 +94,12 @@ namespace CatDB {
             static u32 generate_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
             static u32 generate_normal_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
             static u32 generate_topn_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
+            static u32 generate_partition_sort_op(ExprGenerateCtx &ctx, LogSort_s log_op, PhyOperator_s &phy_op);
             static u32 generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOperator_s &log_op, PhyOperator_s &phy_op);
             static u32 generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s log_op, PhyOperator_s &phy_op);
             static u32 generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, PhyOperator_s &phy_op);
             static u32 generate_view_op(ExprGenerateCtx &ctx, LogView_s log_op, PhyOperator_s &phy_op);
+            static u32 generate_window_func_op(ExprGenerateCtx &ctx, LogWindowFunc_s log_op, PhyOperator_s &phy_op);
 
             static u32 generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s& log_root);
             static u32 generate_output_exprs(ExprGenerateCtx &ctx, LogicalOperator_s& log_root, PhyOperator_s &phy_root);

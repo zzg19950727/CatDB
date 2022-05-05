@@ -78,6 +78,12 @@ u32 GroupByChecker::check_expr(ExprStmt_s &expr_stmt, bool &in_group_by)
         }
 		break;
 	}
+	case WIN_EXPR:
+	{
+		in_group_by = false;
+		LOG_ERR("can not use group by and window function at same time");
+		ret = ERROR_LEX_STMT;
+	}
 	default:
 		LOG_ERR("unknown expr stmt");
 		ret = ERROR_LEX_STMT;

@@ -6,11 +6,12 @@
 namespace CatDB {
 	namespace Parser {
 		DECLARE(Stmt);
-		
+		DECLARE(WinExprStmt);
 	}
 	namespace Optimizer {
 		DECLARE(Plan);
 		using Parser::Stmt_s;
+		using Parser::WinExprStmt_s;
 
 		class SelectPlan : public DMLPlan
 		{
@@ -25,6 +26,8 @@ namespace CatDB {
 			u32 generate_normal_plan_tree();
 			u32 generate_group_by();
 			u32 generate_scalar_group_by();
+			u32 generate_window_function();
+			u32 generate_one_window_function(WinExprStmt_s win_expr);
 			u32 generate_distinct();
 			u32 generate_order_by(bool &need_limit);
 			u32 generate_limit();
