@@ -191,7 +191,7 @@ u32 PhyNestedLoopJoin::left_outer_join()
 		}
 		if (not_match) {
 			Row_s right_row;
-			CHECK(right_child->make_const_row(outer_const_value, right_row));
+			CHECK(right_child->make_const_row(right_row));
 			set_input_rows(left_row, right_row);
 			left_row.reset();
 			return ret;

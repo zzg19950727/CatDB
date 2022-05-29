@@ -179,7 +179,8 @@ ENUM_DEFINE(JoinType,
 			LeftSemi, 
 			RightSemi, 
 			LeftAnti, 
-			RightAnti
+			RightAnti,
+			MaxJoinType
 		);
 
 static JoinType ReverseJoinType[] = {

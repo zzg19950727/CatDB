@@ -93,13 +93,14 @@ void PhyOperator::set_output_exprs(const Vector<Expression_s> &exprs)
 	output_exprs = exprs;
 }
 
+void PhyOperator::set_null_values(const Vector<Object_s> &null_values)
+{
+	const_values = null_values;
+}
+
 u32 PhyOperator::make_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	if (!cur_row) {
-		ret = ERR_UNEXPECTED;
-		return ret;
-	}
 	for (u32 i = 0; i < output_exprs.size(); ++i) {
 		ColumnExpression_s col = output_exprs[i];
 		CHECK(output_exprs[i]->get_result(exec_ctx));
@@ -109,16 +110,11 @@ u32 PhyOperator::make_row(Row_s &row)
 	return ret;
 }
 
-u32 PhyOperator::make_const_row(Object_s &const_value, Row_s &row)
+u32 PhyOperator::make_const_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	if (!cur_row) {
-		ret = ERR_UNEXPECTED;
-		return ret;
-	}
-	for (u32 i = 0; i < output_exprs.size(); ++i) {
-		Object_s cell = Object::make_null_object();
-		cur_row->set_cell(i, cell);
+	for (u32 i = 0; i < const_values.size(); ++i) {
+		cur_row->set_cell(i, const_values[i]);
 	}
 	row = cur_row;
 	return ret;
@@ -213,11 +209,6 @@ JoinType JoinPhyOperator::join_type() const
 void JoinPhyOperator::set_join_type(JoinType type)
 {
 	this->type = type;
-}
-
-void JoinPhyOperator::set_outer_const_value(Object_s &value) 
-{ 
-	outer_const_value = value; 
 }
 
 MultiChildPhyOperator::MultiChildPhyOperator()

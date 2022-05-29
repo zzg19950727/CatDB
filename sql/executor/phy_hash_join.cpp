@@ -10,11 +10,63 @@ using namespace CatDB::Common;
 
 PhyHashJoin::PhyHashJoin(const PhyOperator_s & left_child, const PhyOperator_s & right_child)
 	:JoinPhyOperator(left_child, right_child),
-	is_build_hash_table(false),
-	has_null_in_hash_table(false),
-	prepare_output_hash_table(true)
+	state(BUILD_HASH_TABLE)
 {
+	hash_join_func[Inner][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[Inner][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table;
+	hash_join_func[Inner][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_inner;
+	hash_join_func[Inner][VISIT_HASH_TABLE] = &PhyHashJoin::end_join;
+	hash_join_func[Inner][OUTPUT_ROWS] = &PhyHashJoin::end_join;
+	hash_join_func[Inner][END_JOIN] = &PhyHashJoin::end_join;
 
+	hash_join_func[LeftOuter][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[LeftOuter][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table;
+	hash_join_func[LeftOuter][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_left_outer;
+	hash_join_func[LeftOuter][VISIT_HASH_TABLE] = &PhyHashJoin::visti_hash_table;
+	hash_join_func[LeftOuter][OUTPUT_ROWS] = &PhyHashJoin::output_rows_left_outer;
+	hash_join_func[LeftOuter][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[RightOuter][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[RightOuter][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table_right_outer;
+	hash_join_func[RightOuter][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_right_outer;
+	hash_join_func[RightOuter][VISIT_HASH_TABLE] = &PhyHashJoin::end_join;
+	hash_join_func[RightOuter][OUTPUT_ROWS] = &PhyHashJoin::end_join;
+	hash_join_func[RightOuter][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[FullOuter][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[FullOuter][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table_right_outer;
+	hash_join_func[FullOuter][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_right_outer;
+	hash_join_func[FullOuter][VISIT_HASH_TABLE] = &PhyHashJoin::visti_hash_table;
+	hash_join_func[FullOuter][OUTPUT_ROWS] = &PhyHashJoin::output_rows_left_outer;
+	hash_join_func[FullOuter][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[LeftSemi][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[LeftSemi][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table;
+	hash_join_func[LeftSemi][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_left_semi;
+	hash_join_func[LeftSemi][VISIT_HASH_TABLE] = &PhyHashJoin::visti_hash_table;
+	hash_join_func[LeftSemi][OUTPUT_ROWS] = &PhyHashJoin::output_rows_left_semi;
+	hash_join_func[LeftSemi][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[RightSemi][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[RightSemi][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table_right_semi;
+	hash_join_func[RightSemi][VISIT_BUCKET] = &PhyHashJoin::end_join;
+	hash_join_func[RightSemi][VISIT_HASH_TABLE] = &PhyHashJoin::end_join;
+	hash_join_func[RightSemi][OUTPUT_ROWS] = &PhyHashJoin::end_join;
+	hash_join_func[RightSemi][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[LeftAnti][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[LeftAnti][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table;
+	hash_join_func[LeftAnti][VISIT_BUCKET] = &PhyHashJoin::visit_bucket_left_anti;
+	hash_join_func[LeftAnti][VISIT_HASH_TABLE] = &PhyHashJoin::visti_hash_table;
+	hash_join_func[LeftAnti][OUTPUT_ROWS] = &PhyHashJoin::output_rows_left_anti;
+	hash_join_func[LeftAnti][END_JOIN] = &PhyHashJoin::end_join;
+
+	hash_join_func[RightAnti][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
+	hash_join_func[RightAnti][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table_right_anti;
+	hash_join_func[RightAnti][VISIT_BUCKET] = &PhyHashJoin::end_join;
+	hash_join_func[RightAnti][VISIT_HASH_TABLE] = &PhyHashJoin::end_join;
+	hash_join_func[RightAnti][OUTPUT_ROWS] = &PhyHashJoin::end_join;
+	hash_join_func[RightAnti][END_JOIN] = &PhyHashJoin::end_join;
 }
 
 PhyHashJoin::~PhyHashJoin()
@@ -30,10 +82,10 @@ PhyOperator_s PhyHashJoin::make_hash_join(const PhyOperator_s & left_child,
 	PhyHashJoin* op = new PhyHashJoin(left_child, right_child);
 	op->hash_exprs = hash_exprs;
 	op->prob_exprs = prob_exprs;
+	op->other_conditions = other_join_cond;
 	op->hash_table = HashTable::make_hash_table();
 	op->hash_table->set_hash_exprs(hash_exprs);
 	op->hash_table->set_probe_exprs(prob_exprs);
-	op->hash_table->set_other_condition(other_join_cond);
 	return PhyOperator_s(op);
 }
 
@@ -63,39 +115,14 @@ u32 PhyHashJoin::reset()
 	CHECK(left_child->reset());
 	CHECK(right_child->reset());
 	last_probe_row.reset();
-	hash_table->clear();
-	is_build_hash_table = false;
-	has_null_in_hash_table = false;
-	prepare_output_hash_table = true;
+	hash_table->reset();
+	state = BUILD_HASH_TABLE;
 	return ret;
 }
 
 u32 PhyHashJoin::inner_get_next_row()
 {
-	u32 ret = SUCCESS;
-	if (!is_build_hash_table) {
-		CHECK(build_hash_table());
-	}
-	switch (JoinPhyOperator::type) {
-	case Inner:
-		return join();
-	case LeftSemi:
-		return left_semi_join();
-	case RightSemi:
-		return right_semi_join();
-	case LeftAnti:
-		return left_anti_join();
-	case RightAnti:
-		return right_anti_join();
-	case LeftOuter:
-		return left_outer_join();
-	case RightOuter:
-		return right_outer_join();
-	case FullOuter:
-		return full_outer_join();
-	default:
-		return NO_MORE_ROWS;
-	}
+	return (this->*hash_join_func[JoinPhyOperator::type][state])();
 }
 
 u32 PhyHashJoin::type() const
@@ -103,296 +130,281 @@ u32 PhyHashJoin::type() const
 	return PhyOperator::HASH_JOIN;
 }
 
+// u32 PhyHashJoin::build_hash_table_for_right_na_anti()
+// {
+// 	u32 ret  = SUCCESS;
+// 	Expression_s hash_expr = hash_exprs[0];
+// 	Row_s row;
+// 	while (SUCC(left_child->get_next_row(row))) {
+// 		set_input_rows(row);
+// 		CHECK(hash_expr->get_result(exec_ctx));
+// 		if (exec_ctx->output_result->is_null()) {
+// 			has_null_in_hash_table = true;
+// 			break;
+// 		}
+// 		row = Row::deep_copy(row);
+// 		CHECK(CHECK(hash_table->build(row)));
+// 	}
+// 	if (NO_MORE_ROWS == ret) {
+// 		ret = SUCCESS;
+// 	}
+// 	return ret;
+//}
+
 u32 PhyHashJoin::build_hash_table()
 {
 	u32 ret = SUCCESS;
 	Row_s row;
 	while (SUCC(left_child->get_next_row(row))) {
 		row = Row::deep_copy(row);
-		hash_table->build(row);
-	}
-	if (ret == NO_MORE_ROWS) {
-		ret = SUCCESS;
-	}
-	is_build_hash_table = true;
-	return ret;
-}
-
-u32 PhyHashJoin::build_hash_table_for_left_na_anti()
-{
-	u32 ret = SUCCESS;
-	if (hash_exprs.size() != 1 || prob_exprs.size() != 1) {
-		LOG_ERR("hash anti join only support one join condition", K(ret));
-		return OPERATION_NOT_SUPPORT;
-	}
-	Expression_s hash_expr = hash_exprs[0];
-	Expression_s prob_expr = prob_exprs[0];
-	Row_s row;
-	bool right_is_empty = true;
-	while (SUCC(right_child->get_next_row(row))) {
-		right_is_empty = false;
-		set_input_rows(row);
-		CHECK(prob_expr->get_result(exec_ctx));
-		if (exec_ctx->output_result->is_null()) {
-			has_null_in_hash_table = true;
-			break;
-		}
-	}
-	if (ret == NO_MORE_ROWS) {
-		ret = SUCCESS;
-		right_child->reset();
-	}
-	if (!has_null_in_hash_table) {
-		while (SUCC(ret) && SUCC(left_child->get_next_row(row))) {
-			set_input_rows(row);
-			CHECK(hash_expr->get_result(exec_ctx));
-			if (!exec_ctx->output_result->is_null() || right_is_empty) {
-				row = Row::deep_copy(row);
-				CHECK(hash_table->build(row));
-			}
-		}
-		if (ret == NO_MORE_ROWS) {
-			ret = SUCCESS;
-		}
-	}
-	return ret;
-}
-
-u32 PhyHashJoin::build_hash_table_for_right_na_anti()
-{
-	if (hash_exprs.size() != 1) {
-		LOG_ERR("hash anti join only support one join condition");
-		return OPERATION_NOT_SUPPORT;
-	}
-	u32 ret  = SUCCESS;
-	Expression_s hash_expr = hash_exprs[0];
-	Row_s row;
-	while (SUCC(left_child->get_next_row(row))) {
-		set_input_rows(row);
-		CHECK(hash_expr->get_result(exec_ctx));
-		if (exec_ctx->output_result->is_null()) {
-			has_null_in_hash_table = true;
-			break;
-		}
-		row = Row::deep_copy(row);
 		CHECK(hash_table->build(row));
 	}
+	if (ret == NO_MORE_ROWS) {
+		state = PROBE_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	}
+	return ret;
+}
+
+u32 PhyHashJoin::probe_hash_table()
+{
+	u32 ret = SUCCESS;
+	bool hit = false;
+	while (SUCC(right_child->get_next_row(last_probe_row))) {
+		CHECK(hash_table->probe_bucket(last_probe_row, iter, hit));
+		if (hit) {
+			state = VISIT_BUCKET;
+			CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+			return ret;
+		}
+	}
 	if (NO_MORE_ROWS == ret) {
-		ret = SUCCESS;
+		state = VISIT_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 	}
 	return ret;
 }
 
-u32 PhyHashJoin::join()
+u32 PhyHashJoin::probe_hash_table_right_outer()
 {
 	u32 ret = SUCCESS;
-	Row_s row;
-	if (!probe_result.empty()) {
-		Row_s left_row = probe_result.front();
-		probe_result.pop();
-		set_input_rows(left_row, last_probe_row);
-		return ret;
-	}
-	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe_all_rows(row, probe_result))) {
-			last_probe_row = row;
-			Row_s left_row = probe_result.front();
-			probe_result.pop();
-			set_input_rows(left_row, last_probe_row);
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
+	bool hit = false;
+	while (SUCC(right_child->get_next_row(last_probe_row))) {
+		CHECK(hash_table->probe_bucket(last_probe_row, iter, hit));
+		if (hit) {
+			state = VISIT_BUCKET;
+			CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 			return ret;
 		} else {
-			ret = SUCCESS;
+			Row_s left_null_row;
+			CHECK(left_child->make_const_row(left_null_row));
+			set_input_rows(left_null_row, last_probe_row);
+			return ret;
 		}
+	}
+	if (NO_MORE_ROWS == ret) {
+		state = VISIT_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 	}
 	return ret;
 }
 
-u32 PhyHashJoin::left_semi_join()
+u32 PhyHashJoin::probe_hash_table_right_semi()
 {
 	u32 ret = SUCCESS;
+	bool hit = false;
 	Row_s row;
-	if (!probe_result.empty()) {
-		row = probe_result.front();
-		probe_result.pop();
-		return SUCCESS;
-	}
-	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe_all_rows(row, probe_result, true))) {
-			row = probe_result.front();
-			probe_result.pop();
-			set_input_rows(row);
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
-			ret = SUCCESS;
+	while (SUCC(right_child->get_next_row(last_probe_row))) {
+		CHECK(hash_table->probe_bucket(last_probe_row, iter, hit));
+		if (hit) {
+			while (iter.get_next_row(row)) {
+				set_input_rows(row, last_probe_row);
+				CHECK(expr_filter(other_conditions, exec_ctx));
+				if (exec_ctx->bool_result) {
+					set_input_rows(last_probe_row);
+					return ret;
+				}
+			}
 		}
 	}
+	state = END_JOIN;
 	return ret;
 }
 
-u32 PhyHashJoin::right_semi_join()
+u32 PhyHashJoin::probe_hash_table_right_anti()
 {
 	u32 ret = SUCCESS;
+	bool hit = false;
 	Row_s row;
-	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe(row))) {
-			set_input_rows(row);
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
-			ret = SUCCESS;
-		}
-	}
-	return ret;
-}
-
-u32 PhyHashJoin::left_anti_join()
-{
-	u32 ret = SUCCESS;
-	Row_s row;
-	if (has_null_in_hash_table) {
-		return NO_MORE_ROWS;
-	} else if (prepare_output_hash_table) {
-		while (SUCC(right_child->get_next_row(row))) {
-			if (SUCC(hash_table->probe_all_rows(row))) {
-
-			} else if (ROW_NOT_FOUND != ret) {
+	while (SUCC(right_child->get_next_row(last_probe_row))) {
+		CHECK(hash_table->probe_bucket(last_probe_row, iter, hit));
+		if (hit) {
+			if (other_conditions.empty()) {
+				continue;
+			}
+			hit = false;
+			while (iter.get_next_row(row)) {
+				set_input_rows(row, last_probe_row);
+				CHECK(expr_filter(other_conditions, exec_ctx));
+				if (exec_ctx->bool_result) {
+					hit = true;
+					break;
+				}
+			}
+			if (!hit) {
+				set_input_rows(last_probe_row);
 				return ret;
-			} else {
-				ret = SUCCESS;
 			}
-		}
-		if (ret == NO_MORE_ROWS) {
-			prepare_output_hash_table = false;
 		} else {
+			set_input_rows(last_probe_row);
 			return ret;
 		}
 	}
-	CHECK(hash_table->get_next_row(row, true));
-	set_input_rows(row);
+	state = END_JOIN;
 	return ret;
 }
 
-u32 PhyHashJoin::right_anti_join()
+u32 PhyHashJoin::visti_hash_table()
 {
-	u32 ret = SUCCESS;
-	Row_s row;
-	if (has_null_in_hash_table) {
-		return NO_MORE_ROWS;
+	int ret = SUCCESS;
+	if (hash_table->get_next_bucket(iter)) {
+		state = OUTPUT_ROWS;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	} else {
+		state = END_JOIN;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 	}
-	Expression_s prob_expr = prob_exprs[0];
-	while (SUCC(right_child->get_next_row(row))) {
+	return ret;
+}
+
+u32 PhyHashJoin::visit_bucket_inner()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	while (iter.get_next_row(row)) {
+		set_input_rows(row, last_probe_row);
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		if (exec_ctx->bool_result) {
+			return ret;
+		}
+	}
+	state = PROBE_HASH_TABLE;
+	CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	return ret;
+}
+
+u32 PhyHashJoin::visit_bucket_left_outer()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	while (iter.get_next_row(row)) {
+		set_input_rows(row, last_probe_row);
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		if (exec_ctx->bool_result) {
+			iter.mark_last_row();
+			return ret;
+		}
+	}
+	state = PROBE_HASH_TABLE;
+	CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	return ret;
+}
+
+u32 PhyHashJoin::visit_bucket_right_outer()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	if (iter.get_next_row(row)) {
+		set_input_rows(row, last_probe_row);
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		if (exec_ctx->bool_result) {
+			iter.mark_last_row();
+		} else {
+			Row_s left_null_row;
+			CHECK(left_child->make_const_row(left_null_row));
+			set_input_rows(left_null_row, last_probe_row);
+		}
+	} else {
+		state = PROBE_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	}
+	return ret;
+}
+
+u32 PhyHashJoin::visit_bucket_left_semi()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	while (iter.get_next_row(row)) {
+		set_input_rows(row, last_probe_row);
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		if (exec_ctx->bool_result) {
+			iter.mark_last_row();
+		}
+	}
+	state = PROBE_HASH_TABLE;
+	CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	return ret;
+}
+
+u32 PhyHashJoin::visit_bucket_left_anti()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	while (iter.get_next_row(row)) {
+		set_input_rows(row, last_probe_row);
+		CHECK(expr_filter(other_conditions, exec_ctx));
+		if (exec_ctx->bool_result) {
+			iter.mark_last_row();
+		}
+	}
+	state = PROBE_HASH_TABLE;
+	CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	return ret;
+}
+
+u32 PhyHashJoin::output_rows_left_outer()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	if (iter.get_next_no_mark_row(row)) {
+		Row_s right_null_row;
+		CHECK(right_child->make_const_row(right_null_row));
+		set_input_rows(row, right_null_row);
+	} else {
+		state = VISIT_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
+	}
+	return ret;
+}
+
+u32 PhyHashJoin::output_rows_left_semi()
+{
+	int ret = SUCCESS;
+	Row_s row;
+	if (iter.get_next_mark_row(row)) {
 		set_input_rows(row);
-		if (hash_table->empty()) {
-			return SUCCESS;
-		} else {
-			CHECK(prob_expr->get_result(exec_ctx));
-		}
-		if (exec_ctx->output_result->is_null()) {
-			continue;
-		} else {
-			ret = hash_table->probe(row);
-			if (ROW_NOT_FOUND == ret) {
-				ret = SUCCESS;
-			}
-			return ret;
-		}
+	} else {
+		state = VISIT_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 	}
 	return ret;
 }
 
-u32 PhyHashJoin::left_outer_join()
+u32 PhyHashJoin::output_rows_left_anti()
 {
-	u32 ret = SUCCESS;
+	int ret = SUCCESS;
 	Row_s row;
-	if (!probe_result.empty()) {
-		Row_s left_row = probe_result.front();
-		probe_result.pop();
-		set_input_rows(left_row, last_probe_row);
-		return ret;
-	}
-	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe_all_rows(row, probe_result))) {
-			last_probe_row = row;
-			Row_s left_row = probe_result.front();
-			probe_result.pop();
-			set_input_rows(left_row, last_probe_row);
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
-			ret = SUCCESS;
-		}
-	}
-	if (NO_MORE_ROWS == ret) {
-		CHECK(hash_table->get_next_row(row, true));
-		Row_s right_row;
-		CHECK(right_child->make_const_row(outer_const_value, right_row));
-		set_input_rows(row, right_row);
+	if (iter.get_next_no_mark_row(row)) {
+		set_input_rows(row);
+	} else {
+		state = VISIT_HASH_TABLE;
+		CHECK((this->*hash_join_func[JoinPhyOperator::type][state])());
 	}
 	return ret;
 }
 
-u32 PhyHashJoin::right_outer_join()
+u32 PhyHashJoin::end_join()
 {
-	u32 ret = SUCCESS;
-	Row_s row;
-	if (!probe_result.empty()) {
-		Row_s left_row = probe_result.front();
-		probe_result.pop();
-		set_input_rows(left_row, last_probe_row);
-		return ret;
-	}
-	while (SUCC(right_child->get_next_row(row))) {
-		ret = hash_table->probe_all_rows(row, probe_result);
-		if (ret == SUCCESS) {
-			last_probe_row = row;
-			Row_s left_row = probe_result.front();
-			probe_result.pop();
-			set_input_rows(left_row, last_probe_row);
-		} else if (ROW_NOT_FOUND == ret) {
-			Row_s left_row;
-			CHECK(left_child->make_const_row(outer_const_value, left_row));
-			set_input_rows(left_row, row);
-		}
-		return ret;
-	}
-	return ret;
-}
-
-u32 PhyHashJoin::full_outer_join()
-{
-	u32 ret = SUCCESS;
-	Row_s row;
-	if (!probe_result.empty()) {
-		Row_s left_row = probe_result.front();
-		probe_result.pop();
-		set_input_rows(left_row, last_probe_row);
-		return ret;
-	}
-	while (SUCC(right_child->get_next_row(row))) {
-		ret = hash_table->probe_all_rows(row, probe_result);
-		if (ret == SUCCESS) {
-			last_probe_row = row;
-			Row_s left_row = probe_result.front();
-			probe_result.pop();
-			set_input_rows(left_row, last_probe_row);
-		} else if (ROW_NOT_FOUND == ret) {
-			Row_s left_row;
-			CHECK(left_child->make_const_row(outer_const_value, left_row));
-			set_input_rows(left_row, row);
-		}
-		return ret;
-	}
-	if (NO_MORE_ROWS == ret) {
-		CHECK(hash_table->get_next_row(row, true));
-		Row_s right_row;
-		CHECK(right_child->make_const_row(outer_const_value, right_row));
-		set_input_rows(row, right_row);
-	}
-	return ret;
+	return NO_MORE_ROWS;
 }

@@ -37,7 +37,7 @@ u32 CatDB::Sql::PhyHashDistinct::close()
 
 u32 CatDB::Sql::PhyHashDistinct::reset()
 {
-	hash_table->clear();
+	hash_table->reset();
 	return child->reset();
 }
 
@@ -45,14 +45,12 @@ u32 CatDB::Sql::PhyHashDistinct::inner_get_next_row()
 {
 	u32 ret = SUCCESS;
 	Row_s row;
+	bool hit = false;
 	while (SUCC(child->get_next_row(row))) {
-		if (SUCC(hash_table->probe(row))) {
-			continue;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
+		CHECK(hash_table->probe(row, hit));
+		if (!hit) {
 			row = Row::deep_copy(row);
-			CHECK(hash_table->build(row));
+			CHECK(hash_table->build_without_check(row));
 			set_input_rows(row);
 			return ret;
 		}

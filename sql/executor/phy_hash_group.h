@@ -33,14 +33,10 @@ namespace CatDB {
 			u32 type() const override;
 		private:
 			u32 build_hash_table();
-			u32 euqal(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
 
 		private:
 			HashTable_s hash_table;
-			Vector<Expression_s> group_exprs;
 			Row_s aggr_result_row;
-			//当前集合函数计算状态
-			Row_s group_first_row;
 			bool is_build_hash_table;
 		};
 

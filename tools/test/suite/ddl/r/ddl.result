@@ -4,32 +4,7 @@ drop database if exists test
 
 create database test
 
-show databases
-
-+-------------+
-| databases   |
-+-------------+
-| test        |
-| random_test |
-| system      |
-| tpch_csv    |
-| tpch        |
-+-------------+
-5 rows in set
-
 drop database test
-
-show databases
-
-+-------------+
-| databases   |
-+-------------+
-| random_test |
-| system      |
-| tpch_csv    |
-| tpch        |
-+-------------+
-4 rows in set
 
 create database test
 

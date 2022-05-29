@@ -114,12 +114,7 @@ String get_module_name(const char* function)
 
 void LogStream::print_msg(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	String module = get_module_name(function);
 	String trace_id;
-	if (log_level > LOG_SET_LEVEL || 
-		(LOG_MODULE.find(module) == LOG_MODULE.npos &&
-		LOG_MODULE != "ALL"))
-		return ;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	get_trace_id(trace_id);
 	*os << "[" << put_time(t) <<"] ";
@@ -129,6 +124,7 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 		*os << "[ERR  ] ";
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
+	String module = get_module_name(function);
 	*os << "[" << module << "] " << "[" << trace_id << "] " << "[" << file << ":" << line << "] " << "[ " << msg << " ]" << std::endl;
 	os->flush();
 }
@@ -150,7 +146,16 @@ void CatDB::Common::set_debug_module(const String &module)
 
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	ostream.print_msg(log_level, file, line, function, msg);
+	if (log_level > LOG_SET_LEVEL) {
+		return;
+	} else if (LOG_MODULE == "ALL") {
+		ostream.print_msg(log_level, file, line, function, msg);
+	} else {
+		String module = get_module_name(function);
+		if (LOG_MODULE.find(module) != LOG_MODULE.npos) {
+			ostream.print_msg(log_level, file, line, function, msg);
+		}
+	}
 }
 
 std::string CatDB::Common::lbt() 

@@ -25,7 +25,11 @@ PhyOperator_s CatDB::Sql::PhyHashSetOp::make_hash_setop(PhyOperator_s & first_ch
 													 PhyOperator_s & second_child,
 													 SetOpType type)
 {
-	return PhyOperator_s(new PhyHashSetOp(first_child, second_child, type));
+	if (EXCEPT == type) {
+		return PhyOperator_s(new PhyHashSetOp(second_child, first_child, type));
+	} else {
+		return PhyOperator_s(new PhyHashSetOp(first_child, second_child, type));
+	}
 }
 
 u32 CatDB::Sql::PhyHashSetOp::inner_open()
@@ -54,7 +58,7 @@ u32 CatDB::Sql::PhyHashSetOp::reset()
 {
 	u32 ret1 = left_child->reset();
 	u32 ret2 = right_child->reset();
-	hash_table->clear();
+	hash_table->reset();
 	init_hash_table = false;
 	if (ret1 != SUCCESS)
 		return ret1;
@@ -104,14 +108,12 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_union_all(Row_s &row)
 u32 CatDB::Sql::PhyHashSetOp::get_next_row_union(Row_s &row)
 {
 	u32 ret = SUCCESS;
+	bool hit = false;
 	while (SUCC(left_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe(row))) {
-			continue;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
+		CHECK(hash_table->probe(row, hit));
+		if (!hit) {
 			row = Row::deep_copy(row);
-			CHECK(hash_table->build(row));
+			CHECK(hash_table->build_without_check(row));
 			return ret;
 		}
 	}
@@ -119,13 +121,10 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_union(Row_s &row)
 		return ret;
 	}
 	while (SUCC(right_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe(row))) {
-			continue;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
+		CHECK(hash_table->probe(row, hit));
+		if (!hit) {
 			row = Row::deep_copy(row);
-			CHECK(hash_table->build(row));
+			CHECK(hash_table->build_without_check(row));
 			return ret;
 		}
 	}
@@ -138,13 +137,11 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_intersect(Row_s &row)
 	if (!init_hash_table) {
 		CHECK(build_hash_table());
 	}
-	while (SUCC(left_child->get_next_row(row))) {
-		if (SUCC(hash_table->probe_all_rows(row, true))) {
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
-			ret = SUCCESS;
+	bool hit = false;
+	while (SUCC(right_child->get_next_row(row))) {
+		CHECK(hash_table->probe(row, hit));
+		if (hit) {
+			break;
 		}
 	}
 	return ret;
@@ -156,14 +153,12 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_except(Row_s &row)
 	if (!init_hash_table) {
 		CHECK(build_hash_table());
 	}
-	while (SUCC(left_child->get_next_row(row))){
-		if (SUCC(hash_table->probe(row))) {
-			continue;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
-		} else {
+	bool hit = false;
+	while (SUCC(right_child->get_next_row(row))) {
+		CHECK(hash_table->probe(row, hit));
+		if (!hit) {
 			row = Row::deep_copy(row);
-			CHECK(hash_table->build(row));
+			CHECK(hash_table->build_without_check(row));
 			return ret;
 		}
 	}
@@ -174,9 +169,13 @@ u32 CatDB::Sql::PhyHashSetOp::build_hash_table()
 {
 	u32 ret = SUCCESS;
 	Row_s row;
-	while (SUCC(right_child->get_next_row(row))) {
-		row = Row::deep_copy(row);
-		CHECK(hash_table->build(row));
+	bool hit = false;
+	while (SUCC(left_child->get_next_row(row))) {
+		CHECK(hash_table->probe(row, hit));
+		if (!hit) {
+			row = Row::deep_copy(row);
+			CHECK(hash_table->build_without_check(row));
+		}
 	}
 	init_hash_table = true;
 	return ret;

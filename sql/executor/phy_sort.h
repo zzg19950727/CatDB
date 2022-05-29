@@ -60,18 +60,19 @@ namespace CatDB {
 		{
 		public:
 			PhyPartitionSort() = delete;
-			PhyPartitionSort(PhyOperator_s& child, const Vector<Expression_s>& partition_exprs);
+			PhyPartitionSort(PhyOperator_s& child);
 
 			static PhyOperator_s make_partition_sort(PhyOperator_s& child,
 													const Vector<Expression_s>& sort_exprs,
 													const Vector<bool> &asc,
 													const Vector<Expression_s>& partition_exprs);
 			u32 type() const override;
+			u32 reset() override;
 			virtual u32 inner_open() override;
 			virtual u32 inner_get_next_row() override;
 		private:
+			u32 build_hash_table();
 			u32 sort_rows() override;
-			Vector<Expression_s> partition_exprs;
 			HashTable_s hash_table;
 		};
 	}

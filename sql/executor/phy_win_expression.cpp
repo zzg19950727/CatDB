@@ -27,7 +27,7 @@ u32 WinFuncExprCtx::init(ExecCtx_s &exec_ctx, WindowFuncExpression_s &win_func_e
 u32 WinFuncExprCtx::reset()
 {
     if (hash_table) {
-        hash_table->clear();
+        hash_table->reset();
     }
     value.reset();
     row_count = 0;
@@ -129,12 +129,12 @@ u32 WindowFuncExpression::add_row(ExecCtx_s &ctx, WinFuncExprCtx_s &win_ctx)
 	u32 ret = SUCCESS;
 	Row_s &row = ctx->input_rows[0];
 	if (is_distinct && op != WIN_MIN && op != WIN_MAX) {
-		if (SUCC(win_ctx->hash_table->probe(row))) {
-			return ret;
-		} else if (ROW_NOT_FOUND != ret) {
-			return ret;
+		bool hit = false;
+		CHECK(win_ctx->hash_table->probe(row, hit));
+		if (!hit) {
+			CHECK(win_ctx->hash_table->build_without_check(row));
 		} else {
-			CHECK(win_ctx->hash_table->build(row));
+			return ret;
 		}
 	}
     if (expr) {

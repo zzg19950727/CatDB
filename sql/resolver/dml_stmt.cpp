@@ -89,6 +89,7 @@ u32 DMLStmt::collect_special_exprs()
     column_exprs.clear();
     aggr_exprs.clear();
     subquery_exprs.clear();
+    win_func_exprs.clear();
     Vector<ExprStmt_s> all_exprs;
     CHECK(get_stmt_exprs(all_exprs));
     for (u32 i = 0; i < all_exprs.size(); ++i) {

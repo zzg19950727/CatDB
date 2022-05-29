@@ -1,8 +1,6 @@
 drop database if exists test;
 create database test;
-show databases;
 drop database test;
-show databases;
 create database test;
 use test;
 

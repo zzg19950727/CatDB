@@ -91,6 +91,7 @@ u32 TransformMergeView::check_table_need_transform(DMLStmt_s &stmt,
     if (view->is_set_stmt() ||
         view->has_group_by() || 
         view->has_order_by() || 
+        view->has_window_func() ||
         view->has_limit()) {
         if (!stmt->is_select_stmt() || 
             view->is_set_stmt() || 

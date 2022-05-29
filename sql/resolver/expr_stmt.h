@@ -308,7 +308,7 @@ namespace CatDB {
 			void set_order_by_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_order_by_expr() const;
 
-			KV_STRING(
+			KV_STRING_OVERRIDE(
 				KV(order_expr, get_order_by_expr()),
 				K(asc)
 			);

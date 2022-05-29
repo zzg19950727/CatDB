@@ -40,6 +40,7 @@ u32 PhySort::reset()
 {
 	pos = 0;
 	is_start = false;
+	rows.clear();
 	return child->reset();
 }
 
@@ -223,9 +224,8 @@ u32 PhyTopNSort::sort_rows()
 	return ret;
 }
 
-PhyPartitionSort::PhyPartitionSort(PhyOperator_s& child, const Vector<Expression_s>& partition_exprs)
-	:PhySort(child),
-	partition_exprs(partition_exprs)
+PhyPartitionSort::PhyPartitionSort(PhyOperator_s& child)
+	:PhySort(child)
 {
 }
 
@@ -234,19 +234,28 @@ PhyOperator_s PhyPartitionSort::make_partition_sort(PhyOperator_s& child,
 										const Vector<bool> &asc,
 										const Vector<Expression_s>& partition_exprs)
 {
-	PhyPartitionSort* op = new PhyPartitionSort(child, partition_exprs);
+	PhyPartitionSort* op = new PhyPartitionSort(child);
 	op->sort_exprs = sort_exprs;
 	op->asc = asc;
 	op->hash_table = HashTable::make_hash_table();
 	op->hash_table->set_hash_exprs(partition_exprs);
 	op->hash_table->set_probe_exprs(partition_exprs);
-	op->hash_table->set_extra_sort_exprs(sort_exprs, asc);
+	op->sort_exprs = sort_exprs;
+	op->asc = asc;
 	return PhyOperator_s(op);
 }
 
 u32 PhyPartitionSort::type() const
 {
 	return PhyOperator::PARTITION_SORT;
+}
+
+u32 PhyPartitionSort::reset()
+{
+	u32 ret = SUCCESS;
+	hash_table->reset();
+	CHECK(PhySort::reset());
+	return ret;
 }
 
 u32 PhyPartitionSort::inner_open()
@@ -260,17 +269,38 @@ u32 PhyPartitionSort::inner_open()
 u32 PhyPartitionSort::inner_get_next_row()
 {
 	u32 ret = SUCCESS;
-	Row_s row;
 	if (!is_start) {
-		CHECK(sort_rows());
+		CHECK(build_hash_table());
 	}
-	if (SUCC(hash_table->get_next_row(row))) {
-		set_input_rows(row);
+	if (pos >= rows.size()) {
+		ret = sort_rows();
+		if (NO_MORE_ROWS == ret) {
+			return ret;
+		}
 	}
+	set_input_rows(rows[pos++]);
 	return ret;
 }
 
 u32 PhyPartitionSort::sort_rows() 
+{
+	u32 ret = SUCCESS;
+	pos = 0;
+	rows.clear();
+	HashTable::RowIterator iter;
+	if (!hash_table->get_next_bucket(iter)) {
+		ret = NO_MORE_ROWS;
+	} else {
+		Row_s row;
+		while (iter.get_next_row(row)) {
+			rows.push_back(row);
+		}
+		CHECK(quick_sort(rows, 0, rows.size() - 1));
+	}
+	return ret;
+}
+
+u32 PhyPartitionSort::build_hash_table()
 {
 	u32 ret = SUCCESS;
 	Row_s row;
@@ -280,8 +310,9 @@ u32 PhyPartitionSort::sort_rows()
 	}
 	if (ret != NO_MORE_ROWS) {
 		return ret;
+	} else {
+		ret = SUCCESS;
 	}
-	CHECK(hash_table->sort_bucket());
 	is_start = true;
 	return ret;
 }

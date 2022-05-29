@@ -84,6 +84,7 @@ namespace CatDB {
 			//获取当前算子的类型
 			virtual u32 type() const = 0;
 			void set_output_exprs(const Vector<Expression_s> &exprs);
+			void set_null_values(const Vector<Object_s> &null_values);
 			u32 set_filter(const Vector<Expression_s>& filter);
 			void set_operator_id(u32 id);
 			void set_query_ctx(QueryCtx_s &ctx);
@@ -92,10 +93,11 @@ namespace CatDB {
 			void set_input_rows(const Row_s &row1, const Row_s &row2);
 		public:
 			u32 make_row(Row_s &row);
-			u32 make_const_row(Object_s &const_value, Row_s &row);
+			u32 make_const_row(Row_s &row);
 			u32 check_status();
 			void increase_affected_rows();
 			Vector<Expression_s> output_exprs;
+			Vector<Object_s> const_values;
 			Vector<Expression_s> filters;
 			Row_s cur_row;
             u32 operator_id;
@@ -134,11 +136,8 @@ namespace CatDB {
 			virtual ~JoinPhyOperator();
 			JoinType join_type()const;
 			void set_join_type(JoinType type);
-			void set_outer_const_value(Object_s &value);
 		protected:
 			JoinType type;
-			//outer join没有匹配时输出的默认值
-			Object_s outer_const_value;
 		private:
 			JoinPhyOperator() = delete;
 		};
