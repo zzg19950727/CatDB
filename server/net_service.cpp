@@ -70,7 +70,7 @@ int CatDB::Server::start_listen(const char* ip, int port, int listen_n)
 		LOG_ERR("Server listen failed", K(ip), K(port), K(listen_n));
 		return -3;
 	}
-	LOG_ERR("Succeed to start server", K(ip), K(port), K(listen_n));
+	LOG_INFO("Succeed to start server", K(ip), K(port), K(listen_n));
 	return fd;
 }
 

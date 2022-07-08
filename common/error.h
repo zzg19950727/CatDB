@@ -78,7 +78,7 @@ MAX_ERROR_CODE);
 #define CHECK(function) ret=function; \
                         if (FAIL(ret)) { \
                             if (NO_MORE_ROWS != ret && ROW_NOT_FOUND != ret) \
-                            LOG_ERR("catch error code", K(ret));\
+                            LOG_ERR("catch error code", ErrCodeString[ret]);\
                             return ret;\
                         }
 
@@ -92,7 +92,7 @@ bool is_false(const T &value, ARGS... args)
 
 #define MY_ASSERT(...) do { if (is_false(__VA_ARGS__)) { \
                             ret = ERR_UNEXPECTED;\
-                            LOG_ERR("param check failed", K(ret));\
+                            LOG_ERR("param check failed", ErrCodeString[ret]);\
                             return ret;\
                         } } while(0);
 

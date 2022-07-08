@@ -140,6 +140,8 @@ u32 TransformUtils::is_simple_stmt(SelectStmt_s &stmt, bool &is_simple)
     if (stmt->is_set_stmt() ||
         stmt->has_group_by() || 
         stmt->has_order_by() || 
+        stmt->has_distinct() ||
+        stmt->has_window_func() ||
         stmt->has_limit()) {
         is_simple = false;
     } else if (1 != stmt->from_stmts.size()) {

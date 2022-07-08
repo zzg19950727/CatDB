@@ -34,24 +34,24 @@ namespace CatDB {
 			u32 type() const override;
 		private:
 			//u32 build_hash_table_for_right_na_anti();
-			u32 build_hash_table();
-			u32 probe_hash_table();
-			u32 probe_hash_table_right_outer();
-			u32 probe_hash_table_right_semi();
-			u32 probe_hash_table_right_anti();
+			u32 build_hash_table(bool &goto_next_state);
+			u32 probe_hash_table(bool &goto_next_state);
+			u32 probe_hash_table_right_outer(bool &goto_next_state);
+			u32 probe_hash_table_right_semi(bool &goto_next_state);
+			u32 probe_hash_table_right_anti(bool &goto_next_state);
 
-			u32 visit_bucket_inner();
-			u32 visit_bucket_left_outer();
-			u32 visit_bucket_right_outer();
-			u32 visit_bucket_left_semi();
-			u32 visit_bucket_left_anti();
+			u32 visit_bucket_inner(bool &goto_next_state);
+			u32 visit_bucket_left_outer(bool &goto_next_state);
+			u32 visit_bucket_right_outer(bool &goto_next_state);
+			u32 visit_bucket_left_semi(bool &goto_next_state);
+			u32 visit_bucket_left_anti(bool &goto_next_state);
 
-			u32 visti_hash_table();
+			u32 visti_hash_table(bool &goto_next_state);
 
-			u32 output_rows_left_outer();
-			u32 output_rows_left_semi();
-			u32 output_rows_left_anti();
-			u32 end_join();
+			u32 output_rows_left_outer(bool &goto_next_state);
+			u32 output_rows_left_semi(bool &goto_next_state);
+			u32 output_rows_left_anti(bool &goto_next_state);
+			u32 end_join(bool &goto_next_state);
 		private:
 			enum HashJoinState {
 				BUILD_HASH_TABLE = 0,
@@ -62,7 +62,7 @@ namespace CatDB {
 				END_JOIN,
 				MAX_STATE
 			};
-			typedef u32 (PhyHashJoin::*HashJoinFuncType)();
+			typedef u32 (PhyHashJoin::*HashJoinFuncType)(bool &goto_next_state);
 			HashJoinFuncType hash_join_func[MaxJoinType][MAX_STATE];
 		private:
 			HashTable_s hash_table;

@@ -32,6 +32,7 @@ inline u32 cal_next_prime(u32 n)
 }
 
 HashTable::HashTable(u32 num)
+:null_safe(true)
 {
 	num = 50000;
 	this->bucket_num = cal_next_prime(num);
@@ -51,10 +52,23 @@ HashTable_s HashTable::make_hash_table(u32 bucket_num)
 void HashTable::reset()
 {
 	for (u32 i = 0; i < buckets.size(); ++i) {
-		if (buckets[i]) {
-			delete buckets[i];
-			buckets[i] = NULL;
+		BucketNode *bucket_node = buckets[i];
+		BucketNode *temp1 = NULL;
+		RowNode *row_node = NULL;
+		RowNode *temp2 = NULL;
+		while (bucket_node) {
+				temp1 = bucket_node->next;
+				row_node = bucket_node->head;
+				while (row_node) {
+						temp2 = row_node->next;
+						delete row_node;
+						row_node = temp2;
+				}
+				bucket_node->head = NULL;
+				delete bucket_node;
+				bucket_node = temp1;
 		}
+		buckets[i] = NULL;
 	}
 }
 
@@ -195,18 +209,26 @@ u32 HashTable::equal(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
 	u32 ret = SUCCESS;
 	is_valid = false;
 	if (probe_exprs.empty()) {
-		CHECK(lhs->equal(rhs, is_valid));
+		CHECK(lhs->equal(rhs, null_safe, is_valid));
+		LOG_ERR("zzg:", K(lhs), K(rhs), K(is_valid));
 	} else {
 		int res = 0;
 		Object_s l_obj, r_obj;
-		CHECK(exec_ctx->set_input_rows(lhs, rhs));
 		for (u32 i = 0; i < probe_exprs.size(); ++i) {
+			CHECK(exec_ctx->set_input_rows(lhs));
 			CHECK(hash_exprs[i]->get_result(exec_ctx));
 			l_obj = exec_ctx->output_result;
+			CHECK(exec_ctx->set_input_rows(rhs));
 			CHECK(probe_exprs[i]->get_result(exec_ctx));
 			r_obj = exec_ctx->output_result;
-			CHECK(l_obj->compare(r_obj, res));
-			is_valid = 0 == res;
+			if (null_safe &&
+				l_obj->is_null() && 
+				r_obj->is_null()) {
+				is_valid = true;
+			} else {
+				CHECK(l_obj->compare(r_obj, res));
+				is_valid = CMP_RES_EQ == res;
+			}
 		}
 	}
 	return ret;
@@ -217,7 +239,7 @@ u32 HashTable::equal_bucket(const Row_s & lhs, const Row_s & rhs, bool &is_valid
 	u32 ret = SUCCESS;
 	is_valid = false;
 	if (hash_exprs.empty()) {
-		CHECK(lhs->equal(rhs, is_valid));
+		CHECK(lhs->equal(rhs, true, is_valid));
 	} else {
 		int res = 0;
 		Object_s l_obj, r_obj;
@@ -228,29 +250,14 @@ u32 HashTable::equal_bucket(const Row_s & lhs, const Row_s & rhs, bool &is_valid
 			CHECK(exec_ctx->set_input_rows(rhs));
 			CHECK(hash_exprs[i]->get_result(exec_ctx));
 			r_obj = exec_ctx->output_result;
-			CHECK(l_obj->compare(r_obj, res));
-			is_valid = 0 == res;
+			if (l_obj->is_null() && 
+				r_obj->is_null()) {
+				is_valid = true;
+			} else {
+				CHECK(l_obj->compare(r_obj, res));
+				is_valid = CMP_RES_EQ == res;
+			}
 		}
 	}
 	return ret;
-}
-
-HashTable::RowNode::~RowNode()
-{
-	if (next) {
-		delete next;
-		next = NULL;
-	}
-}
-
-HashTable::BucketNode::~BucketNode()
-{
-	if (head) {
-		delete head;
-		head = NULL;
-	}
-	if (next) {
-		delete next;
-		next = NULL;
-	}
 }

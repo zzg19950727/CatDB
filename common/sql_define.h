@@ -5,9 +5,14 @@
 #define COPY_SHARE				0x1
 #define COPY_ON_WRITE			0x2
 
+#define CMP_RES_EQ		0
+#define CMP_RES_GT		1
+#define CMP_RES_LT		(-1)
+#define CMP_RES_NULL	(-2)
+
 //PAGE_SIZE跟row_id的结构设计相关，改大后注意是否向前兼容row_id
 //详见row_id设计
-#define PAGE_SIZE 16*1024
+#define PAGE_SIZE (16*1024)
 
 #define ENABLE_COPY_SHARE(flag)		((flag) & COPY_SHARE)
 #define ENABLE_COPY_ON_WRITE(flag)	((flag) & COPY_ON_WRITE)

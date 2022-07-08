@@ -121,7 +121,7 @@ u32 PhyWindowFunc::is_new_window(bool &is_new)
             if (!is_new) {
                 int res = 0;
                 CHECK(exec_ctx->output_result->compare(partition_by_values[i], res));
-                if (res != 0) {
+                if (res != CMP_RES_EQ) {
                     is_new = true;
                 }
             }

@@ -183,7 +183,7 @@ u32 WindowFuncExpression::compare_order_by_values(const Vector<Object_s> &l_valu
 	int res = 0;
 	for (u32 i = 0; i < l_values.size(); ++i) {
 		CHECK(l_values[i]->compare(r_values[i], res));
-		if (0 != res) {
+		if (CMP_RES_EQ != res) {
 			is_equal = false;
 			break;
 		}
@@ -216,32 +216,38 @@ u32 WindowFuncExpression::count(Object_s &result, WinFuncExprCtx_s &win_ctx)
 u32 WindowFuncExpression::max(Object_s &result, WinFuncExprCtx_s &win_ctx)
 {
 	u32 ret = SUCCESS;
-	if (0 == win_ctx->row_count) {
+	if (result->is_null()) {
+		//do nothing
+	} else if (0 == win_ctx->row_count) {
 		win_ctx->value = result;
+		++win_ctx->row_count;
 	} else {
 		int res = 0;
 		CHECK(win_ctx->value->compare(result, res));
-		if (res < 0) {
+		if (res == CMP_RES_LT) {
 			win_ctx->value = result;
 		}
+		++win_ctx->row_count;
 	}
-	++win_ctx->row_count;
 	return ret;
 }
 
 u32 WindowFuncExpression::min(Object_s &result, WinFuncExprCtx_s &win_ctx)
 {
 	u32 ret = SUCCESS;
-	if (0 == win_ctx->row_count) {
+	if (result->is_null()) {
+		//do nothing
+	} else if (0 == win_ctx->row_count) {
 		win_ctx->value = result;
+		++win_ctx->row_count;
 	} else {
 		int res = 0;
 		CHECK(win_ctx->value->compare(result, res));
-		if (res > 0) {
+		if (res == CMP_RES_GT) {
 			win_ctx->value = result;
 		}
+		++win_ctx->row_count;
 	}
-	++win_ctx->row_count;
 	return ret;
 }
 

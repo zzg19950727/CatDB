@@ -22,7 +22,7 @@ void CatDB::Common::get_trace_id(String &trace_id)
 	if (trace_ids.find(id) != trace_ids.cend()) {
 		trace_id = trace_ids[id];
 	} else {
-		trace_id = "000000000";
+		trace_id = "0000000000000000";
 	}
 }
 

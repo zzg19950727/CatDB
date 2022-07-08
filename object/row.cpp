@@ -96,19 +96,13 @@ u32 Row::get_cell_num() const
 	return cells.size();
 }
 
-u32 Row::get_cell(u32 idx, Object_s &cell) const
-{
-	cell = cells[idx];
-	return SUCCESS;
-}
-
 u32 Row::set_cell(u32 idx, Object_s &cell)
 {
 	cells[idx] = cell;
 	return SUCCESS;
 }
 
-u32 Row::equal(const Row_s& other, bool &res) const
+u32 Row::equal(const Row_s& other, const bool null_safe, bool &res) const
 {
 	u32 ret = SUCCESS;
 	int cmp_res = 0;
@@ -118,8 +112,14 @@ u32 Row::equal(const Row_s& other, bool &res) const
 	}
 	res = true;
 	for (u32 i = 0; res && i < cells.size(); ++i) {
-		CHECK(cells[i]->compare(other->cells[i], cmp_res));
-		res = 0 == cmp_res;
+		if (null_safe && 
+			cells[i]->is_null() && 
+			other->cells[i]->is_null()) {
+			res = true;
+		} else {
+			CHECK(cells[i]->compare(other->cells[i], cmp_res));
+			res = CMP_RES_EQ == cmp_res;
+		}
 	}
 	return ret;
 }

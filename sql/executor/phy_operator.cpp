@@ -43,8 +43,7 @@ ExecCtx_s ExecCtx::make_exec_ctx(const ParamStore_s& param_store)
 u32 ExecCtx::set_input_rows(const Row_s &row)
 {
 	input_rows.clear();
-	Row_s copy = row;
-	input_rows.push_back(copy);
+	input_rows.push_back(row);
 	return SUCCESS;
 }
 

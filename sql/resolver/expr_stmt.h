@@ -134,6 +134,7 @@ namespace CatDB {
 			u32 formalize() override;
 			u32 deduce_type() override;
 			bool is_all_column()const;
+			void set_row_id() { is_row_id = true; }
 			String to_string()const override;
 			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;

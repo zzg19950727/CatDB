@@ -7,9 +7,10 @@
             class rule; \
             rule.set_transform_ctx(ctx); \
             CHECK(rule.transform(stmt)); \
-            happened |= rule.transform_happened(); \
-            LOG_TRACE(V(#class), "succeed to transform a rule ", \
-            K(ctx->query_ctx->query_hint), K(stmt), K(happened)); \
+            bool trans_happened = rule.transform_happened(); \
+            happened |= trans_happened;\
+            LOG_TRACE("succeed to transform a rule ", \
+            K(stmt), K(ctx->query_ctx->query_hint), V(#class), K(trans_happened)); \
         } while(0);
 namespace CatDB {
     namespace Parser {

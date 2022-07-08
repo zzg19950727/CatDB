@@ -124,7 +124,7 @@ u32 Number::compare(const Object_s& rhs, int& res) const
 {
 	u32 ret = SUCCESS;
 	if (is_null() || rhs->is_null()) {
-		res = -2;
+		res = CMP_RES_NULL;
 		return ret;
 	}
 	Number_s r = rhs;

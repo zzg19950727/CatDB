@@ -246,7 +246,7 @@ u32 do_equal(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = 0 == res;
+    ctx->bool_result = CMP_RES_EQ == res;
     return ret;
 }
 
@@ -259,7 +259,7 @@ u32 do_not_equal(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = 1 == res || -1 == res;
+    ctx->bool_result = CMP_RES_GT == res || CMP_RES_LT == res;
     return ret;
 }
 
@@ -272,7 +272,7 @@ u32 do_greater(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = 1 == res;
+    ctx->bool_result = CMP_RES_GT == res;
     return ret;
 }
 
@@ -285,7 +285,7 @@ u32 do_GE(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = 1 == res || 0 == res;
+    ctx->bool_result = CMP_RES_GT == res || CMP_RES_EQ == res;
     return ret;
 }
 
@@ -298,7 +298,7 @@ u32 do_less(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = -1 == res;
+    ctx->bool_result = CMP_RES_LT == res;
     return ret;
 }
 
@@ -311,7 +311,7 @@ u32 do_LE(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    ctx->bool_result = 0 == res || -1 == res;
+    ctx->bool_result = CMP_RES_EQ == res || CMP_RES_LT == res;
     return ret;
 }
 
@@ -326,7 +326,7 @@ u32 do_equal_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 == res) {
+        if (CMP_RES_EQ == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -349,7 +349,7 @@ u32 do_not_equal_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 != res) {
+        if (CMP_RES_LT == res || CMP_RES_GT == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -372,7 +372,7 @@ u32 do_greater_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (1 == res) {
+        if (CMP_RES_GT == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -395,7 +395,7 @@ u32 do_GE_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 <= res) {
+        if (CMP_RES_EQ <= res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -418,7 +418,7 @@ u32 do_less_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (-1 == res) {
+        if (CMP_RES_LT == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -441,7 +441,7 @@ u32 do_LE_any(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 == res || -1 == res) {
+        if (CMP_RES_EQ == res || CMP_RES_LT == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -464,7 +464,7 @@ u32 do_equal_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 != res) {
+        if (CMP_RES_EQ != res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -487,7 +487,7 @@ u32 do_not_equal_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 == res) {
+        if (CMP_RES_EQ == res || CMP_RES_NULL == res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -510,7 +510,7 @@ u32 do_greater_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (1 != res) {
+        if (CMP_RES_GT != res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -533,7 +533,7 @@ u32 do_GE_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 > res) {
+        if (CMP_RES_EQ > res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -556,7 +556,7 @@ u32 do_less_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (-1 != res) {
+        if (CMP_RES_LT != res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -579,7 +579,7 @@ u32 do_LE_all(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 != res && -1 != res) {
+        if (CMP_RES_EQ != res && CMP_RES_LT != res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -600,14 +600,14 @@ u32 do_between(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s rhs = ctx->output_result;
     int res;
     CHECK(lhs->compare(rhs, res));
-    if (res < 0) {
+    if (res < CMP_RES_EQ) {
         ctx->bool_result = false;
         return ret;
     }
     CHECK(params[2]->get_result(ctx));
     rhs = ctx->output_result;
     CHECK(lhs->compare(rhs, res));
-    if (0 != res && -1 != res) {
+    if (CMP_RES_EQ != res && CMP_RES_LT != res) {
         ctx->bool_result = false;
         return ret;
     }
@@ -622,16 +622,20 @@ u32 do_not_between(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     Object_s lhs = ctx->output_result;
     CHECK(params[1]->get_result(ctx));
     Object_s rhs = ctx->output_result;
-    int res;
-    CHECK(lhs->compare(rhs, res));
-    if (res >= 0 || -2 == res) {
+    int res1, res2;
+    CHECK(lhs->compare(rhs, res1));
+    if (CMP_RES_EQ <= res1) {
         ctx->bool_result = false;
         return ret;
     }
     CHECK(params[2]->get_result(ctx));
     rhs = ctx->output_result;
-    CHECK(lhs->compare(rhs, res));
-    if (0 >= res) {
+    CHECK(lhs->compare(rhs, res2));
+    if (CMP_RES_EQ == res2 || CMP_RES_LT == res2) {
+        ctx->bool_result = false;
+        return ret;
+    }
+    if (CMP_RES_NULL == res1 && CMP_RES_NULL == res2) {
         ctx->bool_result = false;
         return ret;
     }
@@ -665,7 +669,7 @@ u32 do_in_list(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     for (u32 i = 0; i < list->param_exprs.size(); ++i) {
         CHECK(list->param_exprs[i]->get_result(ctx));
         CHECK(lhs->compare(ctx->output_result, res));
-        if (0 == res) {
+        if (CMP_RES_EQ == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -692,7 +696,7 @@ u32 do_not_in_list(const Vector<Expression_s> &params, ExecCtx_s &ctx)
             return ret;
         }
         CHECK(lhs->compare(ctx->output_result, res));
-        if (0 == res) {
+        if (CMP_RES_EQ == res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -712,7 +716,7 @@ u32 do_in(const Vector<Expression_s> &params, ExecCtx_s &ctx)
     int res;
     while (SUCC(subquery->get_next_result(ctx, rhs))) {
         CHECK(lhs->compare(rhs, res));
-        if (0 == res) {
+        if (CMP_RES_EQ == res) {
             ctx->bool_result = true;
             return ret;
         }
@@ -743,7 +747,7 @@ u32 do_not_in(const Vector<Expression_s> &params, ExecCtx_s &ctx)
             ctx->bool_result = false;
             return ret;
         }
-        if (0 == res) {
+        if (CMP_RES_EQ == res) {
             ctx->bool_result = false;
             return ret;
         }
@@ -931,7 +935,7 @@ u32 do_case_when(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 		for (u32 i = 1; i < params.size() / 2; i += 2) {
             CHECK(params[i]->get_result(ctx));
             CHECK(ctx->output_result->compare(lhs, res));
-			if (0 == res) {
+			if (CMP_RES_EQ == res) {
 				CHECK(params[i+1]->get_result(ctx));
                 return ret;
 			}

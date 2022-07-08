@@ -59,7 +59,7 @@ u32 TransformMergeView::transform_one_table(DMLStmt_s &stmt,
                                   joined_table->right_table, 
                                   helper));
     } else if (table->is_view_table()) {
-        bool is_valid;
+        bool is_valid = false;
         CHECK(check_table_need_transform(stmt,
                                          table, 
                                          helper, 
@@ -91,17 +91,18 @@ u32 TransformMergeView::check_table_need_transform(DMLStmt_s &stmt,
     if (view->is_set_stmt() ||
         view->has_group_by() || 
         view->has_order_by() || 
+        view->has_distinct() ||
         view->has_window_func() ||
         view->has_limit()) {
-        if (!stmt->is_select_stmt() || 
-            view->is_set_stmt() || 
-            view->has_distinct()) {
+        if (!stmt->is_select_stmt() ||
+            view->is_set_stmt() ||
+            stmt->where_stmt.size() > 0) {
             is_valid = false;
             return ret;
         }
         SelectStmt_s sel_stmt = stmt;
         CHECK(TransformUtils::is_simple_stmt(sel_stmt, is_valid));
-        helper.upper_stmt_is_simple = true;
+        helper.is_query_pushdown = true;
     } else if (helper.is_outer_right_view) {
         DMLStmt_s dml_stmt = view;
         CHECK(find_not_null_row_id(dml_stmt, helper.row_id_expr, is_valid));
@@ -169,14 +170,14 @@ u32 TransformMergeView::do_transform(DMLStmt_s &stmt,
                                                  columns, 
                                                  select_exprs));
     CHECK(TransformUtils::build_joined_table(view->from_stmts, new_table));
-    
     append(new_table->table_filter, view->where_stmt);
-    if (helper.upper_stmt_is_simple) {
+    if (helper.is_query_pushdown) {
         SelectStmt_s parent_stmt = stmt;
         append(parent_stmt->group_exprs, view->group_exprs);
 		append(parent_stmt->having_stmt, view->having_stmt);
 		append(parent_stmt->order_exprs, view->order_exprs);
 		parent_stmt->limit_stmt = view->limit_stmt;
+        parent_stmt->is_distinct = view->is_distinct;
     }
     if (helper.is_outer_right_view) {
         CHECK(try_add_case_when(select_exprs, 

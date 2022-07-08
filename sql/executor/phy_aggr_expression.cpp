@@ -136,32 +136,38 @@ u32 AggregateExpression::count(Object_s &result, AggrExprCtx_s &aggr_ctx)
 u32 AggregateExpression::max(Object_s &result, AggrExprCtx_s &aggr_ctx)
 {
 	u32 ret = SUCCESS;
-	if (0 == aggr_ctx->row_count) {
+	if (result->is_null()) {
+		//do nothing
+	} else if (0 == aggr_ctx->row_count) {
 		aggr_ctx->value = result;
+		++aggr_ctx->row_count;
 	} else {
 		int res = 0;
 		CHECK(aggr_ctx->value->compare(result, res));
-		if (res < 0) {
+		if (res == CMP_RES_LT) {
 			aggr_ctx->value = result;
 		}
+		++aggr_ctx->row_count;
 	}
-	++aggr_ctx->row_count;
 	return ret;
 }
 
 u32 AggregateExpression::min(Object_s &result, AggrExprCtx_s &aggr_ctx)
 {
 	u32 ret = SUCCESS;
-	if (0 == aggr_ctx->row_count) {
+	if (result->is_null()) {
+		//do nothing
+	} else if (0 == aggr_ctx->row_count) {
 		aggr_ctx->value = result;
+		++aggr_ctx->row_count;
 	} else {
 		int res = 0;
 		CHECK(aggr_ctx->value->compare(result, res));
-		if (res > 0) {
+		if (res == CMP_RES_GT) {
 			aggr_ctx->value = result;
 		}
+		++aggr_ctx->row_count;
 	}
-	++aggr_ctx->row_count;
 	return ret;
 }
 

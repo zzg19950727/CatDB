@@ -170,6 +170,7 @@ u32 ExprUtils::make_row_id_expr(const String& table_name,
     row_id = ColumnStmt::make_column_stmt(table_name, "ROWID");
     row_id->table_id = table_id;
     row_id->column_id = ROWID_COLUMN_ID;
+    row_id->set_row_id();
     CHECK(row_id->formalize());
     return ret;
 }

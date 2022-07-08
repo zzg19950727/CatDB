@@ -126,12 +126,12 @@ bool ConstStmt::same_as(const ExprStmt_s& other)
 	}
 	ConstStmt_s const_stmt = other;
 	int res = 0;
-	if (const_stmt->value->is_null() && value->is_null()) {
+	if (const_stmt->value->is_null() && 
+		value->is_null()) {
 		return true;
 	}
 	value->compare(const_stmt->value, res);
-
-	return 0 == res;
+	return CMP_RES_EQ == res;
 }
 
 u32 ConstStmt::formalize()
@@ -278,6 +278,7 @@ u32 ColumnStmt::formalize()
 	clear_flag();
 	set_is_flag(IS_COLUMN);
 	add_flag(HAS_COLUMN);
+	CHECK(deduce_type());
 	return ret;
 }
 
@@ -984,7 +985,6 @@ String OpExprStmt::to_string()const
 				ret += "CAST(";
 				ret += params[0]->to_string();
 				ret += " AS ";
-				MY_ASSERT(CONST == params[1]->expr_type());
 				ConstStmt_s const_value = params[1];
 				ret += const_value->res_type.to_kv_string();
 				ret += ")";

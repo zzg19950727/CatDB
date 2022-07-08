@@ -43,13 +43,13 @@ ANALYZE TABLE RANDOM_TEST.T2
 EXPLAIN SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+-----------------------------------------------------+
-| ID | OPERATOR        | NAME | ROW COUNT | COST      |
-+-----------------------------------------------------+
-| 0  | HASH Inner JOIN |      | 8         | 8.598e+06 |
-| 1  |  TABLE SCAN     | T1   | 4         | 4.299e+06 |
-| 2  |  TABLE SCAN     | T2   | 4         | 4.299e+06 |
-+-----------------------------------------------------+
++------------------------------------------------+
+| ID | OPERATOR        | NAME | ROW COUNT | COST |
++------------------------------------------------+
+| 0  | HASH Inner JOIN |      | 8         | 9    |
+| 1  |  TABLE SCAN     | T1   | 4         | 4    |
+| 2  |  TABLE SCAN     | T2   | 4         | 4    |
++------------------------------------------------+
 Outputs & filters:
 0 - output([t1.ROWID], [t2.ROWID], [t1.c1], [t2.c1])
 equal_join_conditions([t1.c1 = t2.c1])
@@ -61,8 +61,8 @@ access([t2.c1], [t2.ROWID])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -71,23 +71,23 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 INNER JOIN T2 ON T1.C1 = T2.C1
 +----------+----------+-------+-------+
 | t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
 +----------+----------+-------+-------+
-| 0        | 2        | 2     | 2     |
 | 1        | 2        | 2     | 2     |
-| 0        | 3        | 2     | 2     |
+| 0        | 2        | 2     | 2     |
 | 1        | 3        | 2     | 2     |
+| 0        | 3        | 2     | 2     |
 +----------+----------+-------+-------+
 4 rows in set
 
 EXPLAIN SELECT * FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST      |
-+---------------------------------------------------------+
-| 0  | HASH LeftOuter JOIN |      | 8         | 8.598e+06 |
-| 1  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
-| 2  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
-+---------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T1   | 4         | 4    |
+| 2  |  TABLE SCAN         | T2   | 4         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1 = t2.c1])
@@ -99,8 +99,8 @@ access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -109,25 +109,25 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 LEFT JOIN T2 ON T1.C1 = T2.C1
 +----------+----------+-------+-------+
 | t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
 +----------+----------+-------+-------+
-| 0        | 2        | 2     | 2     |
 | 1        | 2        | 2     | 2     |
-| 0        | 3        | 2     | 2     |
+| 0        | 2        | 2     | 2     |
 | 1        | 3        | 2     | 2     |
-| 2        | NULL     | 1     | NULL  |
+| 0        | 3        | 2     | 2     |
 | 3        | NULL     | 1     | NULL  |
+| 2        | NULL     | 1     | NULL  |
 +----------+----------+-------+-------+
 6 rows in set
 
 EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST      |
-+---------------------------------------------------------+
-| 0  | HASH LeftOuter JOIN |      | 8         | 8.598e+06 |
-| 1  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
-| 2  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
-+---------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH LeftOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T2   | 4         | 4    |
+| 2  |  TABLE SCAN         | T1   | 4         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1 = t2.c1])
@@ -139,8 +139,8 @@ access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t2, t1)
 USE_HASH(@SEL1 t1)
+LEADING(@SEL1 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -149,25 +149,25 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 RIGHT JOIN T2 ON T1.C1 = T2.C1
 +----------+----------+-------+-------+
 | t1.ROWID | t2.ROWID | t1.c1 | t2.c1 |
 +----------+----------+-------+-------+
-| 0        | 2        | 2     | 2     |
 | 0        | 3        | 2     | 2     |
-| 1        | 2        | 2     | 2     |
+| 0        | 2        | 2     | 2     |
 | 1        | 3        | 2     | 2     |
-| NULL     | 0        | NULL  | 3     |
+| 1        | 2        | 2     | 2     |
 | NULL     | 1        | NULL  | 3     |
+| NULL     | 0        | NULL  | 3     |
 +----------+----------+-------+-------+
 6 rows in set
 
 EXPLAIN SELECT * FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
 
 Query Plan:
-+---------------------------------------------------------+
-| ID | OPERATOR            | NAME | ROW COUNT | COST      |
-+---------------------------------------------------------+
-| 0  | HASH FullOuter JOIN |      | 8         | 8.598e+06 |
-| 1  |  TABLE SCAN         | T1   | 4         | 4.299e+06 |
-| 2  |  TABLE SCAN         | T2   | 4         | 4.299e+06 |
-+---------------------------------------------------------+
++----------------------------------------------------+
+| ID | OPERATOR            | NAME | ROW COUNT | COST |
++----------------------------------------------------+
+| 0  | HASH FullOuter JOIN |      | 8         | 10   |
+| 1  |  TABLE SCAN         | T1   | 4         | 4    |
+| 2  |  TABLE SCAN         | T2   | 4         | 4    |
++----------------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3], [t1.c4], [t2.c1], [t2.c2], [t2.c3], [t2.c4])
 equal_join_conditions([t1.c1 = t2.c1])
@@ -179,8 +179,8 @@ access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t1, t2)
 USE_HASH(@SEL1 t2)
+LEADING(@SEL1 t1, t2)
 END_OUTLINE_DATA
 */
 
@@ -191,12 +191,12 @@ SELECT T1.ROWID, T2.ROWID, T1.C1, T2.C1 FROM T1 FULL JOIN T2 ON T1.C1 = T2.C1
 +----------+----------+-------+-------+
 | NULL     | 0        | NULL  | 3     |
 | NULL     | 1        | NULL  | 3     |
-| 0        | 2        | 2     | 2     |
 | 1        | 2        | 2     | 2     |
-| 0        | 3        | 2     | 2     |
+| 0        | 2        | 2     | 2     |
 | 1        | 3        | 2     | 2     |
-| 2        | NULL     | 1     | NULL  |
+| 0        | 3        | 2     | 2     |
 | 3        | NULL     | 1     | NULL  |
+| 2        | NULL     | 1     | NULL  |
 +----------+----------+-------+-------+
 8 rows in set
 

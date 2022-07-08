@@ -20,7 +20,6 @@ namespace CatDB {
 					row(row),
 					mark(false)
 				{}
-				~RowNode();
 				inline void mark_row() { mark = true; }
 				
 				RowNode *next;
@@ -32,7 +31,6 @@ namespace CatDB {
 					:next(NULL),
 					head(NULL)
 				{}
-				~BucketNode();
 
 				BucketNode *next;
 				RowNode *head;
@@ -67,6 +65,7 @@ namespace CatDB {
 					while (cur) {
 						if (!cur->mark) {
 							row = cur->row;
+							last = cur;
 							cur = cur->next;
 							b_ret = true;
 							break;
@@ -82,6 +81,7 @@ namespace CatDB {
 					while (cur) {
 						if (cur->mark) {
 							row = cur->row;
+							last = cur;
 							cur = cur->next;
 							b_ret = true;
 							break;
@@ -129,6 +129,7 @@ namespace CatDB {
 			static HashTable_s make_hash_table(u32 bucket_num =10000);
 			void reset();
 			void set_exec_ctx(const ExecCtx_s& ctx);
+			void set_null_safe(bool value) { null_safe = value; }
 
 			u32 build(const Row_s& row);
 			u32 build_without_check(const Row_s& row);
@@ -158,6 +159,7 @@ namespace CatDB {
 			RowIterator row_iter;
 			ExecCtx_s exec_ctx;
 			u32 bucket_num;
+			bool null_safe;
 		};
 	}
 }

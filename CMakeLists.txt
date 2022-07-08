@@ -6,7 +6,7 @@ set (CMAKE_CXX_FLAGS  "-std=c++11 -Wno-deprecated-register")
 if (WIN32)
     set (PLATFORM_LIBS Ws2_32 mswsock iphlpapi ntdll)
 else (WIN32)
-    set (PLATFORM_LIBS pthread ${CMAKE_DL_LIBS})
+    set (PLATFORM_LIBS tcmalloc pthread ${CMAKE_DL_LIBS})
 endif (WIN32)
 
 include_directories(

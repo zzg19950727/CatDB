@@ -81,11 +81,11 @@ double StatisManager::get_column_ndv(u32 tid, u32 cid)
 {
     auto iter = all_table_statis.find(tid);
     if (iter == all_table_statis.end()) {
-        return 1;
+        return 3;
     } else {
         auto iter2 = iter->second->column_statis.find(cid);
         if (iter2 == iter->second->column_statis.end()) {
-            return 1;
+            return 3;
         } else {
             return iter2->second->ndv;
         }

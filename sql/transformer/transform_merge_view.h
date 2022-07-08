@@ -21,25 +21,25 @@ namespace CatDB {
             struct TransfomHelper {
                 TransfomHelper()
                     :is_outer_right_view(false),
-                    upper_stmt_is_simple(false)
+                    is_query_pushdown(false)
                     {
 
                     }
 
                 KV_STRING(
                     K(is_outer_right_view),
-                    K(upper_stmt_is_simple),
+                    K(is_query_pushdown),
                     K(row_id_expr)
                 );
 
                 void reset()
                 {
                     is_outer_right_view = false;
-                    upper_stmt_is_simple = false;
+                    is_query_pushdown = false;
                 }
 
                 bool is_outer_right_view;
-                bool upper_stmt_is_simple;
+                bool is_query_pushdown;
                 ExprStmt_s row_id_expr;
             };
             TransformMergeView();

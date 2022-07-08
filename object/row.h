@@ -53,9 +53,9 @@ namespace CatDB {
 			static Row_s make_row(int column_count);
 			static Row_s deep_copy(const Row_s &other);
 			u32 get_cell_num() const;
-			u32 get_cell(u32 idx, Object_s& cell) const;
+			inline u32 get_cell(u32 idx, Object_s& cell) const { cell = cells[idx]; return 0;}
 			u32 set_cell(u32 idx, Object_s& cell);
-			u32 equal(const Row_s& other, bool &res) const;
+			u32 equal(const Row_s& other, const bool null_safe, bool &res) const;
 			void set_op_id(u32 id) { op_id = id; }
 			inline u32 get_op_id() const { return op_id; }
 			KV_STRING(

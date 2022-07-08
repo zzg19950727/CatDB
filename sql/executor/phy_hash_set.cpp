@@ -138,10 +138,14 @@ u32 CatDB::Sql::PhyHashSetOp::get_next_row_intersect(Row_s &row)
 		CHECK(build_hash_table());
 	}
 	bool hit = false;
+	HashTable::RowIterator iter;
 	while (SUCC(right_child->get_next_row(row))) {
-		CHECK(hash_table->probe(row, hit));
+		CHECK(hash_table->probe_bucket(row, iter, hit));
 		if (hit) {
-			break;
+			if (iter.get_next_no_mark_row(row)) {
+				iter.mark_last_row();
+				break;
+			}
 		}
 	}
 	return ret;
@@ -176,6 +180,9 @@ u32 CatDB::Sql::PhyHashSetOp::build_hash_table()
 			row = Row::deep_copy(row);
 			CHECK(hash_table->build_without_check(row));
 		}
+	}
+	if (NO_MORE_ROWS == ret) {
+		ret = SUCCESS;
 	}
 	init_hash_table = true;
 	return ret;
