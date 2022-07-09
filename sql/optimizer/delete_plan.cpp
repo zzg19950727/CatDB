@@ -40,7 +40,7 @@ u32 DeletePlan::generate_plan_tree()
 		is_delete_all = stmt->from_stmts[0]->same_as(stmt->table);
 	} else {
 		root_operator = LogDistinct::make_distinct(root_operator);
-		root_operator->init(query_ctx, est_info);
+		root_operator->init(est_info);
 		LogDistinct_s distinct_op = root_operator;
 		distinct_op->add_distinct_expr(stmt->row_id_col);
 		CHECK(root_operator->compute_property());
@@ -49,7 +49,7 @@ u32 DeletePlan::generate_plan_tree()
 										   stmt->table,
 										   stmt->row_id_col,
 										   is_delete_all);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
 	return ret;
 }

@@ -1,7 +1,7 @@
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "select_stmt.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "transform_utils.h"
 #include "obj_cast_util.h"
 
@@ -53,12 +53,12 @@ bool ExprStmt::is_and_expr()
 	}
 }
 
-u32 ExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 ExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr->is_flag = is_flag;
 	expr->flags = flags;
-	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, ctx, flag));
+	CHECK(ExprUtils::deep_copy_exprs(params, expr->params, flag));
 	expr->alias_name = alias_name;	//表达式的别名
 	expr->table_ids = table_ids;
 	expr->res_type = res_type;
@@ -111,11 +111,11 @@ String ConstStmt::to_string() const
 	}
 }
 
-u32 ConstStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 ConstStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_const_stmt(value);
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -189,11 +189,11 @@ String ExecParamStmt::to_string() const
 	return String("(?-") + std::to_string(param_index) + ")";
 }
 
-u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_exec_param_stmt(param_index);
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -258,7 +258,7 @@ String ColumnStmt::to_string() const
 		return column;
 }
 
-u32 ColumnStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 ColumnStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_column_stmt(table, column);
@@ -266,7 +266,7 @@ u32 ColumnStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 	col_expr->is_row_id = is_row_id;
 	col_expr->table_id = table_id;
 	col_expr->column_id = column_id;
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -342,11 +342,11 @@ String SetExprStmt::to_string()const
 	return ret;
 }
 
-u32 SetExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 SetExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_set_expr(type, index);
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -392,7 +392,7 @@ String SubQueryStmt::to_string() const
 	return ret;
 }
 
-u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_query_stmt();
@@ -402,7 +402,6 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 		if (!ENABLE_COPY_ON_WRITE(flag)) {
 			CHECK(TransformUtils::deep_copy_stmt(query_stmt,
 												 query_expr->query_stmt,
-												 ctx,
 												 COPY_SHARE));
 		} else {
 			query_expr->query_stmt = query_stmt;
@@ -412,14 +411,13 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 		ExprStmt_s copy_expr;
 		ExecParamStmt_s exec_param;
 		for (u32 i = 0; i < exec_params.size(); ++i) {
-			exec_params[i]->deep_copy(copy_expr, ctx, flag);
+			exec_params[i]->deep_copy(copy_expr, flag);
 			exec_param = copy_expr;
-			exec_param->set_param_index(ctx->generate_param_index());
+			exec_param->set_param_index(QUERY_CTX->generate_param_index());
 			query_expr->exec_params.push_back(copy_expr);
 		}
 		CHECK(TransformUtils::deep_copy_stmt(query_stmt,
 											query_expr->query_stmt,
-											ctx,
 											COPY_SHARE));
 		Vector<ExprStmt_s> old_exec_params, new_exec_params;
 		append(old_exec_params, exec_params);
@@ -428,7 +426,7 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 														 new_exec_params, 
 														 true));
 	}
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -516,11 +514,11 @@ String ListStmt::to_string() const
 	return ret;
 }
 
-u32 ListStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 ListStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_list_stmt();
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -613,14 +611,14 @@ String AggrStmt::to_string() const
 	return func + "(" + distinct_str + expr_str + ")";
 }
 
-u32 AggrStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 AggrStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_aggr_stmt();
 	AggrStmt_s aggr_expr = expr;
 	aggr_expr->aggr_func = aggr_func;
 	aggr_expr->distinct = distinct;
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -1076,11 +1074,11 @@ String OpExprStmt::to_string()const
 	return ret;
 }
 
-u32 OpExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 OpExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_op_expr_stmt(op_type);
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 
@@ -1441,11 +1439,11 @@ u32 OrderStmt::deduce_type()
 	return ret;
 }
 
-u32 OrderStmt::deep_copy(ExprStmt_s &order, QueryCtx_s &ctx, u32 flag)const
+u32 OrderStmt::deep_copy(ExprStmt_s &order, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	ExprStmt_s copy_expr;
-	CHECK(ExprUtils::deep_copy_expr(get_order_by_expr(), copy_expr, ctx, flag));
+	CHECK(ExprUtils::deep_copy_expr(get_order_by_expr(), copy_expr, flag));
 	order = make_order_stmt(copy_expr, asc);
 	return ret;
 }
@@ -1580,7 +1578,7 @@ u32 WinExprStmt::deduce_type()
 	return ret;
 }
 
-u32 WinExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
+u32 WinExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	expr = make_win_expr_stmt(win_func);
@@ -1588,7 +1586,7 @@ u32 WinExprStmt::deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const
 	win_expr->func_expr_idx = func_expr_idx;
 	win_expr->partition_by_idx = partition_by_idx;
 	win_expr->order_by_idx = order_by_idx;
-	ExprStmt::deep_copy(expr, ctx, flag);
+	ExprStmt::deep_copy(expr, flag);
 	return ret;
 }
 

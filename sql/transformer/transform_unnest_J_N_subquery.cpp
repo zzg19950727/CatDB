@@ -1,7 +1,7 @@
 #include "transform_unnest_J_N_subquery.h"
 #include "transform_utils.h"
 #include "select_stmt.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "table_stmt.h"
@@ -477,8 +477,7 @@ u32 TransformUnnestJNSubquery::do_transform(DMLStmt_s &stmt,
     //create view table
     ViewTableStmt_s view_table;
     CHECK(TransformUtils::create_table_with_view(subquery, 
-                                                 view_table, 
-                                                 ctx));
+                                                 view_table));
     CHECK(TransformUtils::create_select_item_for_view_table(view_table, 
                                                             helper.pushdown_exprs, 
                                                             columns_exprs));
@@ -662,7 +661,7 @@ u32 TransformUnnestJNSubquery::check_hint_disable(SelectStmt_s& subquery, bool &
 {
     u32 ret = SUCCESS;
     is_disable = false;
-    QueryHint &query_hint = ctx->query_ctx->query_hint;
+    QueryHint &query_hint = QUERY_CTX->query_hint;
     is_disable = query_hint.enable_no_unnest(subquery->get_qb_name());
     return ret;
 }
@@ -670,7 +669,7 @@ u32 TransformUnnestJNSubquery::check_hint_disable(SelectStmt_s& subquery, bool &
 u32 TransformUnnestJNSubquery::generate_outline(SelectStmt_s& subquery)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = ctx->query_ctx->query_hint;
+    QueryHint &query_hint = QUERY_CTX->query_hint;
     CHECK(query_hint.generate_transform_outline(subquery->get_qb_name(), control_hint));
     return ret;
 }

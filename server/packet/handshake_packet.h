@@ -48,7 +48,7 @@ namespace CatDB
 			*/
 			int serialize(char* buffer, int64_t len, int64_t& pos);
 
-			void set_thread_id(const uint32_t id);
+			void set_session_id(const uint32_t id);
 
 			/**
 			* Get packet serialize size not include
@@ -63,7 +63,7 @@ namespace CatDB
 			PacketHeader header_;
 			uint8_t protocol_version_;
 			String server_version_;// human-readable server version
-			uint32_t thread_id_;// connection_id
+			uint32_t session_id_;// connection_id
 			char scramble_buff_[8];// auth_plugin_data_part_1 : first 8 bytes of the auth-plugin data
 			char filler_;                  /* always 0x00 */
 			uint16_t server_capabilities_;  /* set value to use 4.1protocol */
@@ -74,9 +74,9 @@ namespace CatDB
 			char terminated_;
 		};
 
-		inline void HandshakePacket::set_thread_id(const uint32_t id)
+		inline void HandshakePacket::set_session_id(const uint32_t id)
 		{
-			thread_id_ = id;
+			session_id_ = id;
 		}
 	}
 }

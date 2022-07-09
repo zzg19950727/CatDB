@@ -26,8 +26,8 @@ namespace CatDB {
 			virtual u32 serialization(u8* & buffer) const = 0;
 			virtual u32 compare(const Object_s& rhs, int& res) const = 0;
 			virtual u32 cast_to(const DataType& type, Object_s &res) = 0;
-			bool is_null()const;
-			void set_null(const bool value = true);
+			inline bool is_null()const { return is_null_obj; }
+			inline void set_null(const bool value = true) { is_null_obj = value; }
 			VIRTUAL_KV_STRING("");	
 
 		protected:

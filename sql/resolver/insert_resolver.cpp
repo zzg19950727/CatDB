@@ -11,8 +11,8 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-InsertResolver::InsertResolver(InsertStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
-    :DMLResolver(stmt, query_ctx, resolve_ctx),
+InsertResolver::InsertResolver(InsertStmt_s &stmt, ResolveCtx &resolve_ctx)
+    :DMLResolver(stmt, resolve_ctx),
     insert_stmt(stmt)
 {
     
@@ -83,7 +83,7 @@ u32 InsertResolver::resolve_stmt()
         }
         CHECK(check_insert_value(insert_table_item, insert_stmt->value_list));
     } else if (insert_stmt->query_values && insert_stmt->query_values->is_select_stmt()) {
-        CHECK(DMLResolver::resolve_stmt(insert_stmt->query_values, query_ctx, resolve_ctx));
+        CHECK(DMLResolver::resolve_stmt(insert_stmt->query_values, resolve_ctx));
         CHECK(check_insert_value(insert_table_item, insert_stmt->query_values));
     } else {
         ret = ERROR_LEX_STMT;

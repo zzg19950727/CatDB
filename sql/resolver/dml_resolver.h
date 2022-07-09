@@ -6,9 +6,6 @@
 #include "log.h"
 
 namespace CatDB {
-    namespace Sql {
-        DECLARE(QueryCtx);
-    }
 	namespace Parser {
         DECLARE(Stmt);
         DECLARE(DMLStmt);
@@ -23,7 +20,6 @@ namespace CatDB {
         DECLARE(JoinedTableStmt);
         DECLARE(ViewTableStmt);
         DECLARE(HintStmt);
-        using Sql::QueryCtx_s;
         
         struct ExecParamHelper {
             ExecParamStmt_s exec_param;
@@ -42,10 +38,10 @@ namespace CatDB {
         class DMLResolver
         {
         public:
-            DMLResolver(DMLStmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
+            DMLResolver(DMLStmt_s stmt, ResolveCtx &resolve_ctx);
             virtual ~DMLResolver();
             virtual u32 resolve_stmt() = 0;
-            static u32 resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
+            static u32 resolve_stmt(Stmt_s stmt, ResolveCtx &resolve_ctx);
         protected:
             u32 resolve_from_stmt();
             u32 resolve_where_stmt();
@@ -71,7 +67,6 @@ namespace CatDB {
         protected:
             DMLStmt_s stmt;
             ResolveCtx &resolve_ctx;
-            QueryCtx_s query_ctx;
             Vector<AggrStmt_s> aggr_funcs;
             bool can_use_aggr_func;
         };

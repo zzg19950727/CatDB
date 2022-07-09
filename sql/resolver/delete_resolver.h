@@ -8,7 +8,7 @@ namespace CatDB {
         class DeleteResolver : public DMLResolver
         {
         public:
-            DeleteResolver(DeleteStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
+            DeleteResolver(DeleteStmt_s &stmt, ResolveCtx &resolve_ctx);
             ~DeleteResolver();
             u32 resolve_stmt();
         private:

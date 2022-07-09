@@ -38,11 +38,11 @@ u32 TableStmt::replace_exprs(const Vector<ExprStmt_s> &old_exprs,
 	return ret;
 }
 
-u32 TableStmt::inner_deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
+u32 TableStmt::inner_deep_copy(TableStmt_s &table, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	MY_ASSERT(table);
-	CHECK(ExprUtils::deep_copy_exprs(table_filter, table->table_filter, ctx, flag));
+	CHECK(ExprUtils::deep_copy_exprs(table_filter, table->table_filter, flag));
 	table->table_type = table_type;
 	table->alias_name = alias_name;
 	table->table_id = table_id;
@@ -69,12 +69,12 @@ TableStmt_s BasicTableStmt::make_dual_table()
 	return TableStmt_s(table);
 }
 
-u32 BasicTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
+u32 BasicTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	table = make_basic_table(database, table_name);
 	BasicTableStmt_s basic_table = table;
-	CHECK(inner_deep_copy(table, ctx, flag));
+	CHECK(inner_deep_copy(table, flag));
 	basic_table->ref_table_id = ref_table_id;
 	basic_table->is_dual = is_dual;
 	return ret;
@@ -127,17 +127,17 @@ TableStmt_s JoinedTableStmt::make_joined_table(TableStmt_s &left_table,
 	return TableStmt_s(joined_table);
 }
 
-u32 JoinedTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
+u32 JoinedTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	TableStmt_s copy_left_table;
 	TableStmt_s copy_right_table;
-	CHECK(left_table->deep_copy(copy_left_table, ctx, flag));
-	CHECK(right_table->deep_copy(copy_right_table, ctx, flag));
+	CHECK(left_table->deep_copy(copy_left_table, flag));
+	CHECK(right_table->deep_copy(copy_right_table, flag));
 	table = make_joined_table(copy_left_table, copy_right_table, join_type);
-	CHECK(inner_deep_copy(table, ctx, flag));
+	CHECK(inner_deep_copy(table, flag));
 	JoinedTableStmt_s joined_table = table;
-	CHECK(ExprUtils::deep_copy_exprs(join_condition, joined_table->join_condition, ctx, flag));
+	CHECK(ExprUtils::deep_copy_exprs(join_condition, joined_table->join_condition, flag));
 	return ret;
 }
 
@@ -220,7 +220,7 @@ TableStmt_s ViewTableStmt::make_view_table(Stmt_s ref_query)
 	return TableStmt_s(new ViewTableStmt(ref_query));
 }
 
-u32 ViewTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
+u32 ViewTableStmt::deep_copy(TableStmt_s &table, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	SelectStmt_s copy_ref_query;
@@ -230,11 +230,10 @@ u32 ViewTableStmt::deep_copy(TableStmt_s &table, QueryCtx_s &ctx, u32 flag)const
 	} else {
 		CHECK(TransformUtils::deep_copy_stmt(ref_query,
 											 copy_ref_query,
-											 ctx,
 											 flag));
 	}
 	table = make_view_table(copy_ref_query);
-	CHECK(inner_deep_copy(table, ctx, flag));
+	CHECK(inner_deep_copy(table, flag));
 	return ret;
 }
 

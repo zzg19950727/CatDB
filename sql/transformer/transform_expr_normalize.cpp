@@ -2,7 +2,7 @@
 #include "transform_utils.h"
 #include "select_stmt.h"
 #include "sql_engine.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "expr_stmt.h"
 #include "expr_utils.h"
 #include "dml_stmt.h"
@@ -26,7 +26,7 @@ TransformExprNormalize::~TransformExprNormalize()
 
 bool TransformExprNormalize::need_rewrite(DMLStmt_s stmt) const
 {
-    bool no_rewrit = ctx->query_ctx->query_hint.enable_no_rewrite(stmt->get_qb_name());
+    bool no_rewrit = QUERY_CTX->query_hint.enable_no_rewrite(stmt->get_qb_name());
     if (no_rewrit) {
         return false;
     }
@@ -237,7 +237,7 @@ u32 TransformExprNormalize::check_hint_disable(DMLStmt_s& stmt, bool &is_disable
 {
     u32 ret = SUCCESS;
     is_disable = false;
-    QueryHint &query_hint = ctx->query_ctx->query_hint;
+    QueryHint &query_hint = QUERY_CTX->query_hint;
     is_disable = query_hint.enable_no_expr_normalize(stmt->get_qb_name());
     return ret;
 }
@@ -245,7 +245,7 @@ u32 TransformExprNormalize::check_hint_disable(DMLStmt_s& stmt, bool &is_disable
 u32 TransformExprNormalize::generate_outline(DMLStmt_s& stmt)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = ctx->query_ctx->query_hint;
+    QueryHint &query_hint = QUERY_CTX->query_hint;
     CHECK(query_hint.generate_transform_outline(stmt->get_qb_name(), control_hint));
     return ret;
 }

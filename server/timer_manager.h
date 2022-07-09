@@ -14,6 +14,7 @@ namespace CatDB {
 		struct DateTime
 		{
 			typedef	long long	Rep;
+			typedef Rep			RepMs;
 			typedef std::chrono::duration<Rep, std::milli>		MilliSeconds;
 			typedef std::chrono::duration<Rep, std::nano>		NanoSeconds;
 			typedef std::chrono::steady_clock::time_point		TimePoint;
@@ -23,6 +24,7 @@ namespace CatDB {
 			static Rep now_steady_second();
 			static Rep now_steady();
 			static Rep steady_second(Rep start);
+			static Rep steady_msecond(Rep start);
 			static void sleep_nano(unsigned int nano);
 			static void sleep_milli(unsigned int msec);
 			static void sleep(unsigned int intervals);

@@ -1,7 +1,7 @@
 #include "transform_full_outer_join.h"
 #include "transform_utils.h"
 #include "select_stmt.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
@@ -118,12 +118,10 @@ u32 TransformFullOuterJoin::do_transform(DMLStmt_s &stmt, TableStmt_s &table)
     SelectStmt_s left_join_view;
     SelectStmt_s right_anti_view;
     CHECK(TransformUtils::create_view_with_table_item(joined_table,
-                                                      left_join_view, 
-                                                      ctx));
+                                                      left_join_view));
     left_join_view->select_expr_list = columns;
     CHECK(TransformUtils::deep_copy_stmt(left_join_view, 
-                                         right_anti_view, 
-                                         ctx->query_ctx));
+                                         right_anti_view));
     MY_ASSERT(left_join_view->from_stmts.size() == 1);
     MY_ASSERT(right_anti_view->from_stmts.size() == 1);
     MY_ASSERT(left_join_view->from_stmts[0]->is_joined_table());
@@ -137,11 +135,10 @@ u32 TransformFullOuterJoin::do_transform(DMLStmt_s &stmt, TableStmt_s &table)
     CHECK(TransformUtils::create_set_stmt(left_join_view, 
                                           right_anti_view, 
                                           UNION_ALL, 
-                                          set_stmt, 
-                                          ctx));
+                                          set_stmt));
     table = ViewTableStmt::make_view_table(set_stmt);
-    table->table_id = ctx->query_ctx->generate_table_id();
-    table->alias_name = ctx->query_ctx->generate_view_name();
+    table->table_id = QUERY_CTX->generate_table_id();
+    table->alias_name = QUERY_CTX->generate_view_name();
     ViewTableStmt_s view_table = table;
     Vector<ExprStmt_s> new_column_list;
     CHECK(TransformUtils::create_column_for_view_table(view_table, new_column_list));

@@ -8,6 +8,7 @@
 
 namespace CatDB {
 	namespace Server {
+		DECLARE(SessionInfo);
 		DECLARE(RequestHandle);
 		class ServerService
 		{
@@ -33,7 +34,7 @@ namespace CatDB {
 			
 			int m_fd;
 			int m_clients;
-			int m_thread_id;
+			int m_session_id;
 
 			friend class RequestHandle;
 		public:

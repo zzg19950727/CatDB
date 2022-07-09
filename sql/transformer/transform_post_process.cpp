@@ -1,5 +1,5 @@
 #include "transform_post_process.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "hint_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -51,7 +51,7 @@ u32 TransformPostProcess::update_join_hint(DMLStmt_s &stmt, bool &happened)
     u32 ret = SUCCESS;
     u32 id = INVALID_ID;
     Vector<JoinHintStmt_s> join_hints;
-    ctx->query_ctx->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
+    QUERY_CTX->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
     for (u32 i = 0; i < join_hints.size(); ++i) {
         for (u32 j = 0; j < join_hints[i]->table_names.size(); ++j) {
             if (stmt->find_table_id(join_hints[i]->table_names[j], id)) {
@@ -69,7 +69,7 @@ u32 TransformPostProcess::update_join_hint(DMLStmt_s &stmt, bool &happened)
 u32 TransformPostProcess::update_leading_table_hint(DMLStmt_s &stmt, bool &happened)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = ctx->query_ctx->query_hint;
+    QueryHint &query_hint = QUERY_CTX->query_hint;
     if (!query_hint.has_leading_hint(stmt->get_qb_name())) {
         return ret;
     }

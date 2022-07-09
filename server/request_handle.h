@@ -1,24 +1,22 @@
 #ifndef REQUEST_HANDLE_H
 #define REQUEST_HANDLE_H
-#include "timer_manager.h"
 #include "socket_buffer.h"
 #include "net_service.h"
 #include "loginer.h"
 #include "packet.h"
-#include <memory>
-#include <string>
+
 namespace CatDB {
 	namespace Common {
 		DECLARE(Buffer);
 	}
 	namespace Sql {
 		DECLARE(ResultSet);
-		DECLARE(QueryCtx);
 	}
 	namespace Server {
 		using Sql::ResultSet_s;
-		using Sql::QueryCtx_s;
+		DECLARE(QueryCtx);
 		class ServerService;
+		DECLARE(SessionInfo);
 		DECLARE(RequestHandle);
 		class RequestHandle
 		{
@@ -26,11 +24,8 @@ namespace CatDB {
 			RequestHandle(int fd, ServerService& service);
 			~RequestHandle();
 			void set_delete_handle(RequestHandle_s& self);
-			void set_login_info(const Loginer::LoginInfo& info, int thread_id);
-			QueryCtx_s &get_query_ctx() { return query_ctx; }
-			const String &get_session_status() const { return session_status; }
-			DateTime::Rep get_session_time() const { return DateTime::steady_second(start_time); }
-			const String &get_trace_id() const { return trace_id; }
+			void set_login_info(const Loginer::LoginInfo& info, int session_id);
+			SessionInfo_s &get_session_info() { return session_info; }
 
 		private:
 			void notify_socket(int fd, NetService::Event e);
@@ -57,12 +52,7 @@ namespace CatDB {
 			BufferCache m_read_cache;
 			BufferCache m_write_cache;
 			Loginer::LoginInfo login_info;
-			QueryCtx_s query_ctx;
-			String session_status;
-			String trace_id;
-			DateTime::Rep start_time;
-			
-			bool is_com_field_list;
+			SessionInfo_s session_info;
 			int seq;
 			int m_fd;
 		};

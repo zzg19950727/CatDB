@@ -48,7 +48,7 @@ u32 UpdatePlan::generate_plan_tree()
 										   column_exprs,
 										   value_exprs,
 										   stmt->row_id_col);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	LogUpdate_s log_update = root_operator;
 	CHECK(root_operator->compute_property());
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();

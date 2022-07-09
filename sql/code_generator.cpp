@@ -38,7 +38,7 @@
 #include "phy_window_func.h"
 
 #include "schema_guard.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "table_space.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -151,7 +151,6 @@ u32 CodeGenerator::generate_phy_plan_post(ExprGenerateCtx &ctx, LogicalOperator_
     }
     phy_root->set_operator_id(log_root->operator_id);
     CHECK(generate_output_exprs(ctx, log_root, phy_root));
-    phy_root->set_query_ctx(log_root->query_ctx);
     phy_root->set_exec_ctx(ctx.exec_ctx);
 	return ret;
 }
@@ -421,14 +420,14 @@ u32 CodeGenerator::generate_subquery_evaluate_op(ExprGenerateCtx &ctx, LogicalOp
 u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s log_op, PhyOperator_s &phy_op)
 {
 	u32 ret = SUCCESS;
-    MY_ASSERT(log_op, ctx.child_ops.size() == 0, log_op->query_ctx);
+    MY_ASSERT(log_op, ctx.child_ops.size() == 0);
     SchemaGuard_s guard = SchemaGuard::make_schema_guard();
     TableInfo_s info;
     CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     PhyTableScan_s scan = PhyTableScan::make_table_scan(log_op->table_item->database, 
                                                         log_op->table_item->table_name, 
                                                         info->engine_args,
-                                                        log_op->query_ctx->sample_size);
+                                                        QUERY_CTX->sample_size);
     phy_op = scan;
     RowDesc row_desc;
     ColumnDesc col_desc;

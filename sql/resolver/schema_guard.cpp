@@ -1,7 +1,7 @@
 #include "schema_guard.h"
 #include "statis_manager.h"
 #include "sql_engine.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "object.h"
 #include "error.h"
 #include "stmt.h"
@@ -200,8 +200,7 @@ u32 SchemaGuard::del_table(const String &db_name, const String& table_name)
 u32 SchemaGuard::execute_sys_sql(const String& sql, ResultSet_s &result)
 {
     u32 ret = SUCCESS;
-    QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
-	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result));
+	CHECK(SqlEngine::handle_inner_sql(sql, result));
 	return ret;
 }
 

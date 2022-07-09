@@ -210,7 +210,6 @@ u32 HashTable::equal(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
 	is_valid = false;
 	if (probe_exprs.empty()) {
 		CHECK(lhs->equal(rhs, null_safe, is_valid));
-		LOG_ERR("zzg:", K(lhs), K(rhs), K(is_valid));
 	} else {
 		int res = 0;
 		Object_s l_obj, r_obj;

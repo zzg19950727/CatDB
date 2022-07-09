@@ -63,7 +63,7 @@ u32 SelectPlan::generate_set_plan_tree()
 	root_operator = LogSet::make_set_op(left_op,
 										right_op,
 										stmt->set_op);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
 	append(root_operator->output_exprs, stmt->select_expr_list);
 	return ret;
@@ -113,7 +113,7 @@ u32 SelectPlan::generate_group_by()
 									 false, 
 									 false));
 	root_operator = LogGroupBy::make_group_by(root_operator, stmt->group_exprs, stmt->get_aggr_exprs());
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(add_filter(root_operator, stmt->having_stmt));
 	CHECK(root_operator->compute_property());
 	return ret;
@@ -128,7 +128,7 @@ u32 SelectPlan::generate_scalar_group_by()
 									 false, 
 									 false));
 	root_operator = LogScalarGroupBy::make_scalar_group_by(root_operator, stmt->get_aggr_exprs());
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(add_filter(root_operator, stmt->having_stmt));
 	CHECK(root_operator->compute_property());
 	return ret;
@@ -158,13 +158,13 @@ u32 SelectPlan::generate_one_window_function(WinExprStmt_s win_expr)
 	win_expr->get_win_order_by_exprs(order_by_exprs);
 	if (!part_by_exprs.empty()) {
 		root_operator = LogSort::make_sort(root_operator, order_by_exprs, 0);
-		root_operator->init(query_ctx, est_info);
+		root_operator->init(est_info);
 		LogSort_s log_sort = root_operator;
 		log_sort->set_partition_keys(part_by_exprs);
 		CHECK(root_operator->compute_property());
 	} else if (!order_by_exprs.empty()) {
 		root_operator = LogSort::make_sort(root_operator, order_by_exprs, 0);
-		root_operator->init(query_ctx, est_info);
+		root_operator->init(est_info);
 		CHECK(root_operator->compute_property());
 	}
 	Vector<ExprStmt_s> win_func_exprs;
@@ -172,7 +172,7 @@ u32 SelectPlan::generate_one_window_function(WinExprStmt_s win_expr)
 	root_operator = LogWindowFunc::make_window_func(root_operator, 
 													win_func_exprs,
 													part_by_exprs);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
 	return ret;
 }
@@ -185,7 +185,7 @@ u32 SelectPlan::generate_distinct()
 									 stmt->select_expr_list, 
 									 false));
 	root_operator = LogDistinct::make_distinct(root_operator);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	LogDistinct_s distinct_op = root_operator;
 	distinct_op->set_distinct_exprs(stmt->select_expr_list);
 	CHECK(root_operator->compute_property());
@@ -213,7 +213,7 @@ u32 SelectPlan::generate_order_by(bool &need_limit)
 										 stmt->order_exprs, 
 										 false));
 		root_operator = LogSort::make_sort(root_operator, stmt->order_exprs, top_n);
-		root_operator->init(query_ctx, est_info);
+		root_operator->init(est_info);
 		CHECK(root_operator->compute_property());
 	}
 	return ret;
@@ -226,7 +226,7 @@ u32 SelectPlan::generate_limit()
 	root_operator = LogLimit::make_limit(root_operator,
 										 stmt->limit_stmt->limit_offset,
 										 stmt->limit_stmt->limit_size);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
 	return ret;
 }

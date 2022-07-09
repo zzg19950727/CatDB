@@ -3,7 +3,6 @@
 #include "sql_engine.h"
 #include "table_space.h"
 #include "obj_datetime.h"
-#include "query_ctx.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -154,9 +153,7 @@ u32 StatisManager::delete_table_statis(u32 tid)
 u32 StatisManager::execute_sys_sql(const String& sql, ResultSet_s &result, double sample_size)
 {
     u32 ret = SUCCESS;
-    QueryCtx_s query_ctx = QueryCtx::make_query_ctx();
-    query_ctx->sample_size = sample_size;
-	CHECK(SqlEngine::handle_inner_sql(sql, query_ctx, result));
+	CHECK(SqlEngine::handle_inner_sql(sql, result));
 	return ret;
 }
 

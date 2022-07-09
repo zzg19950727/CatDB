@@ -1,5 +1,5 @@
 #include "transform_rule.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -25,7 +25,7 @@ TransformRule::~TransformRule()
 
 bool TransformRule::need_rewrite(DMLStmt_s stmt) const
 {
-    return !ctx->query_ctx->query_hint.enable_no_rewrite(stmt->get_qb_name());
+    return !QUERY_CTX->query_hint.enable_no_rewrite(stmt->get_qb_name());
 }
 
 void TransformRule::set_transform_ctx(TransformCtx_s &ctx)

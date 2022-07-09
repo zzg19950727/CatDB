@@ -3,15 +3,11 @@
 #include "type.h"
 
 namespace CatDB {
-    namespace Sql {
-        DECLARE(QueryCtx);
-    }
     namespace Parser {
         DECLARE(DMLStmt);
         DECLARE(ExprStmt);
         DECLARE(ColumnStmt);
         DECLARE(SubQueryStmt);
-        using Sql::QueryCtx_s;
 
         class ExprUtils {
         private:
@@ -73,12 +69,10 @@ namespace CatDB {
             
             static u32 deep_copy_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                        Vector<ExprStmt_s> &new_exprs,
-                                       QueryCtx_s &ctx,
                                        u32 flag = COPY_ON_WRITE);
 
             static u32 deep_copy_expr(const ExprStmt_s &old_expr, 
                                       ExprStmt_s &new_expr,
-                                      QueryCtx_s &ctx,
                                       u32 flag = COPY_ON_WRITE);
         
             static u32 make_row_id_expr(const String& table_name, 

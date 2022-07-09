@@ -14,8 +14,8 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-SelectResolver::SelectResolver(SelectStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
-    :DMLResolver(stmt, query_ctx, resolve_ctx),
+SelectResolver::SelectResolver(SelectStmt_s &stmt, ResolveCtx &resolve_ctx)
+    :DMLResolver(stmt, resolve_ctx),
     select_stmt(stmt)
 {
     
@@ -229,8 +229,8 @@ u32 SelectResolver::resolve_order_by_select_list(ExprStmt_s &order_expr,
     return ret;
 }
 
-SetResolver::SetResolver(SetStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
-    :DMLResolver(stmt, query_ctx, resolve_ctx),
+SetResolver::SetResolver(SetStmt_s &stmt, ResolveCtx &resolve_ctx)
+    :DMLResolver(stmt, resolve_ctx),
     set_stmt(stmt)
 {
     
@@ -245,8 +245,8 @@ u32 SetResolver::resolve_stmt()
     u32 ret = SUCCESS;
     MY_ASSERT(set_stmt->left_query->is_select_stmt());
     MY_ASSERT(set_stmt->right_query->is_select_stmt());
-    CHECK(DMLResolver::resolve_stmt(set_stmt->left_query, query_ctx, resolve_ctx));
-    CHECK(DMLResolver::resolve_stmt(set_stmt->right_query, query_ctx, resolve_ctx));
+    CHECK(DMLResolver::resolve_stmt(set_stmt->left_query, resolve_ctx));
+    CHECK(DMLResolver::resolve_stmt(set_stmt->right_query, resolve_ctx));
     Vector<ExprStmt_s> &l_select_expr_list = set_stmt->left_query->select_expr_list;
     Vector<ExprStmt_s> &r_select_expr_list = set_stmt->right_query->select_expr_list;
     MY_ASSERT(l_select_expr_list.size() == r_select_expr_list.size());

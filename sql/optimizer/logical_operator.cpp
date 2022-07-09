@@ -3,8 +3,6 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "expr_utils.h"
-#include "query_ctx.h"
-#include "query_ctx.h"
 #include "dml_plan.h"
 #include "error.h"
 
@@ -24,9 +22,8 @@ LogicalOperator::~LogicalOperator()
 
 }
 
-u32 LogicalOperator::init(QueryCtx_s &query_ctx, EstInfo_s& est_info)
+u32 LogicalOperator::init(EstInfo_s& est_info)
 {
-    this->query_ctx = query_ctx;
     this->est_info = est_info;
     return SUCCESS;
 }

@@ -6,7 +6,7 @@
 #include "eof_packet.h"
 #include "row_packet.h"
 #include "ok_packet.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "buffer.h"
 #include "global.h"
 #include "server.h"
@@ -31,8 +31,10 @@ RequestHandle::RequestHandle(int fd,ServerService& service)
 	{
 		close_connection();
 	}
-	query_ctx = QueryCtx::make_query_ctx();
-	query_ctx->cur_database = "test";
+	session_info = SessionInfo::make_session_info();
+	session_info->set_session_log_level(service.config().log_level());
+	session_info->set_session_log_module(service.config().log_module());
+	session_info->set_query_timeout(service.config().query_timeout());
 }
 
 RequestHandle::~RequestHandle()
@@ -46,11 +48,11 @@ void RequestHandle::set_delete_handle(RequestHandle_s& self)
 	m_self.swap(self);
 }
 
-void RequestHandle::set_login_info(const Loginer::LoginInfo & info, int thread_id)
+void RequestHandle::set_login_info(const Loginer::LoginInfo & info, int session_id)
 {
 	login_info = info;
-	query_ctx->cur_database = info.db_name_;
-	query_ctx->thread_id = thread_id;
+	session_info->set_cur_database(info.db_name_);
+	session_info->set_session_id(session_id);
 }
 
 void RequestHandle::notify_socket(int fd, NetService::Event e)
@@ -123,7 +125,7 @@ void RequestHandle::close_connection()
 	LOG_TRACE("RequestHandle close connection", K(m_fd));
 	net_close(m_fd);
 	m_server_service.m_net_service.unregister_io(m_fd, NetService::E_RW);
-	m_server_service.close_connection(query_ctx->thread_id);
+	m_server_service.close_connection(session_info->get_session_id());
 	RequestHandle_s copy;
 	copy.swap(m_self);
 	m_fd = -1;
@@ -166,7 +168,6 @@ u32 RequestHandle::send_ok_packet(u32 affected_rows)
 	int ret = SUCCESS;
 	OKPacket okpacket;
 	okpacket.set_affected_rows(affected_rows);
-	okpacket.set_message("trace_id = [ " + trace_id + " ]");
 	ret = post_packet(okpacket, ++seq);
 	if (SUCCESS != ret)
 	{
@@ -198,17 +199,7 @@ u32 RequestHandle::send_result_set(const ResultSet_s &result_set)
 	Common::Buffer_s buf = Common::Buffer::make_buffer(MAX_PACKET_LENGTH);
 	char *data_buffer = reinterpret_cast<char *>(buf->buf);
 	buffer_length = MAX_PACKET_LENGTH;
-	if (is_com_field_list)
-	{
-		if (SUCCESS != (ret = process_field_packets(buf, buffer_pos, result_set)))
-		{
-				LOG_ERR("process field packet failed", K(ret));
-		}
-		else if (SUCCESS != (ret = process_eof_packets(buf, buffer_pos, result_set)))
-		{
-				LOG_ERR("process row eof packet failed", K(ret));
-		}
-	} else if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
+	if (SUCCESS != (ret = process_resheader_packet(buf, buffer_pos, result_set)))
 	{
 		LOG_ERR("process resheasder packet failed", K(ret));
 	}
@@ -325,36 +316,27 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
-	session_status = query;
-	set_trace_id(trace_id);
-	SqlEngine_s engine = SqlEngine::make_sql_engine(query, query_ctx);
+	SET_GTX(session_info);
+	SqlEngine_s engine = SqlEngine::make_sql_engine(query);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {
-		String err_msg = ErrCodeString[ret];
-		err_msg += " " + query_ctx->get_error_msg();
-		err_msg += "\ntrace_id = [ " + trace_id + " ]";
-		ret = send_error_packet(ret, err_msg);
+		ret = send_error_packet(ret, session_info->get_err_msg(ret));
 	} else {
 		ResultSet_s result_set = engine->get_query_result();
 		if (!result_set) {
 			ret = ERR_UNEXPECTED;
 		} else if (result_set->is_explain_plan()) {
 			String plan_info = result_set->get_explain_info();
-			plan_info += "\ntrace_id = [ " + trace_id + " ]";
 			ret = (send_ok_packet(plan_info));
 		} else if (result_set->need_send_result()) {
 			ret = (send_result_set(result_set));
 		} else {
-			ret = (send_ok_packet(query_ctx->get_affected_rows()));
+			ret = (send_ok_packet(QUERY_CTX->get_affected_rows()));
 		}
 		if (FAIL(ret)) {
-			String err_msg = ErrCodeString[ret];
-			err_msg += "\ntrace_id = [ " + trace_id + " ]";
-			ret = send_error_packet(ret, err_msg);
+			ret = send_error_packet(ret, session_info->get_err_msg(ret));
 		}
 	}
-	session_status = "SLEEP";
-	start_time = DateTime::now_steady_second();
 	return ret;
 }
 
@@ -376,16 +358,13 @@ void RequestHandle::handle_request(char* buf, size_t len)
 	enum enum_server_command command;
 	command = (enum enum_server_command)(unsigned char)buf[0];
 	seq = 0;
-	is_com_field_list = false;
-	query_ctx->reset();
-	start_time = DateTime::now_steady_second();
 	switch (command)
 	{
 		case COM_INIT_DB:
 		{
-			session_status = "INIT DB";
 			String db(buf + 1, len - 1);
 			String query = "use "+db;
+			session_info->begin_query(DO_QUERY, query);
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
 			break;
@@ -393,53 +372,30 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		case COM_QUERY:
 		{
 			String query(buf + 1, len - 1);
-			session_status = query;
-			LOG_TRACE("handle client command", K(query));/*
-			if (query.find("SHOW SESSION") != String::npos)
-					query = "select * from system.sys_vars";
-			else if (query.find("SELECT CURRENT_USER") != String::npos)
-					query = "select * from system.current_user";
-			else if (query.find("SELECT CONNECTION_ID") != String::npos)
-					query = "select * from system.connection_id";
-			else if (query.find("SHOW CHARSET") != String::npos)
-					query = "select * from system.charset";
-			else if (query.find("SHOW ENGINES") != String::npos)
-					query = "select * from system.engine";
-			else if (query.find("SHOW COLLATION") != String::npos)
-					query = "select * from system.collation";
-			else if (query.find("SHOW VARIABLES") != String::npos)
-					query = "select * from system.sys_vars";
-			else if (query.find("SHOW PROCEDURE") != String::npos)
-					{send_ok_packet();return;}
-			else if (query.find("SHOW FUNCTION") != String::npos)
-					{send_ok_packet();return;}
-			else if (query.find("VERSION_COMMENT") != String::npos)
-					{send_ok_packet();return;}*/
+			LOG_TRACE("handle client command", K(query));
+			session_info->begin_query(DO_QUERY, query);
 			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
 			m_server_service.workers().append_task(task);
-			session_status = "IN QUEUE";
 			break;
 		}
 		case COM_PING:
 		{
-			session_status = "PING";
+			session_info->begin_query(PING, "");
 			send_ok_packet();
 			break;
 		}
 		case COM_FIELD_LIST:
 		{
-			session_status = "CMD FIELD LIST";
-			is_com_field_list = true;
-			String query = "select * from "+String(buf+1,len-1) + " limit 1";
-			Task_type task = std::bind(&RequestHandle::do_cmd_query, this, query);
-			m_server_service.workers().append_task(task);
+			session_info->begin_query(DO_CMD, "");
+			do_not_support();
 			break;
 		}
 		default:
 		{
-			session_status = "OTHER COMMAND";
+			session_info->begin_query(DO_CMD, "");
 			do_not_support();
 		}
 	}
+	session_info->end_query();
 }
 

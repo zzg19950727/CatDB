@@ -5,7 +5,7 @@
 #include "table_stmt.h"
 #include "expr_stmt.h"
 #include "expr_utils.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "obj_number.h"
 #include "error.h"
 #include "log.h"
@@ -15,13 +15,11 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 
 u32 TransformUtils::deep_copy_stmt(const SelectStmt_s &old_stmt, 
-                                    SelectStmt_s &new_stmt, 
-                                    QueryCtx_s &ctx,
+                                    SelectStmt_s &new_stmt,
                                     u32 flag)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(ctx);
-    CHECK(old_stmt->deep_copy(new_stmt, ctx, flag));
+    CHECK(old_stmt->deep_copy(new_stmt, flag));
     //update table ids
     Vector<u32> old_table_ids;
     Vector<u32> new_table_ids;
@@ -32,7 +30,7 @@ u32 TransformUtils::deep_copy_stmt(const SelectStmt_s &old_stmt,
     for (u32 i = 0; i < table_items.size(); ++i) {
         TableStmt_s &table = table_items[i];
         old_table_ids.push_back(table->table_id);
-        u32 new_table_id = ctx->generate_table_id();
+        u32 new_table_id = QUERY_CTX->generate_table_id();
         new_table_ids.push_back(new_table_id);
         table->table_id = new_table_id;
     }
@@ -45,32 +43,28 @@ u32 TransformUtils::deep_copy_stmt(const SelectStmt_s &old_stmt,
         column->table_id = new_table_ids[index];
     }
     //update stmt id
-    CHECK(new_stmt->reset_stmt_id(ctx->generate_stmt_id()));
+    CHECK(new_stmt->reset_stmt_id(QUERY_CTX->generate_stmt_id()));
     CHECK(new_stmt->formalize());
     return ret;
 }
 
 u32 TransformUtils::create_view_with_table_item(const TableStmt_s &table,
-                                                SelectStmt_s &view,
-                                                TransformCtx_s &ctx)
+                                                SelectStmt_s &view)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(ctx, ctx->query_ctx);
     view = SelectStmt::make_select_stmt();
-    CHECK(view->reset_stmt_id(ctx->query_ctx->generate_stmt_id()));
+    CHECK(view->reset_stmt_id(QUERY_CTX->generate_stmt_id()));
     view->from_stmts.push_back(table);
     return ret;
 }
 
 u32 TransformUtils::create_table_with_view(SelectStmt_s &view,
-                                            ViewTableStmt_s &table,
-                                            TransformCtx_s &ctx)
+                                            ViewTableStmt_s &table)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(ctx, ctx->query_ctx);
     table = ViewTableStmt::make_view_table(view);
-    table->table_id = ctx->query_ctx->generate_table_id();
-    table->alias_name = ctx->query_ctx->generate_view_name();
+    table->table_id = QUERY_CTX->generate_table_id();
+    table->alias_name = QUERY_CTX->generate_view_name();
     return ret;
 }
 
@@ -115,14 +109,12 @@ u32 TransformUtils::create_column_for_view_table(ViewTableStmt_s &view_table,
 u32 TransformUtils::create_set_stmt(const SelectStmt_s &left_query,
                                        const SelectStmt_s &right_query,
                                        SetOpType set_op,
-                                       SelectStmt_s &set_stmt,
-                                       TransformCtx_s &ctx)
+                                       SelectStmt_s &set_stmt)
 {
     u32 ret = SUCCESS;
-    MY_ASSERT(ctx, ctx->query_ctx);
     MY_ASSERT(left_query->select_expr_list.size() == right_query->select_expr_list.size());
     set_stmt = SetStmt::make_set_stmt(left_query, right_query, set_op);
-    CHECK(set_stmt->reset_stmt_id(ctx->query_ctx->generate_stmt_id()));
+    CHECK(set_stmt->reset_stmt_id(QUERY_CTX->generate_stmt_id()));
     for (u32 i = 0; i < left_query->select_expr_list.size(); ++i) {
         SetExprStmt_s expr = SetExprStmt::make_set_expr(set_op, i);
         expr->alias_name = left_query->select_expr_list[i]->alias_name;

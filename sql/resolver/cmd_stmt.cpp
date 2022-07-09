@@ -132,11 +132,11 @@ u32 CMDStmt::get_set_var_params(String &var_name, String &var_value)
 	return ret;
 }
 
-u32 CMDStmt::get_kill_params(int &thread_id)
+u32 CMDStmt::get_kill_params(int &session_id)
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(cmd_type == Kill);
-	thread_id = params.kill_params.thread_id;
+	session_id = params.kill_params.session_id;
 	return ret;
 }
 

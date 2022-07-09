@@ -1,5 +1,6 @@
 #include "schema_checker.h"
 #include "schema_guard.h"
+#include "session_info.h"
 #include "statis_manager.h"
 #include "table_space.h"
 #include "sql_engine.h"
@@ -13,7 +14,7 @@
 #include "memory_monitor.h"
 #include "dml_resolver.h"
 #include "obj_varchar.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "server.h"
 #include "stmt.h"
 #include "error.h"
@@ -128,11 +129,11 @@ u32 CMDPlan::do_cmd_create_table()
 	if (SUCC(ret)) {
 		if (USER_VIEW_TABLE == info->type) {
 			String msg = "view " + database + "." + table + " exists!";
-			query_ctx->set_error_msg(msg);
+			QUERY_CTX->set_error_msg(msg);
 			ret = VIEW_EXISTS;
 		} else {
 			String msg = "table " + database + "." + table + " exists!";
-			query_ctx->set_error_msg(msg);
+			QUERY_CTX->set_error_msg(msg);
 			ret = TABLE_EXISTS;
 		}
 		return ret;
@@ -167,16 +168,16 @@ u32 CMDPlan::do_cmd_drop_table()
 		return ret;
 	} else if (FAIL(ret)) {
 		String msg = "table " + database + "." + table + " not exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		return ret;
 	} else if (USER_VIEW_TABLE == info->type) {
 		String msg = table + " is view not table!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		ret = TABLE_NOT_EXISTS;
 		return ret;
 	} else if (SYS_INNER_TABLE == info->type) {
 		String msg = "can not drop system inner table:" + table;
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		ret = TABLE_NOT_EXISTS;
 		return ret;
 	}
@@ -198,7 +199,7 @@ u32 CMDPlan::do_cmd_create_database()
 	ret = guard->find_database_info(database, info);
 	if (SUCC(ret)) {
 		String msg = "database " + database + " exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		ret = DATABASE_EXISTS;
 		return ret;
 	} else {
@@ -226,7 +227,7 @@ u32 CMDPlan::do_cmd_drop_database()
 		return ret;
 	} else if (FAIL(ret)) {
 		String msg = "database " + database + " not exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		return ret;
 	}
 	CHECK(guard->del_database(database));
@@ -273,7 +274,7 @@ u32 CMDPlan::do_cmd_show_databases(ResultSet_s &query_result)
 		Vector<String> title;
 		title.push_back(String("cur_database()"));
 		CHECK(init_command_result_head(title, query_result));
-		Object_s database = Varchar::make_object(query_ctx->cur_database);
+		Object_s database = Varchar::make_object(GTX->get_cur_database());
 		Vector<Object_s> objs;
 		objs.push_back(database);
 		CHECK(add_objects_to_result_set(objs, query_result));
@@ -307,7 +308,7 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 	ret = guard->find_table_info(database, table, info);
 	if (FAIL(ret)) {
 		String msg = "table " + database + "." + table + " not exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		return ret;
 	}
 	if (is_show_table_statis) {
@@ -369,7 +370,7 @@ u32 CMDPlan::show_table_statis(const String &database, const String &table, Resu
 				from `system`.`table_statis`  
 				where `tid` = )" + std::to_string(tid) +
 		R"( order by `analyze_time` desc limit 1;)";
-	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_result));
 	return ret;
 }
 
@@ -391,7 +392,7 @@ u32 CMDPlan::show_column_statis(const String &database, const String &table, Res
 				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
 				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) + ")" +
 				R"( order by col.id asc;)";
-	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_result));
 	return ret;
 }
 
@@ -409,13 +410,13 @@ u32 CMDPlan::do_cmd_use_database()
 	ret = guard->find_database_info(database, info);
 	if (FAIL(ret)) {
 		String msg = "database " + database + " not exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		return ret;
 	}
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	MY_ASSERT(checker);
 	CHECK(checker->get_database_id(database, id));
-	query_ctx->cur_database = database;
+	GTX->set_cur_database(database);
 	return ret;
 }
 
@@ -430,6 +431,7 @@ u32 CMDPlan::do_cmd_analyze()
 	CHECK(stmt->get_analyze_params(database, table, sample_size));
 	StatisManager_s manager = StatisManager::make_statis_manager();
 	MY_ASSERT(manager);
+	QUERY_CTX->set_sample_size(sample_size);
 	CHECK(manager->analyze_table(database, table, sample_size));
 	return ret;
 }
@@ -453,20 +455,27 @@ u32 CMDPlan::do_set_var()
 		} else {
 			ret = ERR_UNEXPECTED;
 			String msg = "unknown log level " + var_value;
-			MY_ASSERT(query_ctx);
-			query_ctx->set_error_msg(msg);
+			QUERY_CTX->set_error_msg(msg);
 			return ret;
 		}
-		set_debug_level(level);
+		GTX->set_session_log_level(level);
 	} else if (var_name == "log_module") {
-		set_debug_module(var_value);
+		GTX->set_session_log_module(var_value);
 	} else if (var_name == "trace_memory_mode") {
 		MemoryMonitor::make_memory_monitor().set_trace_mode(var_value);
+	} else if (var_name == "query_timeout") {
+		long long time = std::stoi(var_value);
+		if (time > 0) {
+			GTX->set_query_timeout(time);
+		} else {
+			ret = ERR_UNEXPECTED;
+			String msg = "unknown query timeout values " + var_value;
+			QUERY_CTX->set_error_msg(msg);
+		}
 	} else {
 		ret = ERR_UNEXPECTED;
 		String msg = "unknown variable " + var_name;
-		MY_ASSERT(query_ctx);
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 	}
 	return ret;
 }
@@ -475,20 +484,24 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
 	Vector<String> title;
-	title.push_back(String("PID"));
-	title.push_back(String("TraceID"));
-	title.push_back(String("Time(s)"));
-	title.push_back(String("Status"));
+	title.push_back(String("session id"));
+	title.push_back(String("trace id"));
+	title.push_back(String("time(ms)"));
+	title.push_back(String("status"));
+	title.push_back(String("sql"));
 	CHECK(init_command_result_head(title, query_result));
 	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
+		SessionInfo_s &session_info = iter->second->get_session_info();
 		Vector<Object_s> cells;
-		Object_s thread_id = Varchar::make_object(std::to_string(iter->first));
-		cells.push_back(thread_id);
-		Object_s trace_id = Varchar::make_object(iter->second->get_trace_id());
+		Object_s session_id = Varchar::make_object(std::to_string(session_info->get_session_id()));
+		cells.push_back(session_id);
+		Object_s trace_id = Varchar::make_object(session_info->get_trace_id());
 		cells.push_back(trace_id);
-		Object_s time = Varchar::make_object(std::to_string(iter->second->get_session_time()));
+		Object_s time = Varchar::make_object(std::to_string(session_info->get_query_time()));
 		cells.push_back(time);
-		Object_s sql=Varchar::make_object(iter->second->get_session_status());
+		Object_s status = Varchar::make_object(session_info->get_session_status());
+		cells.push_back(status);
+		Object_s sql = Varchar::make_object(session_info->get_query_sql());
 		cells.push_back(sql);
 		CHECK(add_objects_to_result_set(cells, query_result));
 	}
@@ -498,15 +511,15 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 u32 CMDPlan::do_kill_process()
 {
 	u32 ret = SUCCESS;
-	int thread_id;
+	int session_id;
 	CMDStmt_s stmt = lex_stmt;
-	MY_ASSERT(query_ctx);
-	CHECK(stmt->get_kill_params(thread_id));
-	if (ServerService::m_processlist.find(thread_id) != ServerService::m_processlist.cend()) {
-		ServerService::m_processlist[thread_id]->get_query_ctx()->killed = true;
+	CHECK(stmt->get_kill_params(session_id));
+	if (ServerService::m_processlist.find(session_id) != ServerService::m_processlist.cend()) {
+		SessionInfo_s &session_info = ServerService::m_processlist[session_id]->get_session_info();
+		session_info->kill_query();
 	} else {
 		//kill self
-		query_ctx->killed = true;
+		GTX->kill_query();
 	}
 	return ret;
 }
@@ -524,9 +537,9 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 	String mode = MemoryMonitor::make_memory_monitor().get_trace_mode();
 	MemoryMonitor::make_memory_monitor().set_trace_mode("");
 	String query = "delete from system.memory_use;";
-	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_result));
 	query = "delete from system.memory_trace;";
-	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_result));
 	String sql_insert_use = "insert into system.memory_use values";
 	bool has_use_info = false;
 	for (auto iter = MemoryMonitor::make_memory_monitor().mem_used.begin(); iter != MemoryMonitor::make_memory_monitor().mem_used.end(); ++iter) {
@@ -571,16 +584,16 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 		}
 		if (has_trace_info) {
 			sql_insert_trace[sql_insert_trace.size()-1]=';';
-			CHECK(SqlEngine::handle_inner_sql(sql_insert_trace, query_ctx, query_result));
+			CHECK(SqlEngine::handle_inner_sql(sql_insert_trace, query_result));
 		}
 	}
 	if (has_use_info) {
 		sql_insert_use[sql_insert_use.size()-1]=';';
-		CHECK(SqlEngine::handle_inner_sql(sql_insert_use, query_ctx, query_result));
+		CHECK(SqlEngine::handle_inner_sql(sql_insert_use, query_result));
 	}
 	
 	query = "select * from system.memory_use order by 2;";
-	CHECK(SqlEngine::handle_inner_sql(query, query_ctx, query_result));
+	CHECK(SqlEngine::handle_inner_sql(query, query_result));
 	MemoryMonitor::make_memory_monitor().set_trace_mode(mode);
 	return ret;
 }
@@ -596,7 +609,6 @@ u32 CMDPlan::do_create_view()
 	Vector<ColumnDefineStmt_s> columns;
 	Vector<String> engine_args;
 	CMDStmt_s stmt = lex_stmt;
-	MY_ASSERT(query_ctx);
 	CHECK(stmt->get_create_view_params(database,
 									   view_name,
 									   column_define,
@@ -610,11 +622,11 @@ u32 CMDPlan::do_create_view()
 	if (SUCC(ret)) {
 		if (USER_PHY_TABLE == info->type) {
 			String msg = "table " + view_name + " exists!";
-			query_ctx->set_error_msg(msg);
+			QUERY_CTX->set_error_msg(msg);
 			ret = TABLE_EXISTS;
 		} else {
 			String msg = "view " + view_name + " exists!";
-			query_ctx->set_error_msg(msg);
+			QUERY_CTX->set_error_msg(msg);
 			ret = VIEW_EXISTS;
 		}
 		return ret;
@@ -622,8 +634,7 @@ u32 CMDPlan::do_create_view()
 		ret = SUCCESS;
 	}
 	ResolveCtx resolve_ctx;
-	CHECK(DMLResolver::resolve_stmt(ref_query, query_ctx, resolve_ctx));
-	query_ctx->set_error_msg("");
+	CHECK(DMLResolver::resolve_stmt(ref_query, resolve_ctx));
 	CHECK(ref_query->formalize());
 	for (u32 i = 0; i < ref_query->select_expr_list.size(); ++i) {
 		ExprStmt_s &expr = ref_query->select_expr_list[i];
@@ -646,7 +657,6 @@ u32 CMDPlan::do_drop_view()
 	String view_name;
 	bool ignore_not_exists;
 	CMDStmt_s stmt = lex_stmt;
-	MY_ASSERT(query_ctx);
 	CHECK(stmt->get_drop_view_params(database,
 									 view_name,
 									 ignore_not_exists));
@@ -659,12 +669,12 @@ u32 CMDPlan::do_drop_view()
 		return ret;
 	} else if (FAIL(ret)) {
 		String msg = "view " + view_name + " not exists!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		ret = VIEW_NOT_EXISTS;
 		return ret;
 	} else if (USER_PHY_TABLE == info->type) {
 		String msg = view_name + " is table not view!";
-		query_ctx->set_error_msg(msg);
+		QUERY_CTX->set_error_msg(msg);
 		ret = VIEW_NOT_EXISTS;
 		return ret;
 	}

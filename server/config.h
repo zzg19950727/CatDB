@@ -19,6 +19,7 @@ namespace CatDB {
 			int cache_size()const;
 			int thread_pool_size()const;
 			String log_module() const;
+			long long query_timeout() const;
 		private:
 			Config m_config;
 		};

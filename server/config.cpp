@@ -96,3 +96,14 @@ String ServerServiceConfig::log_module() const
 	String module = m_config.value("log_module");
 	return module;
 }
+
+long long ServerServiceConfig::query_timeout() const
+{
+	String query_timeout = m_config.value("query_timeout");
+	if (query_timeout.empty() || 
+		query_timeout.length() > 7 ||
+		std::stoi(query_timeout) <= 0)
+		return 10000;
+	else
+		return std::stoi(query_timeout);
+}

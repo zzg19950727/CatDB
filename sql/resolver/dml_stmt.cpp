@@ -202,16 +202,16 @@ bool DMLStmt::find_table_id(const String &table_name, u32 &table_id)
     return find;
 }
 
-u32 DMLStmt::inner_deep_copy(DMLStmt_s stmt, QueryCtx_s &ctx, u32 flag)const
+u32 DMLStmt::inner_deep_copy(DMLStmt_s stmt, u32 flag)const
 {
     u32 ret = SUCCESS;
     MY_ASSERT(stmt);
     TableStmt_s copy_table;
     for (u32 i = 0; i < from_stmts.size(); ++i) {
-        CHECK(from_stmts[i]->deep_copy(copy_table, ctx, flag));
+        CHECK(from_stmts[i]->deep_copy(copy_table, flag));
         stmt->from_stmts.push_back(copy_table);
     }
-    CHECK(ExprUtils::deep_copy_exprs(where_stmt, stmt->where_stmt, ctx, flag));
+    CHECK(ExprUtils::deep_copy_exprs(where_stmt, stmt->where_stmt, flag));
     //CHECK(stmt_hint.deep_copy(stmt->stmt_hint));
     stmt->stmt_id = stmt_id;
     stmt->is_explain = is_explain;

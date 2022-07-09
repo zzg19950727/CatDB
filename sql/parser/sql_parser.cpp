@@ -3729,7 +3729,7 @@ namespace CatDB {
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Kill);
 		check(cmd_stmt);
-		cmd_stmt->params.kill_params.thread_id = yystack_[0].value.as< int > ();
+		cmd_stmt->params.kill_params.session_id = yystack_[0].value.as< int > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
 #line 3736 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859

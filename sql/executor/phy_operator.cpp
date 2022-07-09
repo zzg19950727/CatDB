@@ -1,7 +1,7 @@
 #include "phy_operator.h"
 #include "phy_expression.h"
 #include "object.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "error.h"
 
 using namespace CatDB::Sql;
@@ -56,7 +56,6 @@ u32 ExecCtx::set_input_rows(const Row_s &row1, const Row_s &row2)
 }
 
 PhyOperator::PhyOperator()
-	:query_ctx(NULL)
 {
 }
 
@@ -75,8 +74,12 @@ u32 PhyOperator::open()
 u32 PhyOperator::get_next_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
+	u32 i = 0;
 	while ((ret=inner_get_next_row()) == SUCCESS) {
-		CHECK(check_status());
+		++i;
+		if (!(i % 100)) {
+			CHECK(check_status())
+		}
 		CHECK(expr_filter(filters, exec_ctx));
 		if (!exec_ctx->bool_result) {
 			continue;
@@ -130,11 +133,6 @@ void PhyOperator::set_operator_id(u32 id)
 	operator_id = id;
 }
 
-void PhyOperator::set_query_ctx(QueryCtx_s &ctx) 
-{ 
-	query_ctx = ctx; 
-}
-
 void PhyOperator::set_exec_ctx(ExecCtx_s &ctx)
 {
 	exec_ctx = ExecCtx::make_exec_ctx(ctx->param_store);
@@ -156,19 +154,13 @@ void PhyOperator::set_input_rows(const Row_s &row1, const Row_s &row2)
 u32 PhyOperator::check_status()
 {
 	u32 ret = SUCCESS;
-	if (!query_ctx) {
-		ret = SUCCESS;
-	} else {
-		ret = query_ctx->check_query_status(); 
-	}
+	ret = GTX->check_query_status();
 	return ret;
 }
 
 void PhyOperator::increase_affected_rows()
 {
-	if (query_ctx) {
-		query_ctx->increase_affected_rows(); 
-	}
+	QUERY_CTX->increase_affected_rows(); 
 }
 
 SingleChildPhyOperator::SingleChildPhyOperator(const PhyOperator_s & child)

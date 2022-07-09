@@ -9,7 +9,7 @@
 #include "expr_utils.h"
 #include "join_property.def"
 #include "opt_est_info.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "error.h"
 #include "log.h"
 
@@ -458,7 +458,7 @@ u32 DMLPlan::generate_join_operator(LogicalOperator_s &left,
 {
     u32 ret = SUCCESS;
     LogJoin_s join = LogJoin::make_join(left, right, join_info.join_type, join_algo);
-    join->init(query_ctx, est_info);
+    join->init(est_info);
     join->equal_join_condition = join_info.equal_join_condition;
     join->other_join_condition = join_info.other_join_condition;
     op = join;
@@ -499,7 +499,7 @@ u32 DMLPlan::generate_join_order_with_basic_table(BasicTableStmt_s table_stmt, L
         op = LogTableScan::make_table_scan(table_stmt);
         CHECK(set_table_access_columns(op));
     }
-    op->init(query_ctx, est_info);
+    op->init(est_info);
     CHECK(add_filter(op, table_stmt->table_filter));
     CHECK(op->compute_property());
     return ret;
@@ -511,7 +511,7 @@ u32 DMLPlan::generate_join_order_with_view_table(ViewTableStmt_s table_stmt, Log
     MY_ASSERT(table_stmt);
     CHECK(generate_sub_select_plan_tree(table_stmt->ref_query, op));
     op = LogView::make_view(table_stmt, op);
-    op->init(query_ctx, est_info);
+    op->init(est_info);
     CHECK(set_table_access_columns(op));
     CHECK(add_filter(op, table_stmt->table_filter));
     CHECK(op->compute_property());
@@ -559,7 +559,7 @@ u32 DMLPlan::generate_join_order()
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
     CHECK(init_leading_info());
-    if (query_ctx->query_hint.has_leading_hint(stmt->get_qb_name())) {
+    if (QUERY_CTX->query_hint.has_leading_hint(stmt->get_qb_name())) {
         CHECK(generate_join_order_with_DP(false));
     }
     if (join_orders.size() != base_tables.size() || 
@@ -619,7 +619,7 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
     MY_ASSERT(left_level < join_orders.size(), right_level < join_orders.size());
     for (u32 i = 0; i < join_orders[left_level].size(); ++i) {
         for (u32 j = 0; j < join_orders[right_level].size(); ++j) {
-            CHECK(query_ctx->check_query_status());
+            CHECK(GTX->check_query_status());
             JoinInfo join_info;
             Vector<ConflictDetector_s> detectors;
             bool is_legal = false;
@@ -875,7 +875,7 @@ u32 DMLPlan::get_join_method(const BitSet &left_tables,
     u32 ret = SUCCESS;
     Vector<JoinHintStmt_s> join_hints;
     DMLStmt_s stmt = lex_stmt;
-    query_ctx->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
+    QUERY_CTX->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
     u32 method = 0;
     USE_ALGO(method, NL_JOIN);
     USE_ALGO(method, HASH_JOIN);
@@ -952,7 +952,7 @@ u32 DMLPlan::add_join_order(LogicalOperator_s& join_order, u32 level)
 u32 DMLPlan::generate_sub_select_plan_tree(SelectStmt_s &sub_select, LogicalOperator_s &op)
 {
     u32 ret = SUCCESS;
-	Plan_s sub_plan = Plan::make_plan(sub_select, query_ctx);
+	Plan_s sub_plan = Plan::make_plan(sub_select);
 	CHECK(sub_plan->generate_plan_tree());
     op = sub_plan->get_root_operator();
 	return ret;
@@ -1022,7 +1022,7 @@ u32 DMLPlan::generate_subquery_evaluate(LogicalOperator_s &log_op,
         subquery_evaluate = log_op;
     } else {
         subquery_evaluate = LogSubQueryEvaluate::make_subquery_evaluate(log_op);
-        subquery_evaluate->init(query_ctx, est_info);
+        subquery_evaluate->init(est_info);
         log_op = subquery_evaluate;
     }
     CHECK(generate_subquery_evaluate(subquery_exprs, subquery_evaluate));
@@ -1055,10 +1055,10 @@ u32 DMLPlan::init_leading_info()
 {
     u32 ret = SUCCESS;
     DMLStmt_s stmt = lex_stmt;
-    if (!query_ctx->query_hint.has_leading_hint(stmt->get_qb_name())) {
+    if (!QUERY_CTX->query_hint.has_leading_hint(stmt->get_qb_name())) {
         return ret;
     }
-    LeadingHintStmt_s leading_hint = query_ctx->query_hint.get_leading_hint(stmt->get_qb_name());
+    LeadingHintStmt_s leading_hint = QUERY_CTX->query_hint.get_leading_hint(stmt->get_qb_name());
     MY_ASSERT(leading_hint->tables);
     CHECK(get_leading_info(leading_hint->tables, leading_info.table_ids));
     return ret;
@@ -1099,7 +1099,7 @@ u32 DMLPlan::generate_plan_hint()
     CHECK(generate_plan_hint(root_operator, table_names, table));
     MY_ASSERT(table);
     if (!table->is_base_table) {
-        CHECK(query_ctx->query_hint.generate_leading_outline(stmt->get_qb_name(), table));
+        CHECK(QUERY_CTX->query_hint.generate_leading_outline(stmt->get_qb_name(), table));
     }
     return ret;
 }
@@ -1147,7 +1147,7 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
 
         //generate join hint
         DMLStmt_s stmt = lex_stmt;
-        CHECK(query_ctx->query_hint.generate_join_outline(stmt->get_qb_name(),
+        CHECK(QUERY_CTX->query_hint.generate_join_outline(stmt->get_qb_name(),
                                                           right_table_names,
                                                           join_op->join_algo));
     } else if (LOG_SUBQUERY_EVALUATE == op->type()) {

@@ -9,7 +9,7 @@ namespace CatDB {
         class SelectResolver : public DMLResolver
         {
         public:
-            SelectResolver(SelectStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
+            SelectResolver(SelectStmt_s &stmt, ResolveCtx &resolve_ctx);
             virtual ~SelectResolver();
             u32 resolve_stmt();
         private:
@@ -26,7 +26,7 @@ namespace CatDB {
         class SetResolver : public DMLResolver
         {
         public:
-            SetResolver(SetStmt_s &stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx);
+            SetResolver(SetStmt_s &stmt, ResolveCtx &resolve_ctx);
             ~SetResolver();
             u32 resolve_stmt();
         private:

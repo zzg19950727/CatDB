@@ -12,12 +12,11 @@
 #include "expr_stmt.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "log.h"
 
 using namespace CatDB::Transform;
 using namespace CatDB::Parser;
-using namespace CatDB::Sql;
 
 static const u32 MAX_TRANSFORM_COUNT = 10;
 

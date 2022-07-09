@@ -18,15 +18,11 @@
 #else
 #define Log(log_level, msg) 
 #endif	//DEBUG
-#define safe_return_ret {if (0 != ret) { LOG_ERR("get error code ", K(ret));} return ret;}
+
 namespace CatDB {
 	namespace Common {
 		void set_log_file(const char* file);
-		void set_debug_level(int level);
-		void set_debug_module(const String &module);
 		void log_output(int log_level, const char* file, int line, const char* function, const String& msg);
-		void set_trace_id(String &trace_id);
-		void get_trace_id(String &trace_id);
 		String lbt(); 
 	}
 }

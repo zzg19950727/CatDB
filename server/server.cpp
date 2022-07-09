@@ -2,7 +2,7 @@
 #include "schema_guard.h"
 #include "statis_manager.h"
 #include "table_space.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "loginer.h"
 #include "object.h"
 #include "server.h"
@@ -21,7 +21,7 @@ ServerService::ServerService(const String& config)
 	m_net_service(0),
 	m_workers(m_config.thread_pool_size()),
 	m_clients(0),
-	m_thread_id(0)
+	m_session_id(0)
 {
 	TableSpace::data_dir = m_config.data_dir();
 	TableSpace::recycle_dir = m_config.recycle_dir();
@@ -30,8 +30,9 @@ ServerService::ServerService(const String& config)
 	{
 		CatDB::Common::set_log_file(log_path.c_str());
 	}
-	CatDB::Common::set_debug_level(m_config.log_level());
-	CatDB::Common::set_debug_module(m_config.log_module());
+	GTX->set_session_log_level(m_config.log_level());
+	GTX->set_session_log_module(m_config.log_module());
+	GTX->set_root_session();
 }
 
 ServerService::~ServerService()
@@ -85,14 +86,14 @@ void ServerService::new_connection(int fd, NetService::Event e)
 
 void ServerService::do_login(int fd)
 {
-	Loginer loginer(m_thread_id, fd);
+	Loginer loginer(m_session_id, fd);
 	if (loginer.login() == SUCCESS) {
 		auto ptr = RequestHandle_s(new RequestHandle(fd, *this));
-		m_processlist[m_thread_id] = ptr;
-		ptr->set_login_info(loginer.get_login_info(), m_thread_id);
+		m_processlist[m_session_id] = ptr;
+		ptr->set_login_info(loginer.get_login_info(), m_session_id);
 		ptr->set_delete_handle(ptr);
 		++m_clients;
-		++m_thread_id;
+		++m_session_id;
 		LOG_TRACE("new client login", K(fd));
 	} else {
 		LOG_ERR("login failed");
@@ -118,7 +119,7 @@ void ServerService::close_connection()
 void ServerService::kill_all_process()
 {
 	for (auto iter = m_processlist.begin(); iter != m_processlist.end(); ++iter) {
-		iter->second->get_query_ctx()->killed = true;
+		iter->second->get_session_info()->kill_query();
 	}
 }
 

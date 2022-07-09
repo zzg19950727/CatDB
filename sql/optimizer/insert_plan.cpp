@@ -44,7 +44,7 @@ u32 InsertPlan::generate_value_plan_tree()
 											false));
 		}
 		root_operator = LogExprValue::make_expr_value(stmt->value_list);
-		root_operator->init(query_ctx, est_info);
+		root_operator->init(est_info);
 		CHECK(root_operator->compute_property());
 	}
 	return ret;
@@ -57,7 +57,7 @@ u32 InsertPlan::generate_plan_tree()
 	CHECK(generate_value_plan_tree());
 	root_operator = LogInsert::make_insert(root_operator,
 										   stmt->table);
-	root_operator->init(query_ctx, est_info);
+	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
 	return ret;
 }

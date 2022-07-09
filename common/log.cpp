@@ -4,43 +4,13 @@
 #include <string>
 #include <chrono>
 #include <cstdarg>
-#include <thread>
 #include <execinfo.h>
 #include "timer_manager.h"
+#include "session_info.h"
 #include "type.h"
 #include "log.h"
 
-static int LOG_SET_LEVEL = LOG_LEVEL_TRACE;
-static String LOG_MODULE = "";
-HashMap<std::thread::id, String> trace_ids;
-
 using namespace CatDB::Common;
-
-void CatDB::Common::get_trace_id(String &trace_id)
-{
-	std::thread::id id = std::this_thread::get_id();
-	if (trace_ids.find(id) != trace_ids.cend()) {
-		trace_id = trace_ids[id];
-	} else {
-		trace_id = "0000000000000000";
-	}
-}
-
-void CatDB::Common::set_trace_id(String &trace_id)
-{
-	std::thread::id id = std::this_thread::get_id();
-	CatDB::Server::DateTime::TimePoint tp = std::chrono::steady_clock::now();
-	CatDB::Server::DateTime::NanoSeconds nano(tp.time_since_epoch());
-	Hash<CatDB::Server::DateTime::Rep> func;
-	u64 value = func(nano.count());
-	static const char *hex_map = "0123456789ABCDEF";
-	trace_id.clear();
-	for (u32 i = 0; i < 16; ++i) {
-		trace_id += hex_map[value & 0xf];
-		value >>= 4;
-	}
-	trace_ids[id] = trace_id;
-}
 
 class LogStream
 {
@@ -114,9 +84,7 @@ String get_module_name(const char* function)
 
 void LogStream::print_msg(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	String trace_id;
 	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	get_trace_id(trace_id);
 	*os << "[" << put_time(t) <<"] ";
 	if (log_level == LOG_LEVEL_INFO)
 		*os << "[INFO ] ";
@@ -125,7 +93,9 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
 	String module = get_module_name(function);
-	*os << "[" << module << "] " << "[" << trace_id << "] " << "[" << file << ":" << line << "] " << "[ " << msg << " ]" << std::endl;
+	*os << "[" << module << "] " << "[" << GTX->get_trace_id() << "] " 
+	<< "[" << file << ":" << line << "] " << "[ " << msg << " ]" 
+	<< std::endl;
 	os->flush();
 }
 
@@ -134,25 +104,15 @@ void CatDB::Common::set_log_file(const char* file)
 	ostream.set_log_file(file);
 }
 
-void CatDB::Common::set_debug_level(int level)
-{
-	LOG_SET_LEVEL = level;
-}
-
-void CatDB::Common::set_debug_module(const String &module)
-{
-	LOG_MODULE = module;
-}
-
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	if (log_level > LOG_SET_LEVEL) {
+	if (log_level > GTX->get_session_log_level()) {
 		return;
-	} else if (LOG_MODULE == "ALL") {
+	} else if (GTX->get_session_log_module() == "ALL") {
 		ostream.print_msg(log_level, file, line, function, msg);
 	} else {
 		String module = get_module_name(function);
-		if (LOG_MODULE.find(module) != LOG_MODULE.npos) {
+		if (GTX->get_session_log_module().find(module) != module.npos) {
 			ostream.print_msg(log_level, file, line, function, msg);
 		}
 	}

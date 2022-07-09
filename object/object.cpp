@@ -92,13 +92,3 @@ Object_s Object::make_null_object(const DataType& type)
 	}
 	return ret;
 }
-
-bool Object::is_null() const
-{
-	return is_null_obj;
-}
-
-void Object::set_null(const bool value)
-{
-	is_null_obj = value;
-}

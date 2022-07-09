@@ -67,15 +67,19 @@ u32 PhySort::quick_sort(Vector<Row_s> &arr, int begin, int end)
 {
 	u32 ret = SUCCESS;
 	//如果区间不只一个数
+	u32 x = 0;
 	if(begin < end)
 	{
 		Row_s temp = arr[begin]; //将区间的第一个数作为基准数
 		int i = begin; //从左到右进行查找时的“指针”，指示当前左位置
 		int j = end; //从右到左进行查找时的“指针”，指示当前右位置
 		//不重复遍历
+		++x;
+		if (!(x % 10)) {
+			CHECK(check_status());
+		}
 		while(i < j)
 		{
-			CHECK(check_status());
 			//当右边的数大于基准数时，略过，继续向左查找
 			//不满足条件时跳出循环，此时的j对应的元素是小于基准元素的
 			while(i<j && compare(arr[j], temp)) {

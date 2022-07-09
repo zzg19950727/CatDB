@@ -14,7 +14,6 @@ namespace CatDB {
 		DECLARE(PhyOperator);
 		DECLARE(Expression);
 		DECLARE(PhyFilter);
-		DECLARE(QueryCtx);
 		
 		DECLARE(ExecCtx);
 		DECLARE(ParamStore);
@@ -87,7 +86,6 @@ namespace CatDB {
 			void set_null_values(const Vector<Object_s> &null_values);
 			u32 set_filter(const Vector<Expression_s>& filter);
 			void set_operator_id(u32 id);
-			void set_query_ctx(QueryCtx_s &ctx);
 			void set_exec_ctx(ExecCtx_s &ctx);
 			void set_input_rows(const Row_s &row);
 			void set_input_rows(const Row_s &row1, const Row_s &row2);
@@ -101,7 +99,6 @@ namespace CatDB {
 			Vector<Expression_s> filters;
 			Row_s cur_row;
             u32 operator_id;
-			QueryCtx_s query_ctx;
 			ExecCtx_s exec_ctx;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)

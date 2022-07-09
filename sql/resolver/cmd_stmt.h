@@ -39,7 +39,7 @@ namespace CatDB {
             u32 get_use_database_params(String &database);
             u32 get_analyze_params(String &database, String &table, double &sample_size);
             u32 get_set_var_params(String &var_name, String &var_value);
-            u32 get_kill_params(int &thread_id);
+            u32 get_kill_params(int &session_id);
             u32 get_create_view_params(String &database,
                                     String &view_name,
                                     Vector<String> &column_define,
@@ -137,11 +137,11 @@ namespace CatDB {
                         K(var_value)
                     );
                 } set_var_params;
-                //kill thread_id
+                //kill session_id
                 struct {
-                    int thread_id;
+                    int session_id;
                     KV_STRING(
-                        K(thread_id)
+                        K(session_id)
                     );
                 } kill_params;
                 //create view

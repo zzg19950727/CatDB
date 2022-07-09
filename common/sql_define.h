@@ -250,4 +250,12 @@ ENUM_DEFINE(TimeType,
 			);
 enum OBJ_TYPE {T_NUMBER = 0, T_VARCHAR, T_DATETIME, T_BOOL, T_MAX_TYPE};
 static const char* obj_type_str[] = {"NUMBER", "VARCHAR", "DATETIME", "BOOL", "INVALID_TYPE"};
+
+ENUM_DEFINE(SessionStatus,
+			IVALID,
+			PING,
+			DO_QUERY,
+			DO_CMD,
+			SLEEP
+		);
 #endif //SQL_DEFINE_H

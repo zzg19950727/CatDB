@@ -8,12 +8,8 @@ namespace CatDB {
 	namespace Common {
 		DECLARE(Object);
 	}
-	namespace Sql {
-		DECLARE(QueryCtx);
-	}
 	namespace Parser {
 		using Common::Object_s;
-		using Sql::QueryCtx_s;
 		using Common::DataType;
 		DECLARE(Stmt);
 		DECLARE(SelectStmt);
@@ -36,7 +32,7 @@ namespace CatDB {
 			virtual String to_string()const = 0;
 			virtual u32 formalize() = 0;
 			virtual u32 deduce_type();
-			virtual u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const;
+			virtual u32 deep_copy(ExprStmt_s &expr, u32 flag)const;
 			virtual bool same_as(const ExprStmt_s &other) { return false;}
 			//expr flag interface
 			bool has_flag(StmtFlag flag) const { return flag == is_flag || flags.has_member(u32(flag)); }
@@ -78,7 +74,7 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_const_stmt(const Object_s& value);
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			u32 formalize() override;
 			u32 deduce_type() override;
@@ -102,7 +98,7 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_exec_param_stmt(u32 index);
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			u32 formalize() override;
 			u32 get_param_index() const { return param_index; }
@@ -136,7 +132,7 @@ namespace CatDB {
 			bool is_all_column()const;
 			void set_row_id() { is_row_id = true; }
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(flags, flags_to_string()),
@@ -168,7 +164,7 @@ namespace CatDB {
 			void set_index(u32 idx) { index = idx; }
 			u32 get_index() const { return index; }
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s& other) override;
 			KV_STRING_OVERRIDE(
 				KV(type, SetOpTypeString[type]),
@@ -194,7 +190,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deduce_type() override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			void add_related_exprs(ExprStmt_s &related_expr, ExecParamStmt_s &exec_param);
 			void set_subquery_id(u32 id) { subquery_id = id; }
@@ -220,7 +216,7 @@ namespace CatDB {
 			ExprType expr_type()const override;
 			static ExprStmt_s make_list_stmt();
 			String to_string()const override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			u32 size() const { return params.size(); }
 			ExprStmt_s& at(u32 i) { return params[i]; }
 			void push_back(const ExprStmt_s &expr) { params.push_back(expr); }
@@ -247,7 +243,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deduce_type() override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			void set_aggr_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_aggr_expr() const;
@@ -278,7 +274,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deduce_type() override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			
 			KV_STRING_OVERRIDE(
@@ -304,7 +300,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deduce_type() override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			void set_order_by_expr(const ExprStmt_s& expr);
 			ExprStmt_s get_order_by_expr() const;
@@ -330,7 +326,7 @@ namespace CatDB {
 			String to_string()const override;
 			u32 formalize() override;
 			u32 deduce_type() override;
-			u32 deep_copy(ExprStmt_s &expr, QueryCtx_s &ctx, u32 flag)const override;
+			u32 deep_copy(ExprStmt_s &expr, u32 flag)const override;
 			bool same_as(const ExprStmt_s &other) override;
 			void set_win_func_expr(const ExprStmt_s& expr);
 			const ExprStmt_s& get_win_func_expr() const;

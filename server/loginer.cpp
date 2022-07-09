@@ -70,7 +70,7 @@ int Loginer::handshake()
 	int ret = SUCCESS;
 	HandshakePacket packet;
 
-	packet.set_thread_id(client_id);
+	packet.set_session_id(client_id);
 	Buffer_s buffer = Buffer::make_buffer(MAX_LEN);
 	int64_t pos = 0;
 	ret = packet.serialize((char*)buffer->buf, buffer->length, pos);

@@ -5,7 +5,6 @@
 #include "select_plan.h"
 #include "cmd_plan.h"
 #include "expr_stmt.h"
-#include "query_ctx.h"
 #include "plan.h"
 #include "stmt.h"
 #include "error.h"
@@ -23,7 +22,7 @@ Plan::~Plan()
 {
 }
 
-Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx_s &ctx)
+Plan_s Plan::make_plan(const Stmt_s& lex_stmt)
 {
 	if (!lex_stmt) {
 		return Plan_s();
@@ -50,7 +49,6 @@ Plan_s Plan::make_plan(const Stmt_s& lex_stmt, QueryCtx_s &ctx)
 		plan = CMDPlan::make_cmd_plan(lex_stmt);
 		break;
 	}
-	plan->query_ctx = ctx;
 	return plan;
 }
 

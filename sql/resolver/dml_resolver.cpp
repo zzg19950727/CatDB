@@ -15,7 +15,7 @@
 #include "expr_utils.h"
 #include "table_stmt.h"
 #include "dml_stmt.h"
-#include "query_ctx.h"
+#include "session_info.h"
 #include "stmt.h"
 #include "obj_number.h"
 #include "object.h"
@@ -24,14 +24,13 @@ using namespace CatDB::Parser;
 using namespace CatDB::Common;
 using namespace CatDB::Sql;
 
-DMLResolver::DMLResolver(DMLStmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
+DMLResolver::DMLResolver(DMLStmt_s stmt, ResolveCtx &resolve_ctx)
     :stmt(stmt),
-    query_ctx(query_ctx),
     resolve_ctx(resolve_ctx),
     can_use_aggr_func(false)
 {
     resolve_ctx.cur_tables.clear();
-    stmt->stmt_id = query_ctx->generate_stmt_id();
+    stmt->stmt_id = QUERY_CTX->generate_stmt_id();
 }
 
 DMLResolver::~DMLResolver()
@@ -39,7 +38,7 @@ DMLResolver::~DMLResolver()
 
 }
 
-u32 DMLResolver::resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &resolve_ctx)
+u32 DMLResolver::resolve_stmt(Stmt_s stmt, ResolveCtx &resolve_ctx)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(stmt);
@@ -47,35 +46,35 @@ u32 DMLResolver::resolve_stmt(Stmt_s stmt, QueryCtx_s &query_ctx, ResolveCtx &re
         case Select:
         {
             SelectStmt_s select_stmt = stmt;
-            SelectResolver resolver(select_stmt, query_ctx, resolve_ctx);
+            SelectResolver resolver(select_stmt, resolve_ctx);
             CHECK(resolver.resolve_stmt());
             break;
         }
         case Update:
         {
             UpdateStmt_s update_stmt = stmt;
-            UpdateResolver resolver(update_stmt, query_ctx, resolve_ctx);
+            UpdateResolver resolver(update_stmt, resolve_ctx);
             CHECK(resolver.resolve_stmt());
             break;
         }
         case Delete:
         {
             DeleteStmt_s delete_stmt = stmt;
-            DeleteResolver resolver(delete_stmt, query_ctx, resolve_ctx);
+            DeleteResolver resolver(delete_stmt, resolve_ctx);
             CHECK(resolver.resolve_stmt());
             break;
         }
         case Insert:
         {
             InsertStmt_s insert_stmt = stmt;
-            InsertResolver resolver(insert_stmt, query_ctx, resolve_ctx);
+            InsertResolver resolver(insert_stmt, resolve_ctx);
             CHECK(resolver.resolve_stmt());
             break;
         }
         case SetOperation:
         {
             SetStmt_s set_stmt = stmt;
-            SetResolver resolver(set_stmt, query_ctx, resolve_ctx);
+            SetResolver resolver(set_stmt, resolve_ctx);
             CHECK(resolver.resolve_stmt());
             break;
         }
@@ -135,11 +134,11 @@ u32 DMLResolver::resolve_basic_table_item(TableStmt_s& table)
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
         String err_msg = "table " + table_stmt->alias_name + " exists";
-        query_ctx->set_error_msg(err_msg);
+        QUERY_CTX->set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else if (table_stmt->is_dual) {
-        table_stmt->table_id = query_ctx->generate_table_id();
+        table_stmt->table_id = QUERY_CTX->generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
     } else {
         SchemaChecker_s checker = SchemaChecker::make_schema_checker();
@@ -148,7 +147,7 @@ u32 DMLResolver::resolve_basic_table_item(TableStmt_s& table)
                                     table_stmt->ref_table_id));
         if (FAIL(ret)) {
             String err_msg = "table " + table_stmt->alias_name + " not exists";
-            query_ctx->set_error_msg(err_msg);
+            QUERY_CTX->set_error_msg(err_msg);
             return ret;
         }
         bool is_view = false;
@@ -158,7 +157,7 @@ u32 DMLResolver::resolve_basic_table_item(TableStmt_s& table)
         if (is_view) {
             CHECK(resolve_user_view(table));
         }
-        table->table_id = query_ctx->generate_table_id();
+        table->table_id = QUERY_CTX->generate_table_id();
         resolve_ctx.cur_tables.push_back(table);
     }
     return ret;
@@ -176,7 +175,7 @@ u32 DMLResolver::resolve_user_view(TableStmt_s& table)
                                         table_stmt->table_name,
                                         define_sql));
     ResolveCtx temp_ctx;
-    CHECK(SqlEngine::handle_user_view(define_sql, query_ctx, &temp_ctx, ref_query));
+    CHECK(SqlEngine::handle_user_view(define_sql, &temp_ctx, ref_query));
     append(resolve_ctx.all_hints, temp_ctx.all_hints);
     ViewTableStmt_s view_table = ViewTableStmt::make_view_table(ref_query);
     view_table->alias_name = table->alias_name;
@@ -211,11 +210,11 @@ u32 DMLResolver::resolve_view_table_item(ViewTableStmt_s table_stmt)
     MY_ASSERT(table_stmt);
     if (find_table_name(table_stmt->alias_name)) {
         String err_msg = "table " + table_stmt->alias_name + " exists";
-        query_ctx->set_error_msg(err_msg);
+        QUERY_CTX->set_error_msg(err_msg);
         LOG_ERR("same alias table in from list", K(table_stmt));
         ret = NOT_UNIQUE_TABLE;
     } else {
-        table_stmt->table_id = query_ctx->generate_table_id();
+        table_stmt->table_id = QUERY_CTX->generate_table_id();
         resolve_ctx.cur_tables.push_back(table_stmt);
         ResolveCtx temp_ctx;
         append(temp_ctx.parent_tables, resolve_ctx.parent_tables);
@@ -448,7 +447,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
                 ret = resolve_column(resolve_ctx.parent_tables[i], column);
                 if (ret == SUCCESS) {
                     find = true;
-                    u32 param_index = query_ctx->generate_param_index();
+                    u32 param_index = QUERY_CTX->generate_param_index();
                     ExecParamStmt_s exec_param = ExecParamStmt::make_exec_param_stmt(param_index);
                     exec_param->res_type = column->res_type;
                     ExecParamHelper helper;
@@ -474,7 +473,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
         if (find_cnt > 1) {
             ret = ERROR_LEX_STMT;
             String err_msg = "column " + column->column + " exists in multi table";
-            query_ctx->set_error_msg(err_msg);
+            QUERY_CTX->set_error_msg(err_msg);
             return ret;
         }
         if (find_cnt == 1) {
@@ -485,7 +484,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
             if (ret == SUCCESS) {
                 find = true;
                 column->table = resolve_ctx.parent_tables[i]->alias_name;
-                u32 param_index = query_ctx->generate_param_index();
+                u32 param_index = QUERY_CTX->generate_param_index();
                 ExecParamStmt_s exec_param = ExecParamStmt::make_exec_param_stmt(param_index);
                 exec_param->res_type = column->res_type;
                 ExecParamHelper helper;
@@ -501,7 +500,7 @@ u32 DMLResolver::resolve_column(ExprStmt_s &expr_stmt, ResolveCtx &resolve_ctx)
     if (!find) {
         ret = ERROR_LEX_STMT;
         String err_msg = "column " + column->column + " not exists";
-        query_ctx->set_error_msg(err_msg);
+        QUERY_CTX->set_error_msg(err_msg);
     }
     return ret;
 }
@@ -515,12 +514,12 @@ u32 DMLResolver::resolve_column(TableStmt_s &table, ColumnStmt_s &column)
     } else if (table->is_view_table()) {
         if (FAIL(resolve_column_from_view(table, column))) {
             String err_msg = "column " + column->table + "." + column->column + " not exists";
-            query_ctx->set_error_msg(err_msg);
+            QUERY_CTX->set_error_msg(err_msg);
         }
     } else if (table->is_basic_table()) {
         if (FAIL(resolve_column_from_basic_table(table, column))) {
             String err_msg = "column " + column->table + "." + column->column + " not exists";
-            query_ctx->set_error_msg(err_msg);
+            QUERY_CTX->set_error_msg(err_msg);
         }
     } else {
         LOG_ERR("unknown table type", K(table));
@@ -577,7 +576,7 @@ u32 DMLResolver::resolve_column_from_view(ViewTableStmt_s table, ColumnStmt_s &c
 u32 DMLResolver::resolve_subquery(SelectStmt_s& query_stmt, ResolveCtx &ctx)
 {
     u32 ret = SUCCESS;
-    CHECK(resolve_stmt(query_stmt, query_ctx, ctx));
+    CHECK(resolve_stmt(query_stmt, ctx));
     append(resolve_ctx.all_hints, ctx.all_hints);
     return ret;
 }

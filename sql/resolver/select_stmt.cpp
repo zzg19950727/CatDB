@@ -74,17 +74,17 @@ u32 SelectStmt::formalize()
 	return ret;
 }
 
-u32 SelectStmt::deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const
+u32 SelectStmt::deep_copy(SelectStmt_s &stmt, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	stmt = make_select_stmt();
-	CHECK(inner_deep_copy(stmt, ctx, flag));
+	CHECK(inner_deep_copy(stmt, flag));
 	stmt->is_distinct = is_distinct;
 	stmt->limit_stmt = limit_stmt;
-	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, ctx, flag));
-	CHECK(ExprUtils::deep_copy_exprs(group_exprs, stmt->group_exprs, ctx, flag));
-	CHECK(ExprUtils::deep_copy_exprs(having_stmt, stmt->having_stmt, ctx, flag));
-	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, ctx, flag));
+	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, flag));
+	CHECK(ExprUtils::deep_copy_exprs(group_exprs, stmt->group_exprs, flag));
+	CHECK(ExprUtils::deep_copy_exprs(having_stmt, stmt->having_stmt, flag));
+	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, flag));
 	return ret;
 }
 
@@ -184,18 +184,18 @@ u32 SetStmt::formalize()
 	return ret;
 }
 
-u32 SetStmt::deep_copy(SelectStmt_s &stmt, QueryCtx_s &ctx, u32 flag)const
+u32 SetStmt::deep_copy(SelectStmt_s &stmt, u32 flag)const
 {
 	u32 ret = SUCCESS;
 	SelectStmt_s copy_left_query;
 	SelectStmt_s copy_right_query;
-	CHECK(left_query->deep_copy(copy_left_query, ctx, flag));
-	CHECK(right_query->deep_copy(copy_right_query, ctx, flag));
+	CHECK(left_query->deep_copy(copy_left_query, flag));
+	CHECK(right_query->deep_copy(copy_right_query, flag));
 	stmt = make_set_stmt(copy_left_query, copy_right_query, set_op);
-	CHECK(inner_deep_copy(stmt, ctx, flag));
+	CHECK(inner_deep_copy(stmt, flag));
 	stmt->limit_stmt = limit_stmt;
-	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, ctx, flag));
-	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, ctx, flag));
+	CHECK(ExprUtils::deep_copy_exprs(select_expr_list, stmt->select_expr_list, flag));
+	CHECK(ExprUtils::deep_copy_exprs(order_exprs, stmt->order_exprs, flag));
 	return ret;
 }
 

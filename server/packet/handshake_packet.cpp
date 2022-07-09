@@ -9,7 +9,7 @@ HandshakePacket::HandshakePacket()
 {
 	protocol_version_ = 10;//Protocol::HandshakeV10
 	server_version_ = "CatDB 1.0";
-	thread_id_ = 0;
+	session_id_ = 0;
 	memset(scramble_buff_, 'a', 8);
 	filler_ = 0;
 	//0xF7FF, 多个flag的组合，其中支持4.1 协议的flag置了1,
@@ -53,10 +53,10 @@ int HandshakePacket::serialize(char* buffer, int64_t len, int64_t &pos)
 			LOG_ERR("serialize packet server_version failed, buffer=%p, length=%ld,"
 				"server_version length=%d, pos=%ld", buffer, len, server_version_.length(), pos);
 		}
-		else if (SUCCESS != (ret = Util::store_int4(buffer, len, thread_id_, pos)))
+		else if (SUCCESS != (ret = Util::store_int4(buffer, len, session_id_, pos)))
 		{
-			LOG_ERR("serialize packet thread_id failed, buffer=%p, length=%ld,"
-				"thread_id=%d, pos=%ld", buffer, len, thread_id_, pos);
+			LOG_ERR("serialize packet session_id failed, buffer=%p, length=%ld,"
+				"session_id=%d, pos=%ld", buffer, len, session_id_, pos);
 		}
 
 		//make sure buffer + pos + SCRAMBLE_SIZE < buffer + length

@@ -49,7 +49,7 @@ namespace CatDB {
 			virtual u32 inner_get_stmt_exprs(Vector<ExprStmt_s> &exprs);
 			virtual u32 inner_replace_stmt_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                    				 const Vector<ExprStmt_s> &new_exprs);
-			u32 inner_deep_copy(DMLStmt_s stmt, QueryCtx_s &ctx, u32 flag)const;
+			u32 inner_deep_copy(DMLStmt_s stmt, u32 flag)const;
 
 		public:
 			VIRTUAL_KV_STRING_OVERRIDE(
