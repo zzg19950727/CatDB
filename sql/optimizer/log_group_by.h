@@ -12,7 +12,8 @@ namespace CatDB {
 		{
 		public:
 			LogGroupBy(const LogicalOperator_s& child)
-                :SingleChildLogicalOperator(child) {}
+                :SingleChildLogicalOperator(child),
+				distinct_rows(1) {}
 			virtual ~LogGroupBy() {}
 			virtual u32 type() const override{return LOG_GROUP_BY;}
 			static LogicalOperator_s make_group_by(const LogicalOperator_s& child,
@@ -25,6 +26,7 @@ namespace CatDB {
 		public:
 			Vector<ExprStmt_s> group_by_exprs;
 			Vector<ExprStmt_s> agg_items;
+			double distinct_rows;
 		};
 	}
 }

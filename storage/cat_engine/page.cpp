@@ -116,14 +116,15 @@ u32 Page::close()
 u32 Page::get_next_row(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	while (row_idx_ < page_header_->row_count && is_row_deleted(row_info_ + row_idx_)) {
+	while (row_idx_ < page_header_->row_count && is_row_deleted(row_info_ + get_idx_from_row_id(row_idx_))) {
 		++row_idx_;
 	}
 	if (row_idx_ >= page_header_->row_count) {
 		return NO_MORE_ROWS;
 	}
-	u32 row_id = get_row_id_from_idx(row_idx_, page_offset());
-	CHECK(deserialize_row(&row_info_[row_idx_], row_id, row));
+	u32 row_id = get_row_id_from_idx(row_idx_);
+	u32 idx = get_idx_from_row_id(row_idx_);
+	CHECK(deserialize_row(&row_info_[idx], row_id, row));
 	++row_idx_;
 	return ret;
 }
@@ -176,6 +177,11 @@ u32 Page::delete_row(u32 row_id)
 u32 Page::deserialize_row(RowInfo * row_info, u32 row_id, Row_s & row)const
 {
 	u32 ret = SUCCESS;
+	if (is_row_deleted(row_info)) {
+		LOG_ERR("get deleted row", K(row_id));
+		ret = ERR_UNEXPECTED;
+		return ret;
+	}
 	//定位目标记录
 	RawRecord* record = RawRecord::make_raw_record(records_space_ + row_info->offset);
 	//反序列化所需的列
@@ -198,7 +204,7 @@ u32 Page::deserialize_row(RowInfo * row_info, u32 row_id, Row_s & row)const
 			Object_s row_id_value = Number::make_int_object(row_id);
 			row->set_cell(i, row_id_value);
 		} else {
-			LOG_ERR("row desc error when project row", K(col_desc));
+			LOG_ERR("row desc error when project row", K(row_id), K(col_desc));
 			return ERR_ROW_DESC;
 		}
 	}

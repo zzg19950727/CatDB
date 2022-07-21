@@ -174,7 +174,7 @@ u32 CatTableSpace::get_next_row(Row_s & row)
 	}
 	u32 ret = SUCCESS;
 	MY_ASSERT(cur_page);
-	while (NO_MORE_ROWS == cur_page->get_next_row(row)) {
+	while (NO_MORE_ROWS == (ret=cur_page->get_next_row(row))) {
 		LOG_TRACE("page have read end, load next page", K(cur_page));
 		//读取下一页
 		if (0 == page_skip_size) {

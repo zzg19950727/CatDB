@@ -12,7 +12,8 @@ namespace CatDB {
 		{
 		public:
 			LogSet(const LogicalOperator_s& left, const LogicalOperator_s& right)
-                :DoubleChildLogicalOperator(left, right) {}
+                :DoubleChildLogicalOperator(left, right),
+				distinct_rows(1) {}
 			virtual ~LogSet() {}
 			virtual u32 type() const override{return LOG_SET;}
 			static LogicalOperator_s make_set_op(const LogicalOperator_s& left,
@@ -23,6 +24,7 @@ namespace CatDB {
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
 		public:
 			SetOpType set_type;
+			double distinct_rows;
 		};
 	}
 }

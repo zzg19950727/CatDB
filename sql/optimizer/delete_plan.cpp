@@ -37,7 +37,7 @@ u32 DeletePlan::generate_plan_tree()
 	CHECK(generate_join_order());
 	bool is_delete_all = false;
 	if (stmt->where_stmt.empty() && stmt->from_stmts.size() == 1) {
-		is_delete_all = stmt->from_stmts[0]->same_as(stmt->table);
+		is_delete_all = true;
 	} else {
 		root_operator = LogDistinct::make_distinct(root_operator);
 		root_operator->init(est_info);

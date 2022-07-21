@@ -19,12 +19,14 @@ namespace CatDB {
 			PhyHashSetOp() = delete;
 			PhyHashSetOp(PhyOperator_s& first_child,
 					  PhyOperator_s& second_child,
-					  SetOpType type);
+					  SetOpType type,
+					  double distinct_rows);
 		public:
 			~PhyHashSetOp();
 			static PhyOperator_s make_hash_setop(PhyOperator_s& first_child,
 												 PhyOperator_s& second_child,
-												 SetOpType type);
+												 SetOpType type,
+												 double distinct_rows);
 
 			//物理算子必须提供的接口
 			u32 inner_open() override;
@@ -41,6 +43,7 @@ namespace CatDB {
 			HashTable_s hash_table;
 			bool init_hash_table;
 			SetOpType set_type;
+			double distinct_rows;
 		};
 	}
 }

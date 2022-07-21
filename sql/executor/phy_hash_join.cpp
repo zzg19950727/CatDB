@@ -10,7 +10,8 @@ using namespace CatDB::Common;
 
 PhyHashJoin::PhyHashJoin(const PhyOperator_s & left_child, const PhyOperator_s & right_child)
 	:JoinPhyOperator(left_child, right_child),
-	state(BUILD_HASH_TABLE)
+	state(BUILD_HASH_TABLE),
+	left_distinct_rows(1)
 {
 	hash_join_func[Inner][BUILD_HASH_TABLE] = &PhyHashJoin::build_hash_table;
 	hash_join_func[Inner][PROBE_HASH_TABLE] = &PhyHashJoin::probe_hash_table;
@@ -77,13 +78,15 @@ PhyOperator_s PhyHashJoin::make_hash_join(const PhyOperator_s & left_child,
 	const PhyOperator_s & right_child,
 	const Vector<Expression_s>& other_join_cond,
 	const Vector<Expression_s> &hash_exprs,
-	const Vector<Expression_s> &prob_exprs)
+	const Vector<Expression_s> &prob_exprs,
+	double left_distinct_rows)
 {
 	PhyHashJoin* op = new PhyHashJoin(left_child, right_child);
+	op->left_distinct_rows = left_distinct_rows;
 	op->hash_exprs = hash_exprs;
 	op->prob_exprs = prob_exprs;
 	op->other_conditions = other_join_cond;
-	op->hash_table = HashTable::make_hash_table();
+	op->hash_table = HashTable::make_hash_table(left_distinct_rows);
 	op->hash_table->set_hash_exprs(hash_exprs);
 	op->hash_table->set_probe_exprs(prob_exprs);
 	op->hash_table->set_null_safe(false);

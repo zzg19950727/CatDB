@@ -5,15 +5,18 @@
 namespace CatDB {
 	namespace Common {
 		DECLARE(Row);
+		DECLARE(Object);
 	}
 	namespace Sql {
 		using Common::Row_s;
+		using Common::Object_s;
 		DECLARE(Expression);
 		DECLARE(ExecCtx);
 		DECLARE(HashTable);
 
 		class HashTable {
 		private:
+			typedef Vector<Object_s> Key;
 			struct RowNode {
 				RowNode(const Row_s &row)
 					:next(NULL),
@@ -31,7 +34,7 @@ namespace CatDB {
 					:next(NULL),
 					head(NULL)
 				{}
-
+				Key key;
 				BucketNode *next;
 				RowNode *head;
 			};
@@ -124,9 +127,9 @@ namespace CatDB {
 				BucketNode *bucket_node;
 			};
 		public:
-			HashTable(u32 bucket_num =10000);
+			HashTable(u32 bucket_num =50000);
 			~HashTable();
-			static HashTable_s make_hash_table(u32 bucket_num =10000);
+			static HashTable_s make_hash_table(u32 bucket_num =50000);
 			void reset();
 			void set_exec_ctx(const ExecCtx_s& ctx);
 			void set_null_safe(bool value) { null_safe = value; }
@@ -148,9 +151,10 @@ namespace CatDB {
 			}
 
 		private:
-			u32 hash(Vector<Expression_s>& exprs, const Row_s& row);
-			u32 equal(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
-			u32 equal_bucket(const Row_s& lhs, const Row_s& rhs, bool &is_valid);
+			u32 get_hash_key(const Row_s &row, Key &key);
+			u32 get_probe_key(const Row_s &row, Key &key);
+			u32 hash(const Key& key);
+			u32 equal(const Key& lhs, const Key& rhs, bool &is_valid);
 
 			TableType buckets;
 			Vector<Expression_s> hash_exprs;

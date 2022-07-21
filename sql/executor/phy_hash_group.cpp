@@ -10,7 +10,8 @@ using namespace CatDB::Sql;
 PhyHashGroup::PhyHashGroup(PhyOperator_s & child,
 						const Vector<Expression_s>& agg_funcs)
 	:SingleChildPhyOperator(child),
-	AggregateExpCalculator(agg_funcs)
+	AggregateExpCalculator(agg_funcs),
+	distinct_rows(1)
 {
 	is_build_hash_table = false;
 }
@@ -21,10 +22,12 @@ PhyHashGroup::~PhyHashGroup()
 
 PhyOperator_s PhyHashGroup::make_hash_group(PhyOperator_s & child,
 	const Vector<Expression_s>& group_exprs,
-	const Vector<Expression_s>& agg_funcs)
+	const Vector<Expression_s>& agg_funcs,
+	double distinct_rows)
 {
 	PhyHashGroup* op = new PhyHashGroup(child, agg_funcs);
-	op->hash_table = HashTable::make_hash_table();
+	op->distinct_rows = distinct_rows;
+	op->hash_table = HashTable::make_hash_table(distinct_rows);
 	op->hash_table->set_hash_exprs(group_exprs);
 	op->hash_table->set_probe_exprs(group_exprs);
 	return PhyOperator_s(op);

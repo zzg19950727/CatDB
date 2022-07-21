@@ -337,6 +337,7 @@ u32 RequestHandle::do_cmd_query(const String& query)
 			ret = send_error_packet(ret, session_info->get_err_msg(ret));
 		}
 	}
+	session_info->end_query();
 	return ret;
 }
 
@@ -382,20 +383,22 @@ void RequestHandle::handle_request(char* buf, size_t len)
 		{
 			session_info->begin_query(PING, "");
 			send_ok_packet();
+			session_info->end_query();
 			break;
 		}
 		case COM_FIELD_LIST:
 		{
 			session_info->begin_query(DO_CMD, "");
 			do_not_support();
+			session_info->end_query();
 			break;
 		}
 		default:
 		{
 			session_info->begin_query(DO_CMD, "");
 			do_not_support();
+			session_info->end_query();
 		}
 	}
-	session_info->end_query();
 }
 

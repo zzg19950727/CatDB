@@ -17,7 +17,8 @@ namespace CatDB {
 		public:
 			LogSort(LogicalOperator_s &child)
                 :SingleChildLogicalOperator(child),
-				top_n(0) {}
+				top_n(0),
+				distinct_rows(1) {}
 			virtual ~LogSort() {}
 			virtual u32 type() const override{return LOG_SORT;}
 			static LogicalOperator_s make_sort(LogicalOperator_s &child,
@@ -34,6 +35,7 @@ namespace CatDB {
 			Vector<ExprStmt_s> partition_keys;
 			Vector<OrderStmt_s> sort_keys;
 			u32 top_n;
+			double distinct_rows;
 		};
 	}
 }

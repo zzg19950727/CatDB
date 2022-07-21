@@ -178,7 +178,7 @@ u32 CodeGenerator::generate_distinct_op(ExprGenerateCtx &ctx, LogDistinct_s log_
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
-    phy_op = PhyHashDistinct::make_hash_distinct(ctx.child_ops[0]);
+    phy_op = PhyHashDistinct::make_hash_distinct(ctx.child_ops[0], log_op->distinct_rows);
 	return ret;
 }
 
@@ -218,7 +218,8 @@ u32 CodeGenerator::generate_group_by_op(ExprGenerateCtx &ctx, LogGroupBy_s log_o
     }
     phy_op = PhyHashGroup::make_hash_group(ctx.child_ops[0], 
                                            rt_group_exprs, 
-                                           rt_aggr_items);
+                                           rt_aggr_items,
+                                           log_op->distinct_rows);
 	return ret;
 }
 
@@ -282,7 +283,8 @@ u32 CodeGenerator::generate_hash_join_op(ExprGenerateCtx &ctx, LogJoin_s log_op,
                                                       ctx.child_ops[1], 
                                                       rt_other_join_conds,
                                                       rt_hash_exprs,
-                                                      rt_prob_exprs);
+                                                      rt_prob_exprs,
+                                                      log_op->left_distinct_rows);
     hash_op->set_join_type(log_op->join_type);
     phy_op = hash_op;
 	return ret;
@@ -334,7 +336,8 @@ u32 CodeGenerator::generate_set_op(ExprGenerateCtx &ctx, LogSet_s log_op, PhyOpe
     MY_ASSERT(log_op, ctx.child_ops.size() == 2);
     phy_op = PhyHashSetOp::make_hash_setop(ctx.child_ops[0],
                                            ctx.child_ops[1],
-                                           log_op->set_type);
+                                           log_op->set_type,
+                                           log_op->distinct_rows);
 	return ret;
 }
 
@@ -397,7 +400,11 @@ u32 CodeGenerator::generate_partition_sort_op(ExprGenerateCtx &ctx, LogSort_s lo
     }
     CHECK(ExprGenerator::generate_exprs(ctx, sort_exprs, rt_sort_exprs));
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->partition_keys, rt_partition_exprs));
-    phy_op = PhyPartitionSort::make_partition_sort(ctx.child_ops[0], rt_sort_exprs, asc, rt_partition_exprs);
+    phy_op = PhyPartitionSort::make_partition_sort(ctx.child_ops[0], 
+                                                   rt_sort_exprs, 
+                                                   asc, 
+                                                   rt_partition_exprs,
+                                                   log_op->distinct_rows);
 	return ret;
 }
 

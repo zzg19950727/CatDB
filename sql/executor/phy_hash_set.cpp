@@ -10,9 +10,11 @@ using namespace CatDB::Sql;
 
 CatDB::Sql::PhyHashSetOp::PhyHashSetOp(PhyOperator_s& first_child,
 								 PhyOperator_s& second_child,
-								 SetOpType type)
+								 SetOpType type,
+								 double distinct_rows)
 	:DoubleChildPhyOperator(first_child, second_child),
-	set_type(type)
+	set_type(type),
+	distinct_rows(distinct_rows)
 {
 	init_hash_table = false;
 }
@@ -23,12 +25,19 @@ CatDB::Sql::PhyHashSetOp::~PhyHashSetOp()
 
 PhyOperator_s CatDB::Sql::PhyHashSetOp::make_hash_setop(PhyOperator_s & first_child,
 													 PhyOperator_s & second_child,
-													 SetOpType type)
+													 SetOpType type,
+													 double distinct_rows)
 {
 	if (EXCEPT == type) {
-		return PhyOperator_s(new PhyHashSetOp(second_child, first_child, type));
+		return PhyOperator_s(new PhyHashSetOp(second_child, 
+											  first_child, 
+											  type, 
+											  distinct_rows));
 	} else {
-		return PhyOperator_s(new PhyHashSetOp(first_child, second_child, type));
+		return PhyOperator_s(new PhyHashSetOp(first_child, 
+											  second_child, 
+											  type, 
+											  distinct_rows));
 	}
 }
 
@@ -37,7 +46,7 @@ u32 CatDB::Sql::PhyHashSetOp::inner_open()
 	u32 ret = SUCCESS;
 	CHECK(right_child->open());
 	CHECK(left_child->open());
-	hash_table = HashTable::make_hash_table();
+	hash_table = HashTable::make_hash_table(distinct_rows);
 	hash_table->set_exec_ctx(exec_ctx);
 	return ret;
 }

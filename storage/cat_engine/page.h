@@ -100,13 +100,13 @@ namespace CatDB {
 			{
 				return (row_id >> 10);
 			}
-			inline static u32 get_idx_from_row_id(u32 row_id)
+			inline u32 get_idx_from_row_id(u32 row_id)const
 			{
-				return row_id & 0x3FF;
+				return page_header_->row_count - (row_id & 0x3FF) - 1;
 			}
-			inline static u32 get_row_id_from_idx(u32 row_idx, u32 page_offset)
+			inline u32 get_row_id_from_idx(u32 idx) const
 			{
-				return row_idx | (page_offset << 10);
+				return idx | (page_header_->page_offset << 10);
 			}
 
 			KV_STRING(

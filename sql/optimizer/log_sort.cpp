@@ -30,6 +30,7 @@ u32 LogSort::est_row_count()
         output_rows = child()->get_output_rows();
     }
     set_output_rows(output_rows);
+    CHECK(EstSelUtil::calc_distinct_count(est_info, partition_keys, distinct_rows));
     return ret;
 }
 

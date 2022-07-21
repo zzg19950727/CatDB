@@ -15,7 +15,7 @@ SELECT /*TPCH_Q1*/
 from 
     lineitem
 where 
-    l_shipdate <= date'1998-12-01' - interval '90' day 
+    l_shipdate <= date'1993-12-01' - interval '90' day 
 group by
     l_returnflag, 
     l_linestatus

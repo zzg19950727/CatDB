@@ -34,7 +34,11 @@ inline u32 cal_next_prime(u32 n)
 HashTable::HashTable(u32 num)
 :null_safe(true)
 {
-	num = 50000;
+	if (num < 5000) {
+		num = 5000;
+	} else if (num > 10000000) {
+		num = 10000000;
+	}
 	this->bucket_num = cal_next_prime(num);
 	buckets = TableType(this->bucket_num);
 }
@@ -80,11 +84,13 @@ void HashTable::set_exec_ctx(const ExecCtx_s& ctx)
 u32 HashTable::build(const Row_s & row)
 {
 	u32 ret = SUCCESS;
-	u32 hash_value = hash(hash_exprs, row);
+	Key key;
+	CHECK(get_hash_key(row, key));
+	u32 hash_value = hash(key);
 	BucketNode *bucket_node = buckets[hash_value];
 	bool is_equal = false;
 	while (bucket_node) {
-		CHECK(equal_bucket(bucket_node->head->row, row, is_equal));
+		CHECK(equal(bucket_node->key, key, is_equal));
 		if (is_equal) {
 			RowNode *row_node = new RowNode(row);
 			row_node->next = bucket_node->head;
@@ -98,6 +104,7 @@ u32 HashTable::build(const Row_s & row)
 		BucketNode *bucket_node = new BucketNode;
 		RowNode *head = new RowNode(row);
 		bucket_node->head = head;
+		bucket_node->key = key;
 		bucket_node->next = buckets[hash_value];
 		buckets[hash_value] = bucket_node;
 	}
@@ -107,9 +114,10 @@ u32 HashTable::build(const Row_s & row)
 u32 HashTable::build_without_check(const Row_s & row)
 {
 	u32 ret = SUCCESS;
-	u32 hash_value = hash(hash_exprs, row);
 	BucketNode *bucket_node = new BucketNode;
 	RowNode *head = new RowNode(row);
+	CHECK(get_hash_key(row, bucket_node->key));
+	u32 hash_value = hash(bucket_node->key);
 	bucket_node->head = head;
 	bucket_node->next = buckets[hash_value];
 	buckets[hash_value] = bucket_node;
@@ -120,12 +128,13 @@ u32 HashTable::probe(const Row_s & row, bool &hit)
 {
 	u32 ret = SUCCESS;
 	hit = false;
-	u32 hash_value = hash(probe_exprs, row);
+	Key key;
+	CHECK(get_probe_key(row, key));
+	u32 hash_value = hash(key);
 	BucketNode* bucket_node = buckets[hash_value];
 	bool is_equal = false;
 	while (bucket_node) {
-		RowNode *row_node = bucket_node->head;
-		CHECK(equal(row_node->row, row, is_equal));
+		CHECK(equal(bucket_node->key, key, is_equal));
 		if (!is_equal) {
 			bucket_node = bucket_node->next;
 			continue;
@@ -141,12 +150,14 @@ u32 HashTable::probe_bucket(const Row_s& row, RowIterator &iter, bool &hit)
 {
 	u32 ret = SUCCESS;
 	hit = false;
-	u32 hash_value = hash(probe_exprs, row);
+	Key key;
+	CHECK(get_probe_key(row, key));
+	u32 hash_value = hash(key);
 	BucketNode* bucket_node = buckets[hash_value];
 	bool is_equal = false;
 	while (bucket_node) {
 		RowNode *row_node = bucket_node->head;
-		CHECK(equal(row_node->row, row, is_equal));
+		CHECK(equal(bucket_node->key, key, is_equal));
 		if (!is_equal) {
 			bucket_node = bucket_node->next;
 			continue;
@@ -183,79 +194,64 @@ u32 HashTable::set_probe_expr(Expression_s & expr)
 	return SUCCESS;
 }
 
-u32 HashTable::hash(Vector<Expression_s>& exprs, const Row_s & row)
+u32 HashTable::hash(const Key & key)
 {
 	u32 ret = SUCCESS;
 	Hash<u32> hash;
 	u32 value = 0;
-	if (exprs.empty()) {
-		Object_s obj;
-		for (u32 i = 0; i < row->get_cell_num(); ++i){
-			row->get_cell(i, obj);
-			value = hash(value + obj->hash());
-		}
-	} else {
-		CHECK(exec_ctx->set_input_rows(row));
-		for (u32 i = 0; i < exprs.size(); ++i) {
-			CHECK(exprs[i]->get_result(exec_ctx));
-			value = hash(value + exec_ctx->output_result->hash());
-		}
+	for (u32 i = 0; i < key.size(); ++i){
+		value = hash(value + key[i]->hash());
 	}
 	return value % bucket_num;
 }
 
-u32 HashTable::equal(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
+u32 HashTable::equal(const Key & lhs, const Key & rhs, bool &is_valid)
 {
 	u32 ret = SUCCESS;
-	is_valid = false;
-	if (probe_exprs.empty()) {
-		CHECK(lhs->equal(rhs, null_safe, is_valid));
-	} else {
-		int res = 0;
-		Object_s l_obj, r_obj;
-		for (u32 i = 0; i < probe_exprs.size(); ++i) {
-			CHECK(exec_ctx->set_input_rows(lhs));
-			CHECK(hash_exprs[i]->get_result(exec_ctx));
-			l_obj = exec_ctx->output_result;
-			CHECK(exec_ctx->set_input_rows(rhs));
-			CHECK(probe_exprs[i]->get_result(exec_ctx));
-			r_obj = exec_ctx->output_result;
-			if (null_safe &&
-				l_obj->is_null() && 
-				r_obj->is_null()) {
-				is_valid = true;
-			} else {
-				CHECK(l_obj->compare(r_obj, res));
-				is_valid = CMP_RES_EQ == res;
-			}
+	is_valid = true;
+	int res = 0;
+	for (u32 i = 0; is_valid && i < lhs.size(); ++i) {
+		if (null_safe &&
+			lhs[i]->is_null() && 
+			rhs[i]->is_null()) {
+			is_valid = true;
+		} else {
+			CHECK(lhs[i]->compare(rhs[i], res));
+			is_valid = CMP_RES_EQ == res;
 		}
 	}
 	return ret;
 }
 
-u32 HashTable::equal_bucket(const Row_s & lhs, const Row_s & rhs, bool &is_valid)
+u32 HashTable::get_hash_key(const Row_s &row, Key &key)
 {
 	u32 ret = SUCCESS;
-	is_valid = false;
 	if (hash_exprs.empty()) {
-		CHECK(lhs->equal(rhs, true, is_valid));
+		for (u32 i = 0; i < row->get_cell_num(); ++i) {
+			key.push_back(row->get_cell(i));
+		}
 	} else {
-		int res = 0;
-		Object_s l_obj, r_obj;
+		CHECK(exec_ctx->set_input_rows(row));
 		for (u32 i = 0; i < hash_exprs.size(); ++i) {
-			CHECK(exec_ctx->set_input_rows(lhs));
 			CHECK(hash_exprs[i]->get_result(exec_ctx));
-			l_obj = exec_ctx->output_result;
-			CHECK(exec_ctx->set_input_rows(rhs));
-			CHECK(hash_exprs[i]->get_result(exec_ctx));
-			r_obj = exec_ctx->output_result;
-			if (l_obj->is_null() && 
-				r_obj->is_null()) {
-				is_valid = true;
-			} else {
-				CHECK(l_obj->compare(r_obj, res));
-				is_valid = CMP_RES_EQ == res;
-			}
+			key.push_back(exec_ctx->output_result);
+		}
+	}
+	return ret;
+}
+
+u32 HashTable::get_probe_key(const Row_s &row, Key &key)
+{
+	u32 ret = SUCCESS;
+	if (probe_exprs.empty()) {
+		for (u32 i = 0; i < row->get_cell_num(); ++i) {
+			key.push_back(row->get_cell(i));
+		}
+	} else {
+		CHECK(exec_ctx->set_input_rows(row));
+		for (u32 i = 0; i < probe_exprs.size(); ++i) {
+			CHECK(probe_exprs[i]->get_result(exec_ctx));
+			key.push_back(exec_ctx->output_result);
 		}
 	}
 	return ret;

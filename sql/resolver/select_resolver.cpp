@@ -127,8 +127,8 @@ u32 SelectResolver::get_all_column_from_basic_table(BasicTableStmt_s table, Vect
     u32 ret = SUCCESS;
     if (table->is_dual_table()) {
         ExprStmt_s expr;
-        CHECK(ExprUtils::make_int_expr(expr, 1));
-        expr->alias_name = "X";
+        CHECK(ExprUtils::make_str_expr(expr, "X"));
+        expr->alias_name = "D";
         columns.push_back(expr);
     } else {
         SchemaChecker_s checker = SchemaChecker::make_schema_checker();

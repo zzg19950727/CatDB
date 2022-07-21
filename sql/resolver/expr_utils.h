@@ -93,6 +93,8 @@ namespace CatDB {
 
             static u32 make_int_expr(ExprStmt_s &int_expr, int value);
 
+            static u32 make_str_expr(ExprStmt_s &str_expr, const char* value);
+
             static u32 extract_aggr_exprs(Vector<ExprStmt_s> &exprs, Vector<ExprStmt_s> &aggr_exprs);
 
             static u32 extract_aggr_exprs(ExprStmt_s &expr, Vector<ExprStmt_s> &aggr_exprs);

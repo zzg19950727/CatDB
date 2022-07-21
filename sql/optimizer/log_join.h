@@ -15,7 +15,8 @@ namespace CatDB {
 			LogJoin(const LogicalOperator_s& left, const LogicalOperator_s& right)
                 :DoubleChildLogicalOperator(left, right),
 				join_type(Inner),
-				join_algo(NL_JOIN) {}
+				join_algo(NL_JOIN),
+				left_distinct_rows(1) {}
 			virtual ~LogJoin() {}
 			static LogicalOperator_s make_join(const LogicalOperator_s& left,
 											const LogicalOperator_s& right,
@@ -26,11 +27,13 @@ namespace CatDB {
 			virtual u32 est_cost()override;
 			u32 allocate_expr_pre() override;
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
+			u32 est_left_distinct_rows();
 		public:
 			Vector<ExprStmt_s> equal_join_condition;
 			Vector<ExprStmt_s> other_join_condition;
 			JoinType join_type;
 			JoinAlgo join_algo;
+			double left_distinct_rows;
 		};
 	}
 }

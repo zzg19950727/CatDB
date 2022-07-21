@@ -231,12 +231,12 @@ Query Plan:
 +--------------------------------------------------------------------+
 | ID | OPERATOR                           | NAME  | ROW COUNT | COST |
 +--------------------------------------------------------------------+
-| 0  | DELETE                             | T1    | 1         | 167  |
-| 1  |  HASH DISTINCT                     |       | 1         | 163  |
-| 2  |   NESTED LOOP Inner JOIN           |       | 1         | 162  |
-| 3  |    NESTED LOOP Inner JOIN          |       | 1         | 154  |
-| 4  |     NESTED LOOP Inner JOIN         |       | 1         | 146  |
-| 5  |      NESTED LOOP LeftOuter JOIN    |       | 1         | 138  |
+| 0  | DELETE                             | T1    | 1         | 179  |
+| 1  |  HASH DISTINCT                     |       | 1         | 175  |
+| 2  |   NESTED LOOP Inner JOIN           |       | 2         | 175  |
+| 3  |    NESTED LOOP Inner JOIN          |       | 2         | 162  |
+| 4  |     NESTED LOOP Inner JOIN         |       | 2         | 150  |
+| 5  |      NESTED LOOP LeftOuter JOIN    |       | 2         | 138  |
 | 6  |       TABLE SCAN                   | T8    | 1         | 4    |
 | 7  |       VIEW                         | VIEW1 | 2         | 67   |
 | 8  |        UNION_ALL                   |       | 2         | 67   |

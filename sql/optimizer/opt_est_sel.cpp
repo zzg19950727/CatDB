@@ -25,6 +25,20 @@ u32 EstSelUtil::calc_selectivity(EstInfo_s &est_info, Vector<ExprStmt_s> &exprs,
         CHECK(calc_selectivity(est_info, exprs[i], sel));
         selectivity *= sel;
     }
+    Vector<ColumnStmt_s> columns;
+    CHECK(ExprUtils::get_column_exprs(exprs, INVALID_ID, columns));
+    double max_rows = 0;
+    for (u32 i = 0; i < columns.size(); ++i) {
+        ColumnStmt_s &column = columns[i];
+        TableEstInfo_s table_statis;
+        CHECK(est_info->get_table_statis(column->table_id, table_statis));
+        if (table_statis->output_rows > max_rows) {
+            max_rows = table_statis->output_rows;
+        }
+    }
+    if (max_rows > 0 && max_rows < 1.0 / selectivity) {
+        selectivity = 1.0 / max_rows;
+    }
     refine_selectivity(selectivity);
     return ret;
 }

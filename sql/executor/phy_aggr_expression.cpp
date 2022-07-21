@@ -116,7 +116,9 @@ u32 AggregateExpression::sum(Object_s &result, AggrExprCtx_s &aggr_ctx)
 	u32 ret = SUCCESS;
     if (0 == aggr_ctx->row_count) {
         aggr_ctx->value = Number::make_object(result);
-    } else {
+    } else if (result->is_null()) {
+		//do nothing
+	} else {
         Number_s sum_result = aggr_ctx->value;
         CHECK(sum_result->accumulate(result));
     }

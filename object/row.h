@@ -53,6 +53,7 @@ namespace CatDB {
 			static Row_s make_row(int column_count);
 			static Row_s deep_copy(const Row_s &other);
 			u32 get_cell_num() const;
+			const Object_s& get_cell(u32 idx) const { return cells[idx]; }
 			inline u32 get_cell(u32 idx, Object_s& cell) const { cell = cells[idx]; return 0;}
 			u32 set_cell(u32 idx, Object_s& cell);
 			u32 equal(const Row_s& other, const bool null_safe, bool &res) const;

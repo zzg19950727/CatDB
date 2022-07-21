@@ -196,7 +196,9 @@ u32 WindowFuncExpression::sum(Object_s &result, WinFuncExprCtx_s &win_ctx)
 	u32 ret = SUCCESS;
     if (0 == win_ctx->row_count) {
         win_ctx->value = Number::make_object(result);
-    } else {
+    } else if (result->is_null()) {
+		//do nothind
+	} else {
         Number_s sum_result = win_ctx->value;
         CHECK(sum_result->accumulate(result));
     }

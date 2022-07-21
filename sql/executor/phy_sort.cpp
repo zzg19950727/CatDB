@@ -229,19 +229,22 @@ u32 PhyTopNSort::sort_rows()
 }
 
 PhyPartitionSort::PhyPartitionSort(PhyOperator_s& child)
-	:PhySort(child)
+	:PhySort(child),
+	distinct_rows(1)
 {
 }
 
 PhyOperator_s PhyPartitionSort::make_partition_sort(PhyOperator_s& child,
 										const Vector<Expression_s>& sort_exprs,
 										const Vector<bool> &asc,
-										const Vector<Expression_s>& partition_exprs)
+										const Vector<Expression_s>& partition_exprs,
+										double distinct_rows)
 {
 	PhyPartitionSort* op = new PhyPartitionSort(child);
+	op->distinct_rows = distinct_rows;
 	op->sort_exprs = sort_exprs;
 	op->asc = asc;
-	op->hash_table = HashTable::make_hash_table();
+	op->hash_table = HashTable::make_hash_table(distinct_rows);
 	op->hash_table->set_hash_exprs(partition_exprs);
 	op->hash_table->set_probe_exprs(partition_exprs);
 	op->sort_exprs = sort_exprs;

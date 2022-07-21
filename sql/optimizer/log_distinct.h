@@ -12,7 +12,8 @@ namespace CatDB {
 		{
 		public:
 			LogDistinct(LogicalOperator_s &child)
-                :SingleChildLogicalOperator(child) {}
+                :SingleChildLogicalOperator(child),
+				distinct_rows(1) {}
 			virtual ~LogDistinct() {}
 			virtual u32 type() const override {return LOG_DISTINCT;}
 			static LogicalOperator_s make_distinct(LogicalOperator_s &child);
@@ -23,6 +24,7 @@ namespace CatDB {
 			void print_plan(u32 depth, Vector<PlanInfo> &plan_info) override;
 		public:
 			Vector<ExprStmt_s> distinct_exprs;
+			double distinct_rows;
 		};
 	}
 }

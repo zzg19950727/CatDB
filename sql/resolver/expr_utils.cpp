@@ -2,6 +2,7 @@
 #include "dml_stmt.h"
 #include "expr_stmt.h"
 #include "obj_number.h"
+#include "obj_varchar.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
@@ -252,6 +253,15 @@ u32 ExprUtils::make_int_expr(ExprStmt_s &int_expr, int value)
     Object_s num = Number::make_int_object(value);
     int_expr = ConstStmt::make_const_stmt(num);
     CHECK(int_expr->formalize());
+    return ret;
+}
+
+u32 ExprUtils::make_str_expr(ExprStmt_s &str_expr, const char* value)
+{
+    u32 ret = SUCCESS;
+    Object_s str = Varchar::make_object(value);
+    str_expr = ConstStmt::make_const_stmt(str);
+    CHECK(str_expr->formalize());
     return ret;
 }
 

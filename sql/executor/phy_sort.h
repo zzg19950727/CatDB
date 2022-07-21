@@ -65,7 +65,8 @@ namespace CatDB {
 			static PhyOperator_s make_partition_sort(PhyOperator_s& child,
 													const Vector<Expression_s>& sort_exprs,
 													const Vector<bool> &asc,
-													const Vector<Expression_s>& partition_exprs);
+													const Vector<Expression_s>& partition_exprs,
+													double distinct_rows);
 			u32 type() const override;
 			u32 reset() override;
 			virtual u32 inner_open() override;
@@ -74,6 +75,7 @@ namespace CatDB {
 			u32 build_hash_table();
 			u32 sort_rows() override;
 			HashTable_s hash_table;
+			double distinct_rows;
 		};
 	}
 }

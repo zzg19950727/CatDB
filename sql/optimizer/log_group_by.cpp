@@ -24,6 +24,7 @@ u32 LogGroupBy::est_row_count()
     double ndv = 0.0;
     CHECK(EstSelUtil::calc_distinct_count(est_info, group_by_exprs, ndv));
     ndv = ndv > child()->get_output_rows() ? child()->get_output_rows() : ndv;
+    distinct_rows = ndv;
     double sel = 0.0;
     CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
     output_rows = ndv * sel;

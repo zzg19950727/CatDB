@@ -19,7 +19,8 @@ namespace CatDB {
 			PhyHashDistinct(PhyOperator_s& child);
 		public:
 			~PhyHashDistinct();
-			static PhyOperator_s make_hash_distinct(PhyOperator_s& child);
+			static PhyOperator_s make_hash_distinct(PhyOperator_s& child,
+													double distinct_rows);
 
 			//物理算子必须提供的接口
 			u32 inner_open() override;
@@ -29,6 +30,7 @@ namespace CatDB {
 			u32 type() const override;
 		private:
 			HashTable_s hash_table;
+			double distinct_rows;
 		};
 
 	}

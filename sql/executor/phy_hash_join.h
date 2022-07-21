@@ -25,7 +25,8 @@ namespace CatDB {
 				const PhyOperator_s& right_child,
 				const Vector<Expression_s>& other_join_cond,
 				const Vector<Expression_s> &hash_exprs,
-				const Vector<Expression_s> &prob_exprs);
+				const Vector<Expression_s> &prob_exprs,
+				double left_distinct_rows);
 			//物理算子必须提供的接口
 			u32 inner_open() override;
 			u32 close() override;
@@ -74,6 +75,7 @@ namespace CatDB {
 			HashTable::RowIterator iter;
 			Row_s last_probe_row;
 			HashJoinState state;
+			double left_distinct_rows;
 		};
 	}
 }

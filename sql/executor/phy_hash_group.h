@@ -23,7 +23,8 @@ namespace CatDB {
 			~PhyHashGroup();
 			static PhyOperator_s make_hash_group(PhyOperator_s& child, 
 				const Vector<Expression_s>& group_exprs,
-				const Vector<Expression_s>& agg_funcs);
+				const Vector<Expression_s>& agg_funcs,
+				double distinct_rows);
 
 			//物理算子必须提供的接口
 			u32 inner_open() override;
@@ -38,6 +39,7 @@ namespace CatDB {
 			HashTable_s hash_table;
 			Row_s aggr_result_row;
 			bool is_build_hash_table;
+			double distinct_rows;
 		};
 
 	}

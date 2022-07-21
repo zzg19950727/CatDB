@@ -61,6 +61,7 @@ u32 LogJoin::est_row_count()
         }
     }
     set_output_rows(output_rows);
+    CHECK(est_left_distinct_rows());
     return ret;
 }
 
@@ -118,4 +119,32 @@ void LogJoin::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     plan_info.push_back(info);
     left_child()->print_plan(depth + 1, plan_info);
     right_child()->print_plan(depth + 1, plan_info);
+}
+
+u32 LogJoin::est_left_distinct_rows()
+{
+    u32 ret = SUCCESS;
+    if (HASH_JOIN != join_algo) {
+        return ret;
+    }
+    Vector<ExprStmt_s> hash_exprs;
+    LogicalOperator_s &left_child = childs[0];
+    LogicalOperator_s &right_child = childs[1];
+    for (u32 i = 0; i < equal_join_condition.size(); ++i) {
+        ExprStmt_s &expr = equal_join_condition[i];
+        MY_ASSERT(OP_EXPR == expr->expr_type());
+        OpExprStmt_s op_expr = expr;
+        MY_ASSERT(op_expr->params.size() == 2);
+        ExprStmt_s &left_expr = op_expr->params[0];
+        ExprStmt_s &right_expr = op_expr->params[1];
+        if (left_expr->table_ids.is_subset(left_child->table_ids) && 
+            right_expr->table_ids.is_subset(right_child->table_ids)) {
+            hash_exprs.push_back(left_expr);
+        } else if (left_expr->table_ids.is_subset(right_child->table_ids) && 
+                   right_expr->table_ids.is_subset(left_child->table_ids)) {
+            hash_exprs.push_back(right_expr);        
+        }
+    }
+    CHECK(EstSelUtil::calc_distinct_count(est_info, hash_exprs, left_distinct_rows));
+    return ret;
 }

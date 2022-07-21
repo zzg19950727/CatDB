@@ -299,16 +299,17 @@ u32 StatisManager::generate_analyze_sql(const String& database,
     table_id = table_info->table_id;
     query = "select count(1) ";
     for (auto iter = table_info->id_column_infos.cbegin(); iter != table_info->id_column_infos.cend(); ++iter) {
-		if (T_VARCHAR == iter->second->column_type.res_type) {
-			continue;
+		bool is_str_type = false;
+        if (T_VARCHAR == iter->second->column_type.res_type) {
+			is_str_type = true;
 		}
         const String &column = iter->second->column_name;
         u32 column_id = iter->first;
         column_ids.push_back(column_id);
 		query += ", count(distinct " + column + ")" + 
                 ", count(case when " + column + " is null then 1 else null end)" +
-                ", max(" + column + ")" +
-                ", min(" + column + ")";
+                ", max(" + (is_str_type ? "1" : column) + ")" +
+                ", min(" + (is_str_type ? "0" : column) + ")";
 	}
     query += " from " + database + "." + table + ";";
     return ret;

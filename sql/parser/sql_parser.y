@@ -820,6 +820,13 @@ basic_table_factor:
 		$$ = $1;
 		$$->set_alias_name($2);
     }
+  | DUAL
+	{
+		//构建表表达式
+		TableStmt_s table = BasicTableStmt::make_dual_table();
+		check(table);
+		$$ = table;
+	}
 	;
 
 view_table_factor:
@@ -2100,13 +2107,6 @@ relation_factor:
 		BasicTableStmt_s table = BasicTableStmt::make_basic_table($1, $3);
 		check(table);
 		table->alias_name = $3;
-		$$ = table;
-	}
-  | DUAL
-	{
-		//构建表表达式
-		BasicTableStmt_s table = BasicTableStmt::make_dual_table();
-		check(table);
 		$$ = table;
 	}
   ;

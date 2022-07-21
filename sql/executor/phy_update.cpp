@@ -81,7 +81,7 @@ u32 PhyUpdate::inner_get_next_row()
     while(SUCC(child->get_next_row(row))){
         set_input_rows(row);
         CHECK(row_id->get_result(exec_ctx));
-        Object_s &result = exec_ctx->output_result;
+        Object_s result = exec_ctx->output_result;
         if (result->is_null()) {
             continue;
         }
