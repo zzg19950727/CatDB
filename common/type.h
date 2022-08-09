@@ -37,6 +37,7 @@ typedef unsigned long long u64;
 typedef std::string String;
 typedef std::chrono::system_clock Clock;
 #define INVALID_ID  0
+#define INVALID_IDX (-1)
 #define ROWID_COLUMN_ID 2048
 
 template<typename T1, typename T2>

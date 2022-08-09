@@ -4,6 +4,7 @@
 #include "session_info.h"
 #include "transform_utils.h"
 #include "obj_cast_util.h"
+#include "stmt_compare.h"
 
 using namespace::CatDB::Parser;
 using namespace::CatDB::Common;
@@ -119,9 +120,11 @@ u32 ConstStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	return ret;
 }
 
-bool ConstStmt::same_as(const ExprStmt_s& other)
+bool ConstStmt::same_as(const ExprStmt_s& other, ExprCompareCtx *ctx)
 {
-	if (CONST != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (CONST != other->expr_type()) {
 		return false;
 	}
 	ConstStmt_s const_stmt = other;
@@ -197,9 +200,11 @@ u32 ExecParamStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	return ret;
 }
 
-bool ExecParamStmt::same_as(const ExprStmt_s& other)
+bool ExecParamStmt::same_as(const ExprStmt_s& other, ExprCompareCtx *ctx)
 {
-	if (EXEC_PARAM != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (EXEC_PARAM != other->expr_type()) {
 		return false;
 	}
 	ExecParamStmt_s param_stmt = other;
@@ -291,14 +296,20 @@ u32 ColumnStmt::deduce_type()
 	return ret;
 }
 
-bool ColumnStmt::same_as(const ExprStmt_s& other)
+bool ColumnStmt::same_as(const ExprStmt_s& other, ExprCompareCtx *ctx)
 {
-	if (COLUMN != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (COLUMN != other->expr_type()) {
 		return false;
 	}
 	ColumnStmt_s column_stmt = other;
-	return (table_id == column_stmt->table_id) && 
+	bool b_ret = (table_id == column_stmt->table_id) && 
 			   (column_id == column_stmt->column_id);
+	if (!b_ret && ctx) {
+		ctx->compare_column(this, column_stmt.get(), b_ret);
+	}
+	return b_ret;
 }
 
 SetExprStmt::SetExprStmt()
@@ -350,9 +361,11 @@ u32 SetExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	return ret;
 }
 
-bool SetExprStmt::same_as(const ExprStmt_s& other)
+bool SetExprStmt::same_as(const ExprStmt_s& other, ExprCompareCtx *ctx)
 {
-	if (!other || SET_EXPR != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (!other || SET_EXPR != other->expr_type()) {
 		return false;
 	}
 	SetExprStmt_s set_expr = other;
@@ -430,13 +443,19 @@ u32 SubQueryStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	return ret;
 }
 
-bool SubQueryStmt::same_as(const ExprStmt_s &other)
+bool SubQueryStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (!other || SUBQUERY != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (!other || SUBQUERY != other->expr_type()) {
 		return false;
 	}
 	SubQueryStmt_s subquery_expr = other;
-	return subquery_expr->query_stmt == query_stmt;
+	bool b_ret = subquery_expr->query_stmt == query_stmt;
+	if (!b_ret && ctx) {
+		ctx->compare_query_ref(this, subquery_expr.get(), b_ret);
+	}
+	return b_ret;
 }
 
 u32 SubQueryStmt::formalize()
@@ -468,6 +487,19 @@ void SubQueryStmt::add_related_exprs(ExprStmt_s &related_expr, ExecParamStmt_s &
 {
 	exec_params.push_back(exec_param);
 	params.push_back(related_expr);
+}
+
+bool SubQueryStmt::get_related_exprs(ExecParamStmt_s &exec_param, ExprStmt_s &related_expr)
+{
+	bool ret = false;
+	for (u32 i = 0; !ret && i < exec_params.size(); ++i) {
+		if (exec_params[i]->get_param_index() == exec_param->get_param_index()) {
+			ret = true;
+			MY_ASSERT(i < params.size());
+			related_expr = params[i];
+		}
+	}
+	return ret;
 }
 
 u32 SubQueryStmt::get_all_exec_params(Vector< std::pair<ExecParamStmt_s, ExprStmt_s> > &all_exec_params)
@@ -564,9 +596,11 @@ u32 ListStmt::deduce_type()
 	return ret;
 }
 
-bool ListStmt::same_as(const ExprStmt_s &other)
+bool ListStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (EXPR_LIST != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (EXPR_LIST != other->expr_type()) {
 		return false;
 	}
 	ListStmt_s list = other;
@@ -574,7 +608,7 @@ bool ListStmt::same_as(const ExprStmt_s &other)
 		return false;
 	}
 	for (u32 i = 0; i < params.size(); ++i) {
-		if (!params[i]->same_as(list->at(i))) {
+		if (!params[i]->same_as(list->at(i), ctx)) {
 			return false;
 		}
 	}
@@ -680,9 +714,11 @@ ExprStmt_s AggrStmt::get_aggr_expr() const
 	}
 }
 
-bool AggrStmt::same_as(const ExprStmt_s &other)
+bool AggrStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (AGG_EXPR != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (AGG_EXPR != other->expr_type()) {
 		return false;
 	}
 	AggrStmt_s aggr = other;
@@ -691,7 +727,7 @@ bool AggrStmt::same_as(const ExprStmt_s &other)
 	} else if (aggr->aggr_func != aggr_func) {
 		return false;
 	} else {
-		return get_aggr_expr()->same_as(aggr->get_aggr_expr());
+		return get_aggr_expr()->same_as(aggr->get_aggr_expr(), ctx);
 	}
 }
 
@@ -1363,9 +1399,11 @@ u32 OpExprStmt::deduce_type()
 	return ret;
 }
 
-bool OpExprStmt::same_as(const ExprStmt_s &other)
+bool OpExprStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (OP_EXPR != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (OP_EXPR != other->expr_type()) {
 		return false;
 	}
 	OpExprStmt_s expr = other;
@@ -1375,7 +1413,7 @@ bool OpExprStmt::same_as(const ExprStmt_s &other)
 		return false;
 	} else {
 		for (u32 i = 0; i < params.size(); ++i) {
-			if (!params[i]->same_as(other->params[i])) {
+			if (!params[i]->same_as(other->params[i], ctx)) {
 				return false;
 			}
 		}
@@ -1448,16 +1486,18 @@ u32 OrderStmt::deep_copy(ExprStmt_s &order, u32 flag)const
 	return ret;
 }
 
-bool OrderStmt::same_as(const ExprStmt_s &other)
+bool OrderStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (ORDER_EXPR != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (ORDER_EXPR != other->expr_type()) {
 		return false;
 	}
 	OrderStmt_s expr = other;
 	if (asc != expr->asc) {
 		return false;
 	} else {
-		return get_order_by_expr()->same_as(expr->get_order_by_expr());
+		return get_order_by_expr()->same_as(expr->get_order_by_expr(), ctx);
 	}
 }
 
@@ -1590,9 +1630,11 @@ u32 WinExprStmt::deep_copy(ExprStmt_s &expr, u32 flag)const
 	return ret;
 }
 
-bool WinExprStmt::same_as(const ExprStmt_s &other)
+bool WinExprStmt::same_as(const ExprStmt_s &other, ExprCompareCtx *ctx)
 {
-	if (WIN_EXPR != other->expr_type()) {
+	if (this == other.get()) {
+		return true;
+	} else if (WIN_EXPR != other->expr_type()) {
 		return false;
 	}
 	WinExprStmt_s expr = other;
@@ -1605,7 +1647,7 @@ bool WinExprStmt::same_as(const ExprStmt_s &other)
 		return false;
 	} else {
 		for (u32 i = 0; i < params.size(); ++i) {
-			if (!params[i]->same_as(other->params[i])) {
+			if (!params[i]->same_as(other->params[i], ctx)) {
 				return false;
 			}
 		}

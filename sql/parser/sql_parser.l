@@ -173,6 +173,8 @@ end_comment		\*\/
 "no_simplify_sq" 		{ return CatDB::SqlParser::make_NO_SIMPLIFY_SQ(loc); }
 "expr_normalize"		{ return CatDB::SqlParser::make_EXPR_NORMALIZE(loc); }
 "no_expr_normalize"		{ return CatDB::SqlParser::make_NO_EXPR_NORMALIZE(loc); }
+"win_magic"				{ return CatDB::SqlParser::make_WIN_MAGIC(loc); }
+"no_win_magic"			{ return CatDB::SqlParser::make_NO_WIN_MAGIC(loc); }
 "("				{ return CatDB::SqlParser::make_LP(loc); }
 ")"				{ return CatDB::SqlParser::make_RP(loc); }
 ","				{ return CatDB::SqlParser::make_COMMA(loc); }

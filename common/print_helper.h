@@ -78,6 +78,15 @@ String to_kv_string(const Vector<T>& value)
    return str;
 }
 
+template<typename T1, typename T2>
+String to_kv_string(const Pair<T1, T2>& value)
+{
+    String str = "[";
+    str += ::to_kv_string(value.first) + ",";
+    str += ::to_kv_string(value.second) + "]";
+   return str;
+}
+
 template<typename T, typename U>
 String to_kv_string(const UnorderedHashMap<T, U>& value)
 {

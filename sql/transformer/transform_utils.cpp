@@ -266,3 +266,16 @@ u32 TransformUtils::is_dummy_select_expr(SelectStmt_s &stmt, bool &is_dummy)
     is_dummy = stmt->select_expr_list[0]->has_flag(IS_CONST);
     return ret;
 }
+
+u32 TransformUtils::get_table_ids(TableStmt_s &table, Vector<u32> &table_ids)
+{
+    u32 ret = SUCCESS;
+    if (table->is_joined_table()) {
+        JoinedTableStmt_s joined_table = table;
+        get_table_ids(joined_table->left_table, table_ids);
+        get_table_ids(joined_table->right_table, table_ids);
+    } else {
+        table_ids.push_back(table->table_id);
+    }
+    return ret;
+}

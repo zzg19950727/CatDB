@@ -64,6 +64,7 @@ u32 EstInfo::set_table_output_rows(u32 table_id, double output_rows)
     auto iter = tables_statis.find(table_id);
     if (iter == tables_statis.end()) {
         ret = ERR_UNEXPECTED;
+        LOG_ERR("table not found", K(table_id), K(ret));
         return ret;
     }
     TableEstInfo_s &table_statis = iter->second;
@@ -84,6 +85,7 @@ u32 EstInfo::get_table_statis(u32 table_id, TableEstInfo_s &table_statis)
     auto iter = tables_statis.find(table_id);
     if (iter == tables_statis.end()) {
         ret = ERR_UNEXPECTED;
+        LOG_ERR("table not found", K(table_id), K(ret));
         return ret;
     }
     table_statis = iter->second;
@@ -96,12 +98,14 @@ u32 EstInfo::get_column_statis(u32 table_id, u32 column_id, ColumnEstInfo_s &col
     auto iter = tables_statis.find(table_id);
     if (iter == tables_statis.end()) {
         ret = ERR_UNEXPECTED;
+        LOG_ERR("table not found", K(table_id), K(ret));
         return ret;
     }
     TableEstInfo_s &table_statis = iter->second;
     auto iter2 = table_statis->columns_statis.find(column_id);
     if (iter2 == table_statis->columns_statis.end()) {
         ret = ERR_UNEXPECTED;
+        LOG_ERR("column not found", K(column_id), K(ret));
         return ret;
     }
     column_statis = iter2->second;

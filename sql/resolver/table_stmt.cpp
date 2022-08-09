@@ -91,18 +91,6 @@ u32 BasicTableStmt::formalize()
 	return ret;
 }
 
-bool BasicTableStmt::same_as(const TableStmt_s& other)
-{
-	if (is_dual_table()) {
-		return other->is_dual_table();
-	} else if (other->is_basic_table()) {
-		BasicTableStmt_s basic_other = other;
-		return ref_table_id == basic_other->ref_table_id;
-	} else {
-		return false;
-	}
-}
-
 TableStmt_s JoinedTableStmt::make_joined_table(TableStmt_s &left_table,
 											TableStmt_s &right_table,
 											JoinType join_type,

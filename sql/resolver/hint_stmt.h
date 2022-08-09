@@ -142,6 +142,31 @@ namespace CatDB {
 			~ExprNormalizeHintStmt() {}
 		};
 
+		DECLARE(WinMagicHintStmt);
+		class WinMagicHintStmt : public TransformHint {
+		private:
+			WinMagicHintStmt(bool is_enable) 
+			: TransformHint(WIN_MAGIC, is_enable)
+			{}
+		friend class HintStmt;
+		public:
+			~WinMagicHintStmt() {}
+			virtual bool is_base_equal(const HintStmt_s &other) const override;
+			virtual bool is_excluse(const HintStmt_s &other) const override;
+			virtual String print_outline() const override;
+			virtual u32 deep_copy(HintStmt_s &hint) const override;
+			KV_STRING_OVERRIDE(
+				KV(type, HintTypeString[type]),
+				K(qb_name),
+				K(dst_qb_name),
+				K(is_enable_),
+				K(is_used_),
+				K(is_invalid_)
+			);
+
+			String dst_qb_name;
+		};
+
 		DECLARE(JoinHintStmt);
 		class JoinHintStmt : public OptimizerHint
 		{
@@ -275,9 +300,7 @@ namespace CatDB {
 			virtual void get_hint_status(const String &qb_name, HintType type, HintStatus &status) override;
 			virtual void find_hints(const String &qb_name, HintType type, Vector<HintStmt_s> &hints)const override;
 			virtual u32 copy_hints(const String &src_qb_name, const String &dst_qb_name) override;
-			KV_STRING_OVERRIDE(
-				K("")
-			);
+			DECLARE_KV_STRING_OVERRIDE;
 		public:
 			typedef Vector<HintStmt_s> 	HintArray;
 			typedef HashMap<HintType, HintArray>	HintTypeMap;
@@ -327,6 +350,8 @@ namespace CatDB {
 			bool enable_no_simplify_sq(const String &qb_name) const;
 			bool enable_expr_normalize(const String &qb_name) const;
 			bool enable_no_expr_normalize(const String &qb_name) const;
+			bool enable_win_magic(const String &qb_name, const String &dst_qb_name) const;
+			bool enable_no_win_magic(const String &qb_name) const;
 			void get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints);
 			LeadingHintStmt_s get_leading_hint(const String &qb_name);
 			bool has_leading_hint(const String &qb_name);
@@ -334,6 +359,7 @@ namespace CatDB {
 			//void merge_hints(const String &src_qb_name, const String &dst_qb_name, u32 flag);
 			void copy_hints(const String &src_qb_name, const String &dst_qb_name);
 			u32 generate_transform_outline(const String &qb_name, HintType type);
+			u32 generate_transform_outline(const String &qb_name, HintType type, HintStmt_s &hint);
 			u32 generate_join_outline(const String &qb_name, const Vector<String> &table_names, JoinAlgo join_algo);
 			u32 generate_leading_outline(const String &qb_name, const LeadingTable_s &tables);
 

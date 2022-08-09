@@ -8,6 +8,7 @@
 #include "transform_unnest_JA_subquery.h"
 #include "transform_simplify_subquery.h"
 #include "transform_expr_normalize.h"
+#include "transform_win_magic.h"
 #include "select_stmt.h"
 #include "expr_stmt.h"
 #include "table_stmt.h"
@@ -50,6 +51,8 @@ u32 Transformer::transform(DMLStmt_s &stmt, TransformCtx_s &ctx)
         TRANSFORM(TransformMergeView, stmt, ctx, happened);
         //
         TRANSFORM(TransformSimplifySubquery, stmt, ctx, happened);
+        //
+        TRANSFORM(TransformWinMagic, stmt, ctx, happened);
         //
         TRANSFORM(TransformUnnestJASubquery, stmt, ctx, happened);
         //

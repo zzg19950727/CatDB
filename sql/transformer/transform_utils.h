@@ -69,6 +69,8 @@ namespace CatDB {
             static u32 create_dummy_select_expr(SelectStmt_s &stmt);
 
             static u32 is_dummy_select_expr(SelectStmt_s &stmt, bool &is_dummy);
+
+            static u32 get_table_ids(TableStmt_s &table, Vector<u32> &table_ids);
         };
     }
 }

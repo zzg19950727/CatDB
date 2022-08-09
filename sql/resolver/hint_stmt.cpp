@@ -23,6 +23,9 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
         case EXPR_NORMALIZE:
             hint = HintStmt_s(new ExprNormalizeHintStmt(is_enable));
             break;
+        case WIN_MAGIC:
+            hint = HintStmt_s(new WinMagicHintStmt(is_enable));
+            break;
         case JOIN:
             hint = HintStmt_s(new JoinHintStmt(is_enable));
             break;
@@ -40,8 +43,12 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
 
 String HintStmt::print_outline() const
 {
-    String ret = HintTypeString[type];
-    ret += "(@" + qb_name + ")";
+    String ret = "";
+    if (is_enable_) {
+        ret = HintTypeString[type];
+        ret += "(@" + qb_name + ")";
+        
+    }
     return ret;
 }
 
@@ -68,6 +75,41 @@ bool HintStmt::is_equal(const HintStmt_s &other) const
 bool HintStmt::is_excluse(const HintStmt_s &other) const
 {
     return is_base_equal(other) &&
+           is_enable_ != other->is_enable_;
+}
+
+String WinMagicHintStmt::print_outline() const
+{
+    String ret = "";
+    if (is_enable_) {
+        ret = HintTypeString[type];
+        ret += "(@" + qb_name + " @" + dst_qb_name + ")";
+    }
+    return ret;
+}
+
+u32 WinMagicHintStmt::deep_copy(HintStmt_s &hint) const
+{
+    u32 ret = SUCCESS;
+    CHECK(HintStmt::deep_copy(hint));
+    WinMagicHintStmt_s win_magic_hint = hint;
+    win_magic_hint->dst_qb_name = dst_qb_name;
+    return ret;
+}
+
+bool WinMagicHintStmt::is_base_equal(const HintStmt_s &other) const
+{
+    if (HintStmt::is_base_equal(other)) {
+        WinMagicHintStmt_s win_magic_hint = other;
+        return dst_qb_name == win_magic_hint->dst_qb_name;
+    } else {
+        return false;
+    }
+}
+
+bool WinMagicHintStmt::is_excluse(const HintStmt_s &other) const
+{
+    return HintStmt::is_base_equal(other) &&
            is_enable_ != other->is_enable_;
 }
 
@@ -367,6 +409,27 @@ u32 StmtHintManager::copy_hints(const String &src_qb_name, const String &dst_qb_
     return ret;
 }
 
+String StmtHintManager::to_kv_string()const
+{
+    String ret = "";
+    ret += "[";
+    for (auto iter1 = hint_map.cbegin(); iter1 != hint_map.cend(); ++iter1) {
+        if (iter1 != hint_map.cbegin()) {
+            ret += ",";
+        }
+        ret += "[";
+        for (auto iter2 = iter1->second.cbegin(); iter2 != iter1->second.cend(); ++iter2) {
+            if (iter2 != iter1->second.cbegin()) {
+                ret += ",";
+            }
+            ret += ::to_kv_string(iter2->second);
+        }
+        ret += "]";
+    }
+    ret += "]";
+    return ret;
+}
+
 OutlineHintManager_s OutlineHintManager::make_outline_hint_manager()
 {
     return OutlineHintManager_s(new OutlineHintManager);
@@ -526,6 +589,29 @@ bool QueryHint::enable_no_expr_normalize(const String &qb_name) const
     return HintManager::FORCE_DISABLE == status;
 }
 
+bool QueryHint::enable_win_magic(const String &qb_name, const String &dst_qb_name) const
+{
+    Vector<HintStmt_s> hints;
+    transformer_hints->find_hints(qb_name, WIN_MAGIC, hints);
+    if (1 == hints.size()) {
+        WinMagicHintStmt_s win_magic_hint = hints[0];
+        if (dst_qb_name == win_magic_hint->dst_qb_name) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+bool QueryHint::enable_no_win_magic(const String &qb_name) const
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, WIN_MAGIC, status);
+    return HintManager::FORCE_DISABLE == status;
+}
+
 void QueryHint::get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints)
 {
     Vector<HintStmt_s> hints;
@@ -551,6 +637,17 @@ bool QueryHint::has_leading_hint(const String &qb_name)
     return HintManager::FORCE_ENABLE == status;
 }
 
+u32 QueryHint::generate_transform_outline(const String &qb_name, 
+                                          HintType type, 
+                                          HintStmt_s &hint)
+{
+    u32 ret = SUCCESS;
+    hint = HintStmt::make_hint_stmt(type);
+    hint->set_qb_name(qb_name);
+    CHECK(generate_hints->add_hint(hint));
+    return ret;
+}
+
 u32 QueryHint::generate_transform_outline(const String &qb_name, HintType type)
 {
     u32 ret = SUCCESS;
@@ -559,6 +656,7 @@ u32 QueryHint::generate_transform_outline(const String &qb_name, HintType type)
     CHECK(generate_hints->add_hint(hint));
     return ret;
 }
+
 u32 QueryHint::generate_join_outline(const String &qb_name, const Vector<String> &table_names, JoinAlgo join_algo)
 {
     u32 ret = SUCCESS;

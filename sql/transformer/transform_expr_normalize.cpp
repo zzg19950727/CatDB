@@ -63,8 +63,15 @@ u32 TransformExprNormalize::transform_exprs(Vector<ExprStmt_s> &exprs)
             bool bool_result = false;
             CHECK(Sql::SqlEngine::handle_const_expr(exprs[0], obj_result, bool_result));
             if (!bool_result) {
-                return ret;
+                exprs.clear();
+                ExprStmt_s false_expr;
+                CHECK(ExprUtils::make_bool_expr(false_expr, false));
+                exprs.push_back(false_expr);
+            } else {
+                exprs.clear();
+                set_transform_happened();
             }
+            return ret;
         }
     }
     for (u32 i = 0; i < exprs.size(); ++i) {

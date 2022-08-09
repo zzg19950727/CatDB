@@ -25,7 +25,6 @@ namespace CatDB {
 			bool is_view_table()const {return table_type == ViewTable;}
 			virtual bool is_dual_table() const { return false; }
 			bool is_basic_and_not_dual_table() const { return is_basic_table() && !is_dual_table(); }
-			virtual bool same_as(const TableStmt_s& other)	{ return false; }
 			virtual u32 get_table_exprs(Vector<ExprStmt_s> &exprs);
 			virtual u32 replace_exprs(const Vector<ExprStmt_s> &old_exprs, 
                                 	  const Vector<ExprStmt_s> &new_exprs);
@@ -57,8 +56,6 @@ namespace CatDB {
 			bool is_dual_table() const override { return is_dual; }
 			u32 deep_copy(TableStmt_s &table, u32 flag)const override;
 			u32 formalize() override;
-			bool same_as(const TableStmt_s& other) override;
-			
 			
 			KV_STRING_OVERRIDE(
 				KV(table_type, TableTypeString[table_type]),

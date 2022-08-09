@@ -119,6 +119,7 @@ start_server() {
     then
         echo "succeed to start CatDB"
     else
+		tail -n 10 $LOG_FILE
         echo "failed to start CatDB"
     fi
 }

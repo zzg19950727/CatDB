@@ -254,6 +254,7 @@
 %token NO_USE_NL
 %token NO_SIMPLIFY_SQ
 %token NO_EXPR_NORMALIZE
+%token NO_WIN_MAGIC
 %token NULLX
 %token NUMERIC_SYM
 %token ON
@@ -313,6 +314,7 @@
 %token DENSE_RANK
 %token ROW_NUMBER
 %token OVER
+%token WIN_MAGIC
 %token END 0
 
 %type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt 
@@ -565,6 +567,18 @@ single_hint:
 	| NO_EXPR_NORMALIZE opt_qb_name_single
 	{
 		$$ = HintStmt::make_hint_stmt(EXPR_NORMALIZE, false);
+		$$->set_qb_name($2);
+	}
+	| WIN_MAGIC  "(" QB_NAME_IDENT opt_split QB_NAME_IDENT ")"
+	{
+		$$ = HintStmt::make_hint_stmt(WIN_MAGIC, true);
+		$$->set_qb_name($3);
+		WinMagicHintStmt_s win_magic_hint = $$;
+		win_magic_hint->dst_qb_name = $5;
+	}
+	| NO_WIN_MAGIC opt_qb_name_single
+	{
+		$$ = HintStmt::make_hint_stmt(WIN_MAGIC, false);
 		$$->set_qb_name($2);
 	}
 /*optiizer hint*/
