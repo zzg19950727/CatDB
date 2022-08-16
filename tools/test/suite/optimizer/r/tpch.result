@@ -111,7 +111,7 @@ sort_keys([lineitem.l_returnflag ASC], [lineitem.l_linestatus ASC])
 group_by_exprs([lineitem.l_returnflag], [lineitem.l_linestatus])
 aggr_exprs([SUM(lineitem.l_quantity)], [SUM(lineitem.l_extendedprice)], [SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)], [SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount * 1 + lineitem.l_tax)], [SUM(lineitem.l_quantity)], [COUNT(lineitem.l_quantity)], [SUM(lineitem.l_extendedprice)], [COUNT(lineitem.l_extendedprice)], [SUM(lineitem.l_discount)], [COUNT(lineitem.l_discount)], [COUNT(1)])
 2 - output([lineitem.l_returnflag], [lineitem.l_linestatus], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount], [lineitem.l_tax])
-filters([lineitem.l_shipdate <= DATE_SUB(1998-12-01 00:00:00, ?)])
+filters([lineitem.l_shipdate <= 1998-09-02 00:00:00])
 access([lineitem.l_shipdate], [lineitem.l_returnflag], [lineitem.l_linestatus], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount], [lineitem.l_tax])
 
 outline:
@@ -142,91 +142,65 @@ order by s_acctbal desc, n_name, s_name, p_partkey
 limit 100
 
 Query Plan:
-+------------------------------------------------------------+
-| ID | OPERATOR                | NAME     | ROW COUNT | COST |
-+------------------------------------------------------------+
-| 0  | TOP_N SORT              |          | 1         | 40   |
-| 1  |  HASH Inner JOIN        |          | 1         | 40   |
-| 2  |   TABLE SCAN            | REGION   | 1         | 4    |
-| 3  |   HASH Inner JOIN       |          | 1         | 35   |
-| 4  |    TABLE SCAN           | NATION   | 1         | 4    |
-| 5  |    HASH RightOuter JOIN |          | 1         | 31   |
-| 6  |     VIEW                | VIEW1    | 1         | 17   |
-| 7  |      HASH GROUP BY      |          | 1         | 17   |
-| 8  |       HASH Inner JOIN   |          | 1         | 17   |
-| 9  |        TABLE SCAN       | PARTSUPP | 1         | 4    |
-| 10 |        HASH Inner JOIN  |          | 1         | 13   |
-| 11 |         TABLE SCAN      | REGION   | 1         | 4    |
-| 12 |         HASH Inner JOIN |          | 1         | 8    |
-| 13 |          TABLE SCAN     | SUPPLIER | 1         | 4    |
-| 14 |          TABLE SCAN     | NATION   | 1         | 4    |
-| 15 |     HASH Inner JOIN     |          | 1         | 13   |
-| 16 |      TABLE SCAN         | PART     | 1         | 4    |
-| 17 |      HASH Inner JOIN    |          | 1         | 8    |
-| 18 |       TABLE SCAN        | SUPPLIER | 1         | 4    |
-| 19 |       TABLE SCAN        | PARTSUPP | 1         | 4    |
-+------------------------------------------------------------+
++-----------------------------------------------------------+
+| ID | OPERATOR               | NAME     | ROW COUNT | COST |
++-----------------------------------------------------------+
+| 0  | TOP_N SORT             |          | 1         | 22   |
+| 1  |  HASH Inner JOIN       |          | 1         | 22   |
+| 2  |   TABLE SCAN           | PART     | 1         | 4    |
+| 3  |   VIEW                 | VIEW1    | 1         | 17   |
+| 4  |    WINDOW FUNCTION     |          | 1         | 17   |
+| 5  |     PARTITION SORT     |          | 1         | 17   |
+| 6  |      HASH Inner JOIN   |          | 1         | 17   |
+| 7  |       TABLE SCAN       | PARTSUPP | 1         | 4    |
+| 8  |       HASH Inner JOIN  |          | 1         | 13   |
+| 9  |        TABLE SCAN      | REGION   | 1         | 4    |
+| 10 |        HASH Inner JOIN |          | 1         | 8    |
+| 11 |         TABLE SCAN     | SUPPLIER | 1         | 4    |
+| 12 |         TABLE SCAN     | NATION   | 1         | 4    |
++-----------------------------------------------------------+
 Outputs & filters:
-0 - output([supplier.s_acctbal], [supplier.s_name], [nation.n_name], [part.p_partkey], [part.p_mfgr], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-sort_keys([supplier.s_acctbal DESC], [nation.n_name ASC], [supplier.s_name ASC], [part.p_partkey ASC])
+0 - output([VIEW1.C4], [VIEW1.C5], [VIEW1.C14], [part.p_partkey], [part.p_mfgr], [VIEW1.C6], [VIEW1.C7], [VIEW1.C8])
+sort_keys([VIEW1.C4 DESC], [VIEW1.C14 ASC], [VIEW1.C5 ASC], [part.p_partkey ASC])
 top_n([100])
-1 - output([supplier.s_acctbal], [nation.n_name], [supplier.s_name], [part.p_partkey], [part.p_mfgr], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-equal_join_conditions([nation.n_regionkey = region.r_regionkey])
-2 - output([region.r_regionkey])
-filters([region.r_name = 'ASIA'])
-access([region.r_regionkey], [region.r_name])
-3 - output([nation.n_regionkey], [supplier.s_acctbal], [nation.n_name], [supplier.s_name], [part.p_partkey], [part.p_mfgr], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-equal_join_conditions([supplier.s_nationkey = nation.n_nationkey])
-4 - output([nation.n_nationkey], [nation.n_regionkey], [nation.n_name])
-access([nation.n_nationkey], [nation.n_regionkey], [nation.n_name])
-5 - output([supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [part.p_partkey], [part.p_mfgr], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-filters([partsupp.ps_supplycost = VIEW1.C1])
-equal_join_conditions([part.p_partkey = VIEW1.C1])
-6 - output([VIEW1.C1], [VIEW1.C1])
-7 - output([partsupp.ps_partkey], [MIN(partsupp.ps_supplycost)])
-group_by_exprs([partsupp.ps_partkey])
-aggr_exprs([MIN(partsupp.ps_supplycost)])
-8 - output([partsupp.ps_partkey], [partsupp.ps_supplycost])
-equal_join_conditions([supplier.s_suppkey = partsupp.ps_suppkey])
-9 - output([partsupp.ps_suppkey], [partsupp.ps_partkey], [partsupp.ps_supplycost])
-access([partsupp.ps_suppkey], [partsupp.ps_partkey], [partsupp.ps_supplycost])
-10 - output([supplier.s_suppkey])
-equal_join_conditions([nation.n_regionkey = region.r_regionkey])
-11 - output([region.r_regionkey])
-filters([region.r_name = 'ASIA'])
-access([region.r_regionkey], [region.r_name])
-12 - output([nation.n_regionkey], [supplier.s_suppkey])
-equal_join_conditions([supplier.s_nationkey = nation.n_nationkey])
-13 - output([supplier.s_nationkey], [supplier.s_suppkey])
-access([supplier.s_suppkey], [supplier.s_nationkey])
-14 - output([nation.n_nationkey], [nation.n_regionkey])
-access([nation.n_nationkey], [nation.n_regionkey])
-15 - output([part.p_partkey], [partsupp.ps_supplycost], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [part.p_mfgr], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-equal_join_conditions([part.p_partkey = partsupp.ps_partkey])
-16 - output([part.p_partkey], [part.p_mfgr])
+1 - output([VIEW1.C4], [VIEW1.C14], [VIEW1.C5], [part.p_partkey], [part.p_mfgr], [VIEW1.C6], [VIEW1.C7], [VIEW1.C8])
+equal_join_conditions([part.p_partkey = VIEW1.C9])
+2 - output([part.p_partkey], [part.p_mfgr])
 filters([part.p_size = 30], [part.p_type LIKE '%STEEL'])
 access([part.p_partkey], [part.p_size], [part.p_type], [part.p_mfgr])
-17 - output([partsupp.ps_partkey], [partsupp.ps_supplycost], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
+3 - output([VIEW1.C9], [VIEW1.C4], [VIEW1.C14], [VIEW1.C5], [VIEW1.C6], [VIEW1.C7], [VIEW1.C8])
+filters([VIEW1.C11 = VIEW1.C1])
+4 - output([MIN(partsupp.ps_supplycost)OVER(PARTITION BY partsupp.ps_partkey )], [supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment], [partsupp.ps_partkey], [partsupp.ps_suppkey], [partsupp.ps_supplycost], [nation.n_nationkey], [nation.n_regionkey], [nation.n_name], [region.r_regionkey], [region.r_name])
+win_func_exprs([MIN(partsupp.ps_supplycost)OVER(PARTITION BY partsupp.ps_partkey )])
+5 - output([partsupp.ps_supplycost], [partsupp.ps_partkey], [supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment], [partsupp.ps_suppkey], [nation.n_nationkey], [nation.n_regionkey], [nation.n_name], [region.r_regionkey], [region.r_name])
+sort_keys()
+partition_keys([partsupp.ps_partkey])
+6 - output([partsupp.ps_partkey], [partsupp.ps_supplycost], [supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment], [partsupp.ps_suppkey], [nation.n_nationkey], [nation.n_regionkey], [nation.n_name], [region.r_regionkey], [region.r_name])
 equal_join_conditions([supplier.s_suppkey = partsupp.ps_suppkey])
-18 - output([supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
+7 - output([partsupp.ps_suppkey], [partsupp.ps_partkey], [partsupp.ps_supplycost])
+access([partsupp.ps_suppkey], [partsupp.ps_supplycost], [partsupp.ps_partkey])
+8 - output([supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment], [nation.n_nationkey], [nation.n_regionkey], [nation.n_name], [region.r_regionkey], [region.r_name])
+equal_join_conditions([nation.n_regionkey = region.r_regionkey])
+9 - output([region.r_regionkey], [region.r_name])
+filters([region.r_name = 'ASIA'])
+access([region.r_regionkey], [region.r_name])
+10 - output([nation.n_regionkey], [supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment], [nation.n_nationkey], [nation.n_name])
+equal_join_conditions([supplier.s_nationkey = nation.n_nationkey])
+11 - output([supplier.s_nationkey], [supplier.s_suppkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
 access([supplier.s_suppkey], [supplier.s_nationkey], [supplier.s_acctbal], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [supplier.s_comment])
-19 - output([partsupp.ps_suppkey], [partsupp.ps_partkey], [partsupp.ps_supplycost])
-access([partsupp.ps_partkey], [partsupp.ps_suppkey], [partsupp.ps_supplycost])
+12 - output([nation.n_nationkey], [nation.n_regionkey], [nation.n_name])
+access([nation.n_nationkey], [nation.n_regionkey], [nation.n_name])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-UNNEST(@SEL2)
+WIN_MAGIC(@SEL1 @SEL2)
 USE_HASH(@SEL2 nation)
 USE_HASH(@SEL2 supplier, nation)
 USE_HASH(@SEL2 region, supplier, nation)
 LEADING(@SEL2 partsupp, (region, (supplier, nation)))
-USE_HASH(@SEL1 partsupp)
-USE_HASH(@SEL1 supplier, partsupp)
-USE_HASH(@SEL1 part, supplier, partsupp)
-USE_HASH(@SEL1 VIEW1, part, supplier, partsupp)
-USE_HASH(@SEL1 nation, VIEW1, part, supplier, partsupp)
-LEADING(@SEL1 region, (nation, (VIEW1, (part, (supplier, partsupp)))))
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL1 part, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -324,7 +298,7 @@ aggr_exprs([COUNT(1)])
 2 - output([orders.o_orderpriority])
 equal_join_conditions([lineitem.l_orderkey = orders.o_orderkey])
 3 - output([orders.o_orderkey], [orders.o_orderpriority])
-filters([orders.o_orderdate >= 1993-07-01 00:00:00], [orders.o_orderdate < DATE_ADD(1993-07-01 00:00:00, ?)])
+filters([orders.o_orderdate >= 1993-07-01 00:00:00], [orders.o_orderdate < 1993-10-02 00:00:00])
 access([orders.o_orderdate], [orders.o_orderkey], [orders.o_orderpriority])
 4 - output([lineitem.l_orderkey])
 filters([lineitem.l_commitdate < lineitem.l_receiptdate])
@@ -405,7 +379,7 @@ equal_join_conditions([customer.c_custkey = orders.o_custkey])
 11 - output([customer.c_custkey], [customer.c_nationkey])
 access([customer.c_custkey], [customer.c_nationkey])
 12 - output([orders.o_custkey], [orders.o_orderkey])
-filters([orders.o_orderdate >= 1995-01-01 00:00:00], [orders.o_orderdate < DATE_ADD(1995-01-01 00:00:00, ?)])
+filters([orders.o_orderdate >= 1995-01-01 00:00:00], [orders.o_orderdate < 1996-01-01 00:00:00])
 access([orders.o_custkey], [orders.o_orderkey], [orders.o_orderdate])
 
 outline:
@@ -441,7 +415,7 @@ Outputs & filters:
 0 - output([SUM(lineitem.l_extendedprice * lineitem.l_discount)])
 aggr_exprs([SUM(lineitem.l_extendedprice * lineitem.l_discount)])
 1 - output([lineitem.l_extendedprice], [lineitem.l_discount])
-filters([lineitem.l_shipdate >= 1994-01-01 00:00:00], [lineitem.l_shipdate < DATE_ADD(1994-01-01 00:00:00, ?)], [lineitem.l_discount BETWEEN 0.06 - 0.01 AND 0.06 + 0.01], [lineitem.l_quantity < 24])
+filters([lineitem.l_shipdate >= 1994-01-01 00:00:00], [lineitem.l_shipdate < 1995-01-08 00:00:00], [lineitem.l_discount BETWEEN 0.05 AND 0.07], [lineitem.l_quantity < 24])
 access([lineitem.l_shipdate], [lineitem.l_discount], [lineitem.l_quantity], [lineitem.l_extendedprice])
 
 outline:
@@ -767,7 +741,7 @@ equal_join_conditions([customer.c_custkey = orders.o_custkey])
 7 - output([customer.c_custkey], [customer.c_nationkey], [customer.c_name], [customer.c_acctbal], [customer.c_phone], [customer.c_address], [customer.c_comment])
 access([customer.c_custkey], [customer.c_nationkey], [customer.c_name], [customer.c_acctbal], [customer.c_address], [customer.c_phone], [customer.c_comment])
 8 - output([orders.o_custkey], [orders.o_orderkey])
-filters([orders.o_orderdate >= 1993-10-01 00:00:00], [orders.o_orderdate < DATE_ADD(1993-10-01 00:00:00, ?)])
+filters([orders.o_orderdate >= 1993-10-01 00:00:00], [orders.o_orderdate < 1994-01-02 00:00:00])
 access([orders.o_custkey], [orders.o_orderkey], [orders.o_orderdate])
 
 outline:
@@ -909,7 +883,7 @@ equal_join_conditions([orders.o_orderkey = lineitem.l_orderkey])
 3 - output([orders.o_orderkey], [orders.o_orderpriority])
 access([orders.o_orderkey], [orders.o_orderpriority])
 4 - output([lineitem.l_orderkey], [lineitem.l_shipmode])
-filters([lineitem.l_shipmode IN ('MAIL', 'SHIP')], [lineitem.l_commitdate < lineitem.l_receiptdate], [lineitem.l_shipdate < lineitem.l_commitdate], [lineitem.l_receiptdate >= 1994-01-01 00:00:00], [lineitem.l_receiptdate < DATE_ADD(1995-09-01 00:00:00, ?)])
+filters([lineitem.l_shipmode IN ('MAIL', 'SHIP')], [lineitem.l_commitdate < lineitem.l_receiptdate], [lineitem.l_shipdate < lineitem.l_commitdate], [lineitem.l_receiptdate >= 1994-01-01 00:00:00], [lineitem.l_receiptdate < 1996-08-31 00:00:00])
 access([lineitem.l_orderkey], [lineitem.l_shipmode], [lineitem.l_commitdate], [lineitem.l_receiptdate], [lineitem.l_shipdate])
 
 outline:
@@ -994,7 +968,7 @@ aggr_exprs([SUM(CASE WHEN part.p_type LIKE 'promo%' THEN lineitem.l_extendedpric
 1 - output([part.p_type], [lineitem.l_extendedprice], [lineitem.l_discount])
 equal_join_conditions([lineitem.l_partkey = part.p_partkey])
 2 - output([lineitem.l_partkey], [lineitem.l_extendedprice], [lineitem.l_discount])
-filters([lineitem.l_shipdate >= 1995-09-01 00:00:00], [lineitem.l_shipdate < DATE_ADD(1995-09-01 00:00:00, ?)])
+filters([lineitem.l_shipdate >= 1995-09-01 00:00:00], [lineitem.l_shipdate < 1995-10-02 00:00:00])
 access([lineitem.l_partkey], [lineitem.l_shipdate], [lineitem.l_extendedprice], [lineitem.l_discount])
 3 - output([part.p_partkey], [part.p_type])
 access([part.p_partkey], [part.p_type])
@@ -1032,56 +1006,43 @@ FROM   revenue0)
 ORDER  BY s_suppkey
 
 Query Plan:
-+--------------------------------------------------------+
-| ID | OPERATOR            | NAME     | ROW COUNT | COST |
-+--------------------------------------------------------+
-| 0  | SORT                |          | 1         | 13   |
-| 1  |  HASH Inner JOIN    |          | 1         | 13   |
-| 2  |   TABLE SCAN        | SUPPLIER | 1         | 4    |
-| 3  |   HASH Inner JOIN   |          | 1         | 9    |
-| 4  |    VIEW             | REVENUE0 | 1         | 4    |
-| 5  |     HASH GROUP BY   |          | 1         | 4    |
-| 6  |      TABLE SCAN     | LINEITEM | 1         | 4    |
-| 7  |    VIEW             | VIEW1    | 1         | 4    |
-| 8  |     SCALAR GROUP BY |          | 1         | 4    |
-| 9  |      VIEW           | REVENUE0 | 1         | 4    |
-| 10 |       HASH GROUP BY |          | 1         | 4    |
-| 11 |        TABLE SCAN   | LINEITEM | 1         | 4    |
-+--------------------------------------------------------+
++-------------------------------------------------------+
+| ID | OPERATOR           | NAME     | ROW COUNT | COST |
++-------------------------------------------------------+
+| 0  | SORT               |          | 1         | 9    |
+| 1  |  HASH Inner JOIN   |          | 1         | 9    |
+| 2  |   TABLE SCAN       | SUPPLIER | 1         | 4    |
+| 3  |   VIEW             | VIEW1    | 1         | 4    |
+| 4  |    WINDOW FUNCTION |          | 1         | 4    |
+| 5  |     VIEW           | REVENUE0 | 1         | 4    |
+| 6  |      HASH GROUP BY |          | 1         | 4    |
+| 7  |       TABLE SCAN   | LINEITEM | 1         | 4    |
++-------------------------------------------------------+
 Outputs & filters:
-0 - output([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [revenue0.total_revenue])
+0 - output([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [VIEW1.C3])
 sort_keys([supplier.s_suppkey ASC])
-1 - output([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [revenue0.total_revenue])
-equal_join_conditions([supplier.s_suppkey = revenue0.supplier_no])
+1 - output([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone], [VIEW1.C3])
+equal_join_conditions([supplier.s_suppkey = VIEW1.C2])
 2 - output([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone])
 access([supplier.s_suppkey], [supplier.s_name], [supplier.s_address], [supplier.s_phone])
-3 - output([revenue0.supplier_no], [revenue0.total_revenue])
-equal_join_conditions([revenue0.total_revenue = VIEW1.C1])
-4 - output([revenue0.total_revenue], [revenue0.supplier_no])
-5 - output([lineitem.l_suppkey], [SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
+3 - output([VIEW1.C2], [VIEW1.C3])
+filters([VIEW1.C3 = VIEW1.C1])
+4 - output([MAX(revenue0.total_revenue)OVER()], [revenue0.supplier_no], [revenue0.total_revenue])
+win_func_exprs([MAX(revenue0.total_revenue)OVER()])
+5 - output([revenue0.total_revenue], [revenue0.supplier_no])
+6 - output([lineitem.l_suppkey], [SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
 group_by_exprs([lineitem.l_suppkey])
 aggr_exprs([SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
-6 - output([lineitem.l_suppkey], [lineitem.l_extendedprice], [lineitem.l_discount])
-filters([lineitem.l_shipdate >= 1997-07-01 00:00:00], [lineitem.l_shipdate < DATE_ADD(1997-07-01 00:00:00, ?)])
-access([lineitem.l_shipdate], [lineitem.l_suppkey], [lineitem.l_extendedprice], [lineitem.l_discount])
-7 - output([VIEW1.C1])
-8 - output([MAX(revenue0.total_revenue)])
-aggr_exprs([MAX(revenue0.total_revenue)])
-9 - output([revenue0.total_revenue])
-10 - output([lineitem.l_suppkey], [SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
-group_by_exprs([lineitem.l_suppkey])
-aggr_exprs([SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
-11 - output([lineitem.l_suppkey], [lineitem.l_extendedprice], [lineitem.l_discount])
-filters([lineitem.l_shipdate >= 1997-07-01 00:00:00], [lineitem.l_shipdate < DATE_ADD(1997-07-01 00:00:00, ?)])
+7 - output([lineitem.l_suppkey], [lineitem.l_extendedprice], [lineitem.l_discount])
+filters([lineitem.l_shipdate >= 1997-07-01 00:00:00], [lineitem.l_shipdate < 1997-10-02 00:00:00])
 access([lineitem.l_shipdate], [lineitem.l_suppkey], [lineitem.l_extendedprice], [lineitem.l_discount])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-UNNEST(@SEL3)
+WIN_MAGIC(@SEL1 @SEL3)
 USE_HASH(@SEL1 VIEW1)
-USE_HASH(@SEL1 revenue0, VIEW1)
-LEADING(@SEL1 supplier, (revenue0, VIEW1))
+LEADING(@SEL1 supplier, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -1162,45 +1123,48 @@ FROM   lineitem
 WHERE  l_partkey = p_partkey)
 
 Query Plan:
-+----------------------------------------------------------+
-| ID | OPERATOR              | NAME     | ROW COUNT | COST |
-+----------------------------------------------------------+
-| 0  | SCALAR GROUP BY       |          | 1         | 13   |
-| 1  |  HASH RightOuter JOIN |          | 1         | 13   |
-| 2  |   VIEW                | VIEW1    | 1         | 4    |
-| 3  |    HASH GROUP BY      |          | 1         | 4    |
-| 4  |     TABLE SCAN        | LINEITEM | 1         | 4    |
-| 5  |   HASH Inner JOIN     |          | 1         | 8    |
-| 6  |    TABLE SCAN         | LINEITEM | 1         | 4    |
-| 7  |    TABLE SCAN         | PART     | 1         | 4    |
-+----------------------------------------------------------+
++---------------------------------------------------------+
+| ID | OPERATOR             | NAME     | ROW COUNT | COST |
++---------------------------------------------------------+
+| 0  | SCALAR GROUP BY      |          | 1         | 8    |
+| 1  |  HASH Inner JOIN     |          | 1         | 8    |
+| 2  |   TABLE SCAN         | PART     | 1         | 4    |
+| 3  |   VIEW               | VIEW1    | 1         | 4    |
+| 4  |    WINDOW FUNCTION   |          | 1         | 4    |
+| 5  |     PARTITION SORT   |          | 1         | 4    |
+| 6  |      WINDOW FUNCTION |          | 1         | 4    |
+| 7  |       PARTITION SORT |          | 1         | 4    |
+| 8  |        TABLE SCAN    | LINEITEM | 1         | 4    |
++---------------------------------------------------------+
 Outputs & filters:
-0 - output([SUM(lineitem.l_extendedprice) / 7.0])
-aggr_exprs([SUM(lineitem.l_extendedprice)])
-1 - output([lineitem.l_extendedprice])
-filters([lineitem.l_quantity < 0.2 * CAST(VIEW1.C1 AS NUMBER(72, 38)) / CASE WHEN VIEW1.C1 IS NULL THEN 0 ELSE VIEW1.C2 END])
-equal_join_conditions([VIEW1.C1 = part.p_partkey])
-2 - output([VIEW1.C1], [VIEW1.C1], [VIEW1.C2])
-3 - output([lineitem.l_partkey], [SUM(lineitem.l_quantity)], [COUNT(lineitem.l_quantity)])
-group_by_exprs([lineitem.l_partkey])
-aggr_exprs([SUM(lineitem.l_quantity)], [COUNT(lineitem.l_quantity)])
-4 - output([lineitem.l_partkey], [lineitem.l_quantity])
-access([lineitem.l_partkey], [lineitem.l_quantity])
-5 - output([part.p_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice])
-equal_join_conditions([part.p_partkey = lineitem.l_partkey])
-6 - output([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice])
-access([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice])
-7 - output([part.p_partkey])
+0 - output([SUM(VIEW1.C4) / 7.0])
+aggr_exprs([SUM(VIEW1.C4)])
+1 - output([VIEW1.C4])
+equal_join_conditions([part.p_partkey = VIEW1.C2])
+2 - output([part.p_partkey])
 filters([part.p_brand = 'Brand#44'], [part.p_container = 'WRAP PKG'])
 access([part.p_partkey], [part.p_brand], [part.p_container])
+3 - output([VIEW1.C2], [VIEW1.C4])
+filters([VIEW1.C3 < VIEW1.C1])
+4 - output([0.2 * CAST(SUM(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey ) AS NUMBER(72, 38)) / COUNT(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey )], [lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice])
+win_func_exprs([COUNT(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey )])
+5 - output([lineitem.l_quantity], [lineitem.l_partkey], [SUM(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey )], [lineitem.l_extendedprice])
+sort_keys()
+partition_keys([lineitem.l_partkey])
+6 - output([lineitem.l_partkey], [lineitem.l_quantity], [SUM(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey )], [lineitem.l_extendedprice])
+win_func_exprs([SUM(lineitem.l_quantity)OVER(PARTITION BY lineitem.l_partkey )])
+7 - output([lineitem.l_quantity], [lineitem.l_partkey], [lineitem.l_extendedprice])
+sort_keys()
+partition_keys([lineitem.l_partkey])
+8 - output([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice])
+access([lineitem.l_quantity], [lineitem.l_partkey], [lineitem.l_extendedprice])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-UNNEST(@SEL2)
-USE_HASH(@SEL1 part)
-USE_HASH(@SEL1 lineitem, part)
-LEADING(@SEL1 VIEW1, (lineitem, part))
+WIN_MAGIC(@SEL1 @SEL2)
+USE_HASH(@SEL1 VIEW1)
+LEADING(@SEL1 part, VIEW1)
 END_OUTLINE_DATA
 */
 
@@ -1320,7 +1284,7 @@ Outputs & filters:
 aggr_exprs([SUM(lineitem.l_extendedprice * 1 - lineitem.l_discount)])
 1 - output([lineitem.l_extendedprice], [lineitem.l_discount])
 equal_join_conditions([part.p_partkey = lineitem.l_partkey])
-other_join_conditions([part.p_brand = 'Brand#12' AND part.p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG') AND lineitem.l_quantity >= 1 AND lineitem.l_quantity <= 1 + 10 AND part.p_size BETWEEN 1 AND 5 OR part.p_brand = 'Brand#23' AND part.p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK') AND lineitem.l_quantity >= 10 AND lineitem.l_quantity <= 10 + 10 AND part.p_size BETWEEN 1 AND 10 OR part.p_brand = 'Brand#34' AND part.p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG') AND lineitem.l_quantity >= 20 AND lineitem.l_quantity <= 20 + 10 AND part.p_size BETWEEN 1 AND 15])
+other_join_conditions([part.p_brand = 'Brand#12' AND part.p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG') AND lineitem.l_quantity >= 1 AND lineitem.l_quantity <= 11 AND part.p_size BETWEEN 1 AND 5 OR part.p_brand = 'Brand#23' AND part.p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK') AND lineitem.l_quantity >= 10 AND lineitem.l_quantity <= 20 AND part.p_size BETWEEN 1 AND 10 OR part.p_brand = 'Brand#34' AND part.p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG') AND lineitem.l_quantity >= 20 AND lineitem.l_quantity <= 30 AND part.p_size BETWEEN 1 AND 15])
 2 - output([lineitem.l_partkey], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount])
 filters([lineitem.l_shipmode IN ('AIR', 'AIR REG')], [lineitem.l_shipinstruct = 'DELIVER IN PERSON'])
 access([lineitem.l_partkey], [lineitem.l_shipmode], [lineitem.l_shipinstruct], [lineitem.l_quantity], [lineitem.l_extendedprice], [lineitem.l_discount])
@@ -1399,7 +1363,7 @@ equal_join_conditions([VIEW1.C1 = partsupp.ps_partkey], [VIEW1.C2 = partsupp.ps_
 group_by_exprs([lineitem.l_partkey], [lineitem.l_suppkey])
 aggr_exprs([SUM(lineitem.l_quantity)])
 8 - output([lineitem.l_partkey], [lineitem.l_suppkey], [lineitem.l_quantity])
-filters([lineitem.l_shipdate >= 1993-01-01 00:00:00], [lineitem.l_shipdate < DATE_ADD(1993-01-01 00:00:00, ?)])
+filters([lineitem.l_shipdate >= 1993-01-01 00:00:00], [lineitem.l_shipdate < 1994-01-01 00:00:00])
 access([lineitem.l_shipdate], [lineitem.l_partkey], [lineitem.l_suppkey], [lineitem.l_quantity])
 9 - output([partsupp.ps_partkey], [partsupp.ps_suppkey], [partsupp.ps_availqty])
 equal_join_conditions([partsupp.ps_partkey = part.p_partkey])

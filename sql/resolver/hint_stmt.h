@@ -11,9 +11,7 @@ namespace CatDB {
 		protected:
 			HintStmt(HintType type, bool is_enable = true) 
 			: 	type(type),
-				is_enable_(is_enable),
-				is_used_(false),
-				is_invalid_(false) {}
+				is_enable_(is_enable) {}
 		public:
 			virtual ~HintStmt() {}
 			static HintStmt_s make_hint_stmt(HintType type, bool is_enable = true);
@@ -21,37 +19,35 @@ namespace CatDB {
 			void set_qb_name(const String& name) { qb_name = name; }
 			const String& get_qb_name() const { return qb_name; }
 			HintType get_hint_type() const { return type; }
-			void set_used(bool use) { is_used_ = use; }
-			bool is_used() const { return is_used_; }
-			void set_invalid(bool invalid) { is_invalid_ = invalid; }
+			void set_invalid(bool value) { is_invalid_ = value; }
 			bool is_invalid() const { return is_invalid_; }
-			
-			virtual bool is_base_equal(const HintStmt_s &other) const;
+
+
+			virtual bool is_same_hint_type(const HintStmt_s &other) const;
 			virtual bool is_equal(const HintStmt_s &other) const;
 			virtual bool is_excluse(const HintStmt_s &other) const;
 
-			virtual bool is_enable(void *param = NULL) const { return is_enable_; }
-			virtual bool is_disable(void *param = NULL) const { return !is_enable_; }
+			virtual bool is_enable(const Vector<const void*> &params = Vector<const void*>()) const { return is_enable_; }
+			virtual bool is_disable(const Vector<const void*> &params = Vector<const void*>()) const { return !is_enable_; }
+
+			virtual u32 generate_outline(const Vector<const void*> &params = Vector<const void*>());
 			virtual String print_outline() const;
 			virtual u32 deep_copy(HintStmt_s &hint) const;
 
 
-			virtual bool is_transform_hint() const = 0;
-			virtual bool is_optimizer_hint() const = 0;
-			virtual bool is_global_hint() const = 0;
+			virtual bool is_transform_hint() const { return false; }
+			virtual bool is_optimizer_hint() const { return false; }
+			virtual bool is_global_hint() const { return false; }
 
 			VIRTUAL_KV_STRING(
 				KV(type, HintTypeString[type]),
 				K(qb_name),
-				K(is_enable_),
-				K(is_used_),
-				K(is_invalid_)
+				K(is_enable_)
 			);
 		public:
 			HintType type;
 			String qb_name;
 			bool is_enable_;
-			bool is_used_;
 			bool is_invalid_;
 		};
 
@@ -62,8 +58,6 @@ namespace CatDB {
 		friend class HintStmt;
 		public:
 			bool is_transform_hint() const override { return true; }
-			bool is_optimizer_hint() const override { return false; }
-			bool is_global_hint() const override { return false; }
 		};
 
 		class OptimizerHint : public HintStmt {
@@ -72,9 +66,7 @@ namespace CatDB {
 				HintStmt(type, is_enable) {}
 		friend class HintStmt;
 		public:
-			bool is_transform_hint() const override { return false; }
 			bool is_optimizer_hint() const override { return true; }
-			bool is_global_hint() const override { return false; }
 		};
 
 		class GlobalHint : public HintStmt {
@@ -83,8 +75,6 @@ namespace CatDB {
 				HintStmt(type, is_enable) {}
 		friend class HintStmt;
 		public:
-			bool is_transform_hint() const override { return false; }
-			bool is_optimizer_hint() const override { return false; }
 			bool is_global_hint() const override { return true; }
 		};
 
@@ -151,17 +141,18 @@ namespace CatDB {
 		friend class HintStmt;
 		public:
 			~WinMagicHintStmt() {}
-			virtual bool is_base_equal(const HintStmt_s &other) const override;
-			virtual bool is_excluse(const HintStmt_s &other) const override;
+			virtual bool is_equal(const HintStmt_s &other) const override;
 			virtual String print_outline() const override;
 			virtual u32 deep_copy(HintStmt_s &hint) const override;
+
+			virtual bool is_enable(const Vector<const void*> &params = Vector<const void*>()) const override;
+			virtual u32 generate_outline(const Vector<const void*> &params = Vector<const void*>()) override;
+
 			KV_STRING_OVERRIDE(
 				KV(type, HintTypeString[type]),
 				K(qb_name),
 				K(dst_qb_name),
-				K(is_enable_),
-				K(is_used_),
-				K(is_invalid_)
+				K(is_enable_)
 			);
 
 			String dst_qb_name;
@@ -171,7 +162,7 @@ namespace CatDB {
 		class JoinHintStmt : public OptimizerHint
 		{
 		private:
-			JoinHintStmt(bool is_enable) : OptimizerHint(JOIN, is_enable) {}
+			JoinHintStmt(bool is_enable) : OptimizerHint(USE_JOIN, is_enable) {}
 		friend class HintStmt;
 		public:
 			~JoinHintStmt() {}
@@ -179,18 +170,20 @@ namespace CatDB {
 			JoinAlgo get_join_algo() const { return join_algo; }
 			String print_outline() const override;
 			u32 deep_copy(HintStmt_s &hint) const override;
-			virtual bool is_base_equal(const HintStmt_s &other) const override;
+			bool is_same_hint_type(const HintStmt_s &other) const;
+
 			virtual bool is_equal(const HintStmt_s &other) const override;
 			virtual bool is_excluse(const HintStmt_s &other) const override;
+
+			virtual bool is_enable(const Vector<const void*> &params = Vector<const void*>()) const override;
+			virtual u32 generate_outline(const Vector<const void*> &params = Vector<const void*>()) override;
 
 			KV_STRING_OVERRIDE(
 				KV(type, HintTypeString[type]),
 				K(qb_name),
 				KV(join_algo, JoinAlgoString[join_algo]),
 				K(table_names),
-				K(is_enable_),
-				K(is_used_),
-				K(is_invalid_)
+				K(is_enable_)
 			);
 		public:
 			Vector<String> table_names;
@@ -210,7 +203,7 @@ namespace CatDB {
 			static LeadingTable_s make_leading_table();
 			String to_kv_string()const;
 			u32 deep_copy(LeadingTable_s &table) const;
-			bool is_base_equal(const LeadingTable_s &other) const;
+			bool is_same_hint_type(const LeadingTable_s &other) const;
 
 			String table_name;
 			u32 table_id;
@@ -230,7 +223,7 @@ namespace CatDB {
 			void set_is_ordered() { is_ordered = true; }
 			String print_outline() const override;
 			u32 deep_copy(HintStmt_s &hint) const override;
-			virtual bool is_base_equal(const HintStmt_s &other) const override;
+			virtual bool is_equal(const HintStmt_s &other) const override;
 			virtual bool is_excluse(const HintStmt_s &other) const override;
 
 			KV_STRING_OVERRIDE(
@@ -238,9 +231,7 @@ namespace CatDB {
 				K(qb_name),
 				K(is_ordered),
 				K(tables),
-				K(is_enable_),
-				K(is_used_),
-				K(is_invalid_)
+				K(is_enable_)
 			);
 		public:
 			LeadingTable_s tables;
@@ -263,9 +254,7 @@ namespace CatDB {
 			KV_STRING_OVERRIDE(
 				KV(type, HintTypeString[type]),
 				K(parallel),
-				K(is_enable_),
-				K(is_used_),
-				K(is_invalid_)
+				K(is_enable_)
 			);
 		public:
 			int parallel;
@@ -281,9 +270,20 @@ namespace CatDB {
 
 			virtual void get_all_hints(Vector<HintStmt_s> &all_hints)const = 0;
 			virtual u32 add_hint(HintStmt_s &hint) = 0;
-			virtual void get_hint_status(const String &qb_name, HintType type, HintStatus &status) = 0;
-			virtual void find_hints(const String &qb_name, HintType type, Vector<HintStmt_s> &hints)const = 0;
-			virtual u32 copy_hints(const String &src_qb_name, const String &dst_qb_name) = 0;
+			virtual void get_hint_status(const String &qb_name, 
+										 HintType type, 
+										 HintStatus &status,
+										 const Vector<const void*> &params = Vector<const void*>()) = 0;
+
+			virtual void find_hints(const String &qb_name, 
+									HintType type, 
+									Vector<HintStmt_s> &hints)const = 0;
+
+			virtual u32 copy_hints(const String &src_qb_name, 
+								   const String &dst_qb_name) = 0;
+
+			virtual u32 merge_hints(const String &src_qb_name, 
+									const String &dst_qb_name){return 0;}
 
 			VIRTUAL_KV_STRING("");
 		};
@@ -297,9 +297,17 @@ namespace CatDB {
 			static StmtHintManager_s make_stmt_hint_manager();
 			virtual void get_all_hints(Vector<HintStmt_s> &all_hints)const override;
 			virtual u32 add_hint(HintStmt_s &hint)override;
-			virtual void get_hint_status(const String &qb_name, HintType type, HintStatus &status) override;
-			virtual void find_hints(const String &qb_name, HintType type, Vector<HintStmt_s> &hints)const override;
-			virtual u32 copy_hints(const String &src_qb_name, const String &dst_qb_name) override;
+			virtual void get_hint_status(const String &qb_name, 
+										 HintType type, 
+										 HintStatus &status,
+										 const Vector<const void*> &params = Vector<const void*>()) override;
+
+			virtual void find_hints(const String &qb_name, 
+									HintType type, 
+									Vector<HintStmt_s> &hints)const override;
+
+			virtual u32 copy_hints(const String &src_qb_name, 
+								   const String &dst_qb_name) override;
 			DECLARE_KV_STRING_OVERRIDE;
 		public:
 			typedef Vector<HintStmt_s> 	HintArray;
@@ -318,9 +326,17 @@ namespace CatDB {
 			static OutlineHintManager_s make_outline_hint_manager();
 			virtual void get_all_hints(Vector<HintStmt_s> &all_hints)const override;
 			virtual u32 add_hint(HintStmt_s &hint)override;
-			virtual void get_hint_status(const String &qb_name, HintType type, HintStatus &status) override;
-			virtual void find_hints(const String &qb_name, HintType type, Vector<HintStmt_s> &hints)const override;
-			virtual u32 copy_hints(const String &src_qb_name, const String &dst_qb_name) override;
+			virtual void get_hint_status(const String &qb_name, 
+										 HintType type, 
+										 HintStatus &status,
+										 const Vector<const void*> &params = Vector<const void*>()) override;
+
+			virtual void find_hints(const String &qb_name, 
+									HintType type, 
+									Vector<HintStmt_s> &hints)const override;
+
+			virtual u32 copy_hints(const String &src_qb_name, 
+								   const String &dst_qb_name) override;
 
 			KV_STRING_OVERRIDE(
 				K(outline_hints)
@@ -330,6 +346,7 @@ namespace CatDB {
 			u32 index;
 		};
 
+		DECLARE(QueryHint);
 		class QueryHint {
 		public:
 			KV_STRING(
@@ -338,9 +355,19 @@ namespace CatDB {
 				K(transformer_hints),
 				K(generate_hints)
 			);
+			static QueryHint_s make_query_hint();
 			void reset();
 			u32 init(Vector<HintStmt_s> &all_hints, bool is_outline);
 			String print_outline() const;
+			
+			void get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints);
+			LeadingHintStmt_s get_leading_hint(const String &qb_name);
+			bool has_leading_hint(const String &qb_name);
+
+			//void merge_hints(const String &src_qb_name, const String &dst_qb_name, u32 flag);
+			void copy_hints(const String &src_qb_name, const String &dst_qb_name);
+
+			bool enable_transform(const String &qb_name, HintType type);
 			bool enable_no_rewrite(const String &qb_name) const;
 			bool enable_unnest(const String &qb_name) const;
 			bool enable_no_unnest(const String &qb_name) const;
@@ -351,15 +378,11 @@ namespace CatDB {
 			bool enable_expr_normalize(const String &qb_name) const;
 			bool enable_no_expr_normalize(const String &qb_name) const;
 			bool enable_win_magic(const String &qb_name, const String &dst_qb_name) const;
-			bool enable_no_win_magic(const String &qb_name) const;
-			void get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints);
-			LeadingHintStmt_s get_leading_hint(const String &qb_name);
-			bool has_leading_hint(const String &qb_name);
+			bool enable_no_win_magic(const String &qb_name, const String &dst_qb_name) const;
+			bool enable_join_algo(const String &qb_name, const BitSet &right_table_ids, JoinAlgo algo);
 
-			//void merge_hints(const String &src_qb_name, const String &dst_qb_name, u32 flag);
-			void copy_hints(const String &src_qb_name, const String &dst_qb_name);
 			u32 generate_transform_outline(const String &qb_name, HintType type);
-			u32 generate_transform_outline(const String &qb_name, HintType type, HintStmt_s &hint);
+			u32 generate_win_magic_outline(const String &qb_name, HintType type, const String &dst_qb_name);
 			u32 generate_join_outline(const String &qb_name, const Vector<String> &table_names, JoinAlgo join_algo);
 			u32 generate_leading_outline(const String &qb_name, const LeadingTable_s &tables);
 

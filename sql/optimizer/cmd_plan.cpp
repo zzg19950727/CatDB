@@ -486,6 +486,7 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 	Vector<String> title;
 	title.push_back(String("session id"));
 	title.push_back(String("trace id"));
+	title.push_back(String("last trace id"));
 	title.push_back(String("time(ms)"));
 	title.push_back(String("status"));
 	title.push_back(String("sql"));
@@ -497,6 +498,8 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 		cells.push_back(session_id);
 		Object_s trace_id = Varchar::make_object(session_info->get_trace_id());
 		cells.push_back(trace_id);
+		Object_s last_trace_id = Varchar::make_object(session_info->get_last_trace_id());
+		cells.push_back(last_trace_id);
 		Object_s time = Varchar::make_object(std::to_string(session_info->get_query_time()));
 		cells.push_back(time);
 		Object_s status = Varchar::make_object(session_info->get_session_status());

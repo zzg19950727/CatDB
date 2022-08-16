@@ -41,6 +41,7 @@ namespace CatDB {
             inline const String& get_session_log_module() const { return log_module; }
 
             inline const String& get_trace_id() const { return query_ctx->get_trace_id(); }
+            inline const String& get_last_trace_id() const { return query_ctx->last_trace_id; }
             String get_err_msg(int ret) const;
 
             long long get_query_time() const;

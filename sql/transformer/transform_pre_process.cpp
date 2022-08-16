@@ -70,8 +70,13 @@ u32 TransformPreProcess::inner_simplify_calculable_expr(ExprStmt_s &expr, bool &
         CHECK(Sql::SqlEngine::handle_const_expr(expr, obj_result, bool_result));
         if (expr->res_type.is_bool()) {
             CHECK(ExprUtils::make_bool_expr(expr, bool_result));
+        } else if (!obj_result) {
+            ret = ERR_UNEXPECTED;
+            LOG_ERR("failed to calc const expr", K(expr), K(obj_result));
         } else {
-            expr = ConstStmt::make_const_stmt(obj_result);
+            ExprStmt_s new_expr = ConstStmt::make_const_stmt(obj_result);
+            new_expr->alias_name = expr->alias_name;
+            expr = new_expr;
         }
         happened = true;
     } else {

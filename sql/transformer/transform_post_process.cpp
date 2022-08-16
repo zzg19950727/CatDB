@@ -51,13 +51,12 @@ u32 TransformPostProcess::update_join_hint(DMLStmt_s &stmt, bool &happened)
     u32 ret = SUCCESS;
     u32 id = INVALID_ID;
     Vector<JoinHintStmt_s> join_hints;
-    QUERY_CTX->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
+    QUERY_CTX->query_hint->get_join_hints(stmt->get_qb_name(), join_hints);
     for (u32 i = 0; i < join_hints.size(); ++i) {
         for (u32 j = 0; j < join_hints[i]->table_names.size(); ++j) {
             if (stmt->find_table_id(join_hints[i]->table_names[j], id)) {
                 join_hints[i]->table_ids.add_member(id);
             } else {
-                join_hints[i]->set_invalid(true);
                 break;
             }
         }
@@ -69,16 +68,16 @@ u32 TransformPostProcess::update_join_hint(DMLStmt_s &stmt, bool &happened)
 u32 TransformPostProcess::update_leading_table_hint(DMLStmt_s &stmt, bool &happened)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = QUERY_CTX->query_hint;
-    if (!query_hint.has_leading_hint(stmt->get_qb_name())) {
+    QueryHint_s &query_hint = QUERY_CTX->query_hint;
+    if (!query_hint->has_leading_hint(stmt->get_qb_name())) {
         return ret;
     }
-    LeadingHintStmt_s leading_hint = query_hint.get_leading_hint(stmt->get_qb_name());
+    LeadingHintStmt_s leading_hint = query_hint->get_leading_hint(stmt->get_qb_name());
     if (leading_hint->is_ordered) {
         CHECK(change_ordered_to_leading(stmt, leading_hint));
     } else {
         if(!inner_update_leading_table_hint(stmt, leading_hint->tables)) {
-            leading_hint->set_invalid(true);   
+            //do nothing
         }
     }
     happened = true;

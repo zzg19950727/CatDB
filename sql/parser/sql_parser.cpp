@@ -1509,7 +1509,7 @@ namespace CatDB {
   case 50:
 #line 586 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
-		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(JOIN, true);
+		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(USE_JOIN, true);
 		yylhs.value.as< HintStmt_s > ()->set_qb_name(yystack_[2].value.as< std::string > ());
 		JoinHintStmt_s join_hint = yylhs.value.as< HintStmt_s > ();
 		join_hint->set_join_algo(HASH_JOIN);
@@ -1521,7 +1521,7 @@ namespace CatDB {
   case 51:
 #line 594 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
-		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(JOIN, false);
+		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(USE_JOIN, false);
 		yylhs.value.as< HintStmt_s > ()->set_qb_name(yystack_[2].value.as< std::string > ());
 		JoinHintStmt_s join_hint = yylhs.value.as< HintStmt_s > ();
 		join_hint->set_join_algo(HASH_JOIN);
@@ -1533,7 +1533,7 @@ namespace CatDB {
   case 52:
 #line 602 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
-		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(JOIN, true);
+		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(USE_JOIN, true);
 		yylhs.value.as< HintStmt_s > ()->set_qb_name(yystack_[2].value.as< std::string > ());
 		JoinHintStmt_s join_hint = yylhs.value.as< HintStmt_s > ();
 		join_hint->set_join_algo(NL_JOIN);
@@ -1545,7 +1545,7 @@ namespace CatDB {
   case 53:
 #line 610 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
-		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(JOIN, false);
+		yylhs.value.as< HintStmt_s > () = HintStmt::make_hint_stmt(USE_JOIN, false);
 		yylhs.value.as< HintStmt_s > ()->set_qb_name(yystack_[2].value.as< std::string > ());
 		JoinHintStmt_s join_hint = yylhs.value.as< HintStmt_s > ();
 		join_hint->set_join_algo(NL_JOIN);
@@ -1914,180 +1914,181 @@ namespace CatDB {
 		TableStmt_s table = BasicTableStmt::make_dual_table();
 		check(table);
 		yylhs.value.as< TableStmt_s > () = table;
+		yylhs.value.as< TableStmt_s > ()->set_alias_name(yystack_[0].value.as< std::string > ());
 	}
-#line 1919 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1920 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 99:
-#line 848 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 849 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//设置表的别名
 		yylhs.value.as< TableStmt_s > () = ViewTableStmt::make_view_table(yystack_[2].value.as< Stmt_s > ());
 		yylhs.value.as< TableStmt_s > ()->set_alias_name(yystack_[0].value.as< std::string > ());
 	}
-#line 1929 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1930 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 100:
-#line 857 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 858 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	   yylhs.value.as< TableStmt_s > () = JoinedTableStmt::make_joined_table(yystack_[6].value.as< TableStmt_s > (), yystack_[2].value.as< TableStmt_s > (), LeftOuter, yystack_[0].value.as< ExprStmt_s > ());
    }
-#line 1937 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1938 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 101:
-#line 861 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 862 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	   yylhs.value.as< TableStmt_s > () = JoinedTableStmt::make_joined_table(yystack_[6].value.as< TableStmt_s > (), yystack_[2].value.as< TableStmt_s > (), RightOuter, yystack_[0].value.as< ExprStmt_s > ());
    }
-#line 1945 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1946 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 102:
-#line 865 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 866 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	   yylhs.value.as< TableStmt_s > () = JoinedTableStmt::make_joined_table(yystack_[6].value.as< TableStmt_s > (), yystack_[2].value.as< TableStmt_s > (), FullOuter, yystack_[0].value.as< ExprStmt_s > ());
    }
-#line 1953 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1954 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 103:
-#line 869 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 870 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	   yylhs.value.as< TableStmt_s > () = JoinedTableStmt::make_joined_table(yystack_[5].value.as< TableStmt_s > (), yystack_[2].value.as< TableStmt_s > (), Inner, yystack_[0].value.as< ExprStmt_s > ());
    }
-#line 1961 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1962 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 104:
-#line 876 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 877 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 
 	}
-#line 1969 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1970 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 105:
-#line 880 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 881 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 
 	}
-#line 1977 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1978 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 106:
-#line 887 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 888 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< TableStmt_s > () = yystack_[0].value.as< TableStmt_s > ();
 	}
-#line 1985 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1986 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 107:
-#line 891 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 892 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< TableStmt_s > () = yystack_[0].value.as< TableStmt_s > ();
 	}
-#line 1993 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 1994 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 108:
-#line 895 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 896 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< TableStmt_s > () = yystack_[1].value.as< TableStmt_s > ();
 	}
-#line 2001 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2002 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 109:
-#line 902 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 903 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  yylhs.value.as< TableStmt_s > () = yystack_[0].value.as< TableStmt_s > ();
   }
-#line 2009 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2010 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 110:
-#line 906 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 907 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  yylhs.value.as< TableStmt_s > () = yystack_[0].value.as< TableStmt_s > ();
   }
-#line 2017 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2018 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 111:
-#line 910 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 911 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  yylhs.value.as< TableStmt_s > () = yystack_[0].value.as< TableStmt_s > ();
   }
-#line 2025 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2026 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 112:
-#line 916 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 917 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = ""; }
-#line 2031 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2032 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 113:
-#line 918 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 919 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > ();
 	}
-#line 2039 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2040 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 114:
-#line 922 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 923 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > ();
 	}
-#line 2047 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2048 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 115:
-#line 934 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 935 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2055 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2056 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 116:
-#line 938 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 939 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		 yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2063 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2064 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 117:
-#line 942 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 943 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		yylhs.value.as< ExprStmt_s > () = yystack_[1].value.as< ExprStmt_s > ();
 	}
-#line 2071 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2072 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 118:
-#line 946 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 947 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
       	yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
     }
-#line 2079 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2080 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 119:
-#line 950 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 951 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
     	yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
     }
-#line 2087 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2088 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 120:
-#line 957 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 958 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  //构建常量表达式
 		Number_s value;
@@ -2097,11 +2098,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
   }
-#line 2101 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2102 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 121:
-#line 967 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 968 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  //构建常量表达式
 		Number_s value;
@@ -2111,11 +2112,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
   }
-#line 2115 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2116 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 122:
-#line 977 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 978 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  //构建常量表达式
 		Number_s value;
@@ -2125,164 +2126,164 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
   }
-#line 2129 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2130 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 123:
-#line 990 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 991 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2137 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2138 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 124:
-#line 994 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 995 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//正数表达式
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
     }
-#line 2146 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2147 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 125:
-#line 999 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1000 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//负数表达式
 		make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_MINUS);
     }
-#line 2155 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2156 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 126:
-#line 1004 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1005 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_ADD);
 	}
-#line 2164 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2165 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 127:
-#line 1009 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1010 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建二元表达式 
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_SUB);
 	}
-#line 2173 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2174 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 128:
-#line 1014 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1015 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_MUL);
 	}
-#line 2182 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2183 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 129:
-#line 1019 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1020 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_DIV);
 	}
-#line 2191 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2192 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 130:
-#line 1024 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1025 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  	//构建二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_DATE_ADD);
   }
-#line 2200 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2201 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 131:
-#line 1029 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1030 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	  	//构建二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_DATE_SUB);
   }
-#line 2209 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2210 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 132:
-#line 1034 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1035 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2217 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2218 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 133:
-#line 1042 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1043 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建表达式列表
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
     }
-#line 2227 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2228 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 134:
-#line 1048 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1049 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//将新的表达式加入到表达式列表
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[2].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
     }
-#line 2237 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2238 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 135:
-#line 1057 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1058 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建比较二元表达式 
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), yystack_[1].value.as< OperationType > ());
 	}
-#line 2246 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2247 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 136:
-#line 1062 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1063 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建is null表达式
 		make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), OP_IS_NULL);
     }
-#line 2255 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2256 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 137:
-#line 1067 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1068 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建is not null表达式
 		make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[3].value.as< ExprStmt_s > (), OP_IS_NOT_NULL);
     }
-#line 2264 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2265 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 138:
-#line 1072 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1073 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建between and三元表达式
 		make_ternary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[4].value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_BETWEEN);
     }
-#line 2273 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2274 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 139:
-#line 1077 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1078 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建not between and三元表达式
 		make_ternary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[5].value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_NOT_BETWEEN);
     }
-#line 2282 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2283 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 140:
-#line 1082 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1083 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建in表达式
 		ExprStmt_s stmt = OpExprStmt::make_op_expr_stmt(OP_IN_LIST);
@@ -2293,11 +2294,11 @@ namespace CatDB {
 		stmt->params.push_back(list);
 		yylhs.value.as< ExprStmt_s > () = stmt;
     }
-#line 2297 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2298 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 141:
-#line 1093 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1094 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建not in表达式
 		ExprStmt_s stmt = OpExprStmt::make_op_expr_stmt(OP_NOT_IN_LIST);
@@ -2308,363 +2309,363 @@ namespace CatDB {
 		stmt->params.push_back(list);
 		yylhs.value.as< ExprStmt_s > () = stmt;
     }
-#line 2312 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2313 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 142:
-#line 1104 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1105 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建in表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_IN);
     }
-#line 2321 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2322 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 143:
-#line 1109 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1110 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建not in表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[3].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_NOT_IN);
     }
-#line 2330 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2331 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 144:
-#line 1114 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1115 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
     	make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_EXISTS);
     }
-#line 2338 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2339 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 145:
-#line 1118 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1119 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建not一元表达式
 		make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_NOT_EXISTS);
     }
-#line 2347 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2348 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 146:
-#line 1123 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1124 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建比较二元表达式 
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), yystack_[1].value.as< OperationType > ());
 	}
-#line 2356 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2357 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 147:
-#line 1131 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1132 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LE;
 	}
-#line 2364 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2365 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 148:
-#line 1135 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1136 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LT;
 	}
-#line 2372 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2373 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 149:
-#line 1139 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1140 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_EQ;
 	}
-#line 2380 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2381 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 150:
-#line 1143 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1144 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GE;
 	}
-#line 2388 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2389 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 151:
-#line 1147 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1148 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GT;
 	}
-#line 2396 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2397 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 152:
-#line 1151 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1152 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_NE;
 	}
-#line 2404 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2405 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 153:
-#line 1155 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1156 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LIKE;
 	}
-#line 2412 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2413 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 154:
-#line 1159 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1160 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_NOT_LIKE;
 	}
-#line 2420 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2421 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 155:
-#line 1166 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1167 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LE_ANY;
 	}
-#line 2428 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2429 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 156:
-#line 1170 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1171 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LT_ANY;
 	}
-#line 2436 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2437 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 157:
-#line 1174 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1175 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_EQ_ANY;
 	}
-#line 2444 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2445 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 158:
-#line 1178 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1179 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GE_ANY;
 	}
-#line 2452 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2453 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 159:
-#line 1182 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1183 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GT_ANY;
 	}
-#line 2460 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2461 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 160:
-#line 1186 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1187 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_NE_ANY;
 	}
-#line 2468 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2469 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 161:
-#line 1190 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1191 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LE_ALL;
 	}
-#line 2476 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2477 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 162:
-#line 1194 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1195 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_LT_ALL;
 	}
-#line 2484 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2485 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 163:
-#line 1198 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1199 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_EQ_ALL;
 	}
-#line 2492 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2493 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 164:
-#line 1202 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1203 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GE_ALL;
 	}
-#line 2500 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2501 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 165:
-#line 1206 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1207 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_GT_ALL;
 	}
-#line 2508 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2509 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 166:
-#line 1210 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1211 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< OperationType > () = OP_NE_ALL;
 	}
-#line 2516 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2517 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 167:
-#line 1217 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1218 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		SubQueryStmt_s query_expr = SubQueryStmt::make_query_stmt();
 		query_expr->query_stmt = yystack_[0].value.as< Stmt_s > ();
 		yylhs.value.as< ExprStmt_s > () = query_expr;
     }
-#line 2526 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2527 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 168:
-#line 1226 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1227 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
 		yylhs.value.as< ExprStmt_s > ()->params.push_back(yystack_[4].value.as< ExprStmt_s > ());
 		append(yylhs.value.as< ExprStmt_s > ()->params, yystack_[3].value.as< Vector<ExprStmt_s> > ());
 		yylhs.value.as< ExprStmt_s > ()->params.push_back(yystack_[1].value.as< ExprStmt_s > ());
 	}
-#line 2537 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2538 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 169:
-#line 1233 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1234 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = OpExprStmt::make_op_expr_stmt(OP_CASE_WHEN);
 		append(yylhs.value.as< ExprStmt_s > ()->params, yystack_[3].value.as< Vector<ExprStmt_s> > ());
 		yylhs.value.as< ExprStmt_s > ()->params.push_back(yystack_[1].value.as< ExprStmt_s > ());
 	}
-#line 2547 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2548 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 170:
-#line 1242 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1243 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[2].value.as< ExprStmt_s > ());
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
 	}
-#line 2557 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2558 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 171:
-#line 1248 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1249 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[4].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[2].value.as< ExprStmt_s > ());
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
 	}
-#line 2567 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2568 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 172:
-#line 1257 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1258 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[2].value.as< ExprStmt_s > ());
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
 	}
-#line 2577 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2578 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 173:
-#line 1263 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1264 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[4].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[2].value.as< ExprStmt_s > ());
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
 	}
-#line 2587 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2588 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 174:
-#line 1272 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1273 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2595 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2596 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 175:
-#line 1276 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1277 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = yystack_[1].value.as< ExprStmt_s > ();
 	}
-#line 2603 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2604 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 176:
-#line 1280 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1281 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建and二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_AND);
     }
-#line 2612 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2613 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 177:
-#line 1285 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1286 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建or二元表达式
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[2].value.as< ExprStmt_s > (), yystack_[0].value.as< ExprStmt_s > (), OP_OR);
     }
-#line 2621 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2622 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 178:
-#line 1293 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1294 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt("", yystack_[0].value.as< std::string > ());
 		check(col);
 		yylhs.value.as< ExprStmt_s > () = col;
 	}
-#line 2632 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2633 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 179:
-#line 1300 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1301 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		ExprStmt_s col = ColumnStmt::make_all_column_stmt();
 		check(col);
 		yylhs.value.as< ExprStmt_s > () = col;
 	}
-#line 2642 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2643 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 180:
-#line 1306 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1307 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as< std::string > (), yystack_[0].value.as< std::string > ());
 		check(col);
 		yylhs.value.as< ExprStmt_s > () = col;
     }
-#line 2653 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2654 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 181:
-#line 1314 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1315 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as< std::string > (), "*");
 		check(col);
 		yylhs.value.as< ExprStmt_s > () = col;
     }
-#line 2664 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2665 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 182:
-#line 1321 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1322 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		//构建列引用表达式
 		ColumnStmt_s col = ColumnStmt::make_column_stmt("", "ROWID");
@@ -2672,11 +2673,11 @@ namespace CatDB {
 		col->is_row_id = true;
 		yylhs.value.as< ExprStmt_s > () = col;
 	}
-#line 2676 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2677 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 183:
-#line 1329 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1330 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建列引用表达式
 		ColumnStmt_s col = ColumnStmt::make_column_stmt(yystack_[2].value.as< std::string > (), "ROWID");
@@ -2684,11 +2685,11 @@ namespace CatDB {
 		col->is_row_id = true;
 		yylhs.value.as< ExprStmt_s > () = col;
     }
-#line 2688 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2689 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 184:
-#line 1340 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1341 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建常量表达式
 		Object_s value = Varchar::make_object(yystack_[0].value.as< std::string > ());
@@ -2697,11 +2698,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
 	}
-#line 2701 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2702 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 185:
-#line 1349 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1350 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建常量表达式
 		if (!DateTime::is_valid_datetime(yystack_[0].value.as< std::string > ())) {
@@ -2714,11 +2715,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
 	}
-#line 2718 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2719 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 186:
-#line 1362 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1363 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建常量表达式
 		Object_s value = Number::make_object(yystack_[0].value.as< std::string > ());
@@ -2727,11 +2728,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
     }
-#line 2731 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2732 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 187:
-#line 1371 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1372 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建常量表达式
 		Object_s value = Object::make_null_object();
@@ -2740,11 +2741,11 @@ namespace CatDB {
 		check(stmt);
 		yylhs.value.as< ExprStmt_s > () = stmt;
 	}
-#line 2744 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2745 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 188:
-#line 1383 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1384 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	if (!yystack_[1].value.as< ExprStmt_s > ()) {
 		yyerror("expect aggr expr");
@@ -2769,11 +2770,11 @@ namespace CatDB {
 	expr->set_aggr_expr(yystack_[1].value.as< ExprStmt_s > ());
 	yylhs.value.as< ExprStmt_s > () = expr;
   }
-#line 2773 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2774 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 189:
-#line 1408 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1409 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	WinExprStmt_s expr = WinExprStmt::make_win_expr_stmt(yystack_[9].value.as< WinType > ());
 	check(expr);
@@ -2785,19 +2786,19 @@ namespace CatDB {
 	expr->set_win_order_by_exprs(yystack_[1].value.as< Vector<ExprStmt_s> > ());
 	yylhs.value.as< ExprStmt_s > () = expr;
   }
-#line 2789 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2790 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 190:
-#line 1420 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1421 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[1].value.as< ExprStmt_s > (), OP_TO_CHAR);
   }
-#line 2797 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2798 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 191:
-#line 1424 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1425 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	Object_s value = Varchar::make_object(yystack_[1].value.as< std::string > ());
 	check(value);
@@ -2805,11 +2806,11 @@ namespace CatDB {
 	check(stmt);
 	make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[3].value.as< ExprStmt_s > (), stmt, OP_TO_CHAR);
   }
-#line 2809 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2810 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 192:
-#line 1432 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1433 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	Object_s value1 = Number::make_object(yystack_[3].value.as< std::string > ());
 	check(value1);
@@ -2821,147 +2822,147 @@ namespace CatDB {
 	check(stmt2);
 	make_ternary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[5].value.as< ExprStmt_s > (), stmt1, stmt2, OP_SUBSTR);
   }
-#line 2825 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2826 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 193:
-#line 1444 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1445 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	make_binary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[3].value.as< ExprStmt_s > (), yystack_[1].value.as< ExprStmt_s > (), OP_IFNULL);
   }
-#line 2833 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2834 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 194:
-#line 1448 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1449 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 	make_unary_stmt(yylhs.value.as< ExprStmt_s > (), yystack_[1].value.as< ExprStmt_s > (), OP_TO_NUMBER);
   }
-#line 2841 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2842 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 195:
-#line 1456 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1457 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< bool > () = false;
 	}
-#line 2849 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2850 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 196:
-#line 1460 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1461 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< bool > () = false;
     }
-#line 2857 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2858 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 197:
-#line 1464 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1465 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< bool > () = true;
     }
-#line 2865 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2866 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 198:
-#line 1471 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1472 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_COUNT;
 	}
-#line 2873 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2874 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 199:
-#line 1475 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1476 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_SUM;
 	}
-#line 2881 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2882 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 200:
-#line 1479 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1480 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_AVG;
 	}
-#line 2889 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2890 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 201:
-#line 1483 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1484 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_MIN;
 	}
-#line 2897 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2898 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 202:
-#line 1487 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1488 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_MAX;
 	}
-#line 2905 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2906 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 203:
-#line 1491 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1492 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_RANK;
 	}
-#line 2913 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2914 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 204:
-#line 1495 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1496 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_DENSE_RANK;
 	}
-#line 2921 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2922 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 205:
-#line 1499 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1500 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< WinType > () = WIN_ROW_NUMBER;
 	}
-#line 2929 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2930 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 206:
-#line 1506 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1507 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = ExprStmt_s();
 	}
-#line 2937 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2938 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 207:
-#line 1510 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1511 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< ExprStmt_s > () = yystack_[0].value.as< ExprStmt_s > ();
 	}
-#line 2945 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2946 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 208:
-#line 1517 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1518 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 	}
-#line 2953 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2954 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 209:
-#line 1521 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1522 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 	}
-#line 2961 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2962 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 210:
-#line 1533 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1534 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建insert stmt
 		InsertStmt_s insert_stmt = InsertStmt::make_insert_stmt();
@@ -2970,11 +2971,11 @@ namespace CatDB {
 		insert_stmt->value_list = yystack_[0].value.as< Vector<Vector<ExprStmt_s>> > ();
 		yylhs.value.as< Stmt_s > () = insert_stmt;
     }
-#line 2974 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2975 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 211:
-#line 1542 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1543 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		InsertStmt_s insert_stmt = InsertStmt::make_insert_stmt();
 		check(insert_stmt);
@@ -2982,47 +2983,47 @@ namespace CatDB {
 		insert_stmt->query_values = yystack_[0].value.as< Stmt_s > ();
 		yylhs.value.as< Stmt_s > () = insert_stmt;
     }
-#line 2986 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2987 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 212:
-#line 1553 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1554 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<Vector<ExprStmt_s>> > () = Vector<Vector<ExprStmt_s>>();
 		yylhs.value.as< Vector<Vector<ExprStmt_s>> > ().push_back(yystack_[1].value.as< Vector<ExprStmt_s> > ());
     }
-#line 2995 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 2996 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 213:
-#line 1558 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1559 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<Vector<ExprStmt_s>> > () = yystack_[4].value.as< Vector<Vector<ExprStmt_s>> > ();
 		yylhs.value.as< Vector<Vector<ExprStmt_s>> > ().push_back(yystack_[1].value.as< Vector<ExprStmt_s> > ());
 	}
-#line 3004 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3005 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 214:
-#line 1566 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1567 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
 	}
-#line 3013 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3014 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 215:
-#line 1571 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1572 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[2].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
     }
-#line 3022 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3023 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 216:
-#line 1584 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1585 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		UpdateStmt_s update_stmt = UpdateStmt::make_update_stmt();
 		check(update_stmt);
@@ -3033,11 +3034,11 @@ namespace CatDB {
 		update_stmt->where_stmt = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Stmt_s > () = update_stmt;
     }
-#line 3037 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3038 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 217:
-#line 1595 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1596 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		UpdateStmt_s update_stmt = UpdateStmt::make_update_stmt();
 		check(update_stmt);
@@ -3048,42 +3049,42 @@ namespace CatDB {
 		update_stmt->where_stmt = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Stmt_s > () = update_stmt;
     }
-#line 3052 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3053 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 218:
-#line 1609 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1610 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建值列表
 		yylhs.value.as< Vector<ExprStmt_s> > () = Vector<ExprStmt_s>();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
     }
-#line 3062 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3063 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 219:
-#line 1615 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1616 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//将新的表达式加入到表达式列表
 		yylhs.value.as< Vector<ExprStmt_s> > () = yystack_[2].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Vector<ExprStmt_s> > ().push_back(yystack_[0].value.as< ExprStmt_s > ());
     }
-#line 3072 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3073 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 220:
-#line 1624 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1625 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建列引用表达式
 		ExprStmt_s col = ColumnStmt::make_column_stmt("", yystack_[2].value.as< std::string > ());
 		check(col);
 		make_binary_stmt(yylhs.value.as< ExprStmt_s > (), col, yystack_[0].value.as< ExprStmt_s > (), OP_ASSIGN);
     }
-#line 3083 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3084 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 221:
-#line 1639 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1640 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
 		check(delete_stmt);
@@ -3094,11 +3095,11 @@ namespace CatDB {
 		delete_stmt->where_stmt = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Stmt_s > () = delete_stmt;
     }
-#line 3098 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3099 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 222:
-#line 1650 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1651 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
 		check(delete_stmt);
@@ -3109,11 +3110,11 @@ namespace CatDB {
 		delete_stmt->where_stmt = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Stmt_s > () = delete_stmt;
     }
-#line 3113 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3114 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 223:
-#line 1661 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1662 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		DeleteStmt_s delete_stmt = DeleteStmt::make_delete_stmt();
 		check(delete_stmt);
@@ -3123,45 +3124,45 @@ namespace CatDB {
 		delete_stmt->where_stmt = yystack_[0].value.as< Vector<ExprStmt_s> > ();
 		yylhs.value.as< Stmt_s > () = delete_stmt;
     }
-#line 3127 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3128 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 224:
-#line 1679 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1680 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Stmt_s > () = yystack_[0].value.as< Stmt_s > ();
 		DMLStmt_s dml = yylhs.value.as< Stmt_s > ();
 		dml->is_explain = true;
     }
-#line 3137 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3138 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 225:
-#line 1687 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1688 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< Stmt_s > () = yystack_[0].value.as< Stmt_s > (); }
-#line 3143 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3144 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 226:
-#line 1688 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1689 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< Stmt_s > () = yystack_[0].value.as< Stmt_s > (); }
-#line 3149 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3150 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 227:
-#line 1689 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1690 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< Stmt_s > () = yystack_[0].value.as< Stmt_s > (); }
-#line 3155 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3156 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 228:
-#line 1690 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1691 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< Stmt_s > () = yystack_[0].value.as< Stmt_s > (); }
-#line 3161 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3162 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 229:
-#line 1700 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1701 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateTable);
 		check(cmd_stmt);
@@ -3170,22 +3171,22 @@ namespace CatDB {
 		cmd_stmt->params.create_table_params.engine_args = yystack_[0].value.as< Vector<String> > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3174 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3175 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 230:
-#line 1709 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1710 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateDatabase);
 		check(cmd_stmt);
 		cmd_stmt->params.create_database_params.database = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3185 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3186 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 231:
-#line 1716 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1717 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateView);
 		check(cmd_stmt);
@@ -3196,235 +3197,235 @@ namespace CatDB {
 		cmd_stmt->params.create_view_params.ref_query = yystack_[0].value.as< Stmt_s > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3200 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3201 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 232:
-#line 1730 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1731 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<String> > () = Vector<String>();
 	}
-#line 3208 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3209 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 233:
-#line 1734 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1735 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<String> > () = yystack_[1].value.as< Vector<String> > ();
 	}
-#line 3216 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3217 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 234:
-#line 1741 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1742 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<String> > () = Vector<String>();
 		yylhs.value.as< Vector<String> > ().push_back(yystack_[0].value.as< std::string > ());
 	}
-#line 3225 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3226 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 235:
-#line 1746 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1747 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<String> > () = yystack_[2].value.as< Vector<String> > ();
 		yylhs.value.as< Vector<String> > ().push_back(yystack_[0].value.as< std::string > ());
 	}
-#line 3234 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3235 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 236:
-#line 1754 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1755 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< std::string > () = driver.left_string();
 	}
-#line 3242 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3243 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 237:
-#line 1761 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1762 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ColumnDefineStmt_s> > () = Vector<ColumnDefineStmt_s>();
 		yylhs.value.as< Vector<ColumnDefineStmt_s> > ().push_back(yystack_[0].value.as< ColumnDefineStmt_s > ());
     }
-#line 3251 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3252 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 238:
-#line 1766 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1767 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<ColumnDefineStmt_s> > () = yystack_[2].value.as< Vector<ColumnDefineStmt_s> > ();
 		yylhs.value.as< Vector<ColumnDefineStmt_s> > ().push_back(yystack_[0].value.as< ColumnDefineStmt_s > ());
     }
-#line 3260 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3261 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 239:
-#line 1774 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1775 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		ColumnDefineStmt_s stmt = ColumnDefineStmt::make_column_define_stmt(yystack_[2].value.as< std::string > (), yystack_[1].value.as< DataType > ());
 		check(stmt);
 		yylhs.value.as< ColumnDefineStmt_s > () = stmt;
     }
-#line 3270 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3271 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 240:
-#line 1783 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1784 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 
 	}
-#line 3278 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3279 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 241:
-#line 1787 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1788 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		
 	}
-#line 3286 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3287 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 242:
-#line 1794 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1795 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
-#line 3292 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3293 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 243:
-#line 1796 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1797 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
-#line 3298 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3299 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 244:
-#line 1798 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1799 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_MEDIUMINT_PREC, 0); }
-#line 3304 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3305 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 245:
-#line 1800 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1801 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_INT_PREC, 0); }
-#line 3310 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3311 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 246:
-#line 1802 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1803 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_INT_PREC, 0); }
-#line 3316 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3317 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 247:
-#line 1804 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1805 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_BIGINT_PREC, 0); }
-#line 3322 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3323 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 248:
-#line 1806 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1807 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
-#line 3328 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3329 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 249:
-#line 1808 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1809 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
-#line 3334 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3335 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 250:
-#line 1810 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1811 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, yystack_[3].value.as< int > (), yystack_[1].value.as< int > ()); }
-#line 3340 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3341 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 251:
-#line 1812 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1813 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, yystack_[3].value.as< int > (), yystack_[1].value.as< int > ()); }
-#line 3346 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3347 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 252:
-#line 1814 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1815 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_SMALLINT_PREC, 0); }
-#line 3352 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3353 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 253:
-#line 1816 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1817 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
-#line 3358 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3359 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 254:
-#line 1818 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1819 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
-#line 3364 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3365 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 255:
-#line 1820 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1821 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
-#line 3370 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3371 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 256:
-#line 1822 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1823 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_VARCHAR, yystack_[0].value.as< int > ()); }
-#line 3376 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3377 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 257:
-#line 1824 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1825 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_VARCHAR, yystack_[0].value.as< int > ()); }
-#line 3382 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3383 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 258:
-#line 1826 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1827 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_VARCHAR, yystack_[0].value.as< int > ()); }
-#line 3388 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3389 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 259:
-#line 1828 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1829 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_VARCHAR, yystack_[0].value.as< int > ()); }
-#line 3394 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3395 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 260:
-#line 1830 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1831 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_DATETIME, TIMESTAMP, yystack_[0].value.as< int > ()); }
-#line 3400 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3401 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 261:
-#line 1832 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1833 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_DATETIME, DATETIME); }
-#line 3406 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3407 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 262:
-#line 1834 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1835 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_DATETIME, DATE); }
-#line 3412 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3413 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 263:
-#line 1836 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1837 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< DataType > () = DataType(T_DATETIME, TIME); }
-#line 3418 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3419 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 264:
-#line 1840 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1841 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< int > () = MAX_TIME_SCALE; }
-#line 3424 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3425 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 265:
-#line 1842 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1843 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		if (yystack_[1].value.as< int > () > MAX_TIME_SCALE) {
 			yyerror("max time prec:%d", MAX_TIME_SCALE);
@@ -3432,17 +3433,17 @@ namespace CatDB {
 		}
 		yylhs.value.as< int > () = yystack_[1].value.as< int > (); 
 	}
-#line 3436 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3437 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 266:
-#line 1852 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1853 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< int > () = MAX_STR_LENGTH; }
-#line 3442 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3443 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 267:
-#line 1854 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1855 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		  if (yystack_[1].value.as< int > () > MAX_STR_LENGTH) {
 			yyerror("max char length:%d", MAX_STR_LENGTH);
@@ -3450,11 +3451,11 @@ namespace CatDB {
 		}
 		yylhs.value.as< int > () = yystack_[1].value.as< int > (); 
 	  }
-#line 3454 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3455 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 268:
-#line 1865 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1866 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { 
 		yylhs.value.as< Vector<String> > () = Vector<String>(); 
 		yylhs.value.as< Vector<String> > ().push_back("CAT");
@@ -3462,11 +3463,11 @@ namespace CatDB {
 		yylhs.value.as< Vector<String> > ().push_back(" ");
 		yylhs.value.as< Vector<String> > ().push_back(" ");
 	}
-#line 3466 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3467 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 269:
-#line 1873 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1874 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Vector<String> > () = Vector<String>();
 		yylhs.value.as< Vector<String> > ().push_back("CSV");
@@ -3474,11 +3475,11 @@ namespace CatDB {
 		yylhs.value.as< Vector<String> > ().push_back(yystack_[5].value.as< std::string > ());
 		yylhs.value.as< Vector<String> > ().push_back("new line");
 	}
-#line 3478 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3479 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 270:
-#line 1889 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1890 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropTable);
 		check(cmd_stmt);
@@ -3486,11 +3487,11 @@ namespace CatDB {
 		cmd_stmt->params.drop_table_params.table = yystack_[0].value.as< TableStmt_s > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3490 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3491 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 271:
-#line 1897 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1898 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropDatabase);
 		check(cmd_stmt);
@@ -3498,11 +3499,11 @@ namespace CatDB {
 		cmd_stmt->params.drop_database_params.database = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3502 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3503 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 272:
-#line 1905 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1906 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropView);
 		check(cmd_stmt);
@@ -3511,94 +3512,94 @@ namespace CatDB {
 		cmd_stmt->params.drop_view_params.view_name = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3515 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3516 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 273:
-#line 1916 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1917 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< bool > () = false; }
-#line 3521 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3522 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 274:
-#line 1917 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1918 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< bool > () = true; }
-#line 3527 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3528 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 275:
-#line 1927 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1928 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);
 		cmd_stmt->params.show_databases_params.is_select_current_database = true;
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3538 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3539 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 276:
-#line 1934 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1935 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);
 		cmd_stmt->params.show_databases_params.is_select_current_database = false;
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
  	}
-#line 3549 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3550 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 277:
-#line 1941 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1942 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
 		cmd_stmt->params.show_tables_params.database = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3560 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3561 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 278:
-#line 1948 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1949 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
 		cmd_stmt->params.show_tables_params.database = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3571 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3572 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 279:
-#line 1955 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1956 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = yystack_[0].value.as< BasicTableStmt_s > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3582 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3583 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 280:
-#line 1962 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1963 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Stmt_s > () = NULL;
 	}
-#line 3590 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3591 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 281:
-#line 1966 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1967 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< Stmt_s > () = NULL;
 	}
-#line 3598 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3599 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 282:
-#line 1970 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1971 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
@@ -3606,11 +3607,11 @@ namespace CatDB {
 		cmd_stmt->params.desc_table_params.is_show_table_statis = true;
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3610 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3611 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 283:
-#line 1978 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1979 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
@@ -3618,80 +3619,80 @@ namespace CatDB {
 		cmd_stmt->params.desc_table_params.is_show_column_statis = true;
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3622 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3623 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 284:
-#line 1986 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1987 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowProcesslist);
 		check(cmd_stmt);
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3632 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3633 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 285:
-#line 1992 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 1993 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowMemory);
 		check(cmd_stmt);
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3642 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3643 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 286:
-#line 2001 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2002 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > ();
 	}
-#line 3650 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3651 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 287:
-#line 2005 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2006 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< std::string > () = driver.get_global_database();
 	}
-#line 3658 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3659 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 288:
-#line 2012 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2013 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(UseDatabase);
 		check(cmd_stmt);
 		cmd_stmt->params.use_database_params.database = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3669 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3670 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 289:
-#line 2027 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2028 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = yystack_[0].value.as< BasicTableStmt_s > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3680 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3681 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 290:
-#line 2034 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2035 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
 		cmd_stmt->params.desc_table_params.table = yystack_[0].value.as< BasicTableStmt_s > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3691 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3692 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 291:
-#line 2048 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2049 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
@@ -3700,11 +3701,11 @@ namespace CatDB {
 		cmd_stmt->params.analyze_params.sample_size = yystack_[0].value.as< double > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3704 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3705 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 292:
-#line 2057 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2058 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
@@ -3713,11 +3714,11 @@ namespace CatDB {
 		cmd_stmt->params.analyze_params.sample_size = yystack_[0].value.as< double > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3717 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3718 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 293:
-#line 2066 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2067 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
@@ -3726,25 +3727,25 @@ namespace CatDB {
 		cmd_stmt->params.analyze_params.sample_size = yystack_[0].value.as< double > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
     }
-#line 3730 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3731 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 294:
-#line 2077 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2078 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {	yylhs.value.as< double > () = 0.1; }
-#line 3736 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3737 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 295:
-#line 2079 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2080 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< double > () = std::stod(yystack_[0].value.as< std::string > ());
 	}
-#line 3744 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3745 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 296:
-#line 2086 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2087 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(SetVar);
 		check(cmd_stmt);
@@ -3752,22 +3753,22 @@ namespace CatDB {
 		cmd_stmt->params.set_var_params.var_value = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3756 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3757 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 297:
-#line 2097 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2098 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Kill);
 		check(cmd_stmt);
 		cmd_stmt->params.kill_params.session_id = yystack_[0].value.as< int > ();
 		yylhs.value.as< Stmt_s > () = cmd_stmt;
 	}
-#line 3767 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3768 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 298:
-#line 2111 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2112 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建表表达式
 		BasicTableStmt_s table = BasicTableStmt::make_basic_table(driver.get_global_database(), yystack_[0].value.as< std::string > ());
@@ -3775,11 +3776,11 @@ namespace CatDB {
 		table->alias_name = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< BasicTableStmt_s > () = table;
 	}
-#line 3779 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3780 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 299:
-#line 2119 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2120 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		//构建表表达式
 		BasicTableStmt_s table = BasicTableStmt::make_basic_table(yystack_[2].value.as< std::string > (), yystack_[0].value.as< std::string > ());
@@ -3787,73 +3788,73 @@ namespace CatDB {
 		table->alias_name = yystack_[0].value.as< std::string > ();
 		yylhs.value.as< BasicTableStmt_s > () = table;
 	}
-#line 3791 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3792 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 300:
-#line 2129 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2130 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3797 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3798 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 301:
-#line 2133 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2134 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3803 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3804 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 302:
-#line 2137 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2138 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3809 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3810 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 303:
-#line 2141 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2142 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > ()=yystack_[0].value.as< std::string > (); }
-#line 3815 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3816 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 304:
-#line 2145 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2146 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { str_to_lower(yystack_[0].value.as< std::string > ());yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3821 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3822 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 305:
-#line 2149 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2150 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3827 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3828 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 306:
-#line 2150 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2151 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3833 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3834 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 307:
-#line 2154 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2155 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3839 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3840 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 308:
-#line 2158 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2159 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 3845 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3846 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
   case 309:
-#line 2163 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
+#line 2164 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:859
     {
 		yylhs.value.as< int > () = std::stoi(yystack_[0].value.as< std::string > ());
 	}
-#line 3853 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3854 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
     break;
 
 
-#line 3857 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
+#line 3858 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:859
             default:
               break;
             }
@@ -4108,76 +4109,76 @@ namespace CatDB {
   }
 
 
-  const short int parser::yypact_ninf_ = -340;
+  const short int parser::yypact_ninf_ = -315;
 
   const short int parser::yytable_ninf_ = -302;
 
   const short int
   parser::yypact_[] =
   {
-     990,   -99,   -37,    49,    29,    29,   -30,   131,    10,    61,
-     -50,   166,    29,   202,    49,    29,   171,    48,  -340,  -340,
-     303,   369,  -340,    95,  -340,  -340,  -340,  -340,  -340,  -340,
-    -340,  -340,  -340,  -340,  -340,  -340,     2,    29,    29,    29,
-     387,   207,  -340,  -340,    87,  -340,    91,  -340,   140,   140,
-     140,    49,  -340,  -340,  -340,  -340,  -340,    29,  -340,  -340,
-    -340,   101,   133,   193,   262,   179,   247,  -340,   214,   255,
-    -340,  -340,  -340,   201,   288,    29,  -340,  -340,  -340,  -340,
-      39,   -50,   -50,    60,   -50,   -50,   258,   261,  -340,   264,
-     295,  1018,   308,   311,   308,   308,   308,   308,   328,   334,
-     308,   308,   308,   308,   338,   308,   308,   347,   355,   360,
-     300,  1018,  -340,    29,   383,   406,    29,   418,    29,   165,
-      29,   -59,  -340,   353,  -340,   908,   467,    29,    29,   288,
-      29,    29,    29,  -340,   376,   -50,  -340,  -340,  -340,  -340,
-     -50,  -340,  -340,  -340,   403,    74,    29,    29,   468,   440,
-      21,  -340,   476,  -340,  -340,  -340,  -340,   476,   476,  -340,
-    -340,  -340,  -340,    61,  -340,  -340,   476,   476,   477,  -340,
-    -340,   153,    29,   165,  -340,  -340,  -340,  -340,  -340,   -50,
-    -340,  -340,  -340,   248,   153,  -340,   419,  -340,  -340,  -340,
-    -340,   666,   467,   467,   423,   786,   908,  -340,   908,  -340,
-     430,   431,   435,  -340,  -340,  -340,  -340,  -340,  -340,  -340,
-    -340,  -340,    11,  -340,  -340,   243,  -340,  -340,  -340,  -340,
-    -340,   437,   399,  -340,   420,  -340,  -340,  -340,  -340,  -340,
-    -340,  -340,  -340,  -340,  -340,    29,  -340,  -340,   429,   429,
-     429,    59,  -340,   942,  -340,   164,  -340,  -340,   479,   439,
-    -340,  -340,    43,    29,    29,   441,    29,    29,   506,    29,
-     414,  -340,   153,   -24,   248,   446,   444,   471,   444,   444,
-    -340,   908,   523,   635,   112,     5,  -340,  -340,   908,   401,
-     421,  -340,  -340,   908,   908,   908,   908,   165,    29,   908,
-     815,   908,   815,  -340,  -340,    27,    -6,   -35,  -340,   553,
-     445,  -340,  -340,  -340,    29,   507,  -340,  -340,   483,   483,
-    -340,  -340,   484,  -340,  -340,  -340,  -340,  -340,   486,  -340,
-    -340,   487,   487,  -340,   483,   483,   567,    29,  -340,   -50,
-    -340,  -340,    43,  -340,   168,  -340,   187,  -340,   194,  -340,
-     195,   197,  -340,   551,  -340,   635,  -340,   414,   165,  -340,
-     153,  -340,   502,   296,   511,   513,   316,   220,   508,   539,
-     510,   497,  1078,  -340,     8,   908,    17,   908,   635,   293,
-    -340,   323,   287,   462,  -340,   -24,  -340,  -340,   467,  -340,
-     -22,  -340,  -340,   -22,  -340,  -340,   908,  -340,  -340,  -340,
-     165,    29,  -340,   908,    61,  -340,   594,  -340,    61,  -340,
-    -340,    61,    61,    61,  -340,  -340,  -340,  -340,   591,  -340,
-    -340,  -340,   241,  -340,    43,  -340,    29,  -340,  -340,  -340,
-     512,   472,  -340,   248,  -340,   296,     1,  -340,  -340,   509,
-     296,   296,   908,  -340,   908,   510,  -340,   447,     4,   424,
-     266,   271,   349,   384,   392,   443,  -340,   908,   526,    75,
-     908,   510,   635,   635,   908,   132,   908,   908,   488,    34,
-     908,    61,   467,  -340,  -340,   552,    -8,   316,   514,   -24,
-    -340,   316,  -340,   580,   515,   583,   585,   518,  -340,  -340,
-    -340,  -340,  -340,   525,   -50,   519,   248,   635,   536,   537,
-     316,   242,  -340,  -340,  -340,   908,   555,  -340,  -340,  -340,
-    -340,  -340,  -340,  -340,  -340,  -340,  -340,  -340,  -340,    82,
-     786,  -340,   607,  -340,   316,  -340,   631,  -340,   316,   908,
-     498,   185,  -340,   908,   494,   604,   538,   625,   592,  -340,
-    -340,  -340,   516,  -340,   623,  -340,    61,    61,  -340,   635,
-     549,  -340,   472,   635,   635,  -340,   126,   786,  -340,   908,
-     316,   249,  -340,   316,  -340,   908,   316,  -340,    61,  -340,
-     908,   635,   562,   581,   593,   558,   559,   472,   632,   472,
-     472,   908,   250,   316,   908,  -340,   316,   561,   637,   472,
-     643,   597,   571,   672,  -340,  -340,   316,  -340,   316,  -340,
-     908,    61,  -340,   649,   562,   467,   646,  -340,   176,   647,
-    -340,   908,   576,   652,   908,  -340,  -340,  -340,    61,   637,
-    -340,   629,  -340,  -340,   572,   663,   467,   660,   613,   579,
-     669,   467,  -340
+     434,   -84,    -6,    32,    83,    83,    34,   110,    70,   134,
+     -44,   215,    83,   172,    32,    83,   206,   119,  -315,  -315,
+     453,   473,  -315,   -36,  -315,  -315,  -315,  -315,  -315,  -315,
+    -315,  -315,  -315,  -315,  -315,  -315,    86,    83,    83,    83,
+     883,   -10,  -315,  -315,   133,  -315,   143,  -315,   184,   184,
+     184,    32,  -315,  -315,  -315,  -315,  -315,    83,  -315,  -315,
+    -315,   154,   187,   213,   267,   185,   245,  -315,   195,   264,
+    -315,  -315,  -315,   211,   298,    83,  -315,  -315,  -315,  -315,
+      36,   -44,   -44,    60,   -44,   -44,   240,   276,  -315,   304,
+     312,   997,   317,   323,   317,   317,   317,   317,   326,   340,
+     317,   317,   317,   317,   349,   317,   317,   359,   367,   375,
+     429,   997,  -315,    83,   424,   431,    83,   432,    83,   284,
+      83,   151,  -315,   381,  -315,   862,   482,    83,    83,   298,
+      83,    83,    83,  -315,   388,   -44,  -315,  -315,  -315,  -315,
+     -44,  -315,  -315,  -315,   418,   128,    83,    83,   483,   458,
+       6,  -315,   489,  -315,  -315,  -315,  -315,   489,   489,  -315,
+    -315,  -315,  -315,   134,  -315,  -315,   489,   489,   497,  -315,
+    -315,    37,    83,   284,  -315,  -315,  -315,  -315,    37,   -44,
+    -315,  -315,  -315,   -17,    37,  -315,   436,  -315,  -315,  -315,
+    -315,   694,   482,   482,   438,   724,   862,  -315,   862,  -315,
+     440,   446,   457,  -315,  -315,  -315,  -315,  -315,  -315,  -315,
+    -315,  -315,     7,  -315,  -315,   171,  -315,  -315,  -315,  -315,
+    -315,   468,   451,  -315,   460,  -315,  -315,  -315,  -315,  -315,
+    -315,  -315,  -315,  -315,  -315,    83,  -315,  -315,   448,   448,
+     448,   -21,  -315,   998,  -315,     5,  -315,  -315,   487,   452,
+    -315,  -315,   221,    83,    83,   463,    83,    83,   530,    83,
+     435,  -315,    37,   -35,   -17,  -315,   471,   467,   496,   467,
+     467,  -315,   862,   548,   640,   -13,   -47,  -315,  -315,   862,
+     498,   427,  -315,  -315,   862,   862,   862,   862,   284,    83,
+     862,   778,   862,   778,  -315,  -315,    35,    19,   -51,  -315,
+     578,   470,  -315,  -315,  -315,    83,   532,  -315,  -315,   510,
+     510,  -315,  -315,   512,  -315,  -315,  -315,  -315,  -315,   516,
+    -315,  -315,   520,   520,  -315,   510,   510,   598,    83,  -315,
+     -44,  -315,  -315,   221,  -315,    41,  -315,   148,  -315,   152,
+    -315,   155,   164,  -315,   590,  -315,   640,  -315,   435,   284,
+    -315,    37,  -315,   535,   361,   536,   538,   282,   169,   541,
+     565,   544,   539,   455,  -315,    22,   862,    42,   862,   640,
+     439,  -315,   466,   315,   499,  -315,   -35,  -315,  -315,   482,
+    -315,   -29,  -315,  -315,   -29,  -315,  -315,   862,  -315,  -315,
+    -315,   284,    83,  -315,   862,   134,  -315,   622,  -315,   134,
+    -315,  -315,   134,   134,   134,  -315,  -315,  -315,  -315,   615,
+    -315,  -315,  -315,   174,  -315,   221,  -315,    83,  -315,  -315,
+    -315,   521,   373,  -315,   -17,  -315,   361,   149,  -315,  -315,
+     534,   361,   361,   862,  -315,   862,   544,  -315,   305,    11,
+     523,   197,   269,   277,   301,   379,   462,  -315,   862,   551,
+      57,   862,   544,   640,   640,   862,   273,   862,   862,   433,
+      43,   862,   134,   482,  -315,  -315,   566,   -39,   282,   524,
+     -35,  -315,   282,  -315,   599,   525,   602,   605,   529,  -315,
+    -315,  -315,  -315,  -315,   543,   -44,   537,   -17,   640,   547,
+     552,   282,   178,  -315,  -315,  -315,   862,   560,  -315,  -315,
+    -315,  -315,  -315,  -315,  -315,  -315,  -315,  -315,  -315,  -315,
+     129,   724,  -315,   632,  -315,   282,  -315,   647,  -315,   282,
+     862,   519,   325,  -315,   862,   503,   617,   545,   626,   595,
+    -315,  -315,  -315,   513,  -315,   628,  -315,   134,   134,  -315,
+     640,   555,  -315,   373,   640,   640,  -315,   150,   724,  -315,
+     862,   282,   189,  -315,   282,  -315,   862,   282,  -315,   134,
+    -315,   862,   640,   568,   591,   603,   564,   567,   373,   358,
+     373,   373,   862,   194,   282,   862,  -315,   282,   569,   641,
+     373,   648,   611,   606,   700,  -315,  -315,   282,  -315,   282,
+    -315,   862,   134,  -315,   680,   568,   482,   681,  -315,   246,
+     683,  -315,   862,   609,   685,   862,  -315,  -315,  -315,   134,
+     641,  -315,   655,  -315,  -315,   608,   691,   482,   688,   643,
+     610,   701,   482,  -315
   };
 
   const unsigned short int
@@ -4200,7 +4201,7 @@ namespace CatDB {
        0,    20,    26,    24,     0,     0,     0,     0,     0,     0,
        0,    46,    57,    42,    39,    41,    43,    57,    57,    45,
       47,    49,    54,     0,    44,    40,    57,    57,     0,    33,
-      38,   112,     0,     0,   299,   301,   274,   271,    98,     0,
+      38,   112,     0,     0,   299,   301,   274,   271,   112,     0,
      109,   110,   111,   270,   112,   272,     0,   211,   275,   187,
      307,     0,     0,     0,     0,     0,     0,   179,     0,   182,
        0,     0,     0,   199,   198,   200,   201,   202,   203,   204,
@@ -4209,321 +4210,315 @@ namespace CatDB {
      279,   277,   280,   282,   286,     0,    23,    22,   294,   294,
      294,     0,   237,     0,   302,     0,   234,   236,     0,     0,
       60,    58,     0,     0,     0,     0,     0,     0,    64,     0,
-      77,   113,   112,    77,    74,     0,   104,     0,   104,   104,
-      97,     0,   210,     0,     0,     0,   306,   305,     0,   167,
-       0,   125,   124,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    95,   303,   195,     0,    77,   218,     0,
-       0,   293,   292,   291,     0,   268,   252,   247,   266,   266,
-     262,   261,   248,   255,   253,   245,   246,   244,   249,   254,
-     243,   264,   264,   242,   266,   266,   240,     0,   233,     0,
-      34,    61,     0,    68,    64,    66,    64,    62,    64,    56,
-      64,    64,    65,     0,   114,     0,   221,    77,     0,   223,
-     112,   105,     0,     0,     0,     0,   214,     0,     0,     0,
-       0,     0,     0,   174,     0,     0,     0,     0,     0,     0,
-     117,     0,     0,     0,    73,    77,    96,   129,     0,   131,
-     127,   128,   130,   126,   196,   197,   206,   181,   183,   180,
-       0,     0,   216,     0,     0,   238,     0,   229,     0,   257,
-     256,     0,     0,     0,   263,   260,   259,   258,     0,   239,
-     235,   231,    64,    55,     0,    51,     0,    53,    50,    52,
-       0,    76,   222,    75,    99,     0,     0,   106,   107,     0,
-       0,     0,     0,   212,     0,     0,   144,     0,     0,     0,
-     147,   148,   149,   151,   150,   152,   153,     0,     0,     0,
+      77,   113,   112,    77,    74,    98,     0,   104,     0,   104,
+     104,    97,     0,   210,     0,     0,     0,   306,   305,     0,
+     167,     0,   125,   124,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    95,   303,   195,     0,    77,   218,
+       0,     0,   293,   292,   291,     0,   268,   252,   247,   266,
+     266,   262,   261,   248,   255,   253,   245,   246,   244,   249,
+     254,   243,   264,   264,   242,   266,   266,   240,     0,   233,
+       0,    34,    61,     0,    68,    64,    66,    64,    62,    64,
+      56,    64,    64,    65,     0,   114,     0,   221,    77,     0,
+     223,   112,   105,     0,     0,     0,     0,   214,     0,     0,
+       0,     0,     0,     0,   174,     0,     0,     0,     0,     0,
+       0,   117,     0,     0,     0,    73,    77,    96,   129,     0,
+     131,   127,   128,   130,   126,   196,   197,   206,   181,   183,
+     180,     0,     0,   216,     0,     0,   238,     0,   229,     0,
+     257,   256,     0,     0,     0,   263,   260,   259,   258,     0,
+     239,   235,   231,    64,    55,     0,    51,     0,    53,    50,
+      52,     0,    76,   222,    75,    99,     0,     0,   106,   107,
+       0,     0,     0,     0,   212,     0,     0,   144,     0,     0,
+       0,   147,   148,   149,   151,   150,   152,   153,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,   190,   194,    79,     0,   207,     0,    77,
-     219,   220,   295,     0,     0,     0,     0,     0,   241,    67,
-      69,    63,    48,     0,     0,   111,     0,     0,     0,     0,
-     215,     0,   145,   175,   154,     0,     0,   161,   155,   162,
-     156,   163,   157,   165,   159,   164,   158,   166,   160,     0,
-       0,   142,     0,   136,   135,   146,   177,   176,   172,     0,
-       0,     0,   169,     0,     0,     0,     0,     0,    81,   120,
-     121,   122,   188,   217,     0,   267,     0,     0,   265,     0,
-       0,   108,   103,     0,     0,   213,     0,     0,   143,     0,
-     133,     0,   137,   170,   168,     0,   173,   193,     0,   191,
-       0,     0,    82,     0,     0,     0,     0,   102,   112,   100,
-     101,     0,     0,   138,     0,   140,   171,     0,    78,    80,
-       0,    90,   208,     0,   250,   251,   139,   141,   134,   192,
-       0,     0,    31,     0,    82,     0,    83,    84,    87,    92,
-      93,     0,     0,     0,     0,    88,    89,    86,     0,   209,
-     189,     0,    85,    91,     0,     0,     0,     0,     0,     0,
-       0,     0,   269
+       0,     0,     0,     0,   190,   194,    79,     0,   207,     0,
+      77,   219,   220,   295,     0,     0,     0,     0,     0,   241,
+      67,    69,    63,    48,     0,     0,   111,     0,     0,     0,
+       0,   215,     0,   145,   175,   154,     0,     0,   161,   155,
+     162,   156,   163,   157,   165,   159,   164,   158,   166,   160,
+       0,     0,   142,     0,   136,   135,   146,   177,   176,   172,
+       0,     0,     0,   169,     0,     0,     0,     0,     0,    81,
+     120,   121,   122,   188,   217,     0,   267,     0,     0,   265,
+       0,     0,   108,   103,     0,     0,   213,     0,     0,   143,
+       0,   133,     0,   137,   170,   168,     0,   173,   193,     0,
+     191,     0,     0,    82,     0,     0,     0,     0,   102,   112,
+     100,   101,     0,     0,   138,     0,   140,   171,     0,    78,
+      80,     0,    90,   208,     0,   250,   251,   139,   141,   134,
+     192,     0,     0,    31,     0,    82,     0,    83,    84,    87,
+      92,    93,     0,     0,     0,     0,    88,    89,    86,     0,
+     209,   189,     0,    85,    91,     0,     0,     0,     0,     0,
+       0,     0,     0,   269
   };
 
   const short int
   parser::yypgoto_[] =
   {
-    -340,  -340,  -340,  -340,    19,  -340,   535,    20,   659,   284,
-     614,  -340,   598,   309,   747,  -207,  -253,   294,   378,  -340,
-    -340,  -269,  -255,  -340,  -340,   119,  -340,   110,  -340,  -340,
-     107,   432,  -247,  -167,   290,   122,   -71,  -115,  -111,  -340,
-     427,   146,  -222,  -340,  -340,  -340,  -339,  -340,  -340,  -340,
-    -300,  -340,  -340,  -340,  -340,  -340,  -340,  -340,   714,  -340,
-     289,   717,  -340,   336,   718,  -340,  -340,  -340,  -340,  -340,
-    -340,  -340,   425,  -340,  -340,   408,  -261,  -340,  -340,   404,
-    -340,   602,  -340,  -340,  -340,   251,  -340,  -340,   190,    40,
-      18,  -103,   449,    -3,  -340,  -123,    -9,    -2
+    -315,  -315,  -315,  -315,    14,  -315,   540,    20,   819,   205,
+     644,  -315,   630,   285,   604,   120,  -247,   322,   409,  -315,
+    -315,  -273,  -257,  -315,  -315,   156,  -315,   139,  -315,  -315,
+     136,   469,   -79,   -72,   328,   190,   -98,  -116,  -132,  -315,
+     464,   147,  -191,  -315,  -315,  -315,  -269,  -315,  -315,  -315,
+    -314,  -315,  -315,  -315,  -315,  -315,  -315,  -315,   746,  -315,
+     324,   751,  -315,   369,   755,  -315,  -315,  -315,  -315,  -315,
+    -315,  -315,   459,  -315,  -315,   442,  -241,  -315,  -315,   372,
+    -315,   634,  -315,  -315,  -315,   242,  -315,  -315,   160,    53,
+      18,  -121,   479,    -3,  -315,  -122,    -9,    -2
   };
 
   const short int
   parser::yydefgoto_[] =
   {
       -1,    16,    17,    18,    61,    20,    21,   211,    23,    63,
-     110,   111,   112,   252,   151,   336,   416,   333,   334,   125,
-     212,   263,   346,   528,   562,   581,   596,   597,   607,   592,
-     599,   213,   180,   181,   182,   352,   429,   264,   424,   214,
-     379,   362,   551,   363,   450,   451,   216,   217,   366,   275,
-     364,   218,   219,   220,   386,   221,   468,   594,    24,   272,
-     357,    25,   297,   298,    26,    27,    56,    28,   148,   245,
-     329,   241,   242,   409,   326,   404,   399,   397,    29,   118,
-      30,   133,    31,    32,    33,   301,    34,    35,   184,    44,
-     222,   223,   293,   224,   225,   226,   227,   600
+     110,   111,   112,   252,   151,   337,   417,   334,   335,   125,
+     212,   263,   347,   529,   563,   582,   597,   598,   608,   593,
+     600,   213,   180,   181,   182,   353,   430,   264,   425,   214,
+     380,   363,   552,   364,   451,   452,   216,   217,   367,   276,
+     365,   218,   219,   220,   387,   221,   469,   595,    24,   273,
+     358,    25,   298,   299,    26,    27,    56,    28,   148,   245,
+     330,   241,   242,   410,   327,   405,   400,   398,    29,   118,
+      30,   133,    31,    32,    33,   302,    34,    35,   184,    44,
+     222,   223,   294,   224,   225,   226,   227,   601
   };
 
   const short int
   parser::yytable_[] =
   {
-      59,    46,    46,   228,   183,   343,    37,    60,   349,    64,
-     452,   453,    77,    48,   452,   453,   348,    42,   375,    19,
-      22,   436,    45,    45,    42,    42,    52,    22,    10,    36,
-      22,   289,   390,    77,    77,    46,    90,    10,    46,   529,
-     452,   453,   392,   243,   246,   421,   249,   338,   400,   340,
-     341,   286,    42,   384,    46,    76,    45,   178,    51,    45,
-     260,   438,   367,   406,   407,   135,    42,    51,   459,   276,
-     277,   291,    46,   270,   456,    45,    87,    88,   287,   385,
-      40,   414,   186,   512,   530,    58,   140,   387,   484,   549,
-      57,    38,   422,    45,   513,    86,   492,    42,    49,   304,
-      22,    22,    22,    22,    22,    22,   427,    39,   388,   511,
-      46,   345,   515,   175,    50,    77,    46,   185,    51,   493,
-     465,   469,   345,   391,    46,    46,    10,    46,    46,    77,
-     332,    45,   299,   571,   174,   289,   250,    45,   454,   531,
-     187,    22,   175,   244,   244,    45,    45,    10,    45,    45,
-     368,   347,   516,   517,    59,    22,    51,   548,   177,   414,
-      22,   255,   457,   240,   523,   289,    79,   239,   175,    46,
-      46,    78,   234,   290,   305,   291,    42,    51,   427,   289,
-       3,   175,   259,   427,   427,   289,   428,   542,    42,   261,
-      45,    45,   292,   389,    43,    47,   116,    40,   265,    22,
-    -300,   243,   261,   290,   327,   291,   605,     8,   342,    62,
-     -18,   117,   294,   -18,   533,   279,   122,   290,    10,   291,
-     123,   178,   292,   290,   410,   291,   606,   342,    89,   289,
-      42,   115,   244,   423,   342,   342,   292,   342,   289,   567,
-      65,    66,   292,   569,   570,   124,    67,   121,    51,   335,
-     337,   337,   179,   337,   337,   466,   175,   365,   428,   175,
-     432,   579,   519,   428,   428,   134,    42,   290,    14,   291,
-      68,   215,   288,   126,   113,    69,   290,   344,   291,   328,
-     261,   342,   432,   413,    46,   294,   292,    41,   299,   574,
-     574,    70,   497,   244,   498,   292,   289,   499,    75,   500,
-     114,   244,   415,   171,   127,    45,    80,    81,    82,   417,
-     418,   486,   419,    71,   128,   555,   266,   229,   230,    42,
-     232,   233,   130,   267,   244,   572,   131,   462,    72,   335,
-      73,    74,   268,   460,   290,   433,   291,   274,   578,   526,
-     289,   280,   281,   129,   282,    46,   289,   175,   411,    22,
-      46,   146,   178,   292,   483,   132,   479,   545,   169,   488,
-     489,   269,   262,   461,   575,   587,    45,   144,   261,   289,
-     145,    45,    83,    84,    85,   501,   289,   502,   290,   609,
-     291,   279,   147,   426,   290,   472,   291,    46,   244,    59,
-     354,   355,    59,    59,    59,   150,   474,   292,   152,   475,
-     476,   477,   463,   292,   -29,   -29,   -29,   290,    45,   291,
-     503,   335,   504,   481,   290,   157,   291,   356,   505,    91,
-     506,   158,    46,    46,   369,   163,   292,    46,    46,   371,
-     372,   373,   215,   292,   166,   377,   380,   381,   383,   494,
-     495,   496,   167,    45,    45,   265,    22,   168,    45,    45,
-     172,    92,   525,   119,   120,   439,   440,   441,   442,   443,
-     444,   445,   446,   447,   448,   449,   253,   254,   188,   507,
-      93,   508,   603,   173,   289,   256,   257,    94,   452,   453,
-     176,    95,    96,    97,    98,    99,   100,   101,   102,   190,
-     302,   303,   103,   617,   104,   235,   238,   247,   622,   248,
-     289,   251,   258,   540,    22,   359,   271,   437,   296,   105,
-     278,   455,   290,   458,   291,   289,   189,   283,   284,   190,
-      42,    58,   285,   106,   295,   107,   108,    59,    59,  -301,
-     279,   292,   467,   191,   565,   566,   370,   330,   290,   471,
-     291,   289,   192,   193,   109,   300,   342,   289,   522,   577,
-     351,   289,   353,   290,   331,   291,   339,   292,   554,   360,
-     345,   350,   370,   358,   393,   175,   394,   279,   396,   194,
-     398,   401,   292,   402,   403,   408,   420,   464,   490,   290,
-     356,   291,    59,   425,   361,   290,   261,   291,   196,   290,
-     197,   291,   430,   509,   431,   434,   514,    10,   292,    59,
-     518,   435,   520,   521,   292,   473,   524,   198,   292,   557,
-     478,   199,   487,   510,    51,   136,   138,   139,   141,   142,
-     143,   527,   534,   536,   200,   537,   552,   482,   539,   532,
-     535,   201,   202,   538,   541,   -30,   -30,   -30,   453,   543,
-     544,   546,   547,   359,   558,   203,   204,   205,   206,   207,
-     208,   209,   210,   559,   189,    42,   550,   190,    42,    58,
-     560,   259,   561,   564,   568,   553,   580,   583,   582,   556,
-     236,   191,   563,   584,   585,   237,   589,   574,   590,   593,
-     192,   193,   591,   595,   601,   189,   604,   608,   190,    42,
-      58,   610,   611,   550,   614,   573,   615,   360,   616,   619,
-     618,   576,   191,   620,   621,   149,   550,   194,   480,   170,
-     412,   192,   193,   602,   612,   613,   485,   586,   374,   382,
-     588,    53,   361,   491,    54,    55,   196,   470,   197,   395,
-     405,   231,     0,     0,     0,     0,   598,   376,   194,   137,
-     137,   137,   137,   137,   137,   198,     0,   550,     0,   199,
-     598,     0,     0,   195,     0,     0,     0,   196,     0,   197,
-       0,     0,   200,     0,     0,     0,     0,     0,     0,   201,
-     202,     0,     0,     0,     0,     0,   198,     0,     0,     0,
-     199,     0,     0,   203,   204,   205,   206,   207,   208,   209,
-     210,     0,     0,   200,   137,     0,     0,     0,     0,   137,
-     201,   202,     0,     0,     0,   189,     0,     0,   190,    42,
-      58,   273,     0,     0,   203,   204,   205,   206,   207,   208,
-     209,   210,   191,     0,     0,     0,     0,     0,     0,     0,
-       0,   192,   193,     0,   189,     0,     0,   190,    42,    58,
-       0,   153,   154,   155,   156,     0,     0,   159,   160,   161,
-     162,   191,   164,   165,     0,     0,     0,     0,   194,     0,
-     192,   193,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,   195,     0,     0,     0,   196,     0,   197,
-       0,     0,     0,     0,     0,     0,     0,   194,     0,     0,
-       0,     0,     0,   378,     0,     0,   198,     0,     0,     0,
-     199,     0,   195,    51,     0,     0,   196,     0,   197,     0,
-       0,     0,     0,   200,     0,     0,     0,     0,     0,     0,
-     201,   202,     0,     0,     0,   198,     0,   189,     0,   199,
-     190,    42,    58,     0,   203,   204,   205,   206,   207,   208,
-     209,   210,   200,     0,   191,     0,     0,     0,     0,   201,
-     202,     0,     0,   192,   193,     0,     0,     0,     0,     0,
-       0,     0,   306,   203,   204,   205,   206,   207,   208,   209,
-     210,     0,     0,     0,     0,   307,   308,     0,     0,   309,
-     194,     0,     0,     0,     0,     0,     0,   310,   311,     0,
-     312,     0,     0,     0,     0,   195,   313,     0,     0,   196,
-       0,   197,     0,     0,     0,     0,     0,     0,   314,     0,
-       0,     0,     0,     0,     0,     0,     0,     1,   198,   315,
-       0,   316,   199,     0,     0,     0,     0,     0,     0,     0,
-     317,     2,     0,     0,     0,   200,     0,     0,     0,     3,
-       4,     5,   201,   202,   318,     6,     0,     0,     0,     0,
-       0,     0,     0,     7,   319,     0,   203,   204,   205,   206,
-     207,   208,   209,   210,     0,   320,     8,     0,     0,     0,
-       0,     0,     9,   321,   322,   323,     0,    10,     0,     0,
-       0,     0,    92,     0,   324,   325,   439,   440,   441,   442,
-     443,   444,   445,   446,   447,   448,   449,     0,     0,     0,
-       0,    93,     0,     0,     0,     0,     0,    11,    94,    12,
-      13,     0,    95,    96,    97,    98,    99,   100,   101,   102,
-       0,     0,     0,   103,     0,   104,     0,    14,     0,     0,
-      15,   289,     0,     0,     0,     0,     0,     0,     0,     0,
-     105,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,   106,     0,   107,   108,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,   290,
-       0,   291,     0,     0,     0,   109,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,   292
+      59,    46,    46,   183,   228,   349,   350,    60,   530,    64,
+     368,   344,    77,    42,    19,   376,   391,   453,   454,   305,
+      22,    52,    45,    45,   290,   243,   246,    22,   453,   454,
+      22,   249,   422,    77,    77,    46,    90,    37,    46,   260,
+     290,   393,    42,    10,    36,   328,   265,   287,   439,   453,
+     454,   267,   271,   531,    46,   460,    45,   113,   268,    45,
+      42,   385,   135,    40,   292,   513,   259,   269,    76,   401,
+     277,   278,    46,    51,   288,    45,   514,    48,   291,   -18,
+     292,   343,   -18,   114,   407,   408,   140,   386,   415,    87,
+      88,   423,   437,    45,   306,   346,   270,   293,   369,   457,
+      22,    22,    22,    22,    22,    22,    42,   392,   532,    42,
+      46,   346,   388,   175,   300,    77,    46,   185,   470,   466,
+     329,   250,    38,    10,    46,    46,   494,    46,    46,    77,
+     348,    45,   366,   389,   174,   187,   550,    45,    39,   517,
+     518,    22,   175,   244,   244,    45,    45,    10,    45,    45,
+      57,    42,   455,    51,    59,    22,   414,   572,    58,     3,
+      22,   255,    49,   240,    43,    47,   415,   493,   175,    46,
+      46,   177,    42,   524,   543,   175,   390,    51,    50,    86,
+     512,   175,   290,   516,   243,   234,     8,   458,   343,   261,
+      45,    45,   343,   266,    42,   343,   261,    10,    89,    22,
+     289,   115,   261,   290,   343,   178,    78,   411,    41,   433,
+      65,    66,   295,   534,   343,   280,    67,   121,   433,    75,
+     291,   239,   292,   498,   290,   499,   568,    51,   549,   575,
+     570,   571,   244,   424,   575,   134,   485,    79,    10,   293,
+      68,   291,   116,   292,    42,    69,    40,    14,   580,   336,
+     338,   338,  -300,   338,   338,   117,   175,   467,    62,   175,
+     293,    70,   291,   416,   292,   124,    51,   418,    51,   122,
+     419,   300,   215,   171,   123,   428,   606,   345,   126,   420,
+     261,   293,   429,    71,   434,    46,   295,   229,   230,   480,
+     232,   233,   186,   546,   244,   500,   607,   501,    72,   290,
+      73,    74,   244,   502,   576,   503,    45,    42,   333,   588,
+     127,   487,   128,   440,   441,   442,   443,   444,   445,   446,
+     447,   448,   449,   450,   129,   244,   290,   504,   484,   505,
+     336,   130,   262,   489,   490,   290,   131,   291,   275,   292,
+     178,   527,   281,   282,   412,   283,    46,   428,   175,   144,
+      22,    46,   428,   428,   429,   463,   293,   573,   290,   429,
+     429,   -30,   -30,   -30,   291,   132,   292,    45,   290,   261,
+     579,   179,    45,   291,   339,   292,   341,   342,   290,   453,
+     454,    42,   280,   293,    42,   145,   473,   259,    46,   244,
+      59,   146,   293,    59,    59,    59,   291,   475,   292,   147,
+     476,   477,   478,   520,   150,   506,   291,   507,   292,    45,
+     152,   610,   336,   157,   482,   293,   291,   178,   292,   357,
+     371,   119,   120,    46,    46,   293,   370,   158,    46,    46,
+     464,   372,   373,   374,   215,   293,   163,   378,   381,   382,
+     384,   266,   253,   254,    45,    45,   166,    22,   427,    45,
+      45,   256,   257,   526,   167,   556,    80,    81,    82,   355,
+     356,     1,   168,   440,   441,   442,   443,   444,   445,   446,
+     447,   448,   449,   450,   604,     2,    83,    84,    85,   461,
+     290,   303,   304,     3,     4,     5,   290,   169,   508,     6,
+     509,   172,   290,   523,   176,   618,   188,     7,   173,   541,
+     623,   -29,   -29,   -29,   190,    22,   462,   235,   290,   438,
+       8,   238,   247,   456,   251,   459,     9,   248,   291,   290,
+     292,    10,   258,   272,   291,   279,   292,   284,    59,    59,
+     291,   280,   292,   285,   468,   566,   567,   293,   495,   496,
+     497,   472,   371,   293,   286,   331,   291,   360,   292,   293,
+     578,    11,   290,    12,    13,   296,   290,   291,   189,   292,
+     297,   190,    42,    58,   301,   293,   175,   332,   280,  -301,
+     343,    14,   290,   352,    15,   191,   293,   354,   340,   555,
+     491,   346,   357,    59,   192,   193,   351,   261,   359,   394,
+     291,   395,   292,   397,   291,   510,   292,   399,   515,   402,
+      59,   361,   519,   403,   521,   522,   409,   404,   525,   293,
+     291,   194,   292,   293,   465,   421,   426,   431,   558,   432,
+     136,   138,   139,   141,   142,   143,   362,   436,   435,   293,
+     196,    10,   197,   474,   479,   528,   483,   488,   511,   533,
+     536,   535,   537,   547,   539,   538,   540,   548,   360,   198,
+     544,   553,   542,   199,   454,   545,    51,   559,   551,   189,
+     560,   561,   190,    42,    58,   562,   200,   554,   565,   564,
+     569,   557,   581,   201,   202,   236,   191,   584,   583,   585,
+     237,   575,   586,   591,   590,   192,   193,   203,   204,   205,
+     206,   207,   208,   209,   210,   551,   592,   574,   153,   154,
+     155,   156,   361,   577,   159,   160,   161,   162,   551,   164,
+     165,   596,   194,   189,   594,   602,   190,    42,    58,   587,
+     615,   605,   589,   609,   611,   612,   617,   362,   619,   620,
+     191,   196,   616,   197,   621,   149,   622,   481,   599,   192,
+     193,   170,   413,   189,   613,   614,   190,    42,    58,   551,
+     198,   603,   599,    53,   199,   486,   375,   383,    54,   492,
+     191,   471,    55,   231,   396,   406,   194,   200,   377,   192,
+     193,     0,     0,     0,   201,   202,     0,     0,     0,     0,
+       0,   195,     0,     0,     0,   196,     0,   197,   203,   204,
+     205,   206,   207,   208,   209,   210,   194,   189,     0,     0,
+     190,    42,    58,     0,   198,     0,     0,     0,   199,     0,
+       0,   195,     0,     0,   191,   196,     0,   197,     0,     0,
+       0,   200,     0,   192,   193,     0,     0,     0,   201,   202,
+       0,     0,     0,     0,   198,     0,     0,     0,   199,   274,
+       0,    51,   203,   204,   205,   206,   207,   208,   209,   210,
+     194,   200,     0,     0,     0,     0,   379,     0,   201,   202,
+       0,     0,     0,     0,     0,   195,     0,     0,     0,   196,
+       0,   197,   203,   204,   205,   206,   207,   208,   209,   210,
+       0,   189,     0,     0,   190,    42,    58,     0,   198,     0,
+       0,     0,   199,     0,     0,     0,     0,     0,   191,   137,
+     137,   137,   137,   137,   137,   200,     0,   192,   193,     0,
+       0,     0,   201,   202,     0,    91,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,   203,   204,   205,   206,
+     207,   208,   209,   210,   194,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    92,     0,   195,
+       0,     0,     0,   196,   137,   197,     0,     0,     0,   137,
+       0,     0,     0,     0,     0,     0,    93,     0,     0,     0,
+       0,     0,   198,    94,     0,     0,   199,    95,    96,    97,
+      98,    99,   100,   101,   102,     0,     0,     0,   103,   200,
+     104,     0,     0,     0,     0,     0,   201,   202,     0,     0,
+       0,     0,     0,     0,     0,   105,     0,     0,     0,     0,
+     203,   204,   205,   206,   207,   208,   209,   210,   307,   106,
+       0,   107,   108,     0,     0,     0,     0,     0,     0,     0,
+       0,   308,   309,     0,     0,   310,     0,     0,     0,     0,
+     109,     0,     0,   311,   312,     0,   313,     0,     0,     0,
+       0,     0,   314,     0,     0,     0,     0,     0,     0,     0,
+       0,    92,     0,     0,   315,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,   316,     0,   317,     0,     0,
+      93,     0,     0,     0,     0,     0,   318,    94,     0,     0,
+       0,    95,    96,    97,    98,    99,   100,   101,   102,     0,
+     319,     0,   103,     0,   104,     0,     0,     0,     0,     0,
+     320,     0,     0,     0,     0,     0,     0,     0,     0,   105,
+       0,   321,     0,     0,     0,     0,     0,     0,     0,   322,
+     323,   324,     0,   106,     0,   107,   108,     0,     0,     0,
+     325,   326,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,   109
   };
 
   const short int
   parser::yycheck_[] =
   {
-       9,     4,     5,   126,   119,   258,    43,     9,   263,    12,
-       6,     7,    15,    43,     6,     7,    40,    23,   287,     0,
-       0,   360,     4,     5,    23,    23,     7,     7,    87,   128,
-      10,    53,    67,    36,    37,    38,    39,    87,    41,    47,
-       6,     7,   297,   146,   147,   345,    25,   254,   309,   256,
-     257,    40,    23,    26,    57,    15,    38,    56,   117,    41,
-     171,   361,    57,   324,   325,    26,    23,   117,   368,   192,
-     193,    93,    75,   184,    57,    57,    36,    37,    67,    52,
-      31,   334,   141,     8,    92,    24,    26,    93,    87,     7,
-      80,   128,   347,    75,    19,    93,   435,    23,   128,    40,
-      80,    81,    82,    83,    84,    85,   353,   144,   114,   448,
-     113,   146,   451,   116,   144,   118,   119,   120,   117,   115,
-     375,   390,   146,   158,   127,   128,    87,   130,   131,   132,
-      87,   113,   235,     7,   116,    53,   115,   119,   130,   147,
-     121,   121,   145,   146,   147,   127,   128,    87,   130,   131,
-     145,   262,   452,   453,   163,   135,   117,   496,   118,   412,
-     140,   163,   145,   145,   130,    53,   118,    93,   171,   172,
-     173,     0,   132,    91,   115,    93,    23,   117,   425,    53,
-      49,   184,    29,   430,   431,    53,   353,   487,    23,   171,
-     172,   173,   110,   296,     4,     5,   109,    31,   179,   179,
-     109,   304,   184,    91,    40,    93,    30,    76,    40,    43,
-     115,    71,   215,   118,   469,   195,   115,    91,    87,    93,
-      87,    56,   110,    91,   327,    93,    50,    40,    38,    53,
-      23,    41,   235,   348,    40,    40,   110,    40,    53,   539,
-      38,    39,   110,   543,   544,    52,    44,    57,   117,   252,
-     253,   254,    87,   256,   257,   378,   259,   145,   425,   262,
-      40,   561,   130,   430,   431,    75,    23,    91,   137,    93,
-      68,   125,    29,    11,    67,    73,    91,   259,    93,   115,
-     262,    40,    40,   115,   287,   288,   110,     3,   391,    40,
-      40,    89,    26,   296,    28,   110,    53,    26,    14,    28,
-      93,   304,   115,   113,   125,   287,     3,     4,     5,   115,
-     115,   426,   115,   111,    67,   130,    68,   127,   128,    23,
-     130,   131,    67,    75,   327,   547,   125,    40,   126,   332,
-     128,   129,    84,    40,    91,   115,    93,   191,   560,   462,
-      53,   195,   196,   129,   198,   348,    53,   350,   329,   329,
-     353,    87,    56,   110,   425,    67,   115,   115,    58,   430,
-     431,   113,   172,    40,   115,   115,   348,   109,   350,    53,
-     109,   353,     3,     4,     5,    26,    53,    28,    91,   601,
-      93,   361,    87,    87,    91,   394,    93,   390,   391,   398,
-     268,   269,   401,   402,   403,    87,   398,   110,    87,   401,
-     402,   403,   115,   110,     3,     4,     5,    91,   390,    93,
-      26,   414,    28,   416,    91,    87,    93,   271,    26,    32,
-      28,    87,   425,   426,   278,    87,   110,   430,   431,   283,
-     284,   285,   286,   110,    87,   289,   290,   291,   292,    15,
-      16,    17,    87,   425,   426,   426,   426,    87,   430,   431,
-      67,    64,   461,    49,    50,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,    18,   157,   158,   115,    26,
-      83,    28,   595,    67,    53,   166,   167,    90,     6,     7,
-      62,    94,    95,    96,    97,    98,    99,   100,   101,    22,
-     239,   240,   105,   616,   107,   119,    93,    29,   621,    59,
-      53,    25,    25,   484,   484,     8,    87,   361,   109,   122,
-      87,   365,    91,   367,    93,    53,    19,    87,    87,    22,
-      23,    24,    87,   136,    87,   138,   139,   536,   537,   109,
-     510,   110,   386,    36,   536,   537,   115,    58,    91,   393,
-      93,    53,    45,    46,   157,   116,    40,    53,    60,   558,
-     106,    53,    81,    91,   115,    93,   115,   110,    60,    62,
-     146,   115,   115,    40,    11,   568,   121,   547,    61,    72,
-      87,    87,   110,    87,    87,     8,    25,   115,   432,    91,
-     434,    93,   591,    81,    87,    91,   568,    93,    91,    91,
-      93,    93,    81,   447,    81,    87,   450,    87,   110,   608,
-     454,    62,   456,   457,   110,    11,   460,   110,   110,   115,
-      19,   114,   103,    87,   117,    80,    81,    82,    83,    84,
-      85,    69,    42,    40,   127,    40,    19,   115,   103,   115,
-     115,   134,   135,   115,   115,     3,     4,     5,     7,   103,
-     103,   495,    87,     8,    40,   148,   149,   150,   151,   152,
-     153,   154,   155,   115,    19,    23,   510,    22,    23,    24,
-      35,    29,    70,    40,   115,   519,   104,    74,    87,   523,
-     135,    36,   156,   115,   115,   140,   115,    40,    35,   108,
-      45,    46,    85,    11,    35,    19,    40,    40,    22,    23,
-      24,   115,    40,   547,    65,   549,   124,    62,    35,    86,
-      40,   555,    36,   124,    35,    91,   560,    72,   414,   111,
-     332,    45,    46,   594,   604,   608,   426,   571,   286,   292,
-     574,     7,    87,   434,     7,     7,    91,   391,    93,   304,
-     322,   129,    -1,    -1,    -1,    -1,   590,   288,    72,    80,
-      81,    82,    83,    84,    85,   110,    -1,   601,    -1,   114,
-     604,    -1,    -1,    87,    -1,    -1,    -1,    91,    -1,    93,
-      -1,    -1,   127,    -1,    -1,    -1,    -1,    -1,    -1,   134,
-     135,    -1,    -1,    -1,    -1,    -1,   110,    -1,    -1,    -1,
-     114,    -1,    -1,   148,   149,   150,   151,   152,   153,   154,
-     155,    -1,    -1,   127,   135,    -1,    -1,    -1,    -1,   140,
-     134,   135,    -1,    -1,    -1,    19,    -1,    -1,    22,    23,
-      24,   145,    -1,    -1,   148,   149,   150,   151,   152,   153,
-     154,   155,    36,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    45,    46,    -1,    19,    -1,    -1,    22,    23,    24,
-      -1,    94,    95,    96,    97,    -1,    -1,   100,   101,   102,
-     103,    36,   105,   106,    -1,    -1,    -1,    -1,    72,    -1,
-      45,    46,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    87,    -1,    -1,    -1,    91,    -1,    93,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    72,    -1,    -1,
-      -1,    -1,    -1,    78,    -1,    -1,   110,    -1,    -1,    -1,
-     114,    -1,    87,   117,    -1,    -1,    91,    -1,    93,    -1,
-      -1,    -1,    -1,   127,    -1,    -1,    -1,    -1,    -1,    -1,
-     134,   135,    -1,    -1,    -1,   110,    -1,    19,    -1,   114,
-      22,    23,    24,    -1,   148,   149,   150,   151,   152,   153,
-     154,   155,   127,    -1,    36,    -1,    -1,    -1,    -1,   134,
-     135,    -1,    -1,    45,    46,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    20,   148,   149,   150,   151,   152,   153,   154,
-     155,    -1,    -1,    -1,    -1,    33,    34,    -1,    -1,    37,
-      72,    -1,    -1,    -1,    -1,    -1,    -1,    45,    46,    -1,
-      48,    -1,    -1,    -1,    -1,    87,    54,    -1,    -1,    91,
-      -1,    93,    -1,    -1,    -1,    -1,    -1,    -1,    66,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    27,   110,    77,
-      -1,    79,   114,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      88,    41,    -1,    -1,    -1,   127,    -1,    -1,    -1,    49,
-      50,    51,   134,   135,   102,    55,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    63,   112,    -1,   148,   149,   150,   151,
-     152,   153,   154,   155,    -1,   123,    76,    -1,    -1,    -1,
-      -1,    -1,    82,   131,   132,   133,    -1,    87,    -1,    -1,
-      -1,    -1,    64,    -1,   142,   143,     8,     9,    10,    11,
-      12,    13,    14,    15,    16,    17,    18,    -1,    -1,    -1,
-      -1,    83,    -1,    -1,    -1,    -1,    -1,   117,    90,   119,
-     120,    -1,    94,    95,    96,    97,    98,    99,   100,   101,
-      -1,    -1,    -1,   105,    -1,   107,    -1,   137,    -1,    -1,
-     140,    53,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-     122,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,   136,    -1,   138,   139,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    91,
-      -1,    93,    -1,    -1,    -1,   157,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,   110
+       9,     4,     5,   119,   126,    40,   263,     9,    47,    12,
+      57,   258,    15,    23,     0,   288,    67,     6,     7,    40,
+       0,     7,     4,     5,    53,   146,   147,     7,     6,     7,
+      10,    25,   346,    36,    37,    38,    39,    43,    41,   171,
+      53,   298,    23,    87,   128,    40,   178,    40,   362,     6,
+       7,    68,   184,    92,    57,   369,    38,    67,    75,    41,
+      23,    26,    26,    31,    93,     8,    29,    84,    15,   310,
+     192,   193,    75,   117,    67,    57,    19,    43,    91,   115,
+      93,    40,   118,    93,   325,   326,    26,    52,   335,    36,
+      37,   348,   361,    75,   115,   146,   113,   110,   145,    57,
+      80,    81,    82,    83,    84,    85,    23,   158,   147,    23,
+     113,   146,    93,   116,   235,   118,   119,   120,   391,   376,
+     115,   115,   128,    87,   127,   128,   115,   130,   131,   132,
+     262,   113,   145,   114,   116,   121,     7,   119,   144,   453,
+     454,   121,   145,   146,   147,   127,   128,    87,   130,   131,
+      80,    23,   130,   117,   163,   135,   115,     7,    24,    49,
+     140,   163,   128,   145,     4,     5,   413,   436,   171,   172,
+     173,   118,    23,   130,   488,   178,   297,   117,   144,    93,
+     449,   184,    53,   452,   305,   132,    76,   145,    40,   171,
+     172,   173,    40,   179,    23,    40,   178,    87,    38,   179,
+      29,    41,   184,    53,    40,    56,     0,   328,     3,    40,
+      38,    39,   215,   470,    40,   195,    44,    57,    40,    14,
+      91,    93,    93,    26,    53,    28,   540,   117,   497,    40,
+     544,   545,   235,   349,    40,    75,    87,   118,    87,   110,
+      68,    91,   109,    93,    23,    73,    31,   137,   562,   252,
+     253,   254,   109,   256,   257,    71,   259,   379,    43,   262,
+     110,    89,    91,   115,    93,    52,   117,   115,   117,   115,
+     115,   392,   125,   113,    87,   354,    30,   259,    11,   115,
+     262,   110,   354,   111,   115,   288,   289,   127,   128,   115,
+     130,   131,   141,   115,   297,    26,    50,    28,   126,    53,
+     128,   129,   305,    26,   115,    28,   288,    23,    87,   115,
+     125,   427,    67,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,   129,   328,    53,    26,   426,    28,
+     333,    67,   172,   431,   432,    53,   125,    91,   191,    93,
+      56,   463,   195,   196,   330,   198,   349,   426,   351,   109,
+     330,   354,   431,   432,   426,    40,   110,   548,    53,   431,
+     432,     3,     4,     5,    91,    67,    93,   349,    53,   351,
+     561,    87,   354,    91,   254,    93,   256,   257,    53,     6,
+       7,    23,   362,   110,    23,   109,   395,    29,   391,   392,
+     399,    87,   110,   402,   403,   404,    91,   399,    93,    87,
+     402,   403,   404,   130,    87,    26,    91,    28,    93,   391,
+      87,   602,   415,    87,   417,   110,    91,    56,    93,   272,
+     115,    49,    50,   426,   427,   110,   279,    87,   431,   432,
+     115,   284,   285,   286,   287,   110,    87,   290,   291,   292,
+     293,   427,   157,   158,   426,   427,    87,   427,    87,   431,
+     432,   166,   167,   462,    87,   130,     3,     4,     5,   269,
+     270,    27,    87,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,   596,    41,     3,     4,     5,    40,
+      53,   239,   240,    49,    50,    51,    53,    58,    26,    55,
+      28,    67,    53,    60,    62,   617,   115,    63,    67,   485,
+     622,     3,     4,     5,    22,   485,    40,   119,    53,   362,
+      76,    93,    29,   366,    25,   368,    82,    59,    91,    53,
+      93,    87,    25,    87,    91,    87,    93,    87,   537,   538,
+      91,   511,    93,    87,   387,   537,   538,   110,    15,    16,
+      17,   394,   115,   110,    87,    58,    91,     8,    93,   110,
+     559,   117,    53,   119,   120,    87,    53,    91,    19,    93,
+     109,    22,    23,    24,   116,   110,   569,   115,   548,   109,
+      40,   137,    53,   106,   140,    36,   110,    81,   115,    60,
+     433,   146,   435,   592,    45,    46,   115,   569,    40,    11,
+      91,   121,    93,    61,    91,   448,    93,    87,   451,    87,
+     609,    62,   455,    87,   457,   458,     8,    87,   461,   110,
+      91,    72,    93,   110,   115,    25,    81,    81,   115,    81,
+      80,    81,    82,    83,    84,    85,    87,    62,    87,   110,
+      91,    87,    93,    11,    19,    69,   115,   103,    87,   115,
+     115,    42,    40,   496,   115,    40,   103,    87,     8,   110,
+     103,    19,   115,   114,     7,   103,   117,    40,   511,    19,
+     115,    35,    22,    23,    24,    70,   127,   520,    40,   156,
+     115,   524,   104,   134,   135,   135,    36,    74,    87,   115,
+     140,    40,   115,    35,   115,    45,    46,   148,   149,   150,
+     151,   152,   153,   154,   155,   548,    85,   550,    94,    95,
+      96,    97,    62,   556,   100,   101,   102,   103,   561,   105,
+     106,    11,    72,    19,   108,    35,    22,    23,    24,   572,
+      65,    40,   575,    40,   115,    40,    35,    87,    40,    86,
+      36,    91,   124,    93,   124,    91,    35,   415,   591,    45,
+      46,   111,   333,    19,   605,   609,    22,    23,    24,   602,
+     110,   595,   605,     7,   114,   427,   287,   293,     7,   435,
+      36,   392,     7,   129,   305,   323,    72,   127,   289,    45,
+      46,    -1,    -1,    -1,   134,   135,    -1,    -1,    -1,    -1,
+      -1,    87,    -1,    -1,    -1,    91,    -1,    93,   148,   149,
+     150,   151,   152,   153,   154,   155,    72,    19,    -1,    -1,
+      22,    23,    24,    -1,   110,    -1,    -1,    -1,   114,    -1,
+      -1,    87,    -1,    -1,    36,    91,    -1,    93,    -1,    -1,
+      -1,   127,    -1,    45,    46,    -1,    -1,    -1,   134,   135,
+      -1,    -1,    -1,    -1,   110,    -1,    -1,    -1,   114,   145,
+      -1,   117,   148,   149,   150,   151,   152,   153,   154,   155,
+      72,   127,    -1,    -1,    -1,    -1,    78,    -1,   134,   135,
+      -1,    -1,    -1,    -1,    -1,    87,    -1,    -1,    -1,    91,
+      -1,    93,   148,   149,   150,   151,   152,   153,   154,   155,
+      -1,    19,    -1,    -1,    22,    23,    24,    -1,   110,    -1,
+      -1,    -1,   114,    -1,    -1,    -1,    -1,    -1,    36,    80,
+      81,    82,    83,    84,    85,   127,    -1,    45,    46,    -1,
+      -1,    -1,   134,   135,    -1,    32,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,   148,   149,   150,   151,
+     152,   153,   154,   155,    72,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    64,    -1,    87,
+      -1,    -1,    -1,    91,   135,    93,    -1,    -1,    -1,   140,
+      -1,    -1,    -1,    -1,    -1,    -1,    83,    -1,    -1,    -1,
+      -1,    -1,   110,    90,    -1,    -1,   114,    94,    95,    96,
+      97,    98,    99,   100,   101,    -1,    -1,    -1,   105,   127,
+     107,    -1,    -1,    -1,    -1,    -1,   134,   135,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,   122,    -1,    -1,    -1,    -1,
+     148,   149,   150,   151,   152,   153,   154,   155,    20,   136,
+      -1,   138,   139,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    33,    34,    -1,    -1,    37,    -1,    -1,    -1,    -1,
+     157,    -1,    -1,    45,    46,    -1,    48,    -1,    -1,    -1,
+      -1,    -1,    54,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    64,    -1,    -1,    66,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    77,    -1,    79,    -1,    -1,
+      83,    -1,    -1,    -1,    -1,    -1,    88,    90,    -1,    -1,
+      -1,    94,    95,    96,    97,    98,    99,   100,   101,    -1,
+     102,    -1,   105,    -1,   107,    -1,    -1,    -1,    -1,    -1,
+     112,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,   122,
+      -1,   123,    -1,    -1,    -1,    -1,    -1,    -1,    -1,   131,
+     132,   133,    -1,   136,    -1,   138,   139,    -1,    -1,    -1,
+     142,   143,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,   157
   };
 
   const unsigned short int
@@ -4555,43 +4550,43 @@ namespace CatDB {
      247,   240,   247,   247,   248,   119,   165,   165,    93,    93,
      249,   230,   231,   250,   252,   228,   250,    29,    59,    25,
      115,    25,   172,   172,   172,   256,   172,   172,    25,    29,
-     197,   249,   247,   180,   196,   163,    68,    75,    84,   113,
-     197,    87,   218,   145,   200,   208,   254,   254,    87,   166,
-     200,   200,   200,    87,    87,    87,    40,    67,    29,    53,
-      91,    93,   110,   251,   252,    87,   109,   221,   222,   250,
-     116,   244,   244,   244,    40,   115,    20,    33,    34,    37,
-      45,    46,    48,    54,    66,    77,    79,    88,   102,   112,
-     123,   131,   132,   133,   142,   143,   233,    40,   115,   229,
-      58,   115,    87,   176,   177,   252,   174,   252,   174,   115,
-     174,   174,    40,   175,   249,   146,   181,   197,    40,   181,
-     115,   106,   194,    81,   194,   194,   200,   219,    40,     8,
-      62,    87,   200,   202,   209,   145,   207,    57,   145,   200,
-     115,   200,   200,   200,   190,   180,   251,   200,    78,   199,
-     200,   200,   199,   200,    26,    52,   213,    93,   114,   250,
-      67,   158,   181,    11,   121,   231,    61,   236,    87,   235,
-     235,    87,    87,    87,   234,   234,   235,   235,     8,   232,
-     250,   163,   177,   115,   175,   115,   175,   115,   115,   115,
-      25,   209,   181,   196,   197,    81,    87,   191,   192,   195,
-      81,    81,    40,   115,    87,    62,   205,   200,   209,     8,
-       9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
-     203,   204,     6,     7,   130,   200,    57,   145,   200,   209,
-      40,    40,    40,   115,   115,   181,   254,   200,   215,   180,
-     222,   200,   255,    11,   256,   256,   256,   256,    19,   115,
-     176,   252,   115,   195,    87,   193,   196,   103,   195,   195,
-     200,   219,   205,   115,    15,    16,    17,    26,    28,    26,
-      28,    26,    28,    26,    28,    26,    28,    26,    28,   200,
-      87,   205,     8,    19,   200,   205,   209,   209,   200,   130,
-     200,   200,    60,   130,   200,   255,   254,    69,   182,    47,
-      92,   147,   115,   181,    42,   115,    40,    40,   115,   103,
-     163,   115,   209,   103,   103,   115,   200,    87,   205,     7,
-     200,   201,    19,   200,    60,   130,   200,   115,    40,   115,
-      35,    70,   183,   156,    40,   256,   256,   209,   115,   209,
-     209,     7,   201,   200,    40,   115,   200,   255,   201,   209,
-     104,   184,    87,    74,   115,   115,   200,   115,   200,   115,
-      35,    85,   188,   108,   216,    11,   185,   186,   200,   189,
-     256,    35,   184,   254,    40,    30,    50,   187,    40,   201,
-     115,    40,   186,   189,    65,   124,    35,   254,    40,    86,
-     124,    35,   254
+     197,   249,   247,   180,   196,   197,   163,    68,    75,    84,
+     113,   197,    87,   218,   145,   200,   208,   254,   254,    87,
+     166,   200,   200,   200,    87,    87,    87,    40,    67,    29,
+      53,    91,    93,   110,   251,   252,    87,   109,   221,   222,
+     250,   116,   244,   244,   244,    40,   115,    20,    33,    34,
+      37,    45,    46,    48,    54,    66,    77,    79,    88,   102,
+     112,   123,   131,   132,   133,   142,   143,   233,    40,   115,
+     229,    58,   115,    87,   176,   177,   252,   174,   252,   174,
+     115,   174,   174,    40,   175,   249,   146,   181,   197,    40,
+     181,   115,   106,   194,    81,   194,   194,   200,   219,    40,
+       8,    62,    87,   200,   202,   209,   145,   207,    57,   145,
+     200,   115,   200,   200,   200,   190,   180,   251,   200,    78,
+     199,   200,   200,   199,   200,    26,    52,   213,    93,   114,
+     250,    67,   158,   181,    11,   121,   231,    61,   236,    87,
+     235,   235,    87,    87,    87,   234,   234,   235,   235,     8,
+     232,   250,   163,   177,   115,   175,   115,   175,   115,   115,
+     115,    25,   209,   181,   196,   197,    81,    87,   191,   192,
+     195,    81,    81,    40,   115,    87,    62,   205,   200,   209,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
+      18,   203,   204,     6,     7,   130,   200,    57,   145,   200,
+     209,    40,    40,    40,   115,   115,   181,   254,   200,   215,
+     180,   222,   200,   255,    11,   256,   256,   256,   256,    19,
+     115,   176,   252,   115,   195,    87,   193,   196,   103,   195,
+     195,   200,   219,   205,   115,    15,    16,    17,    26,    28,
+      26,    28,    26,    28,    26,    28,    26,    28,    26,    28,
+     200,    87,   205,     8,    19,   200,   205,   209,   209,   200,
+     130,   200,   200,    60,   130,   200,   255,   254,    69,   182,
+      47,    92,   147,   115,   181,    42,   115,    40,    40,   115,
+     103,   163,   115,   209,   103,   103,   115,   200,    87,   205,
+       7,   200,   201,    19,   200,    60,   130,   200,   115,    40,
+     115,    35,    70,   183,   156,    40,   256,   256,   209,   115,
+     209,   209,     7,   201,   200,    40,   115,   200,   255,   201,
+     209,   104,   184,    87,    74,   115,   115,   200,   115,   200,
+     115,    35,    85,   188,   108,   216,    11,   185,   186,   200,
+     189,   256,    35,   184,   254,    40,    30,    50,   187,    40,
+     201,   115,    40,   186,   189,    65,   124,    35,   254,    40,
+      86,   124,    35,   254
   };
 
   const unsigned short int
@@ -4642,7 +4637,7 @@ namespace CatDB {
        2,     3,     1,     3,     0,     1,     1,     3,     1,     3,
        0,     1,     1,     3,     1,     3,     2,     0,     3,     0,
        2,     0,     0,     3,     1,     3,     2,     0,     1,     1,
-       0,     4,     2,     1,     1,     2,     3,     2,     1,     4,
+       0,     4,     2,     1,     1,     2,     3,     2,     2,     4,
        7,     7,     7,     6,     0,     1,     1,     1,     3,     1,
        1,     1,     0,     1,     2,     1,     1,     3,     1,     1,
        3,     3,     3,     1,     2,     2,     3,     3,     3,     3,
@@ -4736,28 +4731,28 @@ namespace CatDB {
      652,   656,   663,   668,   676,   677,   681,   687,   696,   701,
      709,   710,   714,   719,   727,   732,   740,   741,   745,   746,
      750,   751,   755,   756,   760,   765,   773,   780,   781,   782,
-     786,   787,   794,   804,   811,   817,   823,   832,   837,   847,
-     856,   860,   864,   868,   876,   879,   886,   890,   894,   901,
-     905,   909,   916,   917,   921,   933,   937,   941,   945,   949,
-     956,   966,   976,   989,   993,   998,  1003,  1008,  1013,  1018,
-    1023,  1028,  1033,  1041,  1047,  1056,  1061,  1066,  1071,  1076,
-    1081,  1092,  1103,  1108,  1113,  1117,  1122,  1130,  1134,  1138,
-    1142,  1146,  1150,  1154,  1158,  1165,  1169,  1173,  1177,  1181,
-    1185,  1189,  1193,  1197,  1201,  1205,  1209,  1216,  1225,  1232,
-    1241,  1247,  1256,  1262,  1271,  1275,  1279,  1284,  1292,  1299,
-    1305,  1313,  1320,  1328,  1339,  1348,  1361,  1370,  1382,  1407,
-    1419,  1423,  1431,  1443,  1447,  1456,  1459,  1463,  1470,  1474,
-    1478,  1482,  1486,  1490,  1494,  1498,  1506,  1509,  1517,  1520,
-    1532,  1541,  1552,  1557,  1565,  1570,  1583,  1594,  1608,  1614,
-    1623,  1638,  1649,  1660,  1678,  1687,  1688,  1689,  1690,  1699,
-    1708,  1715,  1730,  1733,  1740,  1745,  1754,  1760,  1765,  1773,
-    1783,  1786,  1793,  1795,  1797,  1799,  1801,  1803,  1805,  1807,
-    1809,  1811,  1813,  1815,  1817,  1819,  1821,  1823,  1825,  1827,
-    1829,  1831,  1833,  1835,  1840,  1841,  1852,  1853,  1865,  1872,
-    1888,  1896,  1904,  1916,  1917,  1926,  1933,  1940,  1947,  1954,
-    1961,  1965,  1969,  1977,  1985,  1991,  2000,  2005,  2011,  2026,
-    2033,  2047,  2056,  2065,  2077,  2078,  2085,  2096,  2110,  2118,
-    2129,  2133,  2137,  2141,  2145,  2149,  2150,  2154,  2158,  2162
+     786,   787,   794,   804,   811,   817,   823,   832,   837,   848,
+     857,   861,   865,   869,   877,   880,   887,   891,   895,   902,
+     906,   910,   917,   918,   922,   934,   938,   942,   946,   950,
+     957,   967,   977,   990,   994,   999,  1004,  1009,  1014,  1019,
+    1024,  1029,  1034,  1042,  1048,  1057,  1062,  1067,  1072,  1077,
+    1082,  1093,  1104,  1109,  1114,  1118,  1123,  1131,  1135,  1139,
+    1143,  1147,  1151,  1155,  1159,  1166,  1170,  1174,  1178,  1182,
+    1186,  1190,  1194,  1198,  1202,  1206,  1210,  1217,  1226,  1233,
+    1242,  1248,  1257,  1263,  1272,  1276,  1280,  1285,  1293,  1300,
+    1306,  1314,  1321,  1329,  1340,  1349,  1362,  1371,  1383,  1408,
+    1420,  1424,  1432,  1444,  1448,  1457,  1460,  1464,  1471,  1475,
+    1479,  1483,  1487,  1491,  1495,  1499,  1507,  1510,  1518,  1521,
+    1533,  1542,  1553,  1558,  1566,  1571,  1584,  1595,  1609,  1615,
+    1624,  1639,  1650,  1661,  1679,  1688,  1689,  1690,  1691,  1700,
+    1709,  1716,  1731,  1734,  1741,  1746,  1755,  1761,  1766,  1774,
+    1784,  1787,  1794,  1796,  1798,  1800,  1802,  1804,  1806,  1808,
+    1810,  1812,  1814,  1816,  1818,  1820,  1822,  1824,  1826,  1828,
+    1830,  1832,  1834,  1836,  1841,  1842,  1853,  1854,  1866,  1873,
+    1889,  1897,  1905,  1917,  1918,  1927,  1934,  1941,  1948,  1955,
+    1962,  1966,  1970,  1978,  1986,  1992,  2001,  2006,  2012,  2027,
+    2034,  2048,  2057,  2066,  2078,  2079,  2086,  2097,  2111,  2119,
+    2130,  2134,  2138,  2142,  2146,  2150,  2151,  2155,  2159,  2163
   };
 
   // Print the state stack on the debug stream.
@@ -4792,8 +4787,8 @@ namespace CatDB {
 
 #line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:1167
 } // CatDB
-#line 4796 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:1167
-#line 2166 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:1168
+#line 4791 "/home/lighthouse/CatDB/sql/parser/sql_parser.cpp" // lalr1.cc:1167
+#line 2167 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:1168
 
 
 void CatDB::SqlParser::error(const CatDB::location& location, const std::string& message)

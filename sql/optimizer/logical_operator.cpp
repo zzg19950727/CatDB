@@ -90,7 +90,7 @@ u32 LogicalOperator::allocate_expr_post(Vector<ExprStmt_s> &expr_input,
                                expr_child_output,
                                can_be));
     if (!can_be) {
-        ret = ERR_UNEXPECTED;
+        //ret = ERR_UNEXPECTED;
         LOG_ERR("expr can not be consumed", K(expr_ctx.expr_consume), K(expr_child_output), K(get_op_name()));
         return ret;
     }

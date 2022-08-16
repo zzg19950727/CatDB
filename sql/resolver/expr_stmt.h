@@ -227,6 +227,7 @@ namespace CatDB {
 			u32 deduce_type() override;
 			bool same_as(const ExprStmt_s &other, ExprCompareCtx *ctx = NULL) override;
 			KV_STRING_OVERRIDE(
+				KV(flags, flags_to_string()),
 				K(res_type),
 				V(params)
 			);

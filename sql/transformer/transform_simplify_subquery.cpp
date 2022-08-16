@@ -344,15 +344,15 @@ u32 TransformSimplifySubquery::check_hint_disable(SelectStmt_s& subquery, bool &
 {
     u32 ret = SUCCESS;
     is_disable = false;
-    QueryHint &query_hint = QUERY_CTX->query_hint;
-    is_disable = query_hint.enable_no_simplify_sq(subquery->get_qb_name());
+    QueryHint_s &query_hint = QUERY_CTX->query_hint;
+    is_disable = query_hint->enable_no_simplify_sq(subquery->get_qb_name());
     return ret;
 }
 
 u32 TransformSimplifySubquery::generate_outline(SelectStmt_s& subquery)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = QUERY_CTX->query_hint;
-    CHECK(query_hint.generate_transform_outline(subquery->get_qb_name(), control_hint));
+    QueryHint_s &query_hint = QUERY_CTX->query_hint;
+    CHECK(query_hint->generate_transform_outline(subquery->get_qb_name(), control_hint));
     return ret;
 }

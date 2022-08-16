@@ -338,7 +338,10 @@ u32 ExprUtils::is_calculable_expr(ExprStmt_s &expr, bool &is_calculable)
                     !expr->has_flag(HAS_AGG) &&
                     !expr->has_flag(HAS_SUBQUERY) &&
                     !expr->has_flag(HAS_EXEC_PARAM) &&
-                    !expr->has_flag(HAS_WINFUNC);
+                    !expr->has_flag(HAS_WINFUNC) &&
+                    !expr->has_flag(IS_ORDER_EXPR) &&
+                    !expr->has_flag(IS_LIST) &&
+                    CONST != expr->expr_type();
     return ret;
 }
 

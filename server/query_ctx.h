@@ -5,9 +5,12 @@
 #include "type.h"
 
 namespace CatDB {
+    namespace Parser {
+        DECLARE(QueryHint);
+    }
 	namespace Server {
         DECLARE(QueryCtx);
-        using Parser::QueryHint;
+        using Parser::QueryHint_s;
         class QueryCtx {
         public:
             QueryCtx();
@@ -33,10 +36,11 @@ namespace CatDB {
 
         public:
             //query`s hint
-            QueryHint query_hint;
+            QueryHint_s query_hint;
             //first error message
             String err_msg;
             //trace query
+            String last_trace_id;
 			String trace_id;
             //generate unique id for table,stmt,view,param
             u32 cur_table_id;

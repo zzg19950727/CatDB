@@ -36,7 +36,6 @@ u32 TransformWinMagic::transform_one_stmt(DMLStmt_s &stmt)
                              is_valid));
     if (is_valid) {
         CHECK(do_transform(stmt, helper));
-        LOG_ERR("zzg:", K(stmt));
         CHECK(generate_outline(stmt, helper.subquery_expr->query_stmt));
         set_transform_happened();
     }
@@ -269,18 +268,17 @@ u32 TransformWinMagic::do_transform(DMLStmt_s &stmt,
     stmt->where_stmt = new_conditions;
     //collect old columns
     for (u32 i = 0; i < remove_table_ids.size(); ++i) {
-        CHECK(stmt->get_column_exprs(remove_table_ids[i], old_column_exprs));
-    }
-    for (u32 i = 0; i < old_column_exprs.size(); ++i) {
-        MY_ASSERT(old_column_exprs[i]->has_flag(IS_COLUMN));
-        ColumnStmt_s col = old_column_exprs[i];
-        u32 old_table_id = col->table_id;
+        u32 src_table_id = remove_table_ids[i];
+        u32 dst_table_id = INVALID_ID;
         for (u32 j = 0; j < helper.cmp_map.table_id_map.size(); ++j) {
-            if (helper.cmp_map.table_id_map[j].second == old_table_id) {
-                col->table_id = helper.cmp_map.table_id_map[j].first;
+            if (helper.cmp_map.table_id_map[j].second == src_table_id) {
+                dst_table_id = helper.cmp_map.table_id_map[j].first;
                 break;
             }
         }
+        MY_ASSERT(INVALID_ID != dst_table_id);
+        CHECK(stmt->replace_table_id_of_columns(src_table_id, dst_table_id));
+        CHECK(stmt->get_column_exprs(dst_table_id, old_column_exprs));
     }
     //create new select expr for subquery
     append(new_select_exprs, old_column_exprs);
@@ -356,8 +354,8 @@ u32 TransformWinMagic::check_hint_disable(DMLStmt_s &stmt,
 {
     u32 ret = SUCCESS;
     is_disable = false;
-    QueryHint &query_hint = QUERY_CTX->query_hint;
-    is_disable = query_hint.enable_no_win_magic(stmt->get_qb_name());
+    QueryHint_s &query_hint = QUERY_CTX->query_hint;
+    is_disable = query_hint->enable_no_win_magic(stmt->get_qb_name(), subquery->get_qb_name());
     return ret;
 }
 
@@ -365,12 +363,9 @@ u32 TransformWinMagic::generate_outline(DMLStmt_s &stmt,
                                         SelectStmt_s& subquery)
 {
     u32 ret = SUCCESS;
-    QueryHint &query_hint = QUERY_CTX->query_hint;
-    HintStmt_s hint;
-    CHECK(query_hint.generate_transform_outline(stmt->get_qb_name(), 
+    QueryHint_s &query_hint = QUERY_CTX->query_hint;
+    CHECK(query_hint->generate_win_magic_outline(stmt->get_qb_name(), 
                                                 control_hint,
-                                                hint));
-    WinMagicHintStmt_s win_magic_hint = hint;
-    win_magic_hint->dst_qb_name = subquery->get_qb_name();
+                                                subquery->get_qb_name()));
     return ret;
 }

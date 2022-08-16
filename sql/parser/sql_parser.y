@@ -584,7 +584,7 @@ single_hint:
 /*optiizer hint*/
 	| USE_HASH "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(JOIN, true);
+		$$ = HintStmt::make_hint_stmt(USE_JOIN, true);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(HASH_JOIN);
@@ -592,7 +592,7 @@ single_hint:
 	}
 	| NO_USE_HASH "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(JOIN, false);
+		$$ = HintStmt::make_hint_stmt(USE_JOIN, false);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(HASH_JOIN);
@@ -600,7 +600,7 @@ single_hint:
 	}
 	| USE_NL "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(JOIN, true);
+		$$ = HintStmt::make_hint_stmt(USE_JOIN, true);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(NL_JOIN);
@@ -608,7 +608,7 @@ single_hint:
 	}
 	| NO_USE_NL "(" opt_qb_name hint_table_list ")"
 	{
-		$$ = HintStmt::make_hint_stmt(JOIN, false);
+		$$ = HintStmt::make_hint_stmt(USE_JOIN, false);
 		$$->set_qb_name($3);
 		JoinHintStmt_s join_hint = $$;
 		join_hint->set_join_algo(NL_JOIN);
@@ -834,12 +834,13 @@ basic_table_factor:
 		$$ = $1;
 		$$->set_alias_name($2);
     }
-  | DUAL
+  | DUAL opt_alias
 	{
 		//构建表表达式
 		TableStmt_s table = BasicTableStmt::make_dual_table();
 		check(table);
 		$$ = table;
+		$$->set_alias_name($2);
 	}
 	;
 

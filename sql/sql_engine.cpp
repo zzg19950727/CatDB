@@ -160,13 +160,21 @@ u32 SqlEngine::handle_query()
 		ret = ERR_UNEXPECTED;
         return ret;
 	} else {
+        query_result = ResultSet::make_result_set();
         lex_stmt = parser.parse_result();
         if (lex_stmt->stmt_type() != DoCMD) {
             ResolveCtx resolve_ctx;
             CHECK(DMLResolver::resolve_stmt(lex_stmt, resolve_ctx));
             QUERY_CTX->set_error_msg("");
             CHECK(lex_stmt->formalize());
-            CHECK(QUERY_CTX->query_hint.init(resolve_ctx.all_hints, resolve_ctx.has_outline));
+            if (lex_stmt->is_select_stmt()) {
+                SelectStmt_s stmt = lex_stmt;
+                for (u32 i = 0; i < stmt->select_expr_list.size(); ++i) {
+                    query_result->add_result_title(stmt->select_expr_list[i]->get_alias_name(), T_VARCHAR);
+                }
+            } 
+            QUERY_CTX->query_hint = QueryHint::make_query_hint();
+            CHECK(QUERY_CTX->query_hint->init(resolve_ctx.all_hints, resolve_ctx.has_outline));
             Transformer transformer;
             DMLStmt_s dml_stmt = lex_stmt;
             TransformCtx_s transform_ctx = TransformCtx::make_transform_ctx();
@@ -176,7 +184,6 @@ u32 SqlEngine::handle_query()
 		MY_ASSERT(plan);
         //optimizer
 		CHECK(plan->build_plan());
-        query_result = ResultSet::make_result_set();
         if (lex_stmt->stmt_type() == DoCMD) {
             CMDPlan_s cmd = plan;
             CHECK(cmd->execute(query_result));
@@ -251,12 +258,7 @@ u32 SqlEngine::init_result_set()
 {
     u32 ret = SUCCESS;
     query_result->set_op_root(phy_root);
-    if (lex_stmt->is_select_stmt()) {
-        SelectStmt_s stmt = lex_stmt;
-        for (u32 i = 0; i < stmt->select_expr_list.size(); ++i) {
-            query_result->add_result_title(stmt->select_expr_list[i]->get_alias_name(), T_VARCHAR);
-        }
-    } else {
+    if (!lex_stmt->is_select_stmt()) {
         Row_s row;
         CHECK(query_result->open());
         while (SUCC(query_result->get_next_row(row))) {
@@ -292,7 +294,7 @@ u32 SqlEngine::print_outline(String &outline)
     u32 ret = SUCCESS;
     outline = "/*+\n";
     DMLStmt_s dml_stmt = lex_stmt;
-    outline += QUERY_CTX->query_hint.print_outline();
+    outline += QUERY_CTX->query_hint->print_outline();
     outline += "*/";
     return ret;
 }

@@ -559,7 +559,7 @@ u32 DMLPlan::generate_join_order()
     CHECK(stmt->get_table_items(base_tables));
     CHECK(generate_base_plan(base_tables));
     CHECK(init_leading_info());
-    if (QUERY_CTX->query_hint.has_leading_hint(stmt->get_qb_name())) {
+    if (QUERY_CTX->query_hint->has_leading_hint(stmt->get_qb_name())) {
         CHECK(generate_join_order_with_DP(false));
     }
     if (join_orders.size() != base_tables.size() || 
@@ -875,7 +875,7 @@ u32 DMLPlan::get_join_method(const BitSet &left_tables,
     u32 ret = SUCCESS;
     Vector<JoinHintStmt_s> join_hints;
     DMLStmt_s stmt = lex_stmt;
-    QUERY_CTX->query_hint.get_join_hints(stmt->get_qb_name(), join_hints);
+    QUERY_CTX->query_hint->get_join_hints(stmt->get_qb_name(), join_hints);
     u32 method = 0;
     USE_ALGO(method, NL_JOIN);
     USE_ALGO(method, HASH_JOIN);
@@ -888,33 +888,17 @@ u32 DMLPlan::get_join_method(const BitSet &left_tables,
         RightAnti == join_info.join_type) {
         NO_USE_ALGO(method, NL_JOIN);
     }
-    u32 hint_method = method;
-    for (u32 i = 0; i < join_hints.size(); ++i) {
-        JoinHintStmt_s &hint = join_hints[i];
-        if (right_tables.is_equal(hint->table_ids)) {
-            if (hint->is_enable()) {
-                if (HAS_ALGO(hint_method, hint->join_algo)) {
-                    SET_ALGO(hint_method, hint->join_algo);
-                    hint->set_used(true);
-                }
-            } else {
-                if (HAS_ALGO(hint_method, hint->join_algo)) {
-                    NO_USE_ALGO(hint_method, hint->join_algo);
-                    hint->set_used(true);
-                }
-            }
+    if (QUERY_CTX->query_hint->enable_join_algo(stmt->get_qb_name(), 
+                                               right_tables, 
+                                               HASH_JOIN)) {
+        if (HAS_ALGO(method, HASH_JOIN)) {
+            SET_ALGO(method, HASH_JOIN);
         }
-    }
-    if (0 != hint_method) {
-        //use hint algo
-        method = hint_method;
-    } else {
-        //ignore hint
-        for (u32 i = 0; i < join_hints.size(); ++i) {
-            JoinHintStmt_s &hint = join_hints[i];
-            if (right_tables.is_equal(hint->table_ids)) {
-                hint->set_used(false);
-            }
+    } else if (QUERY_CTX->query_hint->enable_join_algo(stmt->get_qb_name(), 
+                                                      right_tables, 
+                                                      NL_JOIN)) {
+        if (HAS_ALGO(method, NL_JOIN)) {
+            SET_ALGO(method, NL_JOIN);
         }
     }
     if (HAS_ALGO(method, HASH_JOIN)) {
@@ -1055,10 +1039,10 @@ u32 DMLPlan::init_leading_info()
 {
     u32 ret = SUCCESS;
     DMLStmt_s stmt = lex_stmt;
-    if (!QUERY_CTX->query_hint.has_leading_hint(stmt->get_qb_name())) {
+    if (!QUERY_CTX->query_hint->has_leading_hint(stmt->get_qb_name())) {
         return ret;
     }
-    LeadingHintStmt_s leading_hint = QUERY_CTX->query_hint.get_leading_hint(stmt->get_qb_name());
+    LeadingHintStmt_s leading_hint = QUERY_CTX->query_hint->get_leading_hint(stmt->get_qb_name());
     MY_ASSERT(leading_hint->tables);
     CHECK(get_leading_info(leading_hint->tables, leading_info.table_ids));
     return ret;
@@ -1099,7 +1083,7 @@ u32 DMLPlan::generate_plan_hint()
     CHECK(generate_plan_hint(root_operator, table_names, table));
     MY_ASSERT(table);
     if (!table->is_base_table) {
-        CHECK(QUERY_CTX->query_hint.generate_leading_outline(stmt->get_qb_name(), table));
+        CHECK(QUERY_CTX->query_hint->generate_leading_outline(stmt->get_qb_name(), table));
     }
     return ret;
 }
@@ -1147,7 +1131,7 @@ u32 DMLPlan::generate_plan_hint(LogicalOperator_s &op,
 
         //generate join hint
         DMLStmt_s stmt = lex_stmt;
-        CHECK(QUERY_CTX->query_hint.generate_join_outline(stmt->get_qb_name(),
+        CHECK(QUERY_CTX->query_hint->generate_join_outline(stmt->get_qb_name(),
                                                           right_table_names,
                                                           join_op->join_algo));
     } else if (LOG_SUBQUERY_EVALUATE == op->type()) {

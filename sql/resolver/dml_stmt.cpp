@@ -145,6 +145,18 @@ u32 DMLStmt::get_column_exprs(u32 table_id, Vector<ExprStmt_s> &columns)
     return ret;
 }
 
+u32 DMLStmt::replace_table_id_of_columns(u32 src_table_id, u32 dst_table_id)
+{
+    u32 ret = SUCCESS;
+    for (u32 i = 0; i < column_exprs.size(); ++i) {
+        ColumnStmt_s col = column_exprs[i];
+        if (src_table_id == col->table_id) {
+			col->table_id = dst_table_id;
+        }
+    }
+    return ret;
+}
+
 u32 DMLStmt::get_child_stmts(Vector<SelectStmt_s> &child_stms)
 {
     u32 ret = SUCCESS;

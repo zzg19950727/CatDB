@@ -26,7 +26,7 @@ HintStmt_s HintStmt::make_hint_stmt(HintType type, bool is_enable)
         case WIN_MAGIC:
             hint = HintStmt_s(new WinMagicHintStmt(is_enable));
             break;
-        case JOIN:
+        case USE_JOIN:
             hint = HintStmt_s(new JoinHintStmt(is_enable));
             break;
         case LEADING:
@@ -60,7 +60,7 @@ u32 HintStmt::deep_copy(HintStmt_s &hint) const
     return ret;
 }
 
-bool HintStmt::is_base_equal(const HintStmt_s &other) const
+bool HintStmt::is_same_hint_type(const HintStmt_s &other) const
 {
     return type == other->type && 
            qb_name == other->qb_name;
@@ -68,14 +68,20 @@ bool HintStmt::is_base_equal(const HintStmt_s &other) const
 
 bool HintStmt::is_equal(const HintStmt_s &other) const
 {
-    return is_base_equal(other) &&
+    return is_same_hint_type(other) &&
            is_enable_ == other->is_enable_;
 }
 
 bool HintStmt::is_excluse(const HintStmt_s &other) const
 {
-    return is_base_equal(other) &&
+    return is_same_hint_type(other) &&
            is_enable_ != other->is_enable_;
+}
+
+u32 HintStmt::generate_outline(const Vector<const void*> &params)
+{
+    u32 ret = SUCCESS;
+    return ret;
 }
 
 String WinMagicHintStmt::print_outline() const
@@ -97,9 +103,9 @@ u32 WinMagicHintStmt::deep_copy(HintStmt_s &hint) const
     return ret;
 }
 
-bool WinMagicHintStmt::is_base_equal(const HintStmt_s &other) const
+bool WinMagicHintStmt::is_equal(const HintStmt_s &other) const
 {
-    if (HintStmt::is_base_equal(other)) {
+    if (HintStmt::is_same_hint_type(other)) {
         WinMagicHintStmt_s win_magic_hint = other;
         return dst_qb_name == win_magic_hint->dst_qb_name;
     } else {
@@ -107,10 +113,24 @@ bool WinMagicHintStmt::is_base_equal(const HintStmt_s &other) const
     }
 }
 
-bool WinMagicHintStmt::is_excluse(const HintStmt_s &other) const
+bool WinMagicHintStmt::is_enable(const Vector<const void*> &params) const
 {
-    return HintStmt::is_base_equal(other) &&
-           is_enable_ != other->is_enable_;
+    if (HintStmt::is_disable()) {
+        return false;
+    } else if (1 != params.size()) {
+        return false;
+    } else {
+        const String *hint_db_name = static_cast<const String*>(params[0]);
+        return dst_qb_name == *hint_db_name;
+    }
+}
+
+u32 WinMagicHintStmt::generate_outline(const Vector<const void*> &params)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(1 == params.size());
+    dst_qb_name = *static_cast<const String*>(params[0]);
+    return ret;
 }
 
 String JoinHintStmt::print_outline() const
@@ -143,9 +163,9 @@ u32 JoinHintStmt::deep_copy(HintStmt_s &hint) const
     return ret;
 }
 
-bool JoinHintStmt::is_base_equal(const HintStmt_s &other) const
+bool JoinHintStmt::is_same_hint_type(const HintStmt_s &other) const
 {
-    bool ret = HintStmt::is_base_equal(other);
+    bool ret = HintStmt::is_same_hint_type(other);
     if (ret) {
         JoinHintStmt_s join_hint = other;
         Vector<String> common_table;
@@ -159,7 +179,7 @@ bool JoinHintStmt::is_base_equal(const HintStmt_s &other) const
 
 bool JoinHintStmt::is_equal(const HintStmt_s &other) const
 {
-    bool ret = is_base_equal(other);
+    bool ret = is_same_hint_type(other);
     if (ret) {
         JoinHintStmt_s join_hint = other;
         return join_algo == join_hint->join_algo &&
@@ -171,18 +191,41 @@ bool JoinHintStmt::is_equal(const HintStmt_s &other) const
 
 bool JoinHintStmt::is_excluse(const HintStmt_s &other) const
 {
-    bool ret = is_base_equal(other);
+    bool ret = is_same_hint_type(other);
     if (ret) {
         JoinHintStmt_s join_hint = other;
-        if (!is_enable_ && !join_hint->is_enable_) {
-            return false;
-        } else {
-            return join_algo != join_hint->join_algo ||
+        return (join_algo != join_hint->join_algo && is_enable_) ||
                 is_enable_ != join_hint->is_enable_;
-        }
     } else {
         return false;
     }
+}
+
+bool JoinHintStmt::is_enable(const Vector<const void*> &params) const
+{
+    if (HintStmt::is_disable()) {
+        return false;
+    } else if (2 != params.size()) {
+        return false;
+    } else {
+        const BitSet *right_table_ids = static_cast<const BitSet*>(params[0]);
+        const JoinAlgo *algo = static_cast<const JoinAlgo*>(params[1]);
+        if (table_ids.is_equal(*right_table_ids) && 
+            join_algo == *algo) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+u32 JoinHintStmt::generate_outline(const Vector<const void*> &params)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(2 == params.size());
+    table_names = *static_cast<const Vector<String>*>(params[0]);
+    join_algo = *static_cast<const JoinAlgo*>(params[1]);
+    return ret;
 }
 
 String LeadingHintStmt::print_outline() const
@@ -212,9 +255,9 @@ u32 LeadingHintStmt::deep_copy(HintStmt_s &hint) const
     return ret;
 }
 
-bool LeadingHintStmt::is_base_equal(const HintStmt_s &other) const
+bool LeadingHintStmt::is_equal(const HintStmt_s &other) const
 {
-    bool ret = HintStmt::is_base_equal(other);
+    bool ret = HintStmt::is_same_hint_type(other);
     if (!ret) {
         return ret;
     } else {
@@ -222,7 +265,7 @@ bool LeadingHintStmt::is_base_equal(const HintStmt_s &other) const
         if (is_ordered && leading_hint->is_ordered) {
             return true;
         } else if (!is_ordered && !leading_hint->is_ordered) {
-            return tables->is_base_equal(leading_hint->tables);
+            return tables->is_same_hint_type(leading_hint->tables);
         } else {
             return false;
         }
@@ -231,7 +274,19 @@ bool LeadingHintStmt::is_base_equal(const HintStmt_s &other) const
 
 bool LeadingHintStmt::is_excluse(const HintStmt_s &other) const
 {
-    return !is_equal(other);
+    bool ret = HintStmt::is_same_hint_type(other);
+    if (!ret) {
+        return ret;
+    } else {
+        LeadingHintStmt_s leading_hint = other;
+        if (is_ordered && leading_hint->is_ordered) {
+            return false;
+        } else if (!is_ordered && !leading_hint->is_ordered) {
+            return !tables->is_same_hint_type(leading_hint->tables);
+        } else {
+            return true;
+        }
+    }
 }
 
 LeadingTable_s LeadingTable::make_leading_table()
@@ -272,7 +327,7 @@ u32 LeadingTable::deep_copy(LeadingTable_s &table) const
     return ret;
 }
 
-bool LeadingTable::is_base_equal(const LeadingTable_s &other) const
+bool LeadingTable::is_same_hint_type(const LeadingTable_s &other) const
 {
     if (is_base_table && other->is_base_table) {
         return table_name == other->table_name;
@@ -281,7 +336,7 @@ bool LeadingTable::is_base_equal(const LeadingTable_s &other) const
             return false;
         } else {
             for (u32 i = 0; i < table_list.size(); ++i) {
-                if (!table_list[i]->is_base_equal(other->table_list[i])) {
+                if (!table_list[i]->is_same_hint_type(other->table_list[i])) {
                     return false;
                 }
             }
@@ -342,31 +397,43 @@ u32 StmtHintManager::add_hint(HintStmt_s &hint)
         iter1->second[hint->get_hint_type()] = hints;
         return ret;
     }
+    bool should_add = true;
     for (u32 i = 0; i < iter2->second.size(); ++i) {
         if (hint->is_equal(iter2->second[i])) {
-            hint->set_invalid(true);
+            //do nothing
+            should_add = false;
+            break;
         } else if (hint->is_excluse(iter2->second[i])) {
-            hint->set_invalid(true);
+            //remove hint
             iter2->second[i]->set_invalid(true);
+            should_add = false;
+            break;
         }
     }
-    iter2->second.push_back(hint);
+    if (should_add) {
+        iter2->second.push_back(hint);
+    }
     return ret;
 }
 
-void StmtHintManager::get_hint_status(const String &qb_name, HintType type, HintStatus &status)
+void StmtHintManager::get_hint_status(const String &qb_name, 
+                                      HintType type, 
+                                      HintStatus &status,
+                                      const Vector<const void*> &params)
 {
     Vector<HintStmt_s> hints;
     find_hints(qb_name, type, hints);
     if (hints.empty()) {
         status = HintManager::NOT_SET_HINT;
         return;
-    }
-    HintStmt_s &hint = hints[0];
-    if (hint->is_enable()) {
-        status = HintManager::FORCE_ENABLE;
     } else {
         status = HintManager::FORCE_DISABLE;
+    }
+    for (u32 i = 0; i < hints.size(); ++i) {
+        HintStmt_s &hint = hints[i];
+        if (hint->is_enable(params)) {
+            status = HintManager::FORCE_ENABLE;
+        } 
     }
 }
 
@@ -443,22 +510,24 @@ void OutlineHintManager::get_all_hints(Vector<HintStmt_s> &all_hints)const
 u32 OutlineHintManager::add_hint(HintStmt_s &hint)
 {
     u32 ret = SUCCESS;
-    if (hint->is_enable()) {
-        outline_hints.push_back(hint);
-    }
+    outline_hints.push_back(hint);
     return ret;
 }
 
-void OutlineHintManager::get_hint_status(const String &qb_name, HintType type, HintStatus &status)
+void OutlineHintManager::get_hint_status(const String &qb_name, 
+                                         HintType type, 
+                                         HintStatus &status,
+                                         const Vector<const void*> &params)
 {
     if (index < 0 || index >= outline_hints.size()) {
         status = HintManager::FORCE_DISABLE;
         return;
     }
     HintStmt_s &hint = outline_hints[index];
-    if (qb_name == hint->get_qb_name() && type == hint->get_hint_type()) {
+    if (qb_name == hint->get_qb_name() && 
+        type == hint->get_hint_type() && 
+        hint->is_enable(params)) {
         status = HintManager::FORCE_ENABLE;
-        hint->set_used(true);
         ++index;
     } else {
         status = HintManager::FORCE_DISABLE;
@@ -478,7 +547,12 @@ void OutlineHintManager::find_hints(const String &qb_name, HintType type, Vector
 
 u32 OutlineHintManager::copy_hints(const String &src_qb_name, const String &dst_qb_name)
 {
-    return OPERATION_NOT_SUPPORT;
+    return SUCCESS;
+}
+
+QueryHint_s QueryHint::make_query_hint()
+{
+    return QueryHint_s(new QueryHint);
 }
 
 void QueryHint::reset()
@@ -524,6 +598,38 @@ String QueryHint::print_outline() const
     }
     ret += "\tEND_OUTLINE_DATA\n";
     return ret;
+}
+
+void QueryHint::get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints)
+{
+    Vector<HintStmt_s> hints;
+    optimizer_hints->find_hints(qb_name, USE_JOIN, hints);
+    append(join_hints, hints);
+}
+
+LeadingHintStmt_s QueryHint::get_leading_hint(const String &qb_name)
+{
+    Vector<HintStmt_s> hints;
+    LeadingHintStmt_s hint;
+    optimizer_hints->find_hints(qb_name, LEADING, hints);
+    if (!hints.empty()) {
+        hint = hints[0];
+    }
+    return hint;
+}
+
+bool QueryHint::has_leading_hint(const String &qb_name)
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    optimizer_hints->get_hint_status(qb_name, LEADING, status);
+    return HintManager::FORCE_ENABLE == status;
+}
+
+bool QueryHint::enable_transform(const String &qb_name, HintType type)
+{
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, type, status);
+    return HintManager::FORCE_ENABLE == status;
 }
 
 bool QueryHint::enable_no_rewrite(const String &qb_name) const
@@ -591,61 +697,41 @@ bool QueryHint::enable_no_expr_normalize(const String &qb_name) const
 
 bool QueryHint::enable_win_magic(const String &qb_name, const String &dst_qb_name) const
 {
-    Vector<HintStmt_s> hints;
-    transformer_hints->find_hints(qb_name, WIN_MAGIC, hints);
-    if (1 == hints.size()) {
-        WinMagicHintStmt_s win_magic_hint = hints[0];
-        if (dst_qb_name == win_magic_hint->dst_qb_name) {
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        return false;
-    }
-}
-
-bool QueryHint::enable_no_win_magic(const String &qb_name) const
-{
+    Vector<const void*> params;
+    params.push_back((const void*)&dst_qb_name);
     HintManager::HintStatus status = HintManager::NOT_SET_HINT;
-    transformer_hints->get_hint_status(qb_name, WIN_MAGIC, status);
-    return HintManager::FORCE_DISABLE == status;
-}
-
-void QueryHint::get_join_hints(const String &qb_name, Vector<JoinHintStmt_s> &join_hints)
-{
-    Vector<HintStmt_s> hints;
-    optimizer_hints->find_hints(qb_name, JOIN, hints);
-    append(join_hints, hints);
-}
-
-LeadingHintStmt_s QueryHint::get_leading_hint(const String &qb_name)
-{
-    Vector<HintStmt_s> hints;
-    LeadingHintStmt_s hint;
-    optimizer_hints->find_hints(qb_name, LEADING, hints);
-    if (!hints.empty()) {
-        hint = hints[0];
-    }
-    return hint;
-}
-
-bool QueryHint::has_leading_hint(const String &qb_name)
-{
-    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
-    optimizer_hints->get_hint_status(qb_name, LEADING, status);
+    transformer_hints->get_hint_status(qb_name, 
+                                       WIN_MAGIC, 
+                                       status, 
+                                       params);
     return HintManager::FORCE_ENABLE == status;
 }
 
-u32 QueryHint::generate_transform_outline(const String &qb_name, 
-                                          HintType type, 
-                                          HintStmt_s &hint)
+bool QueryHint::enable_no_win_magic(const String &qb_name, const String &dst_qb_name) const
 {
-    u32 ret = SUCCESS;
-    hint = HintStmt::make_hint_stmt(type);
-    hint->set_qb_name(qb_name);
-    CHECK(generate_hints->add_hint(hint));
-    return ret;
+    Vector<const void*> params;
+    params.push_back((const void*)&dst_qb_name);
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, 
+                                       WIN_MAGIC, 
+                                       status, 
+                                       params);
+    return HintManager::FORCE_DISABLE == status;
+}
+
+bool QueryHint::enable_join_algo(const String &qb_name, 
+                                 const BitSet &right_table_ids, 
+                                 JoinAlgo algo)
+{
+    Vector<const void*> params;
+    params.push_back((const void*)&right_table_ids);
+    params.push_back((const void*)&algo);
+    HintManager::HintStatus status = HintManager::NOT_SET_HINT;
+    transformer_hints->get_hint_status(qb_name, 
+                                       USE_JOIN, 
+                                       status, 
+                                       params);
+    return HintManager::FORCE_ENABLE == status;
 }
 
 u32 QueryHint::generate_transform_outline(const String &qb_name, HintType type)
@@ -657,14 +743,27 @@ u32 QueryHint::generate_transform_outline(const String &qb_name, HintType type)
     return ret;
 }
 
+u32 QueryHint::generate_win_magic_outline(const String &qb_name, HintType type, const String &dst_qb_name)
+{
+    u32 ret = SUCCESS;
+    Vector<const void*> params;
+    params.push_back((const void*)&dst_qb_name);
+    HintStmt_s hint = HintStmt::make_hint_stmt(type);
+    hint->set_qb_name(qb_name);
+    CHECK(hint->generate_outline(params));
+    CHECK(generate_hints->add_hint(hint));
+    return ret;
+}
+
 u32 QueryHint::generate_join_outline(const String &qb_name, const Vector<String> &table_names, JoinAlgo join_algo)
 {
     u32 ret = SUCCESS;
-    HintStmt_s hint = HintStmt::make_hint_stmt(JOIN);
+    Vector<const void*> params;
+    params.push_back((const void*)&table_names);
+    params.push_back((const void*)&join_algo);
+    HintStmt_s hint = HintStmt::make_hint_stmt(USE_JOIN);
     hint->set_qb_name(qb_name);
-    JoinHintStmt_s join_hint = hint;
-    join_hint->table_names = table_names;
-    join_hint->join_algo = join_algo;
+    CHECK(hint->generate_outline(params));
     CHECK(generate_hints->add_hint(hint));
     return ret;
 }

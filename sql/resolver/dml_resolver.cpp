@@ -607,7 +607,6 @@ u32 DMLResolver::resolve_stmt_hint()
     String qb_name = stmt->stmt_hint.generate_qb_name(stmt->stmt_id);
     Vector<HintStmt_s> &all_hints = stmt->stmt_hint.all_hints;
     if (resolve_ctx.has_outline) {
-        all_hints.clear();
         return ret;
     }
     if (stmt->stmt_hint.is_outline) {
@@ -621,6 +620,5 @@ u32 DMLResolver::resolve_stmt_hint()
         }
         resolve_ctx.all_hints.push_back(all_hints[i]);
     }
-    all_hints.clear();
     return ret;
 }

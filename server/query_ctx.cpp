@@ -16,7 +16,6 @@ QueryCtx_s QueryCtx::make_query_ctx()
 
 void QueryCtx::reset() 
 {
-    query_hint.reset();
     err_msg.clear();
     generate_trace_id();
     //reset_table_id
@@ -39,6 +38,7 @@ void QueryCtx::generate_trace_id()
 	Hash<CatDB::Server::DateTime::Rep> func;
 	u64 value = func(nano.count());
 	static const char *hex_map = "0123456789ABCDEF";
+    last_trace_id = trace_id;
 	trace_id.clear();
 	for (u32 i = 0; i < 16; ++i) {
 		trace_id += hex_map[value & 0xf];

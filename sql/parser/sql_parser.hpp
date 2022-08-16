@@ -1612,7 +1612,7 @@ namespace CatDB {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 1188,     ///< Last index in yytable_.
+      yylast_ = 1154,     ///< Last index in yytable_.
       yynnts_ = 98,  ///< Number of nonterminal symbols.
       yyfinal_ = 78, ///< Termination state number.
       yyterror_ = 1,

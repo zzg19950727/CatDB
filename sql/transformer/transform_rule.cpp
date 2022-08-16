@@ -25,7 +25,7 @@ TransformRule::~TransformRule()
 
 bool TransformRule::need_rewrite(DMLStmt_s stmt) const
 {
-    return !QUERY_CTX->query_hint.enable_no_rewrite(stmt->get_qb_name());
+    return !QUERY_CTX->query_hint->enable_no_rewrite(stmt->get_qb_name());
 }
 
 void TransformRule::set_transform_ctx(TransformCtx_s &ctx)
