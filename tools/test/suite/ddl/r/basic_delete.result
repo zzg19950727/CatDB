@@ -13,16 +13,16 @@ SELECT * FROM T1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 2    | 8    | 3    | 0    |
-| 8    | 8    | 2    | 0    |
-| 9    | 2    | 3    | 0    |
-| 3    | 3    | 9    | 5    |
-| 8    | 1    | 0    | 8    |
-| 2    | 4    | 5    | 6    |
-| 0    | 0    | 8    | 5    |
-| 8    | 4    | 5    | 2    |
-| 0    | 4    | 5    | 3    |
 | 9    | 6    | 2    | 0    |
+| 0    | 4    | 5    | 3    |
+| 8    | 4    | 5    | 2    |
+| 0    | 0    | 8    | 5    |
+| 2    | 4    | 5    | 6    |
+| 8    | 1    | 0    | 8    |
+| 3    | 3    | 9    | 5    |
+| 9    | 2    | 3    | 0    |
+| 8    | 8    | 2    | 0    |
+| 2    | 8    | 3    | 0    |
 +------+------+------+------+
 10 rows in set
 
@@ -35,16 +35,16 @@ SELECT * FROM T2
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 2    | 0    | 0    | 1    |
-| 9    | 7    | 9    | 8    |
-| 5    | 2    | 6    | 6    |
-| 9    | 5    | 5    | 1    |
-| 1    | 9    | 1    | 3    |
-| 2    | 3    | 6    | 1    |
-| 4    | 8    | 8    | 6    |
-| 7    | 1    | 9    | 3    |
-| 9    | 4    | 1    | 9    |
 | 9    | 5    | 9    | 3    |
+| 9    | 4    | 1    | 9    |
+| 7    | 1    | 9    | 3    |
+| 4    | 8    | 8    | 6    |
+| 2    | 3    | 6    | 1    |
+| 1    | 9    | 1    | 3    |
+| 9    | 5    | 5    | 1    |
+| 5    | 2    | 6    | 6    |
+| 9    | 7    | 9    | 8    |
+| 2    | 0    | 0    | 1    |
 +------+------+------+------+
 10 rows in set
 
@@ -65,6 +65,7 @@ Outputs & filters:
 distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -96,6 +97,7 @@ distinct_exprs([t1.ROWID])
 3 - output([t1.ROWID])
 filters([t1.c1 > t1.c4])
 access([t1.c1], [t1.c4], [t1.ROWID])
+access([t1.c1], [t1.c4], [t1.ROWID])
 
 outline:
 /*+
@@ -126,7 +128,9 @@ distinct_exprs([t1.ROWID])
 other_join_conditions([t1.c3 > t2.c3])
 3 - output([t1.c3], [t1.ROWID])
 access([t1.c3], [t1.ROWID])
+access([t1.c3], [t1.ROWID])
 4 - output([t2.c3])
+access([t2.c3])
 access([t2.c3])
 
 outline:
@@ -156,6 +160,7 @@ Outputs & filters:
 distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -195,8 +200,10 @@ distinct_exprs([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
 7 - filters([t6.c3 != t6.c2])
-access([t6.c3], [t6.c2])
+access([t6.c2], [t6.c3])
+access([t6.c2], [t6.c3])
 10 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -232,7 +239,9 @@ distinct_exprs([t1.ROWID])
 other_join_conditions([t2.c3 NOT BETWEEN t1.c1 AND t1.c3])
 3 - output([t1.c1], [t1.c3], [t1.ROWID])
 access([t1.c1], [t1.c3], [t1.ROWID])
+access([t1.c1], [t1.c3], [t1.ROWID])
 4 - output([t2.c3])
+access([t2.c3])
 access([t2.c3])
 
 outline:
@@ -266,12 +275,15 @@ distinct_exprs([t1.ROWID])
 equal_join_conditions([t1.c1 = t2.c2])
 other_join_conditions([t3.c4 != t2.c1])
 3 - output([t2.c2], [t2.c1])
-access([t2.c2], [t2.c1])
+access([t2.c1], [t2.c2])
+access([t2.c1], [t2.c2])
 4 - output([t1.c1], [t3.c4], [t1.ROWID])
 5 - output([t1.c1], [t1.ROWID])
 filters([t1.c3 IS NOT NULL])
 access([t1.c1], [t1.c3], [t1.ROWID])
+access([t1.c1], [t1.c3], [t1.ROWID])
 6 - output([t3.c4])
+access([t3.c4])
 access([t3.c4])
 
 outline:
@@ -314,30 +326,38 @@ distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 other_join_conditions([VIEW1. <= VIEW1. OR t1.c2 = VIEW1. OR t1.c2 <= VIEW1. OR t1.c4 NOT BETWEEN VIEW1. AND VIEW1. AND VIEW1. >= t1.c2 OR VIEW1. >= VIEW1.])
 3 - output([VIEW1.], [VIEW1.], [VIEW1.], [VIEW1.])
+access([VIEW1.], [VIEW1.], [VIEW1.], [VIEW1.])
 4 - output([UNION_ALL(0)], [UNION_ALL(1)], [UNION_ALL(2)], [UNION_ALL(3)], [UNION_ALL(4)], [UNION_ALL(5)], [UNION_ALL(6)], [UNION_ALL(7)], [UNION_ALL(8)])
 5 - output([t2.c2], [t2.c3], [t2.c1], [t3.c4], [t3.c3], [t3.c2], [t4.c3], [t4.c4], [t4.c2])
 other_join_conditions([t2.c3 > t2.c2 AND t4.c3 IS NULL AND t4.c4 <= t3.c4 AND t3.c3 >= t4.c2 OR t2.c1 IS NULL])
 6 - output([t2.c3], [t2.c2], [t2.c1])
-access([t2.c3], [t2.c2], [t2.c1])
+access([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
 7 - output([t4.c3], [t4.c4], [t3.c4], [t3.c3], [t4.c2], [t3.c2])
 equal_join_conditions([t3.c3 = t4.c2])
 other_join_conditions([t4.c2 > t3.c2])
 8 - output([t4.c2], [t4.c3], [t4.c4])
-access([t4.c3], [t4.c4], [t4.c2])
+access([t4.c2], [t4.c3], [t4.c4])
+access([t4.c2], [t4.c3], [t4.c4])
 9 - output([t3.c3], [t3.c2], [t3.c4])
-access([t3.c4], [t3.c3], [t3.c2])
+access([t3.c2], [t3.c3], [t3.c4])
+access([t3.c2], [t3.c3], [t3.c4])
 10 - output([CAST(NULL AS NUMBER(72, 38))], [CAST(NULL AS NUMBER(72, 38))], [CAST(NULL AS NUMBER(72, 38))], [t3.c4], [t3.c3], [t3.c2], [t4.c3], [t4.c4], [t4.c2])
 other_join_conditions([t2.c3 > t2.c2 AND t4.c3 IS NULL AND t4.c4 <= t3.c4 AND t3.c3 >= t4.c2 OR t2.c1 IS NULL])
 11 - output([t4.c3], [t4.c4], [t3.c4], [t3.c3], [t4.c2], [t3.c2])
 equal_join_conditions([t3.c3 = t4.c2])
 other_join_conditions([t4.c2 > t3.c2])
 12 - output([t4.c2], [t4.c3], [t4.c4])
-access([t4.c3], [t4.c4], [t4.c2])
+access([t4.c2], [t4.c3], [t4.c4])
+access([t4.c2], [t4.c3], [t4.c4])
 13 - output([t3.c3], [t3.c2], [t3.c4])
-access([t3.c4], [t3.c3], [t3.c2])
+access([t3.c2], [t3.c3], [t3.c4])
+access([t3.c2], [t3.c3], [t3.c4])
 14 - output([t2.c3], [t2.c2], [t2.c1])
-access([t2.c3], [t2.c2], [t2.c1])
+access([t2.c1], [t2.c2], [t2.c3])
+access([t2.c1], [t2.c2], [t2.c3])
 15 - output([t1.c2], [t1.c4], [t1.ROWID])
+access([t1.c2], [t1.c4], [t1.ROWID])
 access([t1.c2], [t1.c4], [t1.ROWID])
 
 outline:
@@ -376,6 +396,7 @@ distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -416,10 +437,13 @@ other_join_conditions([t1.c2 != t5.c2 OR t3.c2 = t1.c2 OR t3.c1 IS NOT NULL OR t
 4 - output([t3.c2], [t3.c1], [t3.c4])
 5 - output([t3.c2], [t3.c1], [t3.c4])
 6 - output([t3.c2], [t3.c1], [t3.c4])
-access([t3.c2], [t3.c1], [t3.c4])
+access([t3.c1], [t3.c2], [t3.c4])
+access([t3.c1], [t3.c2], [t3.c4])
 9 - output([t5.c2])
 access([t5.c2])
+access([t5.c2])
 10 - output([t1.c2], [t1.ROWID])
+access([t1.c2], [t1.ROWID])
 access([t1.c2], [t1.ROWID])
 
 outline:
@@ -452,6 +476,7 @@ Outputs & filters:
 distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -494,15 +519,20 @@ distinct_exprs([t1.ROWID])
 other_join_conditions([t3.c2 != t4.c2 OR t3.c4 IS NOT NULL])
 7 - output([t3.c2], [t3.c4])
 access([t3.c2], [t3.c4])
+access([t3.c2], [t3.c4])
 8 - output([t4.c2])
+access([t4.c2])
 access([t4.c2])
 9 - output([CAST(NULL AS NUMBER(72, 38))], [CAST(NULL AS NUMBER(72, 38))], [t4.c2])
 other_join_conditions([t3.c2 != t4.c2 OR t3.c4 IS NOT NULL])
 10 - output([t4.c2])
 access([t4.c2])
+access([t4.c2])
 11 - output([t3.c2], [t3.c4])
 access([t3.c2], [t3.c4])
+access([t3.c2], [t3.c4])
 13 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -561,21 +591,28 @@ other_join_conditions([t6.c1 >= t1.c1])
 other_join_conditions([t5.c1 < t5.c4 OR t7.c1 = t7.c3])
 8 - output([t5.c1], [t5.c4])
 access([t5.c1], [t5.c4])
+access([t5.c1], [t5.c4])
 9 - output([t7.c1], [t7.c3], [t6.c1], [t7.c4])
 other_join_conditions([t6.c1 IS NULL OR t6.c2 >= t7.c2 OR t7.c4 BETWEEN t6.c4 AND t6.c3 OR t7.c4 NOT BETWEEN t6.c2 AND t7.c4])
 10 - output([t6.c1], [t6.c2], [t6.c4], [t6.c3])
-access([t6.c1], [t6.c2], [t6.c4], [t6.c3])
+access([t6.c1], [t6.c2], [t6.c3], [t6.c4])
+access([t6.c1], [t6.c2], [t6.c3], [t6.c4])
 11 - output([t7.c2], [t7.c4], [t7.c1], [t7.c3])
-access([t7.c4], [t7.c3], [t7.c1], [t7.c2])
+access([t7.c1], [t7.c2], [t7.c3], [t7.c4])
+access([t7.c1], [t7.c2], [t7.c3], [t7.c4])
 12 - output([t1.c1], [t1.ROWID])
+access([t1.c1], [t1.ROWID])
 access([t1.c1], [t1.ROWID])
 13 - output([t9.c1], [t8.c4])
 14 - output([t9.c1])
 access([t9.c1])
+access([t9.c1])
 15 - output([t8.c4])
 filters([t8.c1 IS NULL])
-access([t8.c4], [t8.c1])
+access([t8.c1], [t8.c4])
+access([t8.c1], [t8.c4])
 16 - output([t3.c1], [t3.c4])
+access([t3.c1], [t3.c4])
 access([t3.c1], [t3.c4])
 
 outline:
@@ -615,7 +652,9 @@ other_join_conditions([t2.c3 <= t1.c3])
 3 - output([t2.c3])
 filters([t2.c2 IS NULL])
 access([t2.c2], [t2.c3])
+access([t2.c2], [t2.c3])
 4 - output([t1.c3], [t1.ROWID])
+access([t1.c3], [t1.ROWID])
 access([t1.c3], [t1.ROWID])
 
 outline:
@@ -645,6 +684,7 @@ Outputs & filters:
 distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -677,6 +717,7 @@ distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:
@@ -711,6 +752,7 @@ distinct_exprs([t1.ROWID])
 3 - output([t1.ROWID])
 4 - output([t1.ROWID])
 access([t1.ROWID])
+access([t1.ROWID])
 
 outline:
 /*+
@@ -741,6 +783,7 @@ distinct_exprs([t1.ROWID])
 2 - output([t1.ROWID])
 3 - output([t1.ROWID])
 filters([t1.c2 IS NULL])
+access([t1.c2], [t1.ROWID])
 access([t1.c2], [t1.ROWID])
 
 outline:
@@ -790,22 +833,28 @@ distinct_exprs([t1.ROWID])
 equal_join_conditions([t6.c1 = t8.c2])
 7 - output([t6.c1])
 access([t6.c1])
+access([t6.c1])
 8 - output([t8.c2], [t9.c4], [t9.c2], [t8.c3])
 other_join_conditions([t8.c3 < t8.c1 OR t7.c1 < t9.c4 OR t8.c4 IS NOT NULL])
 9 - output([t8.c3], [t8.c1], [t7.c1], [t8.c4], [t8.c2])
 other_join_conditions([t7.c3 IS NULL OR t7.c1 > t7.c4])
 10 - output([t7.c3], [t7.c1], [t7.c4])
 access([t7.c1], [t7.c3], [t7.c4])
+access([t7.c1], [t7.c3], [t7.c4])
 11 - output([t8.c3], [t8.c1], [t8.c4], [t8.c2])
-access([t8.c3], [t8.c2], [t8.c1], [t8.c4])
+access([t8.c1], [t8.c2], [t8.c3], [t8.c4])
+access([t8.c1], [t8.c2], [t8.c3], [t8.c4])
 12 - output([t9.c4], [t9.c2])
-access([t9.c4], [t9.c2])
+access([t9.c2], [t9.c4])
+access([t9.c2], [t9.c4])
 13 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 14 - equal_join_conditions([t5.c3 = t2.c1])
 other_join_conditions([t5.c2 > t2.c4], [t5.c4 >= t4.c1])
 15 - output([t5.c3], [t5.c2], [t5.c4])
-access([t5.c3], [t5.c2], [t5.c4])
+access([t5.c2], [t5.c3], [t5.c4])
+access([t5.c2], [t5.c3], [t5.c4])
 16 - output([t2.c1], [t2.c4], [t4.c1])
 17 - output([t2.c1], [t2.c4])
 filters([t2.c3 > t3.c2])
@@ -813,9 +862,12 @@ other_join_conditions([t2.c2 = t3.c2 OR t3.c2 = t2.c3])
 18 - output([t3.c2])
 filters([t3.c2 > t3.c3])
 access([t3.c2], [t3.c3])
+access([t3.c2], [t3.c3])
 19 - output([t2.c2], [t2.c3], [t2.c1], [t2.c4])
-access([t2.c1], [t2.c3], [t2.c4], [t2.c2])
+access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
+access([t2.c1], [t2.c2], [t2.c3], [t2.c4])
 20 - output([t4.c1])
+access([t4.c1])
 access([t4.c1])
 
 outline:
@@ -866,15 +918,20 @@ distinct_exprs([t1.ROWID])
 other_join_conditions([t4.c1 >= t3.c4])
 7 - output([t3.c4])
 access([t3.c4])
+access([t3.c4])
 8 - output([t4.c1])
+access([t4.c1])
 access([t4.c1])
 9 - output([CAST(NULL AS NUMBER(72, 38))], [t4.c1])
 other_join_conditions([t4.c1 >= t3.c4])
 10 - output([t4.c1])
 access([t4.c1])
+access([t4.c1])
 11 - output([t3.c4])
 access([t3.c4])
+access([t3.c4])
 13 - output([t1.ROWID])
+access([t1.ROWID])
 access([t1.ROWID])
 
 outline:

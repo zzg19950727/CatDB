@@ -47,6 +47,7 @@ Query Plan:
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -79,7 +80,9 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([c1], [c2], [c3])
+access([c1], [c2], [c3])
 1 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
@@ -177,9 +180,11 @@ Outputs & filters:
 0 - output([c1], [c2], [c3])
 limit([2])
 1 - output([c1], [c2], [c3])
+access([c1], [c2], [c3])
 2 - output([t1.c1], [t1.c2], [t1.c3])
 limit([3])
 3 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
@@ -208,6 +213,7 @@ Query Plan:
 +-------------------------------------------+
 Outputs & filters:
 0 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
@@ -242,7 +248,9 @@ Query Plan:
 +--------------------------------------------+
 Outputs & filters:
 0 - output([c1], [c2], [c3])
+access([c1], [c2], [c3])
 1 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
@@ -280,7 +288,9 @@ Outputs & filters:
 equal_join_conditions([t1.c1 = t2.c1])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 2 - output([t2.c1])
+access([t2.c1])
 access([t2.c1])
 
 outline:
@@ -320,7 +330,9 @@ Outputs & filters:
 equal_join_conditions([t1.c1 = t2.c1])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 2 - output([t2.c1])
+access([t2.c1])
 access([t2.c1])
 
 outline:
@@ -363,11 +375,14 @@ Outputs & filters:
 equal_join_conditions([t2.c1 = t3.c1])
 1 - output([t3.c1])
 access([t3.c1])
+access([t3.c1])
 2 - output([t2.c1], [t1.c1], [t1.c2], [t1.c3])
 equal_join_conditions([t1.c1 = t2.c1])
 3 - output([t2.c1])
 access([t2.c1])
+access([t2.c1])
 4 - output([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
@@ -410,11 +425,14 @@ Outputs & filters:
 equal_join_conditions([t1.c1 = t2.c1])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 2 - output([t2.c1])
 equal_join_conditions([t2.c1 = t3.c1])
 3 - output([t2.c1])
 access([t2.c1])
+access([t2.c1])
 4 - output([t3.c1])
+access([t3.c1])
 access([t3.c1])
 
 outline:
@@ -457,12 +475,15 @@ Outputs & filters:
 equal_join_conditions([t1.c1 = CASE WHEN t2.ROWID IS NULL THEN CAST(NULL AS NUMBER(72, 38)) ELSE t2.c1 + t3.c2 END])
 1 - output([t1.c1])
 access([t1.c1])
+access([t1.c1])
 2 - output([t2.ROWID], [t2.c1], [t3.c2], [t2.c2])
 equal_join_conditions([t2.c1 = t3.c1])
 3 - output([t2.c1], [t2.ROWID], [t2.c2])
-access([t2.ROWID], [t2.c1], [t2.c2])
+access([t2.c1], [t2.c2], [t2.ROWID])
+access([t2.c1], [t2.c2], [t2.ROWID])
 4 - output([t3.c1], [t3.c2])
-access([t3.c2], [t3.c1])
+access([t3.c1], [t3.c2])
+access([t3.c1], [t3.c2])
 
 outline:
 /*+

@@ -13,16 +13,16 @@ SELECT * FROM T1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 27   | 86   | 74   | 36   |
-| 86   | 61   | 64   | 67   |
-| 79   | 53   | 74   | 41   |
-| 67   | 87   | 92   | 45   |
-| 74   | 86   | 11   | 59   |
-| 34   | 34   | 10   | 75   |
-| 53   | 50   | 29   | 26   |
-| 57   | 42   | 1    | 18   |
-| 29   | 14   | 21   | 6    |
 | 10   | 33   | 87   | 71   |
+| 29   | 14   | 21   | 6    |
+| 57   | 42   | 1    | 18   |
+| 53   | 50   | 29   | 26   |
+| 34   | 34   | 10   | 75   |
+| 74   | 86   | 11   | 59   |
+| 67   | 87   | 92   | 45   |
+| 79   | 53   | 74   | 41   |
+| 86   | 61   | 64   | 67   |
+| 27   | 86   | 74   | 36   |
 +------+------+------+------+
 10 rows in set
 
@@ -40,8 +40,10 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c2 / 58 - t1.c4], [16], [t1.c4])
 sort_keys([t1.c3 ASC], [t1.c2 / 58 - t1.c4 DESC], [16 ASC], [t1.c4 DESC])
 1 - output([t1.c3], [t1.c2], [t1.c4])
+distinct_exprs([t1.c3], [t1.c2 / 58 - t1.c4], [16], [t1.c4])
 2 - output([t1.c3], [t1.c2], [t1.c4])
-access([t1.c3], [t1.c2], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -81,7 +83,9 @@ Outputs & filters:
 0 - output([t1.c1], [t1.c4], [t1.c4], [t1.c1])
 sort_keys([t1.c1 ASC], [t1.c4 ASC], [t1.c4 DESC], [t1.c1 ASC])
 1 - output([t1.c1], [t1.c4])
+distinct_exprs([t1.c1], [t1.c4], [t1.c4], [t1.c1])
 2 - output([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
 
 outline:
@@ -122,7 +126,9 @@ Outputs & filters:
 0 - output([t1.c2], [67], [t1.c3], [t1.c3])
 sort_keys([t1.c2 ASC], [67 ASC], [t1.c3 ASC], [t1.c3 DESC])
 1 - output([t1.c2], [t1.c3])
+distinct_exprs([t1.c2], [67], [t1.c3], [t1.c3])
 2 - output([t1.c2], [t1.c3])
+access([t1.c2], [t1.c3])
 access([t1.c2], [t1.c3])
 
 outline:
@@ -163,8 +169,10 @@ Outputs & filters:
 0 - output([t1.c2], [t1.c4], [t1.c3], [t1.c2])
 sort_keys([t1.c2 DESC], [t1.c4 ASC], [t1.c3 DESC], [t1.c2 DESC])
 1 - output([t1.c2], [t1.c4], [t1.c3])
+distinct_exprs([t1.c2], [t1.c4], [t1.c3], [t1.c2])
 2 - output([t1.c2], [t1.c4], [t1.c3])
-access([t1.c2], [t1.c4], [t1.c3])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -204,7 +212,9 @@ Outputs & filters:
 0 - output([46], [t1.c1], [t1.c4], [t1.c1])
 sort_keys([46 ASC], [t1.c1 DESC], [t1.c4 ASC], [t1.c1 ASC])
 1 - output([t1.c1], [t1.c4])
+distinct_exprs([46], [t1.c1], [t1.c4], [t1.c1])
 2 - output([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
 
 outline:
@@ -245,7 +255,9 @@ Outputs & filters:
 0 - output([t1.c1], [71], [87], [t1.c1])
 sort_keys([t1.c1 DESC], [71 ASC], [87 DESC], [t1.c1 ASC])
 1 - output([t1.c1])
+distinct_exprs([t1.c1], [71], [87], [t1.c1])
 2 - output([t1.c1])
+access([t1.c1])
 access([t1.c1])
 
 outline:
@@ -286,7 +298,9 @@ Outputs & filters:
 0 - output([74], [t1.c1], [t1.c1], [9])
 sort_keys([74 ASC], [t1.c1 ASC], [t1.c1 ASC], [9 ASC])
 1 - output([t1.c1])
+distinct_exprs([74], [t1.c1], [t1.c1], [9])
 2 - output([t1.c1])
+access([t1.c1])
 access([t1.c1])
 
 outline:
@@ -327,8 +341,10 @@ Outputs & filters:
 0 - output([t1.c4], [43], [t1.c3], [t1.c1])
 sort_keys([t1.c4 ASC], [43 DESC], [t1.c3 DESC], [t1.c1 DESC])
 1 - output([t1.c4], [t1.c3], [t1.c1])
+distinct_exprs([t1.c4], [43], [t1.c3], [t1.c1])
 2 - output([t1.c4], [t1.c3], [t1.c1])
-access([t1.c4], [t1.c3], [t1.c1])
+access([t1.c1], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -368,8 +384,10 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c2], [76], [t1.c3])
 sort_keys([t1.c3 DESC], [t1.c2 ASC], [76 DESC], [t1.c3 DESC])
 1 - output([t1.c3], [t1.c2])
+distinct_exprs([t1.c3], [t1.c2], [76], [t1.c3])
 2 - output([t1.c3], [t1.c2])
-access([t1.c3], [t1.c2])
+access([t1.c2], [t1.c3])
+access([t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -409,8 +427,10 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c2], [t1.c1], [t1.c3])
 sort_keys([t1.c3 ASC], [t1.c2 DESC], [t1.c1 DESC], [t1.c3 ASC])
 1 - output([t1.c3], [t1.c2], [t1.c1])
+distinct_exprs([t1.c3], [t1.c2], [t1.c1], [t1.c3])
 2 - output([t1.c3], [t1.c2], [t1.c1])
-access([t1.c3], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -450,7 +470,9 @@ Outputs & filters:
 0 - output([t1.c1], [33], [t1.c2], [t1.c1])
 sort_keys([t1.c1 ASC], [33 ASC], [t1.c2 DESC], [t1.c1 DESC])
 1 - output([t1.c1], [t1.c2])
+distinct_exprs([t1.c1], [33], [t1.c2], [t1.c1])
 2 - output([t1.c1], [t1.c2])
+access([t1.c1], [t1.c2])
 access([t1.c1], [t1.c2])
 
 outline:
@@ -491,8 +513,10 @@ Outputs & filters:
 0 - output([92], [t1.c3], [t1.c1], [t1.c2])
 sort_keys([92 DESC], [t1.c3 ASC], [t1.c1 DESC], [t1.c2 DESC])
 1 - output([t1.c3], [t1.c1], [t1.c2])
+distinct_exprs([92], [t1.c3], [t1.c1], [t1.c2])
 2 - output([t1.c3], [t1.c1], [t1.c2])
-access([t1.c3], [t1.c1], [t1.c2])
+access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -532,7 +556,9 @@ Outputs & filters:
 0 - output([t1.c1], [t1.c1], [t1.c3], [69])
 sort_keys([t1.c1 DESC], [t1.c1 DESC], [t1.c3 DESC], [69 ASC])
 1 - output([t1.c1], [t1.c3])
+distinct_exprs([t1.c1], [t1.c1], [t1.c3], [69])
 2 - output([t1.c1], [t1.c3])
+access([t1.c1], [t1.c3])
 access([t1.c1], [t1.c3])
 
 outline:
@@ -573,7 +599,9 @@ Outputs & filters:
 0 - output([t1.c2], [90], [47], [13])
 sort_keys([t1.c2 ASC], [90 DESC], [47 DESC], [13 ASC])
 1 - output([t1.c2])
+distinct_exprs([t1.c2], [90], [47], [13])
 2 - output([t1.c2])
+access([t1.c2])
 access([t1.c2])
 
 outline:
@@ -613,8 +641,10 @@ Outputs & filters:
 0 - output([t1.c4], [t1.c2], [91], [47])
 sort_keys([t1.c4 ASC], [t1.c2 ASC], [91 DESC], [47 ASC])
 1 - output([t1.c4], [t1.c2])
+distinct_exprs([t1.c4], [t1.c2], [91], [47])
 2 - output([t1.c4], [t1.c2])
-access([t1.c4], [t1.c2])
+access([t1.c2], [t1.c4])
+access([t1.c2], [t1.c4])
 
 outline:
 /*+
@@ -654,7 +684,9 @@ Outputs & filters:
 0 - output([69], [70], [29], [t1.c2])
 sort_keys([69 DESC], [70 DESC], [29 DESC], [t1.c2 ASC])
 1 - output([t1.c2])
+distinct_exprs([69], [70], [29], [t1.c2])
 2 - output([t1.c2])
+access([t1.c2])
 access([t1.c2])
 
 outline:
@@ -694,8 +726,10 @@ Outputs & filters:
 0 - output([t1.c4], [t1.c2], [t1.c1], [t1.c4])
 sort_keys([t1.c4 DESC], [t1.c2 ASC], [t1.c1 DESC], [t1.c4 ASC])
 1 - output([t1.c4], [t1.c2], [t1.c1])
+distinct_exprs([t1.c4], [t1.c2], [t1.c1], [t1.c4])
 2 - output([t1.c4], [t1.c2], [t1.c1])
-access([t1.c4], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c4])
 
 outline:
 /*+
@@ -735,8 +769,10 @@ Outputs & filters:
 0 - output([t1.c4], [t1.c3], [t1.c2], [55])
 sort_keys([t1.c4 ASC], [t1.c3 ASC], [t1.c2 ASC], [55 DESC])
 1 - output([t1.c4], [t1.c3], [t1.c2])
+distinct_exprs([t1.c4], [t1.c3], [t1.c2], [55])
 2 - output([t1.c4], [t1.c3], [t1.c2])
-access([t1.c4], [t1.c3], [t1.c2])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -776,8 +812,10 @@ Outputs & filters:
 0 - output([t1.c3], [t1.c1], [t1.c2], [t1.c3])
 sort_keys([t1.c3 DESC], [t1.c1 DESC], [t1.c2 DESC], [t1.c3 DESC])
 1 - output([t1.c3], [t1.c1], [t1.c2])
+distinct_exprs([t1.c3], [t1.c1], [t1.c2], [t1.c3])
 2 - output([t1.c3], [t1.c1], [t1.c2])
-access([t1.c3], [t1.c1], [t1.c2])
+access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -817,7 +855,9 @@ Outputs & filters:
 0 - output([t1.c1], [t1.c4], [85], [t1.c4])
 sort_keys([t1.c1 DESC], [t1.c4 ASC], [85 DESC], [t1.c4 ASC])
 1 - output([t1.c1], [t1.c4])
+distinct_exprs([t1.c1], [t1.c4], [85], [t1.c4])
 2 - output([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
 
 outline:

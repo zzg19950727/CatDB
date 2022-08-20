@@ -13,16 +13,16 @@ SELECT * FROM T1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 0    | 9    | 2    | 9    |
-| 4    | 6    | 3    | 0    |
-| 0    | 6    | 3    | 5    |
-| 0    | 3    | 1    | 0    |
-| 1    | 9    | 5    | 8    |
-| 3    | 6    | 8    | 7    |
-| 3    | 7    | 0    | 8    |
-| 7    | 8    | 2    | 8    |
-| 6    | 2    | 3    | 0    |
 | 3    | 6    | 1    | 8    |
+| 6    | 2    | 3    | 0    |
+| 7    | 8    | 2    | 8    |
+| 3    | 7    | 0    | 8    |
+| 3    | 6    | 8    | 7    |
+| 1    | 9    | 5    | 8    |
+| 0    | 3    | 1    | 0    |
+| 0    | 6    | 3    | 5    |
+| 4    | 6    | 3    | 0    |
+| 0    | 9    | 2    | 9    |
 +------+------+------+------+
 10 rows in set
 
@@ -39,7 +39,8 @@ Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c3)], [CAST(SUM(DISTINCT t1.c2) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 aggr_exprs([COUNT(DISTINCT t1.c3)], [SUM(DISTINCT t1.c2)], [COUNT(DISTINCT t1.c2)], [COUNT(t1.c3)], [COUNT(t1.c4)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
-access([t1.c3], [t1.c2], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -70,6 +71,7 @@ Outputs & filters:
 aggr_exprs([COUNT(DISTINCT t1.c2)], [MIN(t1.c3)], [COUNT(DISTINCT t1.c4)], [COUNT(DISTINCT t1.c2)])
 1 - output([t1.c2], [t1.c3], [t1.c4])
 access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -99,7 +101,8 @@ Outputs & filters:
 0 - output([SUM(t1.c4)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(t1.c2)])
 aggr_exprs([SUM(t1.c4)], [SUM(t1.c1)], [COUNT(t1.c1)], [COUNT(DISTINCT t1.c3)], [MIN(t1.c2)])
 1 - output([t1.c4], [t1.c1], [t1.c3], [t1.c2])
-access([t1.c4], [t1.c1], [t1.c3], [t1.c2])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -129,7 +132,8 @@ Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c2)], [MAX(t1.c4)], [SUM(DISTINCT t1.c4)], [CAST(SUM(DISTINCT t1.c1) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c1)])
 aggr_exprs([COUNT(DISTINCT t1.c2)], [MAX(t1.c4)], [SUM(DISTINCT t1.c4)], [SUM(DISTINCT t1.c1)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c2], [t1.c4], [t1.c1])
-access([t1.c2], [t1.c4], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c4])
 
 outline:
 /*+
@@ -160,6 +164,7 @@ Outputs & filters:
 aggr_exprs([SUM(t1.c1)], [COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 
 outline:
 /*+
@@ -189,7 +194,8 @@ Outputs & filters:
 0 - output([COUNT(DISTINCT t1.c3)], [MAX(t1.c4)], [MIN(t1.c2)], [COUNT(t1.c3)])
 aggr_exprs([COUNT(DISTINCT t1.c3)], [MAX(t1.c4)], [MIN(t1.c2)], [COUNT(t1.c3)])
 1 - output([t1.c3], [t1.c4], [t1.c2])
-access([t1.c3], [t1.c4], [t1.c2])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -219,7 +225,8 @@ Outputs & filters:
 0 - output([MIN(t1.c1)], [CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [MIN(t1.c3)], [COUNT(t1.c1)])
 aggr_exprs([MIN(t1.c1)], [SUM(t1.c4)], [COUNT(t1.c4)], [MIN(t1.c3)], [COUNT(t1.c1)])
 1 - output([t1.c1], [t1.c4], [t1.c3])
-access([t1.c1], [t1.c4], [t1.c3])
+access([t1.c1], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -250,6 +257,7 @@ Outputs & filters:
 aggr_exprs([SUM(DISTINCT t1.c1)], [MIN(t1.c2)], [COUNT(t1.c3)], [MAX(t1.c1)])
 1 - output([t1.c1], [t1.c2], [t1.c3])
 access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -279,7 +287,8 @@ Outputs & filters:
 0 - output([SUM(DISTINCT t1.c2)], [CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 aggr_exprs([SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(t1.c4)], [COUNT(DISTINCT t1.c3)], [SUM(t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c3])
-access([t1.c2], [t1.c4], [t1.c3])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -309,7 +318,8 @@ Outputs & filters:
 0 - output([MIN(t1.c4)], [COUNT(t1.c1)], [CAST(SUM(DISTINCT t1.c4) AS NUMBER(72, 38)) / COUNT(DISTINCT t1.c4)], [SUM(t1.c1)])
 aggr_exprs([MIN(t1.c4)], [COUNT(t1.c1)], [SUM(DISTINCT t1.c4)], [COUNT(DISTINCT t1.c4)], [SUM(t1.c1)])
 1 - output([t1.c4], [t1.c1])
-access([t1.c4], [t1.c1])
+access([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 
 outline:
 /*+
@@ -339,7 +349,8 @@ Outputs & filters:
 0 - output([CAST(SUM(t1.c3) AS NUMBER(72, 38)) / COUNT(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([SUM(t1.c3)], [COUNT(t1.c3)], [MAX(t1.c1)], [MAX(t1.c2)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c3], [t1.c1], [t1.c2])
-access([t1.c3], [t1.c1], [t1.c2])
+access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -370,6 +381,7 @@ Outputs & filters:
 aggr_exprs([COUNT(DISTINCT t1.c1)], [MIN(t1.c1)], [MIN(t1.c4)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c1], [t1.c4])
 access([t1.c1], [t1.c4])
+access([t1.c1], [t1.c4])
 
 outline:
 /*+
@@ -399,7 +411,8 @@ Outputs & filters:
 0 - output([MIN(t1.c1)], [MIN(t1.c3)], [CAST(SUM(t1.c2) AS NUMBER(72, 38)) / COUNT(t1.c2)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)])
 aggr_exprs([MIN(t1.c1)], [MIN(t1.c3)], [SUM(t1.c2)], [COUNT(t1.c2)], [SUM(t1.c1)], [COUNT(t1.c1)])
 1 - output([t1.c1], [t1.c3], [t1.c2])
-access([t1.c1], [t1.c3], [t1.c2])
+access([t1.c1], [t1.c2], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3])
 
 outline:
 /*+
@@ -429,7 +442,8 @@ Outputs & filters:
 0 - output([MIN(t1.c4)], [CAST(SUM(t1.c3) AS NUMBER(72, 38)) / COUNT(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 aggr_exprs([MIN(t1.c4)], [SUM(t1.c3)], [COUNT(t1.c3)], [SUM(t1.c4)], [MIN(t1.c3)])
 1 - output([t1.c4], [t1.c3])
-access([t1.c4], [t1.c3])
+access([t1.c3], [t1.c4])
+access([t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -459,7 +473,8 @@ Outputs & filters:
 0 - output([SUM(DISTINCT t1.c3)], [MIN(t1.c2)], [COUNT(t1.c4)], [CAST(SUM(t1.c2) AS NUMBER(72, 38)) / COUNT(t1.c2)])
 aggr_exprs([SUM(DISTINCT t1.c3)], [MIN(t1.c2)], [COUNT(t1.c4)], [SUM(t1.c2)], [COUNT(t1.c2)])
 1 - output([t1.c3], [t1.c2], [t1.c4])
-access([t1.c3], [t1.c2], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -489,7 +504,8 @@ Outputs & filters:
 0 - output([CAST(SUM(t1.c4) AS NUMBER(72, 38)) / COUNT(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 aggr_exprs([SUM(t1.c4)], [COUNT(t1.c4)], [MIN(t1.c2)], [MIN(t1.c4)], [MIN(t1.c1)])
 1 - output([t1.c4], [t1.c2], [t1.c1])
-access([t1.c4], [t1.c2], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c4])
 
 outline:
 /*+
@@ -519,7 +535,8 @@ Outputs & filters:
 0 - output([MAX(t1.c2)], [SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(DISTINCT t1.c1)])
 aggr_exprs([MAX(t1.c2)], [SUM(DISTINCT t1.c2)], [SUM(t1.c4)], [COUNT(DISTINCT t1.c1)])
 1 - output([t1.c2], [t1.c4], [t1.c1])
-access([t1.c2], [t1.c4], [t1.c1])
+access([t1.c1], [t1.c2], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c4])
 
 outline:
 /*+
@@ -550,6 +567,7 @@ Outputs & filters:
 aggr_exprs([SUM(DISTINCT t1.c1)], [COUNT(DISTINCT t1.c1)], [MIN(t1.c3)], [COUNT(DISTINCT t1.c4)], [SUM(t1.c4)], [COUNT(t1.c4)])
 1 - output([t1.c1], [t1.c3], [t1.c4])
 access([t1.c1], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -579,7 +597,8 @@ Outputs & filters:
 0 - output([MAX(t1.c4)], [MAX(t1.c4)], [COUNT(t1.c3)], [MIN(t1.c2)])
 aggr_exprs([MAX(t1.c4)], [MAX(t1.c4)], [COUNT(t1.c3)], [MIN(t1.c2)])
 1 - output([t1.c4], [t1.c3], [t1.c2])
-access([t1.c4], [t1.c3], [t1.c2])
+access([t1.c2], [t1.c3], [t1.c4])
+access([t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+
@@ -609,7 +628,8 @@ Outputs & filters:
 0 - output([MAX(t1.c2)], [MAX(t1.c4)], [CAST(SUM(t1.c1) AS NUMBER(72, 38)) / COUNT(t1.c1)], [MIN(t1.c3)])
 aggr_exprs([MAX(t1.c2)], [MAX(t1.c4)], [SUM(t1.c1)], [COUNT(t1.c1)], [MIN(t1.c3)])
 1 - output([t1.c2], [t1.c4], [t1.c1], [t1.c3])
-access([t1.c2], [t1.c4], [t1.c1], [t1.c3])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
+access([t1.c1], [t1.c2], [t1.c3], [t1.c4])
 
 outline:
 /*+

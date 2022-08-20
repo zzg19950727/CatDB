@@ -13,9 +13,9 @@ SELECT * FROM T1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 2    | 1    | 0    | 2    |
-| 1    | 0    | 1    | 0    |
 | 0    | 2    | 1    | 2    |
+| 1    | 0    | 1    | 0    |
+| 2    | 1    | 0    | 2    |
 +------+------+------+------+
 3 rows in set
 
@@ -35,13 +35,14 @@ Outputs & filters:
 sort_keys([t2.c4 DESC], [t2.c2 DESC], [t2.c3 DESC], [t2.c2 ASC])
 1 - output([t2.c4], [t2.c2], [t2.c3])
 2 - output([t2.c4], [t2.c2], [t2.c3])
-access([t2.c4], [t2.c2], [t2.c3])
+access([t2.c2], [t2.c3], [t2.c4])
+access([t2.c2], [t2.c3], [t2.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t2, t1)
 USE_NL(@SEL1 t1)
+LEADING(@SEL1 t2, t1)
 END_OUTLINE_DATA
 */
 
@@ -79,15 +80,17 @@ sort_keys([t6.c3 ASC], [t6.c3 DESC], [t6.c2 ASC], [t5.c1 DESC])
 1 - output([t6.c3], [t6.c2], [t5.c1])
 2 - output([t6.c3], [t6.c2])
 filters([t6.c3 = t6.c2])
-access([t6.c3], [t6.c2])
+access([t6.c2], [t6.c3])
+access([t6.c2], [t6.c3])
 3 - output([t5.c1])
+access([t5.c1])
 access([t5.c1])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t6, t5)
 USE_NL(@SEL1 t5)
+LEADING(@SEL1 t6, t5)
 END_OUTLINE_DATA
 */
 
@@ -112,14 +115,16 @@ sort_keys([t7.c2 DESC], [t7.c2 ASC], [t8.c1 ASC], [t8.c1 ASC])
 1 - output([t7.c2], [t8.c1])
 2 - output([t7.c2])
 access([t7.c2])
+access([t7.c2])
 3 - output([t8.c1])
+access([t8.c1])
 access([t8.c1])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t7, t8)
 USE_NL(@SEL1 t8)
+LEADING(@SEL1 t7, t8)
 END_OUTLINE_DATA
 */
 
@@ -157,14 +162,16 @@ sort_keys([t10.c1 DESC], [t9.c4 DESC], [t9.c4 DESC], [t10.c4 DESC])
 1 - output([t10.c1], [t9.c4], [t10.c4])
 2 - output([t10.c1], [t10.c4])
 access([t10.c1], [t10.c4])
+access([t10.c1], [t10.c4])
 3 - output([t9.c4])
+access([t9.c4])
 access([t9.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t10, t9)
 USE_NL(@SEL1 t9)
+LEADING(@SEL1 t10, t9)
 END_OUTLINE_DATA
 */
 
@@ -201,13 +208,14 @@ Outputs & filters:
 sort_keys([t12.c1 ASC], [t12.c4 ASC], [t12.c2 ASC], [t12.c4 ASC])
 1 - output([t12.c1], [t12.c4], [t12.c2])
 2 - output([t12.c1], [t12.c4], [t12.c2])
-access([t12.c1], [t12.c4], [t12.c2])
+access([t12.c1], [t12.c2], [t12.c4])
+access([t12.c1], [t12.c2], [t12.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t12, t11)
 USE_NL(@SEL1 t11)
+LEADING(@SEL1 t12, t11)
 END_OUTLINE_DATA
 */
 
@@ -245,13 +253,14 @@ sort_keys([t13.c3 DESC], [t13.c2 DESC], [t13.c3 DESC], [t13.c4 DESC])
 1 - output([t13.c3], [t13.c2], [t13.c4])
 2 - output([t13.c3], [t13.c2], [t13.c4])
 filters([t13.c1 = t13.c4])
-access([t13.c1], [t13.c4], [t13.c3], [t13.c2])
+access([t13.c1], [t13.c2], [t13.c3], [t13.c4])
+access([t13.c1], [t13.c2], [t13.c3], [t13.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t13, t14)
 USE_NL(@SEL1 t14)
+LEADING(@SEL1 t13, t14)
 END_OUTLINE_DATA
 */
 
@@ -283,12 +292,13 @@ sort_keys([t16.c1 DESC], [t16.c1 ASC], [t16.c1 ASC], [t16.c4 ASC])
 1 - output([t16.c1], [t16.c4])
 2 - output([t16.c1], [t16.c4])
 access([t16.c1], [t16.c4])
+access([t16.c1], [t16.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t16, t15)
 USE_NL(@SEL1 t15)
+LEADING(@SEL1 t16, t15)
 END_OUTLINE_DATA
 */
 
@@ -325,15 +335,17 @@ Outputs & filters:
 sort_keys([t21.c2 ASC], [t21.c1 ASC], [t22.c2 DESC], [t21.c3 ASC])
 1 - output([t21.c2], [t21.c1], [t22.c2], [t21.c3])
 2 - output([t21.c2], [t21.c1], [t21.c3])
-access([t21.c2], [t21.c1], [t21.c3])
+access([t21.c1], [t21.c2], [t21.c3])
+access([t21.c1], [t21.c2], [t21.c3])
 3 - output([t22.c2])
+access([t22.c2])
 access([t22.c2])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t21, t22)
 USE_NL(@SEL1 t22)
+LEADING(@SEL1 t21, t22)
 END_OUTLINE_DATA
 */
 
@@ -370,16 +382,18 @@ Outputs & filters:
 sort_keys([t23.c1 ASC], [t23.c1 DESC], [t24.c4 DESC], [t24.c2 ASC])
 1 - output([t23.c1], [t24.c4], [t24.c2])
 2 - output([t24.c4], [t24.c2])
-access([t24.c4], [t24.c2])
+access([t24.c2], [t24.c4])
+access([t24.c2], [t24.c4])
 3 - output([t23.c1])
 filters([t23.c1 IS NOT NULL])
+access([t23.c1])
 access([t23.c1])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t24, t23)
 USE_NL(@SEL1 t23)
+LEADING(@SEL1 t24, t23)
 END_OUTLINE_DATA
 */
 
@@ -416,15 +430,17 @@ Outputs & filters:
 sort_keys([t25.c2 ASC], [t25.c1 DESC], [t26.c4 ASC], [t25.c1 ASC])
 1 - output([t25.c2], [t25.c1], [t26.c4])
 2 - output([t25.c2], [t25.c1])
-access([t25.c2], [t25.c1])
+access([t25.c1], [t25.c2])
+access([t25.c1], [t25.c2])
 3 - output([t26.c4])
+access([t26.c4])
 access([t26.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t25, t26)
 USE_NL(@SEL1 t26)
+LEADING(@SEL1 t25, t26)
 END_OUTLINE_DATA
 */
 
@@ -462,14 +478,16 @@ sort_keys([t27.c1 DESC], [t28.c4 ASC], [t27.c2 ASC], [t27.c4 ASC])
 1 - output([t27.c1], [t28.c4], [t27.c2], [t27.c4])
 2 - output([t27.c1], [t27.c2], [t27.c4])
 access([t27.c1], [t27.c2], [t27.c4])
+access([t27.c1], [t27.c2], [t27.c4])
 3 - output([t28.c4])
+access([t28.c4])
 access([t28.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t27, t28)
 USE_NL(@SEL1 t28)
+LEADING(@SEL1 t27, t28)
 END_OUTLINE_DATA
 */
 
@@ -507,14 +525,16 @@ sort_keys([t32.c2 ASC], [t32.c2 ASC], [t32.c3 ASC], [t31.c2 ASC])
 1 - output([t32.c2], [t32.c3], [t31.c2])
 2 - output([t32.c2], [t32.c3])
 access([t32.c2], [t32.c3])
+access([t32.c2], [t32.c3])
 3 - output([t31.c2])
+access([t31.c2])
 access([t31.c2])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t32, t31)
 USE_NL(@SEL1 t31)
+LEADING(@SEL1 t32, t31)
 END_OUTLINE_DATA
 */
 
@@ -552,15 +572,17 @@ sort_keys([t35.c3 ASC], [t36.c4 DESC], [t36.c4 ASC], [t35.c4 ASC])
 1 - output([t35.c3], [t36.c4], [t35.c4])
 2 - output([t35.c3], [t35.c4])
 filters([t35.c4 = t35.c2])
-access([t35.c4], [t35.c2], [t35.c3])
+access([t35.c2], [t35.c3], [t35.c4])
+access([t35.c2], [t35.c3], [t35.c4])
 3 - output([t36.c4])
+access([t36.c4])
 access([t36.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t35, t36)
 USE_NL(@SEL1 t36)
+LEADING(@SEL1 t35, t36)
 END_OUTLINE_DATA
 */
 
@@ -595,15 +617,17 @@ sort_keys([t39.c4 DESC], [t39.c1 ASC], [t39.c1 DESC], [t40.c3 ASC])
 1 - output([t39.c4], [t39.c1], [t40.c3])
 2 - output([t40.c3])
 filters([t40.c3 NOT BETWEEN t40.c2 AND t40.c1])
-access([t40.c3], [t40.c2], [t40.c1])
+access([t40.c1], [t40.c2], [t40.c3])
+access([t40.c1], [t40.c2], [t40.c3])
 3 - output([t39.c4], [t39.c1])
-access([t39.c4], [t39.c1])
+access([t39.c1], [t39.c4])
+access([t39.c1], [t39.c4])
 
 outline:
 /*+
 BEGIN_OUTLINE_DATA
-LEADING(@SEL1 t40, t39)
 USE_NL(@SEL1 t39)
+LEADING(@SEL1 t40, t39)
 END_OUTLINE_DATA
 */
 

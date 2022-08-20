@@ -13,16 +13,16 @@ SELECT * FROM T1
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 3    | 9    | 5    | 5    |
-| 5    | 8    | 2    | 7    |
-| 1    | 1    | 2    | 3    |
-| 3    | 7    | 8    | 6    |
-| 8    | 7    | 4    | 8    |
-| 3    | 7    | 9    | 9    |
-| 7    | 0    | 2    | 9    |
-| 9    | 6    | 2    | 9    |
-| 2    | 3    | 5    | 8    |
 | 1    | 2    | 6    | 7    |
+| 2    | 3    | 5    | 8    |
+| 9    | 6    | 2    | 9    |
+| 7    | 0    | 2    | 9    |
+| 3    | 7    | 9    | 9    |
+| 8    | 7    | 4    | 8    |
+| 3    | 7    | 8    | 6    |
+| 1    | 1    | 2    | 3    |
+| 5    | 8    | 2    | 7    |
+| 3    | 9    | 5    | 5    |
 +------+------+------+------+
 10 rows in set
 
@@ -35,16 +35,16 @@ SELECT * FROM T2
 +------+------+------+------+
 | c1   | c2   | c3   | c4   |
 +------+------+------+------+
-| 8    | 2    | 1    | 2    |
-| 6    | 4    | 4    | 5    |
-| 8    | 5    | 1    | 8    |
-| 0    | 8    | 9    | 7    |
-| 9    | 9    | 0    | 4    |
-| 5    | 8    | 7    | 1    |
-| 8    | 4    | 6    | 2    |
-| 2    | 1    | 4    | 7    |
-| 7    | 4    | 5    | 6    |
 | 0    | 8    | 3    | 6    |
+| 7    | 4    | 5    | 6    |
+| 2    | 1    | 4    | 7    |
+| 8    | 4    | 6    | 2    |
+| 5    | 8    | 7    | 1    |
+| 9    | 9    | 0    | 4    |
+| 0    | 8    | 9    | 7    |
+| 8    | 5    | 1    | 8    |
+| 6    | 4    | 4    | 5    |
+| 8    | 2    | 1    | 2    |
 +------+------+------+------+
 10 rows in set
 
@@ -64,9 +64,11 @@ Outputs & filters:
 sort_keys([t1.c4 DESC], [t2.c2 ASC], [t1.c2 DESC], [t2.c1 DESC])
 1 - output([t1.c4], [t2.c2], [t1.c2], [t2.c1])
 2 - output([t1.c4], [t1.c2])
-access([t1.c4], [t1.c2])
+access([t1.c2], [t1.c4])
+access([t1.c2], [t1.c4])
 3 - output([t2.c2], [t2.c1])
-access([t2.c2], [t2.c1])
+access([t2.c1], [t2.c2])
+access([t2.c1], [t2.c2])
 
 outline:
 /*+
@@ -105,18 +107,24 @@ filters([t5.c1 >= t4.c1], [t5.c2 >= t4.c1], [t5.c2 IS NOT NULL])
 equal_join_conditions([t4.c1 = t5.c1])
 4 - output([t4.c1], [t4.c2], [t4.c4])
 access([t4.c1], [t4.c2], [t4.c4])
+access([t4.c1], [t4.c2], [t4.c4])
 5 - output([t5.c1], [t5.c2])
 access([t5.c1], [t5.c2])
+access([t5.c1], [t5.c2])
 6 - output([t3.c1], [t3.c3])
+access([t3.c1], [t3.c3])
 access([t3.c1], [t3.c3])
 7 - equal_join_conditions([t7.c2 = t8.c2])
 8 - output([t8.c2])
 access([t8.c2])
+access([t8.c2])
 9 - output([t7.c2])
 10 - output([t7.c2])
 access([t7.c2])
+access([t7.c2])
 11 - filters([t6.c4 > t6.c2])
-access([t6.c4], [t6.c2])
+access([t6.c2], [t6.c4])
+access([t6.c2], [t6.c4])
 
 outline:
 /*+
@@ -174,32 +182,41 @@ equal_join_conditions([t19.c1 = t20.c1])
 other_join_conditions([t20.c3 = t16.c4 OR t17.c2 = t17.c4 OR t16.c4 = t16.c2])
 7 - output([t20.c1], [t20.c3])
 access([t20.c1], [t20.c3])
+access([t20.c1], [t20.c3])
 8 - output([t19.c1], [t16.c4], [t17.c2], [t17.c4], [t16.c2], [t19.c4], [t18.c2])
 equal_join_conditions([t19.c2 = t16.c1])
 other_join_conditions([t16.c3 > t16.c3], [t17.c3 > t17.c1])
 9 - output([t16.c1], [t16.c3], [t16.c4], [t16.c2])
-access([t16.c4], [t16.c2], [t16.c3], [t16.c1])
+access([t16.c1], [t16.c2], [t16.c3], [t16.c4])
+access([t16.c1], [t16.c2], [t16.c3], [t16.c4])
 10 - output([t19.c2], [t17.c3], [t17.c1], [t19.c1], [t17.c2], [t17.c4], [t19.c4], [t18.c2])
 other_join_conditions([t18.c2 > t17.c2 AND t18.c2 IS NULL OR t17.c1 IS NULL])
 11 - output([t18.c2], [t19.c2], [t19.c1], [t19.c4])
 other_join_conditions([t19.c1 IS NOT NULL], [t18.c4 <= t19.c4])
 12 - output([t19.c1], [t19.c4], [t19.c2])
 access([t19.c1], [t19.c2], [t19.c4])
+access([t19.c1], [t19.c2], [t19.c4])
 13 - output([t18.c4], [t18.c2])
 filters([t18.c2 != t18.c3])
 access([t18.c2], [t18.c3], [t18.c4])
+access([t18.c2], [t18.c3], [t18.c4])
 14 - output([t17.c2], [t17.c1], [t17.c3], [t17.c4])
-access([t17.c2], [t17.c4], [t17.c3], [t17.c1])
+access([t17.c1], [t17.c2], [t17.c3], [t17.c4])
+access([t17.c1], [t17.c2], [t17.c3], [t17.c4])
 15 - output([t9.c3])
+access([t9.c3])
 access([t9.c3])
 16 - other_join_conditions([t12.c4 <= t13.c2 AND t14.c4 != t13.c4 OR t13.c4 = t14.c1 OR t14.c3 IS NULL])
 17 - output([t14.c4], [t14.c1], [t14.c3])
-access([t14.c4], [t14.c1], [t14.c3])
+access([t14.c1], [t14.c3], [t14.c4])
+access([t14.c1], [t14.c3], [t14.c4])
 18 - output([t12.c4], [t13.c2], [t13.c4])
 19 - output([t13.c2], [t13.c4])
 filters([t13.c4 = t13.c1 OR t13.c2 >= t13.c1])
-access([t13.c2], [t13.c4], [t13.c1])
+access([t13.c1], [t13.c2], [t13.c4])
+access([t13.c1], [t13.c2], [t13.c4])
 20 - output([t12.c4])
+access([t12.c4])
 access([t12.c4])
 
 outline:
@@ -257,33 +274,41 @@ sort_keys([t24.c4 DESC], [t30.c3 DESC], [t27.c3 DESC], [t30.c2 ASC])
 filters([t23.c3 IS NULL OR t24.c4 NOT BETWEEN t23.c1 AND t27.c3 OR t26.c2 IS NOT NULL])
 equal_join_conditions([t23.c2 = t25.c4])
 5 - output([t23.c2], [t23.c3], [t23.c1])
-access([t23.c3], [t23.c1], [t23.c2])
+access([t23.c1], [t23.c2], [t23.c3])
+access([t23.c1], [t23.c2], [t23.c3])
 6 - output([t25.c4], [t24.c4], [t27.c3], [t26.c2])
 7 - output([t25.c4], [t24.c4], [t27.c3], [t26.c2])
 filters([t24.c2 = t24.c1])
 equal_join_conditions([t27.c2 = t26.c4])
 other_join_conditions([t24.c3 = t25.c1])
 8 - output([t27.c2], [t27.c3])
-access([t27.c3], [t27.c2])
+access([t27.c2], [t27.c3])
+access([t27.c2], [t27.c3])
 9 - output([t26.c4], [t24.c3], [t25.c1], [t24.c2], [t24.c1], [t25.c4], [t24.c4], [t26.c2])
 other_join_conditions([t26.c1 > t24.c4 OR t25.c3 < t25.c2 AND t24.c3 != t24.c4])
 10 - output([t26.c1], [t26.c4], [t26.c2])
-access([t26.c2], [t26.c4], [t26.c1])
+access([t26.c1], [t26.c2], [t26.c4])
+access([t26.c1], [t26.c2], [t26.c4])
 11 - output([t24.c4], [t25.c3], [t25.c2], [t24.c3], [t25.c1], [t24.c2], [t24.c1], [t25.c4])
 other_join_conditions([t25.c1 >= t24.c3])
 12 - output([t24.c3], [t24.c4], [t24.c2], [t24.c1])
-access([t24.c4], [t24.c2], [t24.c1], [t24.c3])
+access([t24.c1], [t24.c2], [t24.c3], [t24.c4])
+access([t24.c1], [t24.c2], [t24.c3], [t24.c4])
 13 - output([t25.c1], [t25.c3], [t25.c2], [t25.c4])
-access([t25.c4], [t25.c1], [t25.c3], [t25.c2])
+access([t25.c1], [t25.c2], [t25.c3], [t25.c4])
+access([t25.c1], [t25.c2], [t25.c3], [t25.c4])
 14 - filters([t28.c3 >= t28.c1])
-access([t28.c3], [t28.c1])
+access([t28.c1], [t28.c3])
+access([t28.c1], [t28.c3])
 16 - output([t30.c3], [t30.c2])
 equal_join_conditions([t29.c1 = t30.c3])
 other_join_conditions([t30.c2 BETWEEN t30.c4 AND t29.c2], [t30.c4 NOT BETWEEN t29.c3 AND t30.c3])
 17 - output([t29.c1], [t29.c2], [t29.c3])
-access([t29.c2], [t29.c3], [t29.c1])
+access([t29.c1], [t29.c2], [t29.c3])
+access([t29.c1], [t29.c2], [t29.c3])
 18 - output([t30.c3], [t30.c2], [t30.c4])
-access([t30.c2], [t30.c4], [t30.c3])
+access([t30.c2], [t30.c3], [t30.c4])
+access([t30.c2], [t30.c3], [t30.c4])
 
 outline:
 /*+
@@ -320,8 +345,10 @@ sort_keys([t32.c2 ASC], [t31.c1 DESC], [t32.c1 DESC], [t32.c2 DESC])
 1 - output([t32.c2], [t31.c1], [t32.c1])
 2 - output([t32.c2], [t31.c1], [t32.c1])
 3 - output([t32.c2], [t32.c1])
-access([t32.c2], [t32.c1])
+access([t32.c1], [t32.c2])
+access([t32.c1], [t32.c2])
 4 - output([t31.c1])
+access([t31.c1])
 access([t31.c1])
 
 outline:
@@ -350,9 +377,11 @@ sort_keys([t35.c1 ASC], [t35.c3 DESC], [t35.c2 DESC], [t35.c3 DESC])
 1 - output([t35.c1], [t35.c3], [t35.c2])
 other_join_conditions([t34.c4 >= t35.c2 OR t34.c3 = t35.c4])
 2 - output([t34.c4], [t34.c3])
-access([t34.c4], [t34.c3])
+access([t34.c3], [t34.c4])
+access([t34.c3], [t34.c4])
 3 - output([t35.c2], [t35.c4], [t35.c1], [t35.c3])
-access([t35.c2], [t35.c4], [t35.c1], [t35.c3])
+access([t35.c1], [t35.c2], [t35.c3], [t35.c4])
+access([t35.c1], [t35.c2], [t35.c3], [t35.c4])
 
 outline:
 /*+
@@ -394,23 +423,29 @@ other_join_conditions([t39.c4 IS NOT NULL])
 5 - output([t39.c4], [t38.c1])
 6 - output([t39.c4])
 filters([t39.c3 NOT BETWEEN t39.c3 AND t39.c1])
-access([t39.c4], [t39.c3], [t39.c1])
+access([t39.c1], [t39.c3], [t39.c4])
+access([t39.c1], [t39.c3], [t39.c4])
 7 - output([t38.c1])
 filters([t38.c3 <= t38.c3])
-access([t38.c3], [t38.c1])
+access([t38.c1], [t38.c3])
+access([t38.c1], [t38.c3])
 8 - filters([t37.c3 = t37.c3])
+access([t37.c3])
 access([t37.c3])
 9 - output([t40.c2], [t40.c1], [t42.c2], [t41.c3], [t42.c3])
 filters([t41.c1 < t41.c4 AND t41.c4 IS NOT NULL OR t41.c3 > t40.c3])
 other_join_conditions([t42.c3 < t42.c1 OR t41.c3 <= t42.c2 OR t42.c4 != t40.c2 AND t42.c3 BETWEEN t42.c4 AND t41.c1 OR t40.c1 > t40.c3])
 10 - output([t42.c3], [t42.c1], [t41.c3], [t42.c2], [t42.c4], [t41.c1], [t41.c4])
 11 - output([t41.c3], [t41.c1], [t41.c4])
-access([t41.c1], [t41.c4], [t41.c3])
+access([t41.c1], [t41.c3], [t41.c4])
+access([t41.c1], [t41.c3], [t41.c4])
 12 - output([t42.c3], [t42.c1], [t42.c2], [t42.c4])
 filters([t42.c1 >= t42.c3])
-access([t42.c3], [t42.c1], [t42.c2], [t42.c4])
+access([t42.c1], [t42.c2], [t42.c3], [t42.c4])
+access([t42.c1], [t42.c2], [t42.c3], [t42.c4])
 13 - output([t40.c2], [t40.c1], [t40.c3])
-access([t40.c2], [t40.c1], [t40.c3])
+access([t40.c1], [t40.c2], [t40.c3])
+access([t40.c1], [t40.c2], [t40.c3])
 
 outline:
 /*+
@@ -467,26 +502,34 @@ other_join_conditions([t46.c4 = t48.c3 OR t46.c4 NOT BETWEEN t46.c4 AND t47.c1])
 7 - output([t46.c4], [t48.c3], [t47.c1], [t47.c2], [t48.c1], [t46.c3], [t48.c2])
 other_join_conditions([t48.c2 BETWEEN t47.c3 AND t46.c4])
 8 - output([t48.c2], [t48.c3], [t48.c1])
-access([t48.c1], [t48.c3], [t48.c2])
+access([t48.c1], [t48.c2], [t48.c3])
+access([t48.c1], [t48.c2], [t48.c3])
 9 - output([t47.c3], [t46.c4], [t47.c1], [t47.c2], [t46.c3])
 equal_join_conditions([t47.c1 = t46.c2])
 10 - output([t46.c2], [t46.c4], [t46.c3])
-access([t46.c3], [t46.c4], [t46.c2])
+access([t46.c2], [t46.c3], [t46.c4])
+access([t46.c2], [t46.c3], [t46.c4])
 11 - output([t47.c1], [t47.c3], [t47.c2])
-access([t47.c2], [t47.c1], [t47.c3])
+access([t47.c1], [t47.c2], [t47.c3])
+access([t47.c1], [t47.c2], [t47.c3])
 12 - output([t45.c2])
 access([t45.c2])
+access([t45.c2])
 13 - output([t44.c1], [t44.c4])
-access([t44.c4], [t44.c1])
+access([t44.c1], [t44.c4])
+access([t44.c1], [t44.c4])
 15 - filters([t50.c2 = t50.c2 OR t50.c3 IS NULL OR t50.c1 >= t50.c4])
-access([t50.c2], [t50.c3], [t50.c1], [t50.c4])
+access([t50.c1], [t50.c2], [t50.c3], [t50.c4])
+access([t50.c1], [t50.c2], [t50.c3], [t50.c4])
 17 - output([t51.c4])
 equal_join_conditions([t51.c4 = t52.c4], [t51.c2 = t52.c3])
 other_join_conditions([t51.c2 = t51.c1], [t52.c1 BETWEEN t52.c3 AND t51.c1], [t52.c2 >= t51.c3])
 18 - output([t51.c4], [t51.c2], [t51.c1], [t51.c3])
-access([t51.c4], [t51.c1], [t51.c2], [t51.c3])
+access([t51.c1], [t51.c2], [t51.c3], [t51.c4])
+access([t51.c1], [t51.c2], [t51.c3], [t51.c4])
 19 - output([t52.c4], [t52.c3], [t52.c1], [t52.c2])
-access([t52.c4], [t52.c1], [t52.c3], [t52.c2])
+access([t52.c1], [t52.c2], [t52.c3], [t52.c4])
+access([t52.c1], [t52.c2], [t52.c3], [t52.c4])
 
 outline:
 /*+
@@ -520,9 +563,11 @@ Outputs & filters:
 sort_keys([t54.c3 ASC], [t53.c2 ASC], [t54.c1 ASC], [t53.c2 DESC])
 1 - output([t54.c3], [t53.c2], [t54.c1])
 2 - output([t54.c3], [t54.c1])
-access([t54.c3], [t54.c1])
+access([t54.c1], [t54.c3])
+access([t54.c1], [t54.c3])
 3 - output([t53.c2])
 filters([t53.c2 IS NOT NULL])
+access([t53.c2])
 access([t53.c2])
 
 outline:
@@ -549,8 +594,10 @@ Outputs & filters:
 sort_keys([t56.c3 ASC], [t56.c2 DESC], [t55.c2 DESC], [t56.c4 DESC])
 1 - output([t56.c3], [t56.c2], [t55.c2], [t56.c4])
 2 - output([t56.c3], [t56.c2], [t56.c4])
-access([t56.c3], [t56.c2], [t56.c4])
+access([t56.c2], [t56.c3], [t56.c4])
+access([t56.c2], [t56.c3], [t56.c4])
 3 - output([t55.c2])
+access([t55.c2])
 access([t55.c2])
 
 outline:
@@ -585,9 +632,12 @@ sort_keys([t60.c1 DESC], [t60.c2 DESC], [t58.c1 ASC], [t60.c4 ASC])
 equal_join_conditions([t60.c2 = t59.c2])
 4 - output([t59.c2])
 access([t59.c2])
+access([t59.c2])
 5 - output([t60.c2], [t60.c1], [t60.c4])
-access([t60.c2], [t60.c1], [t60.c4])
+access([t60.c1], [t60.c2], [t60.c4])
+access([t60.c1], [t60.c2], [t60.c4])
 7 - output([t58.c1])
+access([t58.c1])
 access([t58.c1])
 
 outline:
@@ -616,7 +666,8 @@ Outputs & filters:
 sort_keys([t62.c1 DESC], [t62.c3 ASC], [t62.c2 ASC], [t62.c4 DESC])
 1 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
 2 - output([t62.c1], [t62.c3], [t62.c2], [t62.c4])
-access([t62.c1], [t62.c3], [t62.c2], [t62.c4])
+access([t62.c1], [t62.c2], [t62.c3], [t62.c4])
+access([t62.c1], [t62.c2], [t62.c3], [t62.c4])
 
 outline:
 /*+
@@ -664,33 +715,42 @@ sort_keys([t80.c4 ASC], [t79.c3 DESC], [t74.c2 ASC], [t76.c3 ASC])
 4 - output([t80.c4], [t79.c3], [t76.c3])
 other_join_conditions([t79.c1 BETWEEN t79.c2 AND t79.c1 AND t78.c4 != t78.c4 OR t77.c1 > t76.c3 AND t79.c3 = t80.c4 AND t78.c2 BETWEEN t77.c4 AND t76.c4 AND t77.c1 = t77.c4 OR t77.c3 BETWEEN t76.c1 AND t77.c1 AND t80.c1 IS NOT NULL AND t80.c1 <= t76.c4 OR t76.c1 > t80.c4])
 5 - output([t76.c3], [t76.c4], [t76.c1])
-access([t76.c3], [t76.c4], [t76.c1])
+access([t76.c1], [t76.c3], [t76.c4])
+access([t76.c1], [t76.c3], [t76.c4])
 6 - output([t79.c1], [t79.c2], [t78.c4], [t77.c1], [t79.c3], [t80.c4], [t78.c2], [t77.c4], [t77.c3], [t80.c1])
 other_join_conditions([t80.c3 BETWEEN t79.c2 AND t79.c2])
 7 - output([t80.c3], [t79.c2], [t79.c1], [t79.c3], [t80.c4], [t80.c1])
 equal_join_conditions([t79.c2 = t80.c3])
 8 - output([t79.c2], [t79.c1], [t79.c3])
 access([t79.c1], [t79.c2], [t79.c3])
+access([t79.c1], [t79.c2], [t79.c3])
 9 - output([t80.c3], [t80.c4], [t80.c1])
-access([t80.c4], [t80.c1], [t80.c3])
+access([t80.c1], [t80.c3], [t80.c4])
+access([t80.c1], [t80.c3], [t80.c4])
 10 - output([t78.c4], [t77.c1], [t78.c2], [t77.c4], [t77.c3])
 11 - output([t77.c1], [t77.c4], [t77.c3])
 filters([t77.c4 IS NOT NULL])
-access([t77.c1], [t77.c4], [t77.c3])
+access([t77.c1], [t77.c3], [t77.c4])
+access([t77.c1], [t77.c3], [t77.c4])
 12 - output([t78.c4], [t78.c2])
-access([t78.c4], [t78.c2])
+access([t78.c2], [t78.c4])
+access([t78.c2], [t78.c4])
 14 - output([t74.c2])
 other_join_conditions([t73.c2 = t73.c1 OR t75.c1 = t75.c2 AND t75.c2 = t74.c4 OR t74.c4 = t75.c1])
 15 - output([t73.c2], [t73.c1], [t74.c4], [t74.c2])
 other_join_conditions([t73.c4 BETWEEN t73.c4 AND t74.c1 AND t74.c4 NOT BETWEEN t74.c1 AND t73.c3 OR t73.c1 > t74.c4])
 16 - output([t74.c1], [t74.c4], [t74.c2])
-access([t74.c4], [t74.c1], [t74.c2])
+access([t74.c1], [t74.c2], [t74.c4])
+access([t74.c1], [t74.c2], [t74.c4])
 17 - output([t73.c4], [t73.c3], [t73.c1], [t73.c2])
-access([t73.c2], [t73.c1], [t73.c4], [t73.c3])
+access([t73.c1], [t73.c2], [t73.c3], [t73.c4])
+access([t73.c1], [t73.c2], [t73.c3], [t73.c4])
 18 - output([t75.c1], [t75.c2])
 access([t75.c1], [t75.c2])
+access([t75.c1], [t75.c2])
 20 - filters([t82.c4 != t82.c4 OR t82.c2 IS NULL AND t82.c2 != t82.c1])
-access([t82.c4], [t82.c2], [t82.c1])
+access([t82.c1], [t82.c2], [t82.c4])
+access([t82.c1], [t82.c2], [t82.c4])
 
 outline:
 /*+
@@ -731,16 +791,20 @@ sort_keys([t86.c3 ASC], [t83.c2 ASC], [t84.c1 DESC], [t84.c3 DESC])
 other_join_conditions([t83.c2 IS NULL AND t83.c3 = t85.c2 OR t85.c1 = t83.c4 OR t84.c1 = t84.c2 OR t86.c3 IS NOT NULL])
 2 - output([t83.c2], [t83.c3], [t83.c4])
 access([t83.c2], [t83.c3], [t83.c4])
+access([t83.c2], [t83.c3], [t83.c4])
 3 - output([t85.c2], [t85.c1], [t84.c1], [t84.c2], [t86.c3], [t84.c3])
 other_join_conditions([t84.c2 IS NULL])
 4 - output([t84.c2], [t85.c2], [t85.c1], [t84.c1], [t84.c3])
 equal_join_conditions([t84.c1 = t85.c2])
 other_join_conditions([t84.c4 != t85.c3], [t84.c4 >= t85.c2])
 5 - output([t84.c1], [t84.c4], [t84.c2], [t84.c3])
-access([t84.c1], [t84.c2], [t84.c4], [t84.c3])
+access([t84.c1], [t84.c2], [t84.c3], [t84.c4])
+access([t84.c1], [t84.c2], [t84.c3], [t84.c4])
 6 - output([t85.c2], [t85.c3], [t85.c1])
-access([t85.c2], [t85.c1], [t85.c3])
+access([t85.c1], [t85.c2], [t85.c3])
+access([t85.c1], [t85.c2], [t85.c3])
 7 - output([t86.c3])
+access([t86.c3])
 access([t86.c3])
 
 outline:
@@ -769,7 +833,8 @@ Outputs & filters:
 sort_keys([t88.c3 ASC], [t88.c2 ASC], [t88.c2 ASC], [t88.c2 ASC])
 1 - output([t88.c3], [t88.c2])
 2 - output([t88.c3], [t88.c2])
-access([t88.c3], [t88.c2])
+access([t88.c2], [t88.c3])
+access([t88.c2], [t88.c3])
 
 outline:
 /*+
@@ -799,9 +864,11 @@ sort_keys([t91.c3 ASC], [t91.c4 ASC], [t91.c1 DESC], [t89.c1 DESC])
 2 - output([t89.c1])
 3 - output([t89.c1])
 filters([t89.c4 <= t89.c4 OR t89.c2 != t89.c3])
-access([t89.c4], [t89.c2], [t89.c3], [t89.c1])
+access([t89.c1], [t89.c2], [t89.c3], [t89.c4])
+access([t89.c1], [t89.c2], [t89.c3], [t89.c4])
 5 - output([t91.c3], [t91.c4], [t91.c1])
-access([t91.c3], [t91.c4], [t91.c1])
+access([t91.c1], [t91.c3], [t91.c4])
+access([t91.c1], [t91.c3], [t91.c4])
 
 outline:
 /*+
@@ -854,24 +921,32 @@ other_join_conditions([t98.c1 NOT BETWEEN t97.c3 AND t97.c2])
 other_join_conditions([t97.c3 <= t96.c3 AND t97.c2 IS NOT NULL OR t96.c1 = t97.c2 OR t96.c3 != t96.c1])
 7 - output([t96.c3], [t96.c1], [t96.c2])
 access([t96.c1], [t96.c2], [t96.c3])
+access([t96.c1], [t96.c2], [t96.c3])
 8 - output([t97.c3], [t97.c2])
+access([t97.c2], [t97.c3])
 access([t97.c2], [t97.c3])
 9 - output([t98.c1], [t99.c2], [t99.c3], [t99.c1], [t98.c4], [t99.c4])
 10 - output([t99.c2], [t99.c3], [t99.c1], [t99.c4])
 access([t99.c1], [t99.c2], [t99.c3], [t99.c4])
+access([t99.c1], [t99.c2], [t99.c3], [t99.c4])
 11 - output([t98.c1], [t98.c4])
 filters([t98.c2 IS NOT NULL])
 access([t98.c1], [t98.c2], [t98.c4])
+access([t98.c1], [t98.c2], [t98.c4])
 12 - output([t100.c2], [t100.c4])
+access([t100.c2], [t100.c4])
 access([t100.c2], [t100.c4])
 14 - output([t94.c2])
 15 - output([t94.c2])
 other_join_conditions([t94.c3 IS NOT NULL OR t92.c1 NOT BETWEEN t94.c3 AND t94.c2])
 16 - output([t94.c3], [t94.c2])
-access([t94.c3], [t94.c2])
+access([t94.c2], [t94.c3])
+access([t94.c2], [t94.c3])
 17 - output([t92.c1])
 access([t92.c1])
+access([t92.c1])
 18 - filters([t93.c1 <= t93.c3])
+access([t93.c1], [t93.c3])
 access([t93.c1], [t93.c3])
 
 outline:
@@ -916,11 +991,14 @@ sort_keys([t105.c2 DESC], [t103.c2 DESC], [t103.c2 DESC], [t104.c4 ASC])
 4 - output([t103.c2], [t104.c4])
 other_join_conditions([t104.c2 BETWEEN t103.c4 AND t103.c1])
 5 - output([t103.c4], [t103.c1], [t103.c2])
-access([t103.c4], [t103.c1], [t103.c2])
+access([t103.c1], [t103.c2], [t103.c4])
+access([t103.c1], [t103.c2], [t103.c4])
 6 - output([t104.c2], [t104.c4])
 filters([t104.c1 BETWEEN t104.c4 AND t104.c3])
-access([t104.c2], [t104.c1], [t104.c4], [t104.c3])
+access([t104.c1], [t104.c2], [t104.c3], [t104.c4])
+access([t104.c1], [t104.c2], [t104.c3], [t104.c4])
 8 - output([t105.c2])
+access([t105.c2])
 access([t105.c2])
 
 outline:
@@ -951,7 +1029,9 @@ sort_keys([t107.c4 DESC], [t107.c4 ASC], [t108.c3 DESC], [t107.c4 ASC])
 1 - output([t107.c4], [t108.c3])
 2 - output([t107.c4])
 access([t107.c4])
+access([t107.c4])
 3 - output([t108.c3])
+access([t108.c3])
 access([t108.c3])
 
 outline:

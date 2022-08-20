@@ -1,7 +1,7 @@
 use system;
 create table user(name varchar,host varchar,auth_string varchar);
 create table table_statis(tid int,row_count int, space_size int, analyze_time datetime);
-create table column_statis(tid int, cid int, ndv int, null_count int, max_value int, min_value int, analyze_time datetime);
+create table column_statis(tid int, cid int, ndv int, null_count int, max_value DECIMAL(72,10), min_value DECIMAL(72,10), analyze_time datetime);
 create table sys_vars(name varchar(64), value varchar(64));
 create table charset(charset varchar(20),description varchar(64),default_collation varchar(64),maxlen int);
 insert into charset values('utf8mb4','UTF-8 Unicode','utf8mb4_general_ci',4);
