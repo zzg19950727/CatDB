@@ -796,22 +796,24 @@ u32 do_not_exists(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 u32 do_and(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 {
 	u32 ret = SUCCESS;
-    CHECK(params[0]->get_result(ctx));
-    if (!ctx->bool_result) {
-        return ret;
+    for (u32 i = 0; i < params.size(); ++i) {
+        CHECK(params[i]->get_result(ctx));
+        if (!ctx->bool_result) {
+            return ret;
+        }
     }
-    CHECK(params[1]->get_result(ctx));
     return ret;
 }
 
 u32 do_or(const Vector<Expression_s> &params, ExecCtx_s &ctx)
 {
 	u32 ret = SUCCESS;
-    CHECK(params[0]->get_result(ctx));
-    if (ctx->bool_result) {
-        return ret;
+    for (u32 i = 0; i < params.size(); ++i) {
+        CHECK(params[i]->get_result(ctx));
+        if (ctx->bool_result) {
+            return ret;
+        }
     }
-    CHECK(params[1]->get_result(ctx));
     return ret;
 }
 

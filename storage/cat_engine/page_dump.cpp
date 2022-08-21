@@ -4,13 +4,14 @@
 #include "page.h"
 #include "error.h"
 #include <sstream>
+#include <iostream>
 
 using namespace CatDB::Storage;
 
 PageDump::PageDump(const String &data_file)
 {
     io_service = CatIoService::make_cat_io_service();
-    io_service->open(data_file);
+    u32 ret = io_service->open(data_file);
     page = Page::make_page();
     index = 0;
 }
@@ -26,19 +27,38 @@ void dump_header(Page_s &page, std::stringstream &str_stream)
 	str_stream << "free_size:" << page->page_header_->free_size << std::endl;
 }
 
+void hex_string(const char* data, u32 size, String& str)
+{
+    static char map[] = {'1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+    for (u32 i = 0; i < size; ++i) {
+        str += map[data[i]&0xf];
+        str += map[(data[i]&0xf0) >> 4];
+    }
+}
+
 void dump_record(Page_s &page, int idx, std::stringstream &str_stream)
 {
     RowInfo *info = &page->row_info_[idx];
     RawRecord* record = RawRecord::make_raw_record(page->records_space_ + info->offset);
+    if (page->is_row_deleted(info)) {
+        str_stream << "row " << idx << ":" << "delete" << std::endl;
+        return;
+    }
     str_stream << "row " << idx << ":" << record->column_count-1 << " columns" << std::endl;
     for (u32 i = 0; i < record->column_count-1; ++i) {
         u32 size = record->get_offset(i+1) - record->get_offset(i);
-        str_stream << "column " << i << ", length " << size << ", value:";
+        str_stream << "\t" << "column\t" << i << ",\tlength\t" << size << ",\tvalue:\t";
         char* data = reinterpret_cast<char*>(record) + record->get_offset(i);
         if (record->is_null(i)) {
             str_stream << "NULL" << std::endl;
         } else {
-            str_stream << String(data, size) << std::endl;
+            String str;
+            hex_string(data, size , str);
+            str += ' ';
+            str += '(';
+            str += String(data, size);
+            str += ')';
+            str_stream << str << std::endl;
         }
     }
 }

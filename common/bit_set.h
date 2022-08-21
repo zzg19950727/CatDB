@@ -11,6 +11,7 @@ public:
     void del_member(u32 member);
     void add_members(const BitSet& other);
     void del_members(const BitSet& other);
+    u32 num_members() const;
     bool has_member(u32 member) const;
     bool is_empty() const;
     bool is_equal(const BitSet& other) const;

@@ -172,9 +172,12 @@ u32 SqlEngine::handle_query()
                 for (u32 i = 0; i < stmt->select_expr_list.size(); ++i) {
                     query_result->add_result_title(stmt->select_expr_list[i]->get_alias_name(), T_VARCHAR);
                 }
-            } 
-            QUERY_CTX->query_hint = QueryHint::make_query_hint();
-            CHECK(QUERY_CTX->query_hint->init(resolve_ctx.all_hints, resolve_ctx.has_outline));
+            }
+            QueryHint_s query_hint = QueryHint::make_query_hint();
+            CHECK(query_hint->init(resolve_ctx.all_hints, resolve_ctx.has_outline));
+            QUERY_CTX->query_hint = query_hint;
+            LOG_TRACE("succeed to generate stmt", K(lex_stmt));
+            LOG_TRACE("succeed to init query hint", K(query_hint));
             Transformer transformer;
             DMLStmt_s dml_stmt = lex_stmt;
             TransformCtx_s transform_ctx = TransformCtx::make_transform_ctx();

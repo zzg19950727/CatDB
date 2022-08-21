@@ -328,6 +328,7 @@ u32 StatisManager::generate_table_statis(u32 table_id,
     MY_ASSERT(4*column_ids.size()+1 == result->get_column_count());
     while (SUCC( ret = result->get_next_row(row))) {
     }
+    MY_ASSERT(NO_MORE_ROWS == ret);
     CHECK(result->close());
     MY_ASSERT(row);
     table_statis = TableStatis::make_table_statis();

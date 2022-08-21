@@ -981,17 +981,19 @@ String OpExprStmt::to_string()const
 			}
 			break;
 		case OP_AND: 
-			if (params.size() == 2) {
-				ret += params[0]->to_string();
-				ret += " AND ";
-				ret += params[1]->to_string();
+			for (u32 i = 0; i < params.size(); ++i) {
+				if (i > 0) {
+					ret += " AND ";
+				}
+				ret += params[i]->to_string();
 			}
 			break;
 		case OP_OR: 
-			if (params.size() == 2) {
-				ret += params[0]->to_string();
-				ret += " OR ";
-				ret += params[1]->to_string();
+			for (u32 i = 0; i < params.size(); ++i) {
+				if (i > 0) {
+					ret += " OR ";
+				}
+				ret += params[i]->to_string();
 			}
 			break;
 		case OP_NOT: 
@@ -1374,8 +1376,6 @@ u32 OpExprStmt::deduce_type()
 		case OP_NOT_IN:
 		case OP_IN_LIST:
 		case OP_NOT_IN_LIST:
-		case OP_AND:
-		case OP_OR:
 			ret = (ObjCastUtil::get_result_type(params[0]->res_type,
 											   l_need_cast,
 											   l_dst_type,
@@ -1393,6 +1393,12 @@ u32 OpExprStmt::deduce_type()
 			}
 			if (r_need_cast) {
 				CHECK(ObjCastUtil::add_cast(params[1], r_dst_type, params[1]));
+			}
+			break;
+		case OP_AND:
+		case OP_OR:
+			for (u32 i = 0; i < params.size(); ++i) {
+				CHECK(ObjCastUtil::check_logical_type(params[i]->res_type, dst_type));
 			}
 	}
 	res_type = dst_type;
@@ -1513,7 +1519,8 @@ ExprStmt_s OrderStmt::get_order_by_expr() const
 }
 
 WinExprStmt::WinExprStmt(WinType win_func)
-	:win_func(win_func)
+	:win_func(win_func),
+	is_distinct(false)
 {
 
 }
@@ -1609,6 +1616,7 @@ u32 WinExprStmt::deduce_type()
 		case WIN_MIN:
 			win_func_expr = get_win_func_expr();
 			res_type = win_func_expr->res_type;
+			break;
 		case WIN_RANK:
 		case WIN_DENSE_RANK:
 		case WIN_ROW_NUMBER:

@@ -55,6 +55,23 @@ bool BitSet::has_member(u32 member) const
     }
 }
 
+u32 BitSet::num_members() const
+{
+    u32 num = 0;
+    u32 i = 0;
+    while (i < data.size()) {
+        u32 j = 0;
+        while (j < 8) {
+            if (data[i] & (1<<j)) {
+                ++num;
+            }
+            ++j;
+        }
+        ++i;
+    }
+    return num;
+}
+
 bool BitSet::is_empty() const
 {
     bool empty = true;

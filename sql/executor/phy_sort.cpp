@@ -200,6 +200,10 @@ u32 PhyTopNSort::sort_rows()
 	bool have_make_heap = false;
 	auto compare_func = [&](const Row_s& lhs, const Row_s& rhs) {return this->compare(lhs, rhs); };
 	while (SUCC(child->get_next_row(row))) {
+		if (rows.size() < topn) {
+			row = Row::deep_copy(row);
+			rows.push_back(row);
+		}
 		if (rows.size() == topn) {
 			if (!have_make_heap) {
 				std::make_heap(rows.begin(), rows.end(), compare_func);
@@ -213,9 +217,6 @@ u32 PhyTopNSort::sort_rows()
 				rows[rows.size() - 1] = Row::deep_copy(row);
 				std::push_heap(rows.begin(), rows.end(), compare_func);
 			}
-		} else {
-			row = Row::deep_copy(row);
-			rows.push_back(row);
 		}
 	}
 	quick_sort(rows, 0, rows.size() - 1);

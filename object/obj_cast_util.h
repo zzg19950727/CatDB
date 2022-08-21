@@ -46,7 +46,6 @@ namespace CatDB {
                                         DataType &dst_type);
 
             static u32 check_logical_type(const DataType& lhs,
-                                        const DataType& rhs,
                                         DataType &dst_type);
 
             static u32 get_result_type(const DataType& lhs, 

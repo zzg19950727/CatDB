@@ -343,10 +343,10 @@ namespace CatDB {
 
 			KV_STRING_OVERRIDE(
 				KV(win_func, WinTypeString[win_func]),
-				K(is_distinct),
-				K(params),
 				KV(flags, flags_to_string()),
 				K(res_type),
+				K(params),
+				K(is_distinct),
 				K(table_ids)
 			);
 		public:

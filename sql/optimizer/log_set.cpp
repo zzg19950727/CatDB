@@ -52,6 +52,14 @@ u32 LogSet::est_cost()
     return ret;
 }
 
+u32 LogSet::allocate_expr_pre()
+{
+    u32 ret = SUCCESS;
+    append(expr_ctx.expr_produce, access_exprs);
+    CHECK(LogicalOperator::allocate_expr_pre());
+    return ret;
+}
+
 void LogSet::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
 {
     PlanInfo info;

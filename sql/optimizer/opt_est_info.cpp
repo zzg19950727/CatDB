@@ -72,9 +72,12 @@ u32 EstInfo::set_table_output_rows(u32 table_id, double output_rows)
     if (output_rows >= table_statis->table_rows) {
         return ret;
     }
+    LOG_TRACE("start to update column ndv:", K(table_statis->table_rows), K(output_rows));
     for (auto iter = table_statis->columns_statis.begin(); iter != table_statis->columns_statis.end(); ++iter) {
         ColumnEstInfo_s &column_statis = iter->second;
-        column_statis->ndv *= (1 - std::pow((1 - output_rows / table_statis->table_rows), table_statis->table_rows / column_statis->ori_ndv));
+        column_statis->ndv = column_statis->ori_ndv * 
+        (1 - std::pow((1 - output_rows / table_statis->table_rows), table_statis->table_rows / column_statis->ori_ndv));
+        LOG_TRACE("update column ndv:", K(column_statis->ori_ndv), K(column_statis->ndv));
     }
     return ret;
 }

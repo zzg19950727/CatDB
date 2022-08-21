@@ -23,11 +23,14 @@ namespace CatDB {
         class TransformWinMagic : public TransformRule {
         public:
             struct TransfomHelper {
-
+                TransfomHelper()
+                    :from_having(false)
+                    {}
                 KV_STRING(
                     K(partition_by_exprs),
                     K(subquery_expr),
-                    K(cmp_map)
+                    K(cmp_map),
+                    K(from_having)
                 );
 
                 void reset()
@@ -35,10 +38,12 @@ namespace CatDB {
                     partition_by_exprs.clear();
                     subquery_expr.reset();
                     cmp_map.reset();
+                    from_having = false;
                 }
                 Vector<ExprStmt_s> partition_by_exprs;
                 SubQueryStmt_s subquery_expr;
                 Parser::StmtCompareMap cmp_map;
+                bool from_having;
             };
             TransformWinMagic();
             ~TransformWinMagic();
@@ -74,6 +79,12 @@ namespace CatDB {
 
             u32 do_transform(DMLStmt_s &stmt,
                              TransfomHelper &helper);
+
+            u32 do_transform_for_where(DMLStmt_s &stmt,
+                                       TransfomHelper &helper);
+
+            u32 do_transform_for_having(DMLStmt_s &stmt,
+                                        TransfomHelper &helper);
 
             u32 transform_aggr_expr_to_win_expr(TransfomHelper &helper, ExprStmt_s &expr);
 

@@ -47,6 +47,10 @@ namespace CatDB {
 			const BitSet &get_tables_ids() const { return table_ids; }
 			void add_table_ids(const BitSet& ids) { table_ids.add_members(ids); }
 			virtual u32 allocate_expr_pre();
+			/**
+			 * expr input : for current operator, exprs needed by parent operators
+			 * expr output: current operator`s output exprs
+			 */
 			virtual u32 allocate_expr_post(Vector<ExprStmt_s> &expr_input, 
 										   Vector<ExprStmt_s> &expr_output);
 			u32 expr_can_be_consumed(Vector<ExprStmt_s>& expr_consume, 

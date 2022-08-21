@@ -11,7 +11,8 @@ namespace CatDB {
 		protected:
 			HintStmt(HintType type, bool is_enable = true) 
 			: 	type(type),
-				is_enable_(is_enable) {}
+				is_enable_(is_enable),
+				is_invalid_(false) {}
 		public:
 			virtual ~HintStmt() {}
 			static HintStmt_s make_hint_stmt(HintType type, bool is_enable = true);
@@ -170,8 +171,8 @@ namespace CatDB {
 			JoinAlgo get_join_algo() const { return join_algo; }
 			String print_outline() const override;
 			u32 deep_copy(HintStmt_s &hint) const override;
-			bool is_same_hint_type(const HintStmt_s &other) const;
 
+			virtual bool is_same_hint_type(const HintStmt_s &other) const override;
 			virtual bool is_equal(const HintStmt_s &other) const override;
 			virtual bool is_excluse(const HintStmt_s &other) const override;
 

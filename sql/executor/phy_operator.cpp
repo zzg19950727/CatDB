@@ -74,12 +74,8 @@ u32 PhyOperator::open()
 u32 PhyOperator::get_next_row(Row_s &row)
 {
 	u32 ret = SUCCESS;
-	u32 i = 0;
 	while ((ret=inner_get_next_row()) == SUCCESS) {
-		++i;
-		if (!(i % 100)) {
-			CHECK(check_status())
-		}
+		CHECK(check_status());
 		CHECK(expr_filter(filters, exec_ctx));
 		if (!exec_ctx->bool_result) {
 			continue;

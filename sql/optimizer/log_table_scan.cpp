@@ -55,6 +55,20 @@ void LogTableScan::print_plan(u32 depth, Vector<PlanInfo> &plan_info)
     info.op = "TABLE SCAN";
     info.name = table_item->alias_name;
     if (!access_exprs.empty()) {
+        auto compare_func = [](const ExprStmt_s& lhs, const ExprStmt_s& rhs) 
+        { 
+            if (COLUMN == lhs->expr_type() && COLUMN == rhs->expr_type()) {
+                ColumnStmt_s l_col = lhs;
+                ColumnStmt_s r_col = rhs;
+                return l_col->column_id < r_col->column_id;
+            } else {
+                return true;
+            }
+        };
+        std::sort(access_exprs.begin(), 
+			      access_exprs.end(), 
+			      compare_func);
+        print_exprs(access_exprs, "access", info);
         print_exprs(access_exprs, "access", info);
     }
     plan_info.push_back(info);

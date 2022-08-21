@@ -1,6 +1,7 @@
 #include "server.h"
 #include "cat_engine/page_dump.h"
 #include <iostream>
+
 int main(int argc, char* argv[])
 {
 	String config_path = "catdb.conf";

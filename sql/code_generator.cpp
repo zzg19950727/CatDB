@@ -522,6 +522,8 @@ u32 CodeGenerator::generate_access_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
             rt_expr = ColumnExpression::make_column_expression(child->operator_id, col_expr->column_id);
             ctx.access_expr_map[expr] = rt_expr;
         }
+    } else if (LOG_SET == log_root->type()) {
+        //do nothing
     } else {
         Expression_s rt_expr;
         for (u32 i = 0; i < log_root->access_exprs.size(); ++i) {

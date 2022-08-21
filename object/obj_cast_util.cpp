@@ -181,16 +181,15 @@ u32 ObjCastUtil::check_calc_type(const DataType& lhs,
 }
 
 u32 ObjCastUtil::check_logical_type(const DataType& lhs,
-                                    const DataType& rhs,
                                     DataType &dst_type)
 {
     u32 ret = SUCCESS;
-    if (!lhs.is_bool() || !rhs.is_bool()) {
+    if (!lhs.is_bool()) {
         ret = INVALID_CAST;
     }
     dst_type = DataType::default_bool_type();
     if (FAIL(ret)) {
-        LOG_ERR("can not calc", K(lhs), K(rhs), K(ret));
+        LOG_ERR("can not calc", K(lhs), K(ret));
     }
     return ret;
 }
@@ -257,10 +256,8 @@ u32 ObjCastUtil::get_result_type(const DataType& lhs,
     case OP_NOT_EXISTS:
         dst_type = DataType::default_bool_type();
         break;
-    case OP_AND:
-    case OP_OR:
     case OP_NOT:
-        CHECK(check_logical_type(lhs, rhs, dst_type));
+        CHECK(check_logical_type(lhs, dst_type));
         break;
     default:
         ret = INVALID_CAST;

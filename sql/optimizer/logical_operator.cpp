@@ -61,6 +61,7 @@ u32 LogicalOperator::allocate_expr_pre()
     u32 ret = SUCCESS;
     append(expr_ctx.expr_consume, filters);
     append(expr_ctx.expr_consume, output_exprs);
+    LOG_TRACE("allocate expr pre", K(expr_ctx.expr_consume), K(expr_ctx.expr_produce));
     for (u32 i = 0; i < childs.size(); ++i) {
         CHECK(childs[i]->allocate_expr_pre());
     }
@@ -86,11 +87,12 @@ u32 LogicalOperator::allocate_expr_post(Vector<ExprStmt_s> &expr_input,
     }
     append(access_exprs, expr_child_output);
     append(expr_child_output, expr_ctx.expr_produce);
+    LOG_TRACE("allocate expr post", K(expr_child_input), K(expr_child_output));
     CHECK(expr_can_be_consumed(expr_ctx.expr_consume,
                                expr_child_output,
                                can_be));
     if (!can_be) {
-        //ret = ERR_UNEXPECTED;
+        ret = ERR_UNEXPECTED;
         LOG_ERR("expr can not be consumed", K(expr_ctx.expr_consume), K(expr_child_output), K(get_op_name()));
         return ret;
     }
@@ -125,6 +127,9 @@ u32 LogicalOperator::expr_can_be_consumed(ExprStmt_s& expr_consume,
     can_be = false;
     if (ExprUtils::find_equal_expr(expr_produce, expr_consume)) {
         can_be = true;
+    } else if (expr_consume->has_flag(IS_SET_EXPR)) {
+		can_be = false;
+        LOG_TRACE("expr can not be consumed", K(expr_consume));
     } else if (expr_consume->has_flag(IS_CONST)) {
         can_be = true;
     } else if (expr_consume->has_flag(IS_AGG)) {
@@ -214,10 +219,10 @@ u32 LogicalOperator::generate_operator_id_pre(u32 &id)
 u32 LogicalOperator::visit_plan()
 {
     u32 ret = SUCCESS;
-    CHECK(allocate_expr_pre());
     u32 start_id = 1;
     CHECK(generate_operator_id_pre(start_id));
     Vector<ExprStmt_s> dummy_input, dummy_output;
+    CHECK(allocate_expr_pre());
     CHECK(allocate_expr_post(dummy_input, dummy_output));
     return ret;
 }

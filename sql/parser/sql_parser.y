@@ -1612,7 +1612,7 @@ update_asgn_list:
 		$$ = Vector<ExprStmt_s>();
 		$$.push_back($1);
     }
-  | update_asgn_list ',' update_asgn_factor
+  | update_asgn_list "," update_asgn_factor
     {
 		//将新的表达式加入到表达式列表
 		$$ = $1;
@@ -2045,7 +2045,16 @@ op_from_database:
  *
  **************************************************************/
  analyze_stmt:
-    ANALYZE TABLE database_name "." relation_name opt_sample_size
+    ANALYZE TABLE relation_name opt_sample_size
+    {
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
+		check(cmd_stmt);
+		cmd_stmt->params.analyze_params.database = driver.get_global_database();
+		cmd_stmt->params.analyze_params.table = $3;
+		cmd_stmt->params.analyze_params.sample_size = $4;
+		$$ = cmd_stmt;
+    }
+  | ANALYZE TABLE database_name "." relation_name opt_sample_size
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
@@ -2054,7 +2063,7 @@ op_from_database:
 		cmd_stmt->params.analyze_params.sample_size = $6;
 		$$ = cmd_stmt;
     }
-  | ANALYZE TABLE database_name "." "*" opt_sample_size
+  | ANALYZE TABLE database_name "."  "*" opt_sample_size
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
 		check(cmd_stmt);
@@ -2116,7 +2125,7 @@ relation_factor:
 		table->alias_name = $1;
 		$$ = table;
 	}
-  | database_name "." relation_name
+    | database_name "." relation_name
 	{
 		//构建表表达式
 		BasicTableStmt_s table = BasicTableStmt::make_basic_table($1, $3);

@@ -4,6 +4,7 @@
 #include "log_scalar_group_by.h"
 #include "log_window_func.h"
 #include "log_distinct.h"
+#include "expr_utils.h"
 #include "log_sort.h"
 #include "log_limit.h"
 #include "log_set.h"
@@ -65,6 +66,7 @@ u32 SelectPlan::generate_set_plan_tree()
 										stmt->set_op);
 	root_operator->init(est_info);
 	CHECK(root_operator->compute_property());
+	append(root_operator->access_exprs, stmt->select_expr_list);
 	append(root_operator->output_exprs, stmt->select_expr_list);
 	return ret;
 }
@@ -156,6 +158,19 @@ u32 SelectPlan::generate_one_window_function(WinExprStmt_s win_expr)
 	Vector<ExprStmt_s> order_by_exprs;
 	win_expr->get_win_part_by_exprs(part_by_exprs);
 	win_expr->get_win_order_by_exprs(order_by_exprs);
+	if (LOG_WINDOW_FUNC == root_operator->type()) {
+		LogWindowFunc_s win_func_op = root_operator;
+		if (part_by_exprs.size() == win_func_op->partition_by_exprs.size()) {
+			Vector<ExprStmt_s> common_exprs;
+			CHECK(ExprUtils::expr_intersect(part_by_exprs, 
+											win_func_op->partition_by_exprs, 
+											common_exprs));
+			if (common_exprs.size() == part_by_exprs.size()) {
+				win_func_op->win_items.push_back(win_expr);
+				return ret;
+			}
+		}
+	}
 	if (!part_by_exprs.empty()) {
 		root_operator = LogSort::make_sort(root_operator, order_by_exprs, 0);
 		root_operator->init(est_info);

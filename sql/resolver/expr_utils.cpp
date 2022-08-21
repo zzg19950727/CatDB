@@ -198,12 +198,9 @@ u32 ExprUtils::make_or_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr)
 {
     u32 ret = SUCCESS;
     MY_ASSERT(2 <= old_exprs.size());
-    ExprStmt_s l_expr = old_exprs[0];
-    for (u32 i = 1; i < old_exprs.size(); ++i) {
-        new_expr = OpExprStmt::make_op_expr_stmt(OP_OR);
-        new_expr->params.push_back(l_expr);
+    new_expr = OpExprStmt::make_op_expr_stmt(OP_OR);
+    for (u32 i = 0; i < old_exprs.size(); ++i) {
         new_expr->params.push_back(old_exprs[i]);
-        l_expr = new_expr;
     }
     CHECK(new_expr->formalize());
     return ret;
@@ -213,12 +210,9 @@ u32 ExprUtils::make_and_expr(Vector<ExprStmt_s> &old_exprs, ExprStmt_s &new_expr
 {
     u32 ret = SUCCESS;
     MY_ASSERT(2 <= old_exprs.size());
-    ExprStmt_s l_expr = old_exprs[0];
-    for (u32 i = 1; i < old_exprs.size(); ++i) {
-        new_expr = OpExprStmt::make_op_expr_stmt(OP_AND);
-        new_expr->params.push_back(l_expr);
+    new_expr = OpExprStmt::make_op_expr_stmt(OP_AND);
+    for (u32 i = 0; i < old_exprs.size(); ++i) {
         new_expr->params.push_back(old_exprs[i]);
-        l_expr = new_expr;
     }
     CHECK(new_expr->formalize());
     return ret;
