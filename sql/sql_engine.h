@@ -78,6 +78,8 @@ namespace CatDB {
 		public:
 			~SqlEngine();
 			static SqlEngine_s make_sql_engine(const String& query);
+            
+            static u32 handle_inner_sql(const String &query);
 
             static u32 handle_inner_sql(const String &query,
                                         ResultSet_s &result_set);

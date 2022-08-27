@@ -2,25 +2,7 @@
 #include <fstream>
 using namespace CatDB::Server;
 
-Config::Config(const char* path)
-{
-	read_file(path);
-}
-
-Config::~Config()
-{
-}
-
-String Config::value(const String& key)const
-{
-	auto iter = m_keys.find(key);
-	if(iter != m_keys.cend())
-		return iter->second;
-	else
-		return "";
-}
-
-bool parse_key_value(const String& str, String& key, String& value)
+bool ConfigReader::parse_key_value(const String& str, String& key, String& value)
 {
 	u32 i = 0;
 	//skip space
@@ -56,7 +38,7 @@ bool parse_key_value(const String& str, String& key, String& value)
 	return true;
 }
 
-void Config::read_file(const char* path)
+void ConfigReader::read_file(const char* path, HashMap<String, String> &keys)
 {
 	std::ifstream file(path);
 	if (!file.is_open())
@@ -72,7 +54,7 @@ void Config::read_file(const char* path)
 		String value;
 		if (parse_key_value(config, key, value))
 		{
-			m_keys[key] = value;
+			keys[key] = value;
 		}
 	}
 	file.close();

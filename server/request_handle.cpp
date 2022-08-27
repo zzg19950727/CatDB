@@ -7,6 +7,7 @@
 #include "row_packet.h"
 #include "ok_packet.h"
 #include "session_info.h"
+#include "global_context.h"
 #include "buffer.h"
 #include "global.h"
 #include "server.h"
@@ -22,8 +23,8 @@ using namespace CatDB::Sql;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
-	m_read_cache(service.config().cache_size()),
-	m_write_cache(service.config().cache_size()),
+	m_read_cache(GTX->config().cache_size()),
+	m_write_cache(GTX->config().cache_size()),
 	m_server_service(service)
 {
 	NetService::CallbackFunc func = std::bind(&RequestHandle::notify_socket,this, std::placeholders::_1, std::placeholders::_2);
@@ -32,9 +33,9 @@ RequestHandle::RequestHandle(int fd,ServerService& service)
 		close_connection();
 	}
 	session_info = SessionInfo::make_session_info();
-	session_info->set_session_log_level(service.config().log_level());
-	session_info->set_session_log_module(service.config().log_module());
-	session_info->set_query_timeout(service.config().query_timeout());
+	session_info->set_session_log_level(GTX->config().log_level());
+	session_info->set_session_log_module(GTX->config().log_module());
+	session_info->set_query_timeout(GTX->config().query_timeout());
 }
 
 RequestHandle::~RequestHandle()
@@ -316,7 +317,7 @@ u32 RequestHandle::do_not_support()
 
 u32 RequestHandle::do_cmd_query(const String& query)
 {
-	SET_GTX(session_info);
+	SET_SESSION_CTX(session_info);
 	SqlEngine_s engine = SqlEngine::make_sql_engine(query);
 	u32 ret = engine->handle_query();
 	if (FAIL(ret)) {

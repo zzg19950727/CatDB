@@ -1,13 +1,32 @@
-%skeleton "lalr1.cc"
+/*CatDB::SqlParser::make_XXX(loc)给token添加前缀*/
+%define api.token.prefix {TOKEN_}
+
+//使得类型与token定义可以使用各种复杂的结构与类型
+%define api.value.type variant
+
+/*定义parser传给scanner的参数*/
+%lex-param { CatDB::SqlScanner& scanner }
+%lex-param { CatDB::SqlDriver& driver }
+
+/*定义driver传给parser的参数*/
+%parse-param { CatDB::SqlScanner& scanner }
+%parse-param { CatDB::SqlDriver& driver }
+
 //声明命名空间
 %define api.namespace {CatDB} 
-//%define api.parser.class { SqlParser }
+
 %define api.token.constructor
-//使得类型与token定义可以使用各种复杂的结构与类型
-%define api.value.type variant 
+
+/*详细显示错误信息*/
+%define parse.error verbose
+
 //开启断言功能
 %define parse.assert  
+
+%skeleton "lalr1.cc"
+%locations
 %defines
+
 %code requires
 {
 	#define YYDEBUG 1
@@ -16,16 +35,17 @@
 	#include "insert_stmt.h"
 	#include "update_stmt.h"
 	#include "delete_stmt.h"
+	#include "table_stmt.h"
+	#include "expr_stmt.h"
 	#include "dml_stmt.h"
 	#include "cmd_stmt.h"
-	#include "expr_stmt.h"
-	#include "table_stmt.h"
-	#include "object.h"
-	#include "obj_number.h"
-	#include "obj_varchar.h"
-	#include "obj_datetime.h"
 	#include "stmt.h"
+	#include "obj_datetime.h"
+	#include "obj_varchar.h"
+	#include "obj_number.h"
+	#include "object.h"
 	#include "type.h"
+
 	/*避免包含头文件时冲突*/
 	namespace CatDB {
 		class SqlScanner;
@@ -40,18 +60,20 @@
 	#include "sql_scanner.h"
 	#include "sql_driver.h"
 	#include "location.hh"
+
 	#include "select_stmt.h"
 	#include "insert_stmt.h"
 	#include "update_stmt.h"
 	#include "delete_stmt.h"
+    #include "table_stmt.h"
+	#include "expr_stmt.h"
 	#include "dml_stmt.h"
 	#include "cmd_stmt.h"
-	#include "expr_stmt.h"
-    #include "table_stmt.h"
 	#include "object.h"
 	
 	/*注意：这里的参数由%parse-param决定*/
-	static CatDB::SqlParser::symbol_type yylex(CatDB::SqlScanner& scanner,CatDB::SqlDriver &driver)
+	static CatDB::SqlParser::symbol_type yylex(CatDB::SqlScanner& scanner,
+											   CatDB::SqlDriver &driver)
 	{
 		return scanner.get_next_token();
 	}
@@ -62,102 +84,74 @@
 
 %{
 	
-#define yyerror(fmt, ...) \
-{ \
-	char tmp[255]; \
-	sprintf(tmp, fmt, ##__VA_ARGS__); \
-	driver.set_sys_error(tmp); \
+#define yyerror(fmt, ...) 				\
+{ 										\
+	char tmp[255]; 						\
+	sprintf(tmp, fmt, ##__VA_ARGS__); 	\
+	driver.set_sys_error(tmp); 			\
 }
  
-#define check(stmt) \
-{ \
-	if(!stmt) \
-	{ \
+#define check(stmt) 				\
+{ 									\
+	if(!stmt) 						\
+	{ 								\
 		yyerror("make stmt error"); \
-		YYABORT; \
-	} \
+		YYABORT; 					\
+	} 								\
 }
 
-#define make_list(ret, from) \
-{ \
-	ListStmt_s list = ListStmt::make_list_stmt(); \
-	check(list); \
-	list->push_back(from); \
-	ret = list; \
+#define make_unary_stmt(stmt, stmt1, op) 		\
+{ 												\
+	stmt = OpExprStmt::make_op_expr_stmt(op); 	\
+	check(stmt); 								\
+	stmt->params.push_back(stmt1); 				\
 }
 
-#define list_push(ret, list, from) \
-{ \
-	ListStmt_s stmt = list; \
-	check(stmt); \
-	stmt->push_back(from); \
-	ret = list; \
+#define make_binary_stmt(stmt, stmt1, stmt2, op) 	\
+{					 								\
+	stmt = OpExprStmt::make_op_expr_stmt(op); 		\
+	check(stmt); 									\
+	stmt->params.push_back(stmt1); 					\
+	stmt->params.push_back(stmt2); 					\
 }
 
-#define make_unary_stmt(stmt, stmt1, op) \
-{ \
-	stmt = OpExprStmt::make_op_expr_stmt(op); \
-	check(stmt); \
-	stmt->params.push_back(stmt1); \
-}
-
-#define make_binary_stmt(stmt, stmt1, stmt2, op) \
-{ \
-	stmt = OpExprStmt::make_op_expr_stmt(op); \
-	check(stmt); \
-	stmt->params.push_back(stmt1); \
-	stmt->params.push_back(stmt2); \
-}
-
-#define make_ternary_stmt(stmt, stmt1, stmt2, stmt3, op) \
-{ \
-	stmt = OpExprStmt::make_op_expr_stmt(op); \
-	check(stmt); \
-	stmt->params.push_back(stmt1); \
-	stmt->params.push_back(stmt2); \
-	stmt->params.push_back(stmt3); \
+#define make_ternary_stmt(stmt, stmt1, stmt2, stmt3, op) 	\
+{ 															\
+	stmt = OpExprStmt::make_op_expr_stmt(op); 				\
+	check(stmt); 											\
+	stmt->params.push_back(stmt1); 							\
+	stmt->params.push_back(stmt2); 							\
+	stmt->params.push_back(stmt3); 							\
 }
 	
-#define str_to_lower(str) \
-{\
-	for(u32 i = 0; i<str.size(); ++i){\
-		if(str[i] >= 'A' && str[i] <= 'Z'){\
-			str[i] -= 'A';\
-			str[i] += 'a';\
-		}\
-	}\
+#define str_to_lower(str) 					\
+{											\
+	for(u32 i = 0; i<str.size(); ++i){		\
+		if(str[i] >= 'A' && str[i] <= 'Z'){	\
+			str[i] -= 'A';					\
+			str[i] += 'a';					\
+		}									\
+	}										\
 }
+
 %}
 
-/*定义parser传给scanner的参数*/
-%lex-param { CatDB::SqlScanner& scanner }
-%lex-param { CatDB::SqlDriver& driver }
-/*定义driver传给parser的参数*/
-%parse-param { CatDB::SqlScanner& scanner }
-%parse-param { CatDB::SqlDriver& driver }
- 
-%locations
-//%define parse-trace
-/*详细显示错误信息*/
-%define parse.error verbose
-/*CatDB::SqlParser::make_XXX(loc)给token添加前缀*/
-%define api.token.prefix {TOKEN_}
-
+%left	CMP_LE CMP_LT CMP_EQ CMP_GT CMP_GE CMP_NE
 %left	UNION EXCEPT
 %left	INTERSECT
+%left 	UMINUS
+%left	LIKE
+%right	NOT
 %left	OR
 %left	AND
-%right	NOT
-%left	CMP_LE CMP_LT CMP_EQ CMP_GT CMP_GE CMP_NE
-%left	 LIKE
+%left 	"+" "-"
+%left 	"*" "/"
+%left 	"(" ")"
+%left 	"."
+
+%nonassoc IS NULLX BOOL
 %nonassoc BETWEEN
 %nonassoc IN
-%nonassoc IS NULLX BOOL
-%left "+" "-"
-%left "*" "/"
-%left UMINUS
-%left "(" ")"
-%left "."
 
 %token<std::string>	STRING
 %token<std::string>	IDENT
@@ -170,6 +164,7 @@
 %token ANY
 %token AS
 %token ASC
+%token AVG
 %token BEGIN_HINT
 %token BEGIN_OUTLINE_DATA
 %token BETWEEN
@@ -188,6 +183,7 @@
 %token COLUMN
 %token COLUMNS
 %token COMMA ","
+%token COUNT
 %token CREATE
 %token CSV
 %token DATABASE
@@ -197,6 +193,7 @@
 %token DAY
 %token DECIMAL
 %token DELETE
+%token DENSE_RANK
 %token DESC
 %token DESCRIBE
 %token DISTINCT
@@ -210,6 +207,7 @@
 %token END_SYM
 %token ENGINE
 %token EXCEPT
+%token EXEC
 %token EXISTS
 %token EXPLAIN
 %token EXPR_NORMALIZE
@@ -217,6 +215,7 @@
 %token FLOAT
 %token FROM
 %token FULL
+%token FUNCTION
 %token GROUP
 %token HAVING
 %token IF
@@ -227,9 +226,9 @@
 %token INNER
 %token INSERT
 %token INT
+%token INTEGER
 %token INTERSECT
 %token INTERVAL
-%token INTEGER
 %token INTO
 %token IS
 %token JOIN
@@ -240,20 +239,22 @@
 %token LIMIT
 %token LINE
 %token LP "("
+%token MAX
 %token MEDIUMINT
 %token MEMORY
 %token MERGE
+%token MIN
 %token MINUS "-"
 %token MONTH
 %token MUL "*"
 %token NOT
-%token NO_REWRITE
-%token NO_UNNEST
+%token NO_EXPR_NORMALIZE
 %token NO_MERGE
+%token NO_REWRITE
+%token NO_SIMPLIFY_SQ
+%token NO_UNNEST
 %token NO_USE_HASH
 %token NO_USE_NL
-%token NO_SIMPLIFY_SQ
-%token NO_EXPR_NORMALIZE
 %token NO_WIN_MAGIC
 %token NULLX
 %token NUMERIC_SYM
@@ -262,27 +263,35 @@
 %token ORDER
 %token ORDERED
 %token OUTER
+%token OVER
+%token PACKAGE
 %token PARALLEL
 %token PARTITION
 %token PERIOD "."
 %token PLUS "+"
+%token PROCEDURE
 %token PROCESSLIST
+%token RANK
 %token REAL
+%token REPLACE
+%token RETURN
 %token RIGHT
 %token ROWID
+%token ROW_NUMBER
 %token RP ")"
 %token SAMPLE
 %token SELECT
 %token SEMICOLON ";"
 %token SET
 %token SHOW
-%token SIZE
 %token SIMPLIFY_SQ
+%token SIZE
 %token SMALLINT
 %token SPLIT
 %token STATIS
 %token STATUS
 %token SUBSTR
+%token SUM
 %token TABLE
 %token TABLES
 %token THEN
@@ -303,51 +312,50 @@
 %token VIEW
 %token WHEN
 %token WHERE
-%token YEAR
-//aggr function
-%token SUM
-%token COUNT
-%token AVG
-%token MIN
-%token MAX
-%token RANK
-%token DENSE_RANK
-%token ROW_NUMBER
-%token OVER
 %token WIN_MAGIC
+%token YEAR
 %token END 0
 
-%type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt 
-									delete_stmt explain_stmt explainable_stmt
-%type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt 
-									set_var_stmt kill_stmt
+%type<ColumnDefineStmt_s>			column_definition param
+%type<BasicTableStmt_s> 			relation_factor
+%type<LeadingTable_s> 				leading_hint_table
+%type<LimitStmt_s>					opt_select_limit
+%type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
+%type<HintStmt_s> 					single_hint
 %type<ExprStmt_s>					projection simple_expr arith_expr cmp_expr logical_expr column_ref 
 									expr_const func_expr query_ref_expr update_asgn_factor case_when_expr
 									seconds_expr order_by opt_arith_expr
-%type<LimitStmt_s>					opt_select_limit
-%type<TableStmt_s>					table_factor sub_table_factor basic_table_factor view_table_factor joined_table_factor
-%type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
-%type<int>							limit_expr int_value opt_char_length opt_time_precision
+%type<Stmt_s>						sql_stmt stmt cmd_stmt select_stmt insert_stmt update_stmt 
+									delete_stmt explain_stmt explainable_stmt 
+									 
+%type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
+%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt 
+									kill_stmt create_package_stmt exec_package_stmt
+%type<Hint> 						opt_hint
+
+%type<Vector<Vector<ExprStmt_s>>>	insert_value_list
+%type<Vector<FunctionDefinition_s>>	pro_or_func_list
+%type<Vector<ColumnDefineStmt_s>>	table_element_list param_list opt_param_list table_type
+%type<Vector<LeadingTable_s>> 		leading_hint_table_list
+%type<Vector<TableStmt_s>>			from_list 
+%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list 
+									when_then_list1 when_then_list2 opt_order_by order_by_list opt_partition_by opt_arith_expr_list
+%type<Vector<HintStmt_s>> 			opt_hint_list hint_list
+%type<Vector<String>> 				hint_table_list opt_engine_def opt_view_column_define view_column_define
+
+%type<FunctionDefinition_s>			pro_or_func procedure_define function_define
+%type<OperationType> 				cmp_type sq_cmp_type
 %type<DataType>						data_type
-%type<double>						opt_sample_size
+%type<WinType>						win_type
+
 %type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name 
 									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
-%type<Vector<TableStmt_s>>			from_list 
-%type<BasicTableStmt_s> 			relation_factor
-%type<Vector<ExprStmt_s>>			select_expr_list opt_groupby arith_expr_list opt_where opt_having insert_value update_asgn_list 
-									when_then_list1 when_then_list2 opt_order_by order_by_list opt_partition_by
-%type<Vector<Vector<ExprStmt_s>>>	insert_value_list
-%type<ColumnDefineStmt_s>			column_definition
-%type<Vector<ColumnDefineStmt_s>>	table_element_list
-%type<Hint> 						opt_hint
-%type<Vector<HintStmt_s>> 			opt_hint_list hint_list
-%type<HintStmt_s> 					single_hint
-%type<Vector<String>> 				hint_table_list opt_engine_def opt_view_column_define view_column_define
-%type<Vector<LeadingTable_s>> 		leading_hint_table_list
-%type<LeadingTable_s> 				leading_hint_table
-%type<OperationType> 				cmp_type sq_cmp_type
-%type<WinType>						win_type
+									package_name procedure_name function_name param_name
+%type<double>						opt_sample_size
+%type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
+									opt_replace
+%type<int>							limit_expr int_value opt_char_length opt_time_precision
+
 %start sql_stmt
 %%
 
@@ -366,7 +374,7 @@ stmt:
   | update_stmt			{ $$ = $1; }
   | delete_stmt			{ $$ = $1; }
   | explain_stmt		{ $$ = $1; }
-  | /*EMPTY*/			{ yyerror("unknow stmt"); }
+  | /*EMPTY*/			{ yyerror("unknow SQL"); }
 	;
 
 /**************************************************************
@@ -375,14 +383,15 @@ stmt:
  *
  **************************************************************/
 cmd_stmt:
-	show_stmt			{ $$ = $1; }
-	| create_stmt		{ $$ = $1; }
-	| drop_stmt			{ $$ = $1; }
-	| desc_stmt			{ $$ = $1; }
-	| use_stmt			{ $$ = $1; }
-	| analyze_stmt		{ $$ = $1; }
-	| set_var_stmt		{ $$ = $1; }
-	| kill_stmt			{ $$ = $1; }
+	show_stmt				{ $$ = $1; }
+	| create_stmt			{ $$ = $1; }
+	| drop_stmt				{ $$ = $1; }
+	| desc_stmt				{ $$ = $1; }
+	| use_stmt				{ $$ = $1; }
+	| analyze_stmt			{ $$ = $1; }
+	| kill_stmt				{ $$ = $1; }
+	| create_package_stmt	{ $$ = $1; }
+	| exec_package_stmt		{ $$ = $1; }
 	;
 
 select_stmt:
@@ -2091,17 +2100,6 @@ opt_sample_size:
 	}
 	;
 
-set_var_stmt:
-	SET ident CMP_EQ string
-	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(SetVar);
-		check(cmd_stmt);
-		cmd_stmt->params.set_var_params.var_name = $2;
-		cmd_stmt->params.set_var_params.var_value = $4;
-		$$ = cmd_stmt;
-	}
-	;
-
 kill_stmt:
 	KILL int_value
 	{
@@ -2111,6 +2109,167 @@ kill_stmt:
 		$$ = cmd_stmt;
 	}
 	;
+
+ /**************************************************************
+ *
+ *	create package define
+ *
+ **************************************************************/
+create_package_stmt:
+    CREATE opt_replace PACKAGE package_name IS
+    pro_or_func_list
+    END_SYM
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreatePackage);
+		check(cmd_stmt);
+		CreatePackageParam_s param = CreatePackageParam::make_create_package_param();
+		param->is_replace = $2;
+		param->name = $4;
+		param->functions = $6;
+		cmd_stmt->param = param;
+		$$ = cmd_stmt;
+	}
+	;
+
+pro_or_func_list:
+    pro_or_func
+	{
+		$$ = Vector<FunctionDefinition_s>();
+		$$.push_back($1);
+	}
+    | pro_or_func_list pro_or_func
+	{
+		$$ = $1;
+		$$.push_back($2);
+	}
+	;
+
+pro_or_func:
+    procedure_define
+	{
+		$$ = $1;
+	}
+    | function_define
+	{
+		$$ = $1;
+	}
+	;
+
+procedure_define:
+    PROCEDURE procedure_name "(" opt_param_list ")" ";"
+	{
+		$$ = FunctionDefinition::make_func_define();
+		$$->name = $2;
+		$$->param_list = $4;
+	}
+	;
+
+function_define:
+    FUNCTION function_name "(" opt_param_list ")" 
+    RETURN table_type ";"
+	{
+		$$ = FunctionDefinition::make_func_define();
+		$$->name = $2;
+		$$->param_list = $4;
+		$$->return_type_list = $7;
+	}
+	| FUNCTION function_name "(" opt_param_list ")" 
+    RETURN data_type ";"
+	{
+		$$ = FunctionDefinition::make_func_define();
+		$$->name = $2;
+		$$->param_list = $4;
+		ColumnDefineStmt_s stmt = ColumnDefineStmt::make_column_define_stmt($2, $7);
+		$$->return_type_list.push_back(stmt);
+	}
+	;
+
+table_type:
+    TABLE "(" param_list ")"
+	{
+		$$ = $3;
+	}
+	;
+
+opt_param_list:
+	/**/
+	{
+		$$ = Vector<ColumnDefineStmt_s>();
+	}
+	| param_list
+	{
+		$$ = $1;
+	}
+	;
+
+param_list:
+    param
+	{
+		$$ = Vector<ColumnDefineStmt_s>();
+		$$.push_back($1);
+	}
+    | param_list "," param
+	{
+		$$ = $1;
+		$$.push_back($3);
+	}
+	;
+
+param:
+    param_name data_type
+	{
+		ColumnDefineStmt_s stmt = ColumnDefineStmt::make_column_define_stmt($1, $2);
+		check(stmt);
+		$$ = stmt;
+	}
+	;
+
+opt_replace:
+	/*empty*/		{ $$ = false; }
+	| OR REPLACE 	{ $$ = true; }
+	;
+
+package_name:
+	ident		{ $$ = $1; }
+  ;
+
+procedure_name:
+	ident		{ $$ = $1; }
+  ;
+
+function_name:
+	ident		{ $$ = $1; }
+  ;
+
+param_name:
+	ident		{ $$ = $1; }
+  ;
+
+exec_package_stmt:
+	EXEC package_name "." function_name "(" opt_arith_expr_list ")"
+	{
+		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ExecFunction);
+		check(cmd_stmt);
+		ExecFunctionParam_s param = ExecFunctionParam::make_exec_func_param();
+		param->package_name = $2;
+		param->function_name = $4;
+		param->param_list = $6;
+		cmd_stmt->param = param;
+		$$ = cmd_stmt;
+	}
+	;
+
+opt_arith_expr_list:
+	/**/
+	{
+		$$ = Vector<ExprStmt_s>();
+	}
+	| arith_expr_list
+	{
+		$$ = $1;
+	}
+	;
+
  /**************************************************************
  *
  *	name define

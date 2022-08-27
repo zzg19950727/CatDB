@@ -50,7 +50,7 @@
 #  endif
 # endif
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
 namespace CatDB {
 #line 56 "/home/lighthouse/CatDB/sql/parser/position.hh" // location.cc:296
   /// Abstract a position.
@@ -174,7 +174,7 @@ namespace CatDB {
     return ostr << pos.line << '.' << pos.column;
   }
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
 } // CatDB
 #line 180 "/home/lighthouse/CatDB/sql/parser/position.hh" // location.cc:296
 #endif // !YY_YY_HOME_LIGHTHOUSE_CATDB_SQL_PARSER_POSITION_HH_INCLUDED

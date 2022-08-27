@@ -40,7 +40,7 @@
 
 # include <vector>
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // stack.hh:132
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // stack.hh:132
 namespace CatDB {
 #line 46 "/home/lighthouse/CatDB/sql/parser/stack.hh" // stack.hh:132
   template <class T, class S = std::vector<T> >
@@ -150,7 +150,7 @@ namespace CatDB {
     unsigned int range_;
   };
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // stack.hh:132
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // stack.hh:132
 } // CatDB
 #line 156 "/home/lighthouse/CatDB/sql/parser/stack.hh" // stack.hh:132
 

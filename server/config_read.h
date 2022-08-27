@@ -3,17 +3,12 @@
 #include "type.h"
 namespace CatDB {
 	namespace Server {
-		class Config
+		class ConfigReader
 		{
 		public:
-			Config(const char* path);
-			~Config();
-			String value(const String& key)const;
-
+			void read_file(const char* path, HashMap<String, String> &keys);
 		private:
-			void read_file(const char* path);
-
-			HashMap<String, String> m_keys;
+			bool parse_key_value(const String& str, String& key, String& value);
 		};
 	}
 }

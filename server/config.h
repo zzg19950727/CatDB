@@ -1,14 +1,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#include "config_read.h"
 #include "type.h"
 namespace CatDB {
 	namespace Server {
-		class ServerServiceConfig
+		class ConfigService
 		{
 		public:
-			ServerServiceConfig(const char* path);
-			~ServerServiceConfig();
+			ConfigService();
+			~ConfigService();
 			String ip()const;
 			int port()const;
 			int max_client_count()const;
@@ -20,8 +19,14 @@ namespace CatDB {
 			int thread_pool_size()const;
 			String log_module() const;
 			long long query_timeout() const;
+			String value(const String& key)const;
+			int init(const char* path);
+			HashMap<String, String>& get_all_config();
+			void set_value(const String& key, const String& value);
+			void add_value(const String& key, const String& value);
+			bool has_key(const String& key) const;
 		private:
-			Config m_config;
+			HashMap<String, String> m_keys;
 		};
 	}
 }

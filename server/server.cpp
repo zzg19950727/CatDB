@@ -1,8 +1,10 @@
 #include "request_handle.h"
 #include "schema_guard.h"
+#include "package_manager.h"
 #include "statis_manager.h"
 #include "table_space.h"
 #include "session_info.h"
+#include "global_context.h"
 #include "loginer.h"
 #include "object.h"
 #include "server.h"
@@ -13,43 +15,51 @@ using namespace CatDB::Server;
 using namespace CatDB::Storage;
 using namespace CatDB::Parser;
 using namespace CatDB::Optimizer;
+using namespace CatDB::Package;
+using namespace CatDB::Common;
 
-HashMap<int, RequestHandle_s> ServerService::m_processlist = HashMap<int, RequestHandle_s>();
-
-ServerService::ServerService(const String& config)
-	:m_config(config.c_str()),
-	m_net_service(0),
-	m_workers(m_config.thread_pool_size()),
+ServerService::ServerService()
+	:m_net_service(0),
+	m_workers(),
 	m_clients(0),
 	m_session_id(0)
 {
-	TableSpace::data_dir = m_config.data_dir();
-	TableSpace::recycle_dir = m_config.recycle_dir();
-	String log_path = m_config.log_file_path();
-	if(!log_path.empty())
-	{
-		CatDB::Common::set_log_file(log_path.c_str());
-	}
-	GTX->set_session_log_level(m_config.log_level());
-	GTX->set_session_log_module(m_config.log_module());
-	GTX->set_root_session();
+	
 }
 
 ServerService::~ServerService()
 {
 }
 
+int ServerService::init(const String& config)
+{
+	GTX->init_config(config.c_str());
+	m_workers.init(GTX->config().thread_pool_size());
+	init_log_file();
+	SESSION_CTX->set_session_log_level(GTX->config().log_level());
+	SESSION_CTX->set_session_log_module(GTX->config().log_module());
+	SESSION_CTX->set_root_session();
+	PackageManager_s& package_manager = PackageManager::get_package_manager();
+	if (package_manager->init() != SUCCESS) {
+		LOG_ERR("failed to init package manager");
+		return -1;
+	}
+	SchemaGuard_s &schema_guard = SchemaGuard::get_schema_guard();
+	if ((schema_guard->init_guard()) != SUCCESS) {
+		LOG_ERR("failed to init schema guard");
+		return -1;
+	}
+	StatisManager_s &manager = StatisManager::get_statis_manager();
+	if ((manager->init_statis_cache()) != SUCCESS) {
+		LOG_ERR("failed to init statis manager");
+		return -1;
+	}
+	return 0;
+}
+
 int ServerService::run()
 {
-	SchemaGuard_s schema_guard = SchemaGuard::make_schema_guard();
-	if ((schema_guard->init_guard()) != SUCCESS) {
-		return -1;
-	}
-	StatisManager_s manager = StatisManager::make_statis_manager();
-	if ((manager->init_statis_cache()) != SUCCESS) {
-		return -1;
-	}
-	m_fd = start_listen(m_config.ip().c_str(), m_config.port(), m_config.max_client_count());
+	m_fd = start_listen(GTX->config().ip().c_str(), GTX->config().port(), GTX->config().max_client_count());
 	if (m_fd > 0)
 	{
 		NetService::CallbackFunc func = std::bind(&ServerService::new_connection, this, std::placeholders::_1, std::placeholders::_2);
@@ -74,7 +84,7 @@ void ServerService::new_connection(int fd, NetService::Event e)
 	int client_fd = accept_connection(fd);
 	if(client_fd > 0)
 	{
-		if(m_clients >= m_config.max_client_count())
+		if(m_clients >= GTX->config().max_client_count())
 		{
 			LOG_ERR("ServerService::new_connection too much clients,rejuect", K(m_clients));
 			net_close(client_fd);
@@ -89,7 +99,7 @@ void ServerService::do_login(int fd)
 	Loginer loginer(m_session_id, fd);
 	if (loginer.login() == SUCCESS) {
 		auto ptr = RequestHandle_s(new RequestHandle(fd, *this));
-		m_processlist[m_session_id] = ptr;
+		GTX->add_process(m_session_id, ptr);
 		ptr->set_login_info(loginer.get_login_info(), m_session_id);
 		ptr->set_delete_handle(ptr);
 		++m_clients;
@@ -103,7 +113,7 @@ void ServerService::do_login(int fd)
 void ServerService::close_connection(int fd)
 {
 	--m_clients;
-	m_processlist.erase(fd);
+	GTX->remove_process(fd);
 	LOG_TRACE("client closed", K(fd));
 }
 
@@ -118,7 +128,7 @@ void ServerService::close_connection()
 
 void ServerService::kill_all_process()
 {
-	for (auto iter = m_processlist.begin(); iter != m_processlist.end(); ++iter) {
+	for (auto iter = GTX->get_all_processlist().begin(); iter != GTX->get_all_processlist().end(); ++iter) {
 		iter->second->get_session_info()->kill_query();
 	}
 }
@@ -131,9 +141,4 @@ NetService& ServerService::net_service()
 ThreadPool& ServerService::workers()
 {
 	return m_workers;
-}
-
-ServerServiceConfig& ServerService::config()
-{
-	return m_config;
 }

@@ -21,7 +21,7 @@ u32 EstInfo::init_table_statis(u32 table_ref_id, u32 table_id)
     if (tables_statis.find(table_id) != tables_statis.cend()) {
         //inited
     } else {
-        StatisManager_s manager = StatisManager::make_statis_manager();
+        StatisManager_s &manager = StatisManager::get_statis_manager();
         TableEstInfo_s table_statis = TableEstInfo::make_table_est_info();
         table_statis->table_id = table_id;
         table_statis->table_rows = manager->get_table_row_count(table_ref_id);
@@ -30,7 +30,7 @@ u32 EstInfo::init_table_statis(u32 table_ref_id, u32 table_id)
         table_statis->row_width = manager->get_avg_row_size(table_ref_id);
         tables_statis[table_id] = table_statis;
 
-        SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+        SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
         TableInfo_s table_info;
         CHECK(guard->find_table_info(table_ref_id, table_info));
         for (auto iter = table_info->id_column_infos.cbegin(); iter != table_info->id_column_infos.cend(); ++iter) {

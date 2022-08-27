@@ -38,12 +38,13 @@ ENUM_DEFINE(CMDType,
 			DescTable,
 			UseDatabase,
 			Analyze,
-			SetVar,
 			ShowProcesslist,
 			Kill,
 			ShowMemory,
 			CreateView,
-			DropView
+			DropView,
+			CreatePackage,
+			ExecFunction
 		);
 
 ENUM_DEFINE(StmtFlag,

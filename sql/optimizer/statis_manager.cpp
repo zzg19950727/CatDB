@@ -14,7 +14,7 @@ using namespace CatDB::Optimizer;
 using namespace CatDB::Parser;
 using namespace CatDB::Sql;
 
-StatisManager_s StatisManager::make_statis_manager()
+StatisManager_s& StatisManager::get_statis_manager()
 {
     static StatisManager_s manager(new StatisManager());
 	return manager;
@@ -23,7 +23,7 @@ StatisManager_s StatisManager::make_statis_manager()
 u32 StatisManager::analyze_table(const String& database, const String& table, double sample_size)
 {
     u32 ret = SUCCESS;
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	if (database == "*") {
 		Vector<String> databases;
 		CHECK(guard->get_all_database(databases));
@@ -293,7 +293,7 @@ u32 StatisManager::generate_analyze_sql(const String& database,
                                         Vector<u32> &column_ids)
 {
     u32 ret = SUCCESS;
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
     TableInfo_s table_info;
     CHECK(guard->find_table_info(database, table, table_info));
     table_id = table_info->table_id;

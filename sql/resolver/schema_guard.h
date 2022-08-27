@@ -99,7 +99,7 @@ namespace CatDB {
             { }
 		public:
             u32 init_guard();
-			static SchemaGuard_s make_schema_guard();
+			static SchemaGuard_s& get_schema_guard();
             u32 find_table_info(const String& db_name, const String& table_name, TableInfo_s &table_info);
             u32 find_table_info(u32 table_id, TableInfo_s &table_info);
             u32 find_column_info(u32 table_id, const String& column_name, ColumnInfo_s &column_info);

@@ -1,5 +1,5 @@
-#include "server.h"
 #include "cat_engine/page_dump.h"
+#include "server.h"
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -19,7 +19,8 @@ int main(int argc, char* argv[])
 		}
 		return 0;
 	}
-	CatDB::Server::ServerService service(config_path);
+	CatDB::Server::ServerService service;
+	service.init(config_path);
 	if (service.run() != 0) {
 		std::cout << "start server failed!" << std::endl;
 	}

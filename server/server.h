@@ -13,8 +13,9 @@ namespace CatDB {
 		class ServerService
 		{
 		public:
-			ServerService(const String& config);
+			ServerService();
 			~ServerService();
+			int init(const String& config);
 			int run();
 			void close_connection();
 
@@ -26,9 +27,7 @@ namespace CatDB {
 
 			NetService& net_service();
 			ThreadPool& workers();
-			ServerServiceConfig& config();
 
-			ServerServiceConfig m_config;
 			NetService m_net_service;
 			ThreadPool m_workers;
 			
@@ -36,9 +35,7 @@ namespace CatDB {
 			int m_clients;
 			int m_session_id;
 
-			friend class RequestHandle;
-		public:
-			static HashMap<int, RequestHandle_s> m_processlist;
+		friend class RequestHandle;
 		};
 	}
 }

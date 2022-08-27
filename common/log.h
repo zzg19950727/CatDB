@@ -21,7 +21,7 @@
 
 namespace CatDB {
 	namespace Common {
-		void set_log_file(const char* file);
+		void init_log_file();
 		void log_output(int log_level, const char* file, int line, const char* function, const String& msg);
 		String lbt(); 
 	}

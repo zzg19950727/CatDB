@@ -119,6 +119,11 @@ const String& SessionInfo::get_query_sql() const
     return query_sql;
 }
 
+ConfigService& SessionInfo::config()
+{
+    return config_service;
+}
+
 SessionInfoHelper& get_cur_thread_session_info()
 {
     thread_local SessionInfoHelper helper;

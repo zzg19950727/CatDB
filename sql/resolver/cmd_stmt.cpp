@@ -7,6 +7,21 @@
 using namespace CatDB::Parser;
 using namespace CatDB::Common;
 
+FunctionDefinition_s FunctionDefinition::make_func_define()
+{
+	return FunctionDefinition_s(new FunctionDefinition);
+}
+
+CreatePackageParam_s CreatePackageParam::make_create_package_param()
+{
+	return CreatePackageParam_s(new CreatePackageParam);
+}
+
+ExecFunctionParam_s ExecFunctionParam::make_exec_func_param()
+{
+	return ExecFunctionParam_s(new ExecFunctionParam);
+}
+
 CMDStmt::CMDStmt()
 {
     cmd_type = NONE;
@@ -120,15 +135,6 @@ u32 CMDStmt::get_analyze_params(String &database, String &table, double &sample_
 	database = params.analyze_params.database;
     table = params.analyze_params.table;
 	sample_size = params.analyze_params.sample_size;
-	return ret;
-}
-
-u32 CMDStmt::get_set_var_params(String &var_name, String &var_value)
-{
-	u32 ret = SUCCESS;
-    MY_ASSERT(cmd_type == SetVar);
-	var_name = params.set_var_params.var_name;
-    var_value = params.set_var_params.var_value;
 	return ret;
 }
 

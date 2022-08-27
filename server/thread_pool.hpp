@@ -119,22 +119,26 @@ namespace CatDB {
 		class ThreadPool
 		{
 		public:
-			ThreadPool(int threads)
-				:m_workers(threads)
+			ThreadPool()
 			{
 				m_exit.store(false);
 				m_running.store(0);
 				m_stop_count.store(0);
-
-				for (int i = 0; i < threads; ++i)
-				{
-					std::thread tmp(std::bind(&ThreadPool::do_work, std::ref(*this)));
-					m_workers[i].swap(tmp);
-				}
 			}
+
 			~ThreadPool()
 			{
 				
+			}
+
+			void init(int threads)
+			{
+				for (int i = 0; i < threads; ++i)
+				{
+					m_workers.push_back(std::thread());
+					std::thread tmp(std::bind(&ThreadPool::do_work, std::ref(*this)));
+					m_workers[i].swap(tmp);
+				}
 			}
 
 			template<typename Callback, typename F, typename... ARG>

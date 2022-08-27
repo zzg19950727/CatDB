@@ -1,85 +1,85 @@
+#include "config_read.h"
 #include "config.h"
 #include "log.h"
 
 using namespace CatDB::Server;
 
-ServerServiceConfig::ServerServiceConfig(const char* path)
-	:m_config(path)
+ConfigService::ConfigService()
 {
 	
 }
 
-ServerServiceConfig::~ServerServiceConfig()
+ConfigService::~ConfigService()
 {
 	
 }
 
-std::string ServerServiceConfig::ip()const
+std::string ConfigService::ip()const
 {
-	String ip = m_config.value("ip");
+	String ip = value("ip");
 	if(ip.empty())
 		return "127.0.0.1";
 	else
 		return ip;
 }
 
-int ServerServiceConfig::port()const
+int ConfigService::port()const
 {
-	String port = m_config.value("port");
+	String port = value("port");
 	if(port.empty() || std::stoi(port)<=0 )
 		return 1234;
 	else
 		return std::stoi(port);
 }
 
-int ServerServiceConfig::max_client_count()const
+int ConfigService::max_client_count()const
 {
-	String count = m_config.value("max_client_count");
+	String count = value("max_client_count");
 	if(count.empty() || std::stoi(count)<=0)
 		return 2048;
 	else
 		return std::stoi(count);
 }
 
-int ServerServiceConfig::cache_size()const
+int ConfigService::cache_size()const
 {
-	String size = m_config.value("cache_size");
+	String size = value("cache_size");
 	if(size.empty() || std::stoi(size)<=0)
 		return 1024000;
 	else
 		return std::stoi(size);
 }
 
-int ServerServiceConfig::thread_pool_size() const
+int ConfigService::thread_pool_size() const
 {
-	String thread_pool_size = m_config.value("thread_pool_size");
+	String thread_pool_size = value("thread_pool_size");
 	if (thread_pool_size.empty() || std::stoi(thread_pool_size) <= 0)
 		return 1234;
 	else
 		return std::stoi(thread_pool_size);
 }
 
-String ServerServiceConfig::data_dir()const
+String ConfigService::data_dir()const
 {
-	String dir = m_config.value("data_dir");
+	String dir = value("data_dir");
 	return dir;
 }
 
-String ServerServiceConfig::recycle_dir()const
+String ConfigService::recycle_dir()const
 {
-	String dir = m_config.value("recycle_dir");
+	String dir = value("recycle_dir");
 	return dir;
 }
 
-String ServerServiceConfig::log_file_path()const
+String ConfigService::log_file_path()const
 {
-	String dir = m_config.value("log_file");
+	String dir = value("log_file");
 	return dir;
 }
 
-int ServerServiceConfig::log_level()const
+int ConfigService::log_level()const
 {
-	String level_str = m_config.value("log_level");
+	String level_str = value("log_level");
 	int level = LOG_LEVEL_ERR;
 	if (level_str == "trace") {
 		level = LOG_LEVEL_TRACE;
@@ -91,19 +91,58 @@ int ServerServiceConfig::log_level()const
 	return level;
 }
 
-String ServerServiceConfig::log_module() const
+String ConfigService::log_module() const
 {
-	String module = m_config.value("log_module");
+	String module = value("log_module");
 	return module;
 }
 
-long long ServerServiceConfig::query_timeout() const
+long long ConfigService::query_timeout() const
 {
-	String query_timeout = m_config.value("query_timeout");
+	String query_timeout = value("query_timeout");
 	if (query_timeout.empty() || 
 		query_timeout.length() > 7 ||
 		std::stoi(query_timeout) <= 0)
 		return 10000;
 	else
 		return std::stoi(query_timeout);
+}
+
+String ConfigService::value(const String& key)const
+{
+	auto iter = m_keys.find(key);
+	if(iter != m_keys.cend())
+		return iter->second;
+	else
+		return "";
+}
+
+int ConfigService::init(const char* path)
+{
+	ConfigReader reader;
+	reader.read_file(path, m_keys);
+	return 0;
+}
+
+HashMap<String, String>& ConfigService::get_all_config()
+{
+	return m_keys;
+}
+
+void ConfigService::set_value(const String& key, const String& value)
+{
+	auto iter = m_keys.find(key);
+	if(iter != m_keys.cend()) {
+		iter->second = value;
+	}
+}
+
+void ConfigService::add_value(const String& key, const String& value)
+{
+	m_keys[key] = value;
+}
+
+bool ConfigService::has_key(const String& key) const
+{
+	return m_keys.find(key) != m_keys.cend();
 }

@@ -162,7 +162,7 @@ u32 CodeGenerator::generate_delete_op(ExprGenerateCtx &ctx, LogDelete_s log_op, 
     BasicTableStmt_s &delete_table = log_op->table_item;
     Expression_s rt_row_id;
     CHECK(ExprGenerator::generate_expr(ctx, log_op->row_id, rt_row_id));
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
     TableInfo_s info;
     CHECK(guard->find_table_info(delete_table->ref_table_id, info));
     phy_op = PhyDelete::make_delete(ctx.child_ops[0],
@@ -227,7 +227,7 @@ u32 CodeGenerator::generate_insert_op(ExprGenerateCtx &ctx, LogInsert_s log_op, 
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 1);
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
     TableInfo_s info;
     CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     phy_op = PhyInsert::make_insert(ctx.child_ops[0],
@@ -428,7 +428,7 @@ u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s l
 {
 	u32 ret = SUCCESS;
     MY_ASSERT(log_op, ctx.child_ops.size() == 0);
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
     TableInfo_s info;
     CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     PhyTableScan_s scan = PhyTableScan::make_table_scan(log_op->table_item->database, 
@@ -458,7 +458,7 @@ u32 CodeGenerator::generate_update_op(ExprGenerateCtx &ctx, LogUpdate_s log_op, 
     Expression_s rt_row_id;
     CHECK(ExprGenerator::generate_exprs(ctx, log_op->value_exprs, rt_value_exprs));
     CHECK(ExprGenerator::generate_expr(ctx, log_op->row_id, rt_row_id));
-    SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+    SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
     TableInfo_s info;
     CHECK(guard->find_table_info(log_op->table_item->ref_table_id, info));
     phy_op = PhyUpdate::make_update(ctx.child_ops[0], 

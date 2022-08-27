@@ -2,13 +2,11 @@
 #include "io_service.h"
 #include "cat_engine/cat_table_space.h"
 #include "csv_engine/csv_table_space.h"
+#include "global_context.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
 using namespace CatDB::Storage;
-
-String TableSpace::data_dir = ".";
-String TableSpace::recycle_dir = ".";
 
 TableSpace::TableSpace()
 {
@@ -87,7 +85,7 @@ u32 TableSpace::create_database(const String & database)
 
 String TableSpace::table_path(const String & database, const String & table)
 {
-	String path = data_dir + "/" + database + "/" + table;
+	String path = GTX->config().data_dir() + "/" + database + "/" + table;
 #ifdef _WIN32
 	for (u32 i = 0; i < path.size(); ++i) {
 		if (path[i] == '/') {
@@ -100,7 +98,7 @@ String TableSpace::table_path(const String & database, const String & table)
 
 String TableSpace::database_path(const String & database)
 {
-	String path = data_dir + "/" + database;
+	String path = GTX->config().data_dir() + "/" + database;
 #ifdef _WIN32
 	for (u32 i = 0; i < path.size(); ++i) {
 		if (path[i] == '/') {

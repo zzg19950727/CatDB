@@ -1,0 +1,5 @@
+include_directories(. DIR_PACKAGE_SRCS)
+aux_source_directory(. DIR_PACKAGE_SRCS)
+add_subdirectory(register)
+add_library(package ${DIR_PACKAGE_SRCS})
+target_link_libraries(package package_register parser resolver)

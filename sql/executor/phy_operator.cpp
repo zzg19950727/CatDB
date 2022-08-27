@@ -150,7 +150,7 @@ void PhyOperator::set_input_rows(const Row_s &row1, const Row_s &row2)
 u32 PhyOperator::check_status()
 {
 	u32 ret = SUCCESS;
-	ret = GTX->check_query_status();
+	ret = SESSION_CTX->check_query_status();
 	return ret;
 }
 

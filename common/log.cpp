@@ -7,6 +7,7 @@
 #include <execinfo.h>
 #include "timer_manager.h"
 #include "session_info.h"
+#include "global_context.h"
 #include "type.h"
 #include "log.h"
 
@@ -93,26 +94,26 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 	else if (log_level == LOG_LEVEL_TRACE)
 		*os << "[TRACE] ";
 	String module = get_module_name(function);
-	*os << "[" << module << "] " << "[" << GTX->get_trace_id() << "] " 
+	*os << "[" << module << "] " << "[" << SESSION_CTX->get_trace_id() << "] " 
 	<< "[" << file << ":" << line << "] " << "[ " << msg << " ]" 
 	<< std::endl;
 	os->flush();
 }
 
-void CatDB::Common::set_log_file(const char* file)
+void CatDB::Common::init_log_file()
 {
-	ostream.set_log_file(file);
+	ostream.set_log_file(GTX->config().log_file_path().c_str());
 }
 
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	if (log_level > GTX->get_session_log_level()) {
+	if (log_level > SESSION_CTX->get_session_log_level()) {
 		return;
-	} else if (GTX->get_session_log_module() == "ALL") {
+	} else if (SESSION_CTX->get_session_log_module() == "ALL") {
 		ostream.print_msg(log_level, file, line, function, msg);
 	} else {
 		String module = get_module_name(function);
-		if (GTX->get_session_log_module().find(module) != module.npos) {
+		if (SESSION_CTX->get_session_log_module().find(module) != module.npos) {
 			ostream.print_msg(log_level, file, line, function, msg);
 		}
 	}

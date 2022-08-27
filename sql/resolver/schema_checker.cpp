@@ -10,7 +10,7 @@ using namespace CatDB::Parser;
 
 SchemaChecker::SchemaChecker()
 {
-	schema_guard = SchemaGuard::make_schema_guard();
+	schema_guard = SchemaGuard::get_schema_guard();
 }
 
 SchemaChecker::~SchemaChecker()

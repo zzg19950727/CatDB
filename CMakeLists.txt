@@ -21,19 +21,21 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/server
 	${PROJECT_SOURCE_DIR}/server/packet
     ${PROJECT_SOURCE_DIR}/storage
+    ${PROJECT_SOURCE_DIR}/package
     )
 
 aux_source_directory(. SrcFiles)
 
 add_subdirectory(common)
 add_subdirectory(object)
+add_subdirectory(package)
 add_subdirectory(storage)
 add_subdirectory(sql)
 add_subdirectory(server)
 add_subdirectory(tools/random_test)
 
 add_executable(CatDB ${SrcFiles})
-target_link_libraries(CatDB common object storage sql server ${PLATFORM_LIBS})
+target_link_libraries(CatDB common object package storage sql server ${PLATFORM_LIBS})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

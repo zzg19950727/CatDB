@@ -3,7 +3,7 @@
 #include "type.h"
 #define TRANSFORM(class, stmt, ctx, happened) \
         do { \
-            CHECK(GTX->check_query_status()); \
+            CHECK(SESSION_CTX->check_query_status()); \
             class rule; \
             rule.set_transform_ctx(ctx); \
             CHECK(rule.transform(stmt)); \

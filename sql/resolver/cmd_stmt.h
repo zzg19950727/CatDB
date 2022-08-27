@@ -14,6 +14,60 @@ namespace CatDB {
 		DECLARE(Stmt);
 		using Common::DataType;
 
+        DECLARE(CMDParam);
+        class CMDParam {
+        public:
+            VIRTUAL_KV_STRING("");
+        };
+
+        DECLARE(FunctionDefinition);
+        class FunctionDefinition {
+        public:
+            static FunctionDefinition_s make_func_define();
+
+            KV_STRING(
+                K(name),
+                K(param_list),
+                K(return_type_list)
+            );
+
+            String name;
+            Vector<ColumnDefineStmt_s> param_list;
+            Vector<ColumnDefineStmt_s> return_type_list;
+        };
+
+        DECLARE(CreatePackageParam);
+        class CreatePackageParam : public CMDParam {
+        public:
+            static CreatePackageParam_s make_create_package_param();
+
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(name),
+                K(is_replace),
+                K(functions)
+            );
+
+            String name;
+            bool is_replace;
+            Vector<FunctionDefinition_s> functions;
+        };
+
+        DECLARE(ExecFunctionParam);
+        class ExecFunctionParam : public CMDParam {
+        public:
+            static ExecFunctionParam_s make_exec_func_param();
+
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(package_name),
+                K(function_name),
+                K(param_list)
+            );
+
+            String package_name;
+            String function_name;
+            Vector<ExprStmt_s> param_list;
+        };
+
         DECLARE(CMDStmt);
 		class CMDStmt : public Stmt
 		{
@@ -38,7 +92,6 @@ namespace CatDB {
                                       bool &is_show_column_statis);
             u32 get_use_database_params(String &database);
             u32 get_analyze_params(String &database, String &table, double &sample_size);
-            u32 get_set_var_params(String &var_name, String &var_value);
             u32 get_kill_params(int &session_id);
             u32 get_create_view_params(String &database,
                                     String &view_name,
@@ -128,15 +181,6 @@ namespace CatDB {
                         K(sample_size)
                     );
                 } analyze_params;
-                //for set_var
-                struct {
-                    String var_name;
-			        String var_value;
-                    KV_STRING(
-                        K(var_name),
-                        K(var_value)
-                    );
-                } set_var_params;
                 //kill session_id
                 struct {
                     int session_id;
@@ -178,10 +222,11 @@ namespace CatDB {
 
             } params;
             CMDType cmd_type;
+            CMDParam_s param;
 
             KV_STRING_OVERRIDE(
                 KV(cmd_type, CMDTypeString[cmd_type]),
-                K(params)
+                K(param)
             );
 		};
 	}

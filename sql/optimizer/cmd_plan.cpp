@@ -15,6 +15,9 @@
 #include "dml_resolver.h"
 #include "obj_varchar.h"
 #include "session_info.h"
+#include "global_context.h"
+#include "package_manager.h"
+#include "package_executor.h"
 #include "server.h"
 #include "stmt.h"
 #include "error.h"
@@ -27,6 +30,7 @@ using namespace CatDB::Parser;
 using namespace CatDB::Storage;
 using namespace CatDB::Server;
 using namespace CatDB::Share;
+using namespace CatDB::Package;
 
 CMDPlan::CMDPlan()
 {
@@ -78,9 +82,6 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 		case Analyze:
 			CHECK(do_cmd_analyze());
 			break;
-		case SetVar:
-			CHECK(do_set_var());
-			break;
 		case ShowProcesslist:
 			CHECK(do_show_processlist(query_result));
 			break;
@@ -95,6 +96,15 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 			break;
 		case DropView:
 			CHECK(do_drop_view());
+			break;
+		case CreatePackage:
+		{
+			PackageManager_s &manager = PackageManager::get_package_manager();
+			CHECK(manager->add_package(lex->param));
+			break;
+		}
+		case ExecFunction:
+			CHECK(PackageExecutor::execute_function(lex->param, query_result));
 			break;
         default:
 			ret = INVALID_CMD_TYPE;
@@ -122,7 +132,7 @@ u32 CMDPlan::do_cmd_create_table()
 	Vector<String> engine_args;
 	
 	CHECK(stmt->get_create_table_params(database, table, columns, engine_args));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
 	ret = guard->find_table_info(database, table, info);
@@ -159,7 +169,7 @@ u32 CMDPlan::do_cmd_drop_table()
 	bool ignore_not_exists = false;
 	
 	CHECK(stmt->get_drop_table_params(database, table, ignore_not_exists));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
 	ret = guard->find_table_info(database, table, info);
@@ -193,7 +203,7 @@ u32 CMDPlan::do_cmd_create_database()
 	String database;
 	
 	CHECK(stmt->get_create_database_params(database));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
 	ret = guard->find_database_info(database, info);
@@ -218,7 +228,7 @@ u32 CMDPlan::do_cmd_drop_database()
 	bool ignore_not_exists = false;
 	
 	CHECK(stmt->get_drop_database_params(database, ignore_not_exists));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
 	ret = guard->find_database_info(database, info);
@@ -243,7 +253,7 @@ u32 CMDPlan::do_cmd_show_tables(ResultSet_s &query_result)
 	Vector<String> tables;
 	
 	CHECK(stmt->get_show_tables_params(database));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_table(database, tables));
 
@@ -267,14 +277,14 @@ u32 CMDPlan::do_cmd_show_databases(ResultSet_s &query_result)
 	Vector<String> databases;
 	
 	CHECK(stmt->get_show_databases_params(is_select_current_database));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_database(databases));
 	if (is_select_current_database) {
 		Vector<String> title;
 		title.push_back(String("cur_database()"));
 		CHECK(init_command_result_head(title, query_result));
-		Object_s database = Varchar::make_object(GTX->get_cur_database());
+		Object_s database = Varchar::make_object(SESSION_CTX->get_cur_database());
 		Vector<Object_s> objs;
 		objs.push_back(database);
 		CHECK(add_objects_to_result_set(objs, query_result));
@@ -302,7 +312,7 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 	bool is_show_column_statis;
 	
 	CHECK(stmt->get_desc_table_params(database, table, is_show_table_statis, is_show_column_statis));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
 	ret = guard->find_table_info(database, table, info);
@@ -404,7 +414,7 @@ u32 CMDPlan::do_cmd_use_database()
 	u32 id;
 	
 	CHECK(stmt->get_use_database_params(database));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
 	ret = guard->find_database_info(database, info);
@@ -416,7 +426,7 @@ u32 CMDPlan::do_cmd_use_database()
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	MY_ASSERT(checker);
 	CHECK(checker->get_database_id(database, id));
-	GTX->set_cur_database(database);
+	SESSION_CTX->set_cur_database(database);
 	return ret;
 }
 
@@ -429,54 +439,10 @@ u32 CMDPlan::do_cmd_analyze()
 	double sample_size;
 	
 	CHECK(stmt->get_analyze_params(database, table, sample_size));
-	StatisManager_s manager = StatisManager::make_statis_manager();
+	StatisManager_s &manager = StatisManager::get_statis_manager();
 	MY_ASSERT(manager);
 	QUERY_CTX->set_sample_size(sample_size);
 	CHECK(manager->analyze_table(database, table, sample_size));
-	return ret;
-}
-
-u32 CMDPlan::do_set_var()
-{
-	u32 ret = SUCCESS;
-	CMDStmt_s stmt = lex_stmt;
-	String var_name;
-	String var_value;
-	
-	CHECK(stmt->get_set_var_params(var_name, var_value));
-	if (var_name == "log_level") {
-		int level = LOG_LEVEL_ERR;
-		if (var_value == "trace") {
-			level = LOG_LEVEL_TRACE;
-		} else if (var_value == "info") {
-			level = LOG_LEVEL_INFO;
-		} else if (var_value == "error") {
-			level = LOG_LEVEL_ERR;
-		} else {
-			ret = ERR_UNEXPECTED;
-			String msg = "unknown log level " + var_value;
-			QUERY_CTX->set_error_msg(msg);
-			return ret;
-		}
-		GTX->set_session_log_level(level);
-	} else if (var_name == "log_module") {
-		GTX->set_session_log_module(var_value);
-	} else if (var_name == "trace_memory_mode") {
-		MemoryMonitor::make_memory_monitor().set_trace_mode(var_value);
-	} else if (var_name == "query_timeout") {
-		long long time = std::stoi(var_value);
-		if (time > 0) {
-			GTX->set_query_timeout(time);
-		} else {
-			ret = ERR_UNEXPECTED;
-			String msg = "unknown query timeout values " + var_value;
-			QUERY_CTX->set_error_msg(msg);
-		}
-	} else {
-		ret = ERR_UNEXPECTED;
-		String msg = "unknown variable " + var_name;
-		QUERY_CTX->set_error_msg(msg);
-	}
 	return ret;
 }
 
@@ -486,20 +452,17 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 	Vector<String> title;
 	title.push_back(String("session id"));
 	title.push_back(String("trace id"));
-	title.push_back(String("last trace id"));
 	title.push_back(String("time(ms)"));
 	title.push_back(String("status"));
 	title.push_back(String("sql"));
 	CHECK(init_command_result_head(title, query_result));
-	for (auto iter = ServerService::m_processlist.begin(); iter != ServerService::m_processlist.end(); ++iter) {
+	for (auto iter = GTX->get_all_processlist().begin(); iter != GTX->get_all_processlist().end(); ++iter) {
 		SessionInfo_s &session_info = iter->second->get_session_info();
 		Vector<Object_s> cells;
 		Object_s session_id = Varchar::make_object(std::to_string(session_info->get_session_id()));
 		cells.push_back(session_id);
 		Object_s trace_id = Varchar::make_object(session_info->get_trace_id());
 		cells.push_back(trace_id);
-		Object_s last_trace_id = Varchar::make_object(session_info->get_last_trace_id());
-		cells.push_back(last_trace_id);
 		Object_s time = Varchar::make_object(std::to_string(session_info->get_query_time()));
 		cells.push_back(time);
 		Object_s status = Varchar::make_object(session_info->get_session_status());
@@ -517,12 +480,13 @@ u32 CMDPlan::do_kill_process()
 	int session_id;
 	CMDStmt_s stmt = lex_stmt;
 	CHECK(stmt->get_kill_params(session_id));
-	if (ServerService::m_processlist.find(session_id) != ServerService::m_processlist.cend()) {
-		SessionInfo_s &session_info = ServerService::m_processlist[session_id]->get_session_info();
+	SessionInfo_s session_info;
+	GTX->get_session_info(session_id, session_info);
+	if (session_info) {
 		session_info->kill_query();
 	} else {
 		//kill self
-		GTX->kill_query();
+		SESSION_CTX->kill_query();
 	}
 	return ret;
 }
@@ -618,7 +582,7 @@ u32 CMDPlan::do_create_view()
 									   view_define_sql,
 									   ref_query));
 	ret = ERR_UNEXPECTED;
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
 	ret = guard->find_table_info(database, view_name, info);
@@ -663,7 +627,7 @@ u32 CMDPlan::do_drop_view()
 	CHECK(stmt->get_drop_view_params(database,
 									 view_name,
 									 ignore_not_exists));
-	SchemaGuard_s guard = SchemaGuard::make_schema_guard();
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
 	ret = guard->find_table_info(database, view_name, info);

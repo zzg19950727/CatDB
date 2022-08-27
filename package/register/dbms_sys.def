@@ -1,0 +1,22 @@
+/**
+ * 包名和定义SQL
+ */
+REGISTE_PACKAGE(DBMS_SYS, R"(
+CREATE OR REPLACE PACKAGE DBMS_SYS IS
+    PROCEDURE set_sys_var(var_name varchar, value varchar);
+    FUNCTION get_sys_var(var_name varchar) RETURN varchar;
+    FUNCTION list_sys_var() RETURN TABLE(var_name varchar, value varchar);
+    PROCEDURE set_session_var(var_name varchar, value varchar);
+    FUNCTION get_session_var(var_name varchar) RETURN varchar;
+    FUNCTION list_session_var() RETURN TABLE(var_name varchar, value varchar);
+END;
+)")
+/**
+ * 定义每个包体函数的实现接口
+ */
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_sys_var, DBMS_SYS::set_sys_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_sys_var, DBMS_SYS::get_sys_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_sys_var, DBMS_SYS::list_sys_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_session_var, DBMS_SYS::set_session_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_session_var, DBMS_SYS::get_session_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_session_var, DBMS_SYS::list_session_var)

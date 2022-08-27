@@ -619,7 +619,7 @@ u32 DMLPlan::generate_join_order_with_DP(bool ignore_hint, u32 left_level, u32 r
     MY_ASSERT(left_level < join_orders.size(), right_level < join_orders.size());
     for (u32 i = 0; i < join_orders[left_level].size(); ++i) {
         for (u32 j = 0; j < join_orders[right_level].size(); ++j) {
-            CHECK(GTX->check_query_status());
+            CHECK(SESSION_CTX->check_query_status());
             JoinInfo join_info;
             Vector<ConflictDetector_s> detectors;
             bool is_legal = false;

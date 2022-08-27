@@ -132,6 +132,15 @@ SqlEngine_s SqlEngine::make_sql_engine(const String& query)
     return SqlEngine_s(new SqlEngine(query));
 }
 
+u32 SqlEngine::handle_inner_sql(const String &query)
+{
+    u32 ret = SUCCESS;
+    LOG_TRACE("inner sql:", K(query));
+    SqlEngine engine(query);
+    CHECK(engine.handle_query());
+    return ret;
+}
+
 u32 SqlEngine::handle_inner_sql(const String &query, ResultSet_s &result_set)
 {
     u32 ret = SUCCESS;
@@ -146,7 +155,7 @@ u32 SqlEngine::handle_query()
 {
     u32 ret = SUCCESS;
     SqlDriver parser;
-	parser.set_global_database(GTX->get_cur_database());
+	parser.set_global_database(SESSION_CTX->get_cur_database());
 	parser.parse_sql(query);
 	if (parser.is_sys_error()) {
 		ret = ERR_UNEXPECTED;
@@ -214,7 +223,7 @@ u32 SqlEngine::handle_user_view(const String &view,  ResolveCtx *ctx, SelectStmt
 {
     u32 ret = SUCCESS;
     SqlDriver parser;
-	parser.set_global_database(GTX->get_cur_database());
+	parser.set_global_database(SESSION_CTX->get_cur_database());
 	parser.parse_sql(view);
 	if (parser.is_sys_error()) {
 		ret = ERR_UNEXPECTED;

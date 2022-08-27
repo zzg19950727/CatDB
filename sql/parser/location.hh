@@ -40,7 +40,7 @@
 
 # include "position.hh"
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
 namespace CatDB {
 #line 46 "/home/lighthouse/CatDB/sql/parser/location.hh" // location.cc:296
   /// Abstract a location.
@@ -186,7 +186,7 @@ namespace CatDB {
     return ostr;
   }
 
-#line 3 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
+#line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // location.cc:296
 } // CatDB
 #line 192 "/home/lighthouse/CatDB/sql/parser/location.hh" // location.cc:296
 #endif // !YY_YY_HOME_LIGHTHOUSE_CATDB_SQL_PARSER_LOCATION_HH_INCLUDED

@@ -61,7 +61,7 @@ namespace CatDB {
             { }
         public:
             u32 init_statis_cache();
-            static StatisManager_s make_statis_manager();
+            static StatisManager_s& get_statis_manager();
             u32 analyze_table(const String& database, const String& table, double sample_size=0.1);
 			double get_table_row_count(u32 tid);
             double get_avg_row_size(u32 tid);

@@ -31,7 +31,7 @@ void TableInfo::set_table_type(int value)
     }
 }
 
-SchemaGuard_s SchemaGuard::make_schema_guard()
+SchemaGuard_s& SchemaGuard::get_schema_guard()
 {
     static SchemaGuard_s guard(new SchemaGuard());
 	return guard;
@@ -145,7 +145,7 @@ u32 SchemaGuard::del_database(const String& name)
     DatabaseInfo_s database_info = iter->second;
     CHECK(del_database_from_cache(database_info->db_id, name));
     CHECK(del_database_from_inner_table(database_info->db_id));
-    StatisManager_s statis_manager = StatisManager::make_statis_manager();
+    StatisManager_s &statis_manager = StatisManager::get_statis_manager();
     for (auto iter = database_info->id_table_infos.cbegin(); 
          iter != database_info->id_table_infos.cend(); 
          ++iter) {
@@ -192,7 +192,7 @@ u32 SchemaGuard::del_table(const String &db_name, const String& table_name)
     u32 table_id = iter2->second->table_id;
     CHECK(del_table_from_cache(db_id, table_id, table_name));
     CHECK(del_table_from_inner_table(db_id, table_id));
-    StatisManager_s statis_manager = StatisManager::make_statis_manager();
+    StatisManager_s &statis_manager = StatisManager::get_statis_manager();
     CHECK(statis_manager->delete_table_statis(table_id));
     return ret;
 }

@@ -2,10 +2,11 @@
 #define SESSION_INFO_H
 #include "timer_manager.h"
 #include "query_ctx.h"
+#include "config.h"
 #include "type.h"
-#define GTX (get_cur_thread_session_info().session_info)
-#define SET_GTX(session_info) get_cur_thread_session_info().session_info = session_info
-#define QUERY_CTX   (GTX->get_query_ctx())
+#define SESSION_CTX (get_cur_thread_session_info().session_info)
+#define SET_SESSION_CTX(session_info) get_cur_thread_session_info().session_info = session_info
+#define QUERY_CTX   (SESSION_CTX->get_query_ctx())
 
 namespace CatDB {
 	namespace Server {
@@ -50,9 +51,12 @@ namespace CatDB {
 
             void kill_query() { killed = true; }
             void set_root_session() { is_root_session = true; }
+            
+            ConfigService& config();
 
         private:
 			QueryCtx_s query_ctx;
+			ConfigService config_service;
 			SessionStatus session_status;
             String cur_database;
             String query_sql;

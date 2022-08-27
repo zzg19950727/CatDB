@@ -45,10 +45,6 @@ namespace CatDB {
 			static String table_path(const String & database, const String & table);
 			static String database_path(const String & database);
 
-		public:
-			static String data_dir;
-			static String recycle_dir;
-
 		protected:
 			String database;
 			String table_name;

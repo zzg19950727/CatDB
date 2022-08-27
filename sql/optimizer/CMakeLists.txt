@@ -5,4 +5,4 @@ include_directories(
 )
 aux_source_directory(. DIR_OPTIMIZER_SRCS)
 add_library(optimizer ${DIR_OPTIMIZER_SRCS})
-target_link_libraries(optimizer resolver common)
+target_link_libraries(optimizer resolver common package)
