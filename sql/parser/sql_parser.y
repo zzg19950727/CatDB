@@ -159,7 +159,6 @@
 %token<std::string>	QB_NAME_IDENT
 
 %token ALL
-%token ANALYZE
 %token AND
 %token ANY
 %token AS
@@ -257,6 +256,7 @@
 %token NO_USE_NL
 %token NO_WIN_MAGIC
 %token NULLX
+%token NUMBER
 %token NUMERIC_SYM
 %token ON
 %token OR
@@ -329,7 +329,7 @@
 									delete_stmt explain_stmt explainable_stmt 
 									 
 %type<Stmt_s>						select_with_parens simple_select set_select sub_set_select
-%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt analyze_stmt 
+%type<Stmt_s>						show_stmt create_stmt drop_stmt desc_stmt use_stmt 
 									kill_stmt create_package_stmt exec_package_stmt
 %type<Hint> 						opt_hint
 
@@ -351,7 +351,6 @@
 %type<std::string>					op_from_database column_label database_name relation_name opt_alias column_name 
 									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
 									package_name procedure_name function_name param_name
-%type<double>						opt_sample_size
 %type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
 									opt_replace
 %type<int>							limit_expr int_value opt_char_length opt_time_precision
@@ -388,7 +387,6 @@ cmd_stmt:
 	| drop_stmt				{ $$ = $1; }
 	| desc_stmt				{ $$ = $1; }
 	| use_stmt				{ $$ = $1; }
-	| analyze_stmt			{ $$ = $1; }
 	| kill_stmt				{ $$ = $1; }
 	| create_package_stmt	{ $$ = $1; }
 	| exec_package_stmt		{ $$ = $1; }
@@ -1710,27 +1708,34 @@ create_stmt:
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateTable);
 		check(cmd_stmt);
-		cmd_stmt->params.create_table_params.table = $3;
-		cmd_stmt->params.create_table_params.column_define_list = $5;
-		cmd_stmt->params.create_table_params.engine_args = $7;
+		CreateTableParam_s param = CreateTableParam::make_create_table_param();
+		param->database_name = $3->database;
+		param->table_name = $3->table_name;
+		param->column_define_list = $5;
+		param->engine_args = $7;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
     }
 	| CREATE DATABASE database_name
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateDatabase);
 		check(cmd_stmt);
-		cmd_stmt->params.create_database_params.database = $3;
+		CreateDBParam_s param = CreateDBParam::make_create_DB_param();
+		param->database = $3;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	| CREATE VIEW ident opt_view_column_define AS beg_view_define select_stmt
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(CreateView);
 		check(cmd_stmt);
-		cmd_stmt->params.create_view_params.database = driver.get_global_database();
-		cmd_stmt->params.create_view_params.view_name = $3;
-		cmd_stmt->params.create_view_params.column_define = $4;
-		cmd_stmt->params.create_view_params.view_define_sql = $6;
-		cmd_stmt->params.create_view_params.ref_query = $7;
+		CreateViewParam_s param = CreateViewParam::make_create_view_param();
+		param->database = driver.get_global_database();
+		param->view_name = $3;
+		param->column_define = $4;
+		param->view_define_sql = $6;
+		param->ref_query = $7;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
   ;
@@ -1818,6 +1823,10 @@ data_type:
     { $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
   | DECIMAL "(" int_value "," int_value ")"
     { $$ = DataType(T_NUMBER, $3, $5); }
+  | NUMBER
+  	{ $$ = DataType(T_NUMBER, MAX_PREC, MAX_NUM_SCALE); }
+  | NUMBER "(" int_value "," int_value ")"
+  	{ $$ = DataType(T_NUMBER, $3, $5); }
   | NUMERIC_SYM "(" int_value "," int_value ")"
     { $$ = DataType(T_NUMBER, $3, $5); }
   | BOOL
@@ -1895,29 +1904,36 @@ opt_engine_def:
  *
  **************************************************************/
  drop_stmt:
-    DROP TABLE opt_if_exists table_factor
+    DROP TABLE opt_if_exists relation_factor
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropTable);
 		check(cmd_stmt);
-		cmd_stmt->params.drop_table_params.ignore_not_exists = $3;
-		cmd_stmt->params.drop_table_params.table = $4;
+		DropTableParam_s param = DropTableParam::make_drop_table_param();
+		param->database_name = $4->database;
+		param->table_name = $4->table_name;
+		param->ignore_not_exists = $3;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
     }
 	| DROP DATABASE opt_if_exists database_name
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropDatabase);
 		check(cmd_stmt);
-		cmd_stmt->params.drop_database_params.ignore_not_exists = $3;
-		cmd_stmt->params.drop_database_params.database = $4;
+		DropDBParam_s param = DropDBParam::make_drop_DB_param();
+		param->database = $4;
+		param->ignore_not_exists = $3;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	| DROP VIEW opt_if_exists ident
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DropView);
 		check(cmd_stmt);
-		cmd_stmt->params.drop_view_params.database = driver.get_global_database();
-		cmd_stmt->params.drop_view_params.ignore_not_exists = $3;
-		cmd_stmt->params.drop_view_params.view_name = $4;
+		DropViewParam_s param = DropViewParam::make_drop_view_param();
+		param->database = driver.get_global_database();
+		param->view_name = $4;
+		param->ignore_not_exists = $3;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
   ;
@@ -1933,63 +1949,38 @@ opt_if_exists:
  *
  **************************************************************/
  show_stmt:
-	SELECT DATABASE "(" ")"
+	SHOW DATABASES
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
 		check(cmd_stmt);
-		cmd_stmt->params.show_databases_params.is_select_current_database = true;
-		$$ = cmd_stmt;
-	}
-    | SHOW DATABASES
-	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowDatabases);
-		check(cmd_stmt);
-		cmd_stmt->params.show_databases_params.is_select_current_database = false;
 		$$ = cmd_stmt;
  	}
 	| SHOW FULL TABLES op_from_database
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
-		cmd_stmt->params.show_tables_params.database = $4;
+		ShowTablesParam_s param = ShowTablesParam::make_show_tables_param();
+		param->database = $4;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	| SHOW TABLES op_from_database
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ShowTables);
 		check(cmd_stmt);
-		cmd_stmt->params.show_tables_params.database = $3;
+		ShowTablesParam_s param = ShowTablesParam::make_show_tables_param();
+		param->database = $3;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	| SHOW COLUMNS FROM relation_factor
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
-		cmd_stmt->params.desc_table_params.table = $4;
-		$$ = cmd_stmt;
-	}
-	| SHOW INDEX FROM relation_factor
-	{
-		$$ = NULL;
-	}
-	| SHOW STATUS
-	{
-		$$ = NULL;
-	}
-	| SHOW TABLE STATIS relation_factor
-	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
-		check(cmd_stmt);
-		cmd_stmt->params.desc_table_params.table = $4;
-		cmd_stmt->params.desc_table_params.is_show_table_statis = true;
-		$$ = cmd_stmt;
-	}
-	| SHOW COLUMN STATIS relation_factor
-	{
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
-		check(cmd_stmt);
-		cmd_stmt->params.desc_table_params.table = $4;
-		cmd_stmt->params.desc_table_params.is_show_column_statis = true;
+		DescTableParam_s param = DescTableParam::make_desc_table_param();
+		param->database_name = $4->database;
+		param->table_name = $4->table_name;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	| SHOW PROCESSLIST
@@ -2022,12 +2013,14 @@ op_from_database:
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(UseDatabase);
 		check(cmd_stmt);
-		cmd_stmt->params.use_database_params.database = $2;
+		UseDBParam_s param = UseDBParam::make_use_DB_param();
+		param->database = $2;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	;
   
-  /**************************************************************
+/**************************************************************
  *
  *	desc define
  *
@@ -2037,75 +2030,38 @@ op_from_database:
     {
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
-		cmd_stmt->params.desc_table_params.table = $2;
+		DescTableParam_s param = DescTableParam::make_desc_table_param();
+		param->database_name = $2->database;
+		param->table_name = $2->table_name;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
     }
 	| DESC relation_factor
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(DescTable);
 		check(cmd_stmt);
-		cmd_stmt->params.desc_table_params.table = $2;
+		DescTableParam_s param = DescTableParam::make_desc_table_param();
+		param->database_name = $2->database;
+		param->table_name = $2->table_name;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
   ;
-   /**************************************************************
+
+/**************************************************************
  *
- *	analyze table define
+ *	kill session task define
  *
  **************************************************************/
- analyze_stmt:
-    ANALYZE TABLE relation_name opt_sample_size
-    {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
-		check(cmd_stmt);
-		cmd_stmt->params.analyze_params.database = driver.get_global_database();
-		cmd_stmt->params.analyze_params.table = $3;
-		cmd_stmt->params.analyze_params.sample_size = $4;
-		$$ = cmd_stmt;
-    }
-  | ANALYZE TABLE database_name "." relation_name opt_sample_size
-    {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
-		check(cmd_stmt);
-		cmd_stmt->params.analyze_params.database = $3;
-		cmd_stmt->params.analyze_params.table = $5;
-		cmd_stmt->params.analyze_params.sample_size = $6;
-		$$ = cmd_stmt;
-    }
-  | ANALYZE TABLE database_name "."  "*" opt_sample_size
-    {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
-		check(cmd_stmt);
-		cmd_stmt->params.analyze_params.database = $3;
-		cmd_stmt->params.analyze_params.table = "*";
-		cmd_stmt->params.analyze_params.sample_size = $6;
-		$$ = cmd_stmt;
-    }
-  | ANALYZE TABLE "*" "." "*" opt_sample_size
-    {
-		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Analyze);
-		check(cmd_stmt);
-		cmd_stmt->params.analyze_params.database = "*";
-		cmd_stmt->params.analyze_params.table = "*";
-		cmd_stmt->params.analyze_params.sample_size = $6;
-		$$ = cmd_stmt;
-    }
-  ;
-  
-opt_sample_size:
-	/*empty*/	{	$$ = 0.1; }
-	| SAMPLE SIZE number
-	{
-		$$ = std::stod($3);
-	}
-	;
 
 kill_stmt:
 	KILL int_value
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(Kill);
 		check(cmd_stmt);
-		cmd_stmt->params.kill_params.session_id = $2;
+		KillSessionParam_s param = KillSessionParam::make_kill_session_param();
+		param->session_id = $2;
+		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
 	;

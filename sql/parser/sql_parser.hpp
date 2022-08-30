@@ -375,7 +375,6 @@ namespace CatDB {
       // show_stmt
       // use_stmt
       // desc_stmt
-      // analyze_stmt
       // kill_stmt
       // create_package_stmt
       // exec_package_stmt
@@ -444,14 +443,11 @@ namespace CatDB {
       // opt_replace
       char dummy22[sizeof(bool)];
 
-      // opt_sample_size
-      char dummy23[sizeof(double)];
-
       // limit_expr
       // opt_time_precision
       // opt_char_length
       // int_value
-      char dummy24[sizeof(int)];
+      char dummy23[sizeof(int)];
 
       // STRING
       // IDENT
@@ -474,7 +470,7 @@ namespace CatDB {
       // datetime
       // string
       // number
-      char dummy25[sizeof(std::string)];
+      char dummy24[sizeof(std::string)];
 };
 
     /// Symbol semantic values.
@@ -522,88 +518,88 @@ namespace CatDB {
         TOKEN_NUMERIC = 279,
         TOKEN_QB_NAME_IDENT = 280,
         TOKEN_ALL = 281,
-        TOKEN_ANALYZE = 282,
-        TOKEN_ANY = 283,
-        TOKEN_AS = 284,
-        TOKEN_ASC = 285,
-        TOKEN_AVG = 286,
-        TOKEN_BEGIN_HINT = 287,
-        TOKEN_BEGIN_OUTLINE_DATA = 288,
-        TOKEN_BIGINT = 289,
-        TOKEN_BINARY = 290,
-        TOKEN_BY = 291,
-        TOKEN_CASE = 292,
-        TOKEN_CHAR = 293,
-        TOKEN_COLUMN = 294,
-        TOKEN_COLUMNS = 295,
-        TOKEN_COMMA = 296,
-        TOKEN_COUNT = 297,
-        TOKEN_CREATE = 298,
-        TOKEN_CSV = 299,
-        TOKEN_DATABASE = 300,
-        TOKEN_DATABASES = 301,
-        TOKEN_DATE = 302,
-        TOKEN_DATETIME = 303,
-        TOKEN_DAY = 304,
-        TOKEN_DECIMAL = 305,
-        TOKEN_DELETE = 306,
-        TOKEN_DENSE_RANK = 307,
-        TOKEN_DESC = 308,
-        TOKEN_DESCRIBE = 309,
-        TOKEN_DISTINCT = 310,
-        TOKEN_DIV = 311,
-        TOKEN_DOUBLE = 312,
-        TOKEN_DROP = 313,
-        TOKEN_DUAL = 314,
-        TOKEN_ELSE = 315,
-        TOKEN_END_HINT = 316,
-        TOKEN_END_OUTLINE_DATA = 317,
-        TOKEN_END_SYM = 318,
-        TOKEN_ENGINE = 319,
-        TOKEN_EXEC = 320,
-        TOKEN_EXISTS = 321,
-        TOKEN_EXPLAIN = 322,
-        TOKEN_EXPR_NORMALIZE = 323,
-        TOKEN_FIELD = 324,
-        TOKEN_FLOAT = 325,
-        TOKEN_FROM = 326,
-        TOKEN_FULL = 327,
-        TOKEN_FUNCTION = 328,
-        TOKEN_GROUP = 329,
-        TOKEN_HAVING = 330,
-        TOKEN_IF = 331,
-        TOKEN_IFNULL = 332,
-        TOKEN_INDEX = 333,
-        TOKEN_INFILE = 334,
-        TOKEN_INNER = 335,
-        TOKEN_INSERT = 336,
-        TOKEN_INT = 337,
-        TOKEN_INTEGER = 338,
-        TOKEN_INTERVAL = 339,
-        TOKEN_INTO = 340,
-        TOKEN_JOIN = 341,
-        TOKEN_KILL = 342,
-        TOKEN_LEADING = 343,
-        TOKEN_LEFT = 344,
-        TOKEN_LIMIT = 345,
-        TOKEN_LINE = 346,
-        TOKEN_LP = 347,
-        TOKEN_MAX = 348,
-        TOKEN_MEDIUMINT = 349,
-        TOKEN_MEMORY = 350,
-        TOKEN_MERGE = 351,
-        TOKEN_MIN = 352,
-        TOKEN_MINUS = 353,
-        TOKEN_MONTH = 354,
-        TOKEN_MUL = 355,
-        TOKEN_NO_EXPR_NORMALIZE = 356,
-        TOKEN_NO_MERGE = 357,
-        TOKEN_NO_REWRITE = 358,
-        TOKEN_NO_SIMPLIFY_SQ = 359,
-        TOKEN_NO_UNNEST = 360,
-        TOKEN_NO_USE_HASH = 361,
-        TOKEN_NO_USE_NL = 362,
-        TOKEN_NO_WIN_MAGIC = 363,
+        TOKEN_ANY = 282,
+        TOKEN_AS = 283,
+        TOKEN_ASC = 284,
+        TOKEN_AVG = 285,
+        TOKEN_BEGIN_HINT = 286,
+        TOKEN_BEGIN_OUTLINE_DATA = 287,
+        TOKEN_BIGINT = 288,
+        TOKEN_BINARY = 289,
+        TOKEN_BY = 290,
+        TOKEN_CASE = 291,
+        TOKEN_CHAR = 292,
+        TOKEN_COLUMN = 293,
+        TOKEN_COLUMNS = 294,
+        TOKEN_COMMA = 295,
+        TOKEN_COUNT = 296,
+        TOKEN_CREATE = 297,
+        TOKEN_CSV = 298,
+        TOKEN_DATABASE = 299,
+        TOKEN_DATABASES = 300,
+        TOKEN_DATE = 301,
+        TOKEN_DATETIME = 302,
+        TOKEN_DAY = 303,
+        TOKEN_DECIMAL = 304,
+        TOKEN_DELETE = 305,
+        TOKEN_DENSE_RANK = 306,
+        TOKEN_DESC = 307,
+        TOKEN_DESCRIBE = 308,
+        TOKEN_DISTINCT = 309,
+        TOKEN_DIV = 310,
+        TOKEN_DOUBLE = 311,
+        TOKEN_DROP = 312,
+        TOKEN_DUAL = 313,
+        TOKEN_ELSE = 314,
+        TOKEN_END_HINT = 315,
+        TOKEN_END_OUTLINE_DATA = 316,
+        TOKEN_END_SYM = 317,
+        TOKEN_ENGINE = 318,
+        TOKEN_EXEC = 319,
+        TOKEN_EXISTS = 320,
+        TOKEN_EXPLAIN = 321,
+        TOKEN_EXPR_NORMALIZE = 322,
+        TOKEN_FIELD = 323,
+        TOKEN_FLOAT = 324,
+        TOKEN_FROM = 325,
+        TOKEN_FULL = 326,
+        TOKEN_FUNCTION = 327,
+        TOKEN_GROUP = 328,
+        TOKEN_HAVING = 329,
+        TOKEN_IF = 330,
+        TOKEN_IFNULL = 331,
+        TOKEN_INDEX = 332,
+        TOKEN_INFILE = 333,
+        TOKEN_INNER = 334,
+        TOKEN_INSERT = 335,
+        TOKEN_INT = 336,
+        TOKEN_INTEGER = 337,
+        TOKEN_INTERVAL = 338,
+        TOKEN_INTO = 339,
+        TOKEN_JOIN = 340,
+        TOKEN_KILL = 341,
+        TOKEN_LEADING = 342,
+        TOKEN_LEFT = 343,
+        TOKEN_LIMIT = 344,
+        TOKEN_LINE = 345,
+        TOKEN_LP = 346,
+        TOKEN_MAX = 347,
+        TOKEN_MEDIUMINT = 348,
+        TOKEN_MEMORY = 349,
+        TOKEN_MERGE = 350,
+        TOKEN_MIN = 351,
+        TOKEN_MINUS = 352,
+        TOKEN_MONTH = 353,
+        TOKEN_MUL = 354,
+        TOKEN_NO_EXPR_NORMALIZE = 355,
+        TOKEN_NO_MERGE = 356,
+        TOKEN_NO_REWRITE = 357,
+        TOKEN_NO_SIMPLIFY_SQ = 358,
+        TOKEN_NO_UNNEST = 359,
+        TOKEN_NO_USE_HASH = 360,
+        TOKEN_NO_USE_NL = 361,
+        TOKEN_NO_WIN_MAGIC = 362,
+        TOKEN_NUMBER = 363,
         TOKEN_NUMERIC_SYM = 364,
         TOKEN_ON = 365,
         TOKEN_ORDER = 366,
@@ -739,8 +735,6 @@ namespace CatDB {
   basic_symbol (typename Base::kind_type t, const WinType v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const bool v, const location_type& l);
-
-  basic_symbol (typename Base::kind_type t, const double v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const int v, const location_type& l);
 
@@ -912,10 +906,6 @@ namespace CatDB {
     static inline
     symbol_type
     make_ALL (const location_type& l);
-
-    static inline
-    symbol_type
-    make_ANALYZE (const location_type& l);
 
     static inline
     symbol_type
@@ -1240,6 +1230,10 @@ namespace CatDB {
     static inline
     symbol_type
     make_NO_WIN_MAGIC (const location_type& l);
+
+    static inline
+    symbol_type
+    make_NUMBER (const location_type& l);
 
     static inline
     symbol_type
@@ -1666,9 +1660,9 @@ namespace CatDB {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 1261,     ///< Last index in yytable_.
-      yynnts_ = 113,  ///< Number of nonterminal symbols.
-      yyfinal_ = 82, ///< Termination state number.
+      yylast_ = 1211,     ///< Last index in yytable_.
+      yynnts_ = 111,  ///< Number of nonterminal symbols.
+      yyfinal_ = 73, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 164  ///< Number of tokens.
@@ -1765,12 +1759,12 @@ namespace CatDB {
   {
       switch (other.type_get ())
     {
-      case 267: // relation_factor
+      case 265: // relation_factor
         value.copy< BasicTableStmt_s > (other.value);
         break;
 
       case 236: // column_definition
-      case 259: // param
+      case 257: // param
         value.copy< ColumnDefineStmt_s > (other.value);
         break;
 
@@ -1795,9 +1789,9 @@ namespace CatDB {
         value.copy< ExprStmt_s > (other.value);
         break;
 
-      case 253: // pro_or_func
-      case 254: // procedure_define
-      case 255: // function_define
+      case 251: // pro_or_func
+      case 252: // procedure_define
+      case 253: // function_define
         value.copy< FunctionDefinition_s > (other.value);
         break;
 
@@ -1840,10 +1834,9 @@ namespace CatDB {
       case 244: // show_stmt
       case 246: // use_stmt
       case 247: // desc_stmt
-      case 248: // analyze_stmt
-      case 250: // kill_stmt
-      case 251: // create_package_stmt
-      case 265: // exec_package_stmt
+      case 248: // kill_stmt
+      case 249: // create_package_stmt
+      case 263: // exec_package_stmt
         value.copy< Stmt_s > (other.value);
         break;
 
@@ -1856,9 +1849,9 @@ namespace CatDB {
         break;
 
       case 235: // table_element_list
-      case 256: // table_type
-      case 257: // opt_param_list
-      case 258: // param_list
+      case 254: // table_type
+      case 255: // opt_param_list
+      case 256: // param_list
         value.copy< Vector<ColumnDefineStmt_s> > (other.value);
         break;
 
@@ -1874,11 +1867,11 @@ namespace CatDB {
       case 221: // opt_partition_by
       case 224: // insert_value
       case 226: // update_asgn_list
-      case 266: // opt_arith_expr_list
+      case 264: // opt_arith_expr_list
         value.copy< Vector<ExprStmt_s> > (other.value);
         break;
 
-      case 252: // pro_or_func_list
+      case 250: // pro_or_func_list
         value.copy< Vector<FunctionDefinition_s> > (other.value);
         break;
 
@@ -1917,18 +1910,14 @@ namespace CatDB {
       case 218: // distinct_or_all
       case 237: // opt_not_null
       case 243: // opt_if_exists
-      case 260: // opt_replace
+      case 258: // opt_replace
         value.copy< bool > (other.value);
-        break;
-
-      case 249: // opt_sample_size
-        value.copy< double > (other.value);
         break;
 
       case 194: // limit_expr
       case 239: // opt_time_precision
       case 240: // opt_char_length
-      case 276: // int_value
+      case 274: // int_value
         value.copy< int > (other.value);
         break;
 
@@ -1941,18 +1930,18 @@ namespace CatDB {
       case 202: // opt_alias
       case 234: // beg_view_define
       case 245: // op_from_database
-      case 261: // package_name
-      case 262: // procedure_name
-      case 263: // function_name
-      case 264: // param_name
-      case 268: // database_name
-      case 269: // relation_name
-      case 270: // column_name
-      case 271: // column_label
-      case 272: // ident
-      case 273: // datetime
-      case 274: // string
-      case 275: // number
+      case 259: // package_name
+      case 260: // procedure_name
+      case 261: // function_name
+      case 262: // param_name
+      case 266: // database_name
+      case 267: // relation_name
+      case 268: // column_name
+      case 269: // column_label
+      case 270: // ident
+      case 271: // datetime
+      case 272: // string
+      case 273: // number
         value.copy< std::string > (other.value);
         break;
 
@@ -1973,12 +1962,12 @@ namespace CatDB {
     (void) v;
       switch (this->type_get ())
     {
-      case 267: // relation_factor
+      case 265: // relation_factor
         value.copy< BasicTableStmt_s > (v);
         break;
 
       case 236: // column_definition
-      case 259: // param
+      case 257: // param
         value.copy< ColumnDefineStmt_s > (v);
         break;
 
@@ -2003,9 +1992,9 @@ namespace CatDB {
         value.copy< ExprStmt_s > (v);
         break;
 
-      case 253: // pro_or_func
-      case 254: // procedure_define
-      case 255: // function_define
+      case 251: // pro_or_func
+      case 252: // procedure_define
+      case 253: // function_define
         value.copy< FunctionDefinition_s > (v);
         break;
 
@@ -2048,10 +2037,9 @@ namespace CatDB {
       case 244: // show_stmt
       case 246: // use_stmt
       case 247: // desc_stmt
-      case 248: // analyze_stmt
-      case 250: // kill_stmt
-      case 251: // create_package_stmt
-      case 265: // exec_package_stmt
+      case 248: // kill_stmt
+      case 249: // create_package_stmt
+      case 263: // exec_package_stmt
         value.copy< Stmt_s > (v);
         break;
 
@@ -2064,9 +2052,9 @@ namespace CatDB {
         break;
 
       case 235: // table_element_list
-      case 256: // table_type
-      case 257: // opt_param_list
-      case 258: // param_list
+      case 254: // table_type
+      case 255: // opt_param_list
+      case 256: // param_list
         value.copy< Vector<ColumnDefineStmt_s> > (v);
         break;
 
@@ -2082,11 +2070,11 @@ namespace CatDB {
       case 221: // opt_partition_by
       case 224: // insert_value
       case 226: // update_asgn_list
-      case 266: // opt_arith_expr_list
+      case 264: // opt_arith_expr_list
         value.copy< Vector<ExprStmt_s> > (v);
         break;
 
-      case 252: // pro_or_func_list
+      case 250: // pro_or_func_list
         value.copy< Vector<FunctionDefinition_s> > (v);
         break;
 
@@ -2125,18 +2113,14 @@ namespace CatDB {
       case 218: // distinct_or_all
       case 237: // opt_not_null
       case 243: // opt_if_exists
-      case 260: // opt_replace
+      case 258: // opt_replace
         value.copy< bool > (v);
-        break;
-
-      case 249: // opt_sample_size
-        value.copy< double > (v);
         break;
 
       case 194: // limit_expr
       case 239: // opt_time_precision
       case 240: // opt_char_length
-      case 276: // int_value
+      case 274: // int_value
         value.copy< int > (v);
         break;
 
@@ -2149,18 +2133,18 @@ namespace CatDB {
       case 202: // opt_alias
       case 234: // beg_view_define
       case 245: // op_from_database
-      case 261: // package_name
-      case 262: // procedure_name
-      case 263: // function_name
-      case 264: // param_name
-      case 268: // database_name
-      case 269: // relation_name
-      case 270: // column_name
-      case 271: // column_label
-      case 272: // ident
-      case 273: // datetime
-      case 274: // string
-      case 275: // number
+      case 259: // package_name
+      case 260: // procedure_name
+      case 261: // function_name
+      case 262: // param_name
+      case 266: // database_name
+      case 267: // relation_name
+      case 268: // column_name
+      case 269: // column_label
+      case 270: // ident
+      case 271: // datetime
+      case 272: // string
+      case 273: // number
         value.copy< std::string > (v);
         break;
 
@@ -2334,13 +2318,6 @@ namespace CatDB {
   {}
 
   template <typename Base>
-  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const double v, const location_type& l)
-    : Base (t)
-    , value (v)
-    , location (l)
-  {}
-
-  template <typename Base>
   parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const int v, const location_type& l)
     : Base (t)
     , value (v)
@@ -2380,12 +2357,12 @@ namespace CatDB {
     // Type destructor.
     switch (yytype)
     {
-      case 267: // relation_factor
+      case 265: // relation_factor
         value.template destroy< BasicTableStmt_s > ();
         break;
 
       case 236: // column_definition
-      case 259: // param
+      case 257: // param
         value.template destroy< ColumnDefineStmt_s > ();
         break;
 
@@ -2410,9 +2387,9 @@ namespace CatDB {
         value.template destroy< ExprStmt_s > ();
         break;
 
-      case 253: // pro_or_func
-      case 254: // procedure_define
-      case 255: // function_define
+      case 251: // pro_or_func
+      case 252: // procedure_define
+      case 253: // function_define
         value.template destroy< FunctionDefinition_s > ();
         break;
 
@@ -2455,10 +2432,9 @@ namespace CatDB {
       case 244: // show_stmt
       case 246: // use_stmt
       case 247: // desc_stmt
-      case 248: // analyze_stmt
-      case 250: // kill_stmt
-      case 251: // create_package_stmt
-      case 265: // exec_package_stmt
+      case 248: // kill_stmt
+      case 249: // create_package_stmt
+      case 263: // exec_package_stmt
         value.template destroy< Stmt_s > ();
         break;
 
@@ -2471,9 +2447,9 @@ namespace CatDB {
         break;
 
       case 235: // table_element_list
-      case 256: // table_type
-      case 257: // opt_param_list
-      case 258: // param_list
+      case 254: // table_type
+      case 255: // opt_param_list
+      case 256: // param_list
         value.template destroy< Vector<ColumnDefineStmt_s> > ();
         break;
 
@@ -2489,11 +2465,11 @@ namespace CatDB {
       case 221: // opt_partition_by
       case 224: // insert_value
       case 226: // update_asgn_list
-      case 266: // opt_arith_expr_list
+      case 264: // opt_arith_expr_list
         value.template destroy< Vector<ExprStmt_s> > ();
         break;
 
-      case 252: // pro_or_func_list
+      case 250: // pro_or_func_list
         value.template destroy< Vector<FunctionDefinition_s> > ();
         break;
 
@@ -2532,18 +2508,14 @@ namespace CatDB {
       case 218: // distinct_or_all
       case 237: // opt_not_null
       case 243: // opt_if_exists
-      case 260: // opt_replace
+      case 258: // opt_replace
         value.template destroy< bool > ();
-        break;
-
-      case 249: // opt_sample_size
-        value.template destroy< double > ();
         break;
 
       case 194: // limit_expr
       case 239: // opt_time_precision
       case 240: // opt_char_length
-      case 276: // int_value
+      case 274: // int_value
         value.template destroy< int > ();
         break;
 
@@ -2556,18 +2528,18 @@ namespace CatDB {
       case 202: // opt_alias
       case 234: // beg_view_define
       case 245: // op_from_database
-      case 261: // package_name
-      case 262: // procedure_name
-      case 263: // function_name
-      case 264: // param_name
-      case 268: // database_name
-      case 269: // relation_name
-      case 270: // column_name
-      case 271: // column_label
-      case 272: // ident
-      case 273: // datetime
-      case 274: // string
-      case 275: // number
+      case 259: // package_name
+      case 260: // procedure_name
+      case 261: // function_name
+      case 262: // param_name
+      case 266: // database_name
+      case 267: // relation_name
+      case 268: // column_name
+      case 269: // column_label
+      case 270: // ident
+      case 271: // datetime
+      case 272: // string
+      case 273: // number
         value.template destroy< std::string > ();
         break;
 
@@ -2594,12 +2566,12 @@ namespace CatDB {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 267: // relation_factor
+      case 265: // relation_factor
         value.move< BasicTableStmt_s > (s.value);
         break;
 
       case 236: // column_definition
-      case 259: // param
+      case 257: // param
         value.move< ColumnDefineStmt_s > (s.value);
         break;
 
@@ -2624,9 +2596,9 @@ namespace CatDB {
         value.move< ExprStmt_s > (s.value);
         break;
 
-      case 253: // pro_or_func
-      case 254: // procedure_define
-      case 255: // function_define
+      case 251: // pro_or_func
+      case 252: // procedure_define
+      case 253: // function_define
         value.move< FunctionDefinition_s > (s.value);
         break;
 
@@ -2669,10 +2641,9 @@ namespace CatDB {
       case 244: // show_stmt
       case 246: // use_stmt
       case 247: // desc_stmt
-      case 248: // analyze_stmt
-      case 250: // kill_stmt
-      case 251: // create_package_stmt
-      case 265: // exec_package_stmt
+      case 248: // kill_stmt
+      case 249: // create_package_stmt
+      case 263: // exec_package_stmt
         value.move< Stmt_s > (s.value);
         break;
 
@@ -2685,9 +2656,9 @@ namespace CatDB {
         break;
 
       case 235: // table_element_list
-      case 256: // table_type
-      case 257: // opt_param_list
-      case 258: // param_list
+      case 254: // table_type
+      case 255: // opt_param_list
+      case 256: // param_list
         value.move< Vector<ColumnDefineStmt_s> > (s.value);
         break;
 
@@ -2703,11 +2674,11 @@ namespace CatDB {
       case 221: // opt_partition_by
       case 224: // insert_value
       case 226: // update_asgn_list
-      case 266: // opt_arith_expr_list
+      case 264: // opt_arith_expr_list
         value.move< Vector<ExprStmt_s> > (s.value);
         break;
 
-      case 252: // pro_or_func_list
+      case 250: // pro_or_func_list
         value.move< Vector<FunctionDefinition_s> > (s.value);
         break;
 
@@ -2746,18 +2717,14 @@ namespace CatDB {
       case 218: // distinct_or_all
       case 237: // opt_not_null
       case 243: // opt_if_exists
-      case 260: // opt_replace
+      case 258: // opt_replace
         value.move< bool > (s.value);
-        break;
-
-      case 249: // opt_sample_size
-        value.move< double > (s.value);
         break;
 
       case 194: // limit_expr
       case 239: // opt_time_precision
       case 240: // opt_char_length
-      case 276: // int_value
+      case 274: // int_value
         value.move< int > (s.value);
         break;
 
@@ -2770,18 +2737,18 @@ namespace CatDB {
       case 202: // opt_alias
       case 234: // beg_view_define
       case 245: // op_from_database
-      case 261: // package_name
-      case 262: // procedure_name
-      case 263: // function_name
-      case 264: // param_name
-      case 268: // database_name
-      case 269: // relation_name
-      case 270: // column_name
-      case 271: // column_label
-      case 272: // ident
-      case 273: // datetime
-      case 274: // string
-      case 275: // number
+      case 259: // package_name
+      case 260: // procedure_name
+      case 261: // function_name
+      case 262: // param_name
+      case 266: // database_name
+      case 267: // relation_name
+      case 268: // column_name
+      case 269: // column_label
+      case 270: // ident
+      case 271: // datetime
+      case 272: // string
+      case 273: // number
         value.move< std::string > (s.value);
         break;
 
@@ -3009,12 +2976,6 @@ namespace CatDB {
   parser::make_ALL (const location_type& l)
   {
     return symbol_type (token::TOKEN_ALL, l);
-  }
-
-  parser::symbol_type
-  parser::make_ANALYZE (const location_type& l)
-  {
-    return symbol_type (token::TOKEN_ANALYZE, l);
   }
 
   parser::symbol_type
@@ -3504,6 +3465,12 @@ namespace CatDB {
   }
 
   parser::symbol_type
+  parser::make_NUMBER (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NUMBER, l);
+  }
+
+  parser::symbol_type
   parser::make_NUMERIC_SYM (const location_type& l)
   {
     return symbol_type (token::TOKEN_NUMERIC_SYM, l);
@@ -3836,7 +3803,7 @@ namespace CatDB {
 
 #line 16 "/home/lighthouse/CatDB/sql/parser/sql_parser.y" // lalr1.cc:377
 } // CatDB
-#line 3840 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
+#line 3807 "/home/lighthouse/CatDB/sql/parser/sql_parser.hpp" // lalr1.cc:377
 
 
 

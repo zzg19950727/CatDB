@@ -1,4 +1,6 @@
 #ifdef REGISTE_PACKAGE
 #include "dbms_sys.def"
 #include "dbms_trace.def"
+#include "dbms_stats.def"
+#include "dbms_metadata.def"
 #endif  //REGISTE_PACKAGE

@@ -115,6 +115,7 @@ u32 PackageManager::add_package(CreatePackageParam_s param)
             PackageFuncInfo func_info;
             func_info.name = func->name;
             for (u32 j = 0; j < func->param_list.size(); ++j) {
+                func_info.param_names.push_back(func->param_list[j]->column_name);
                 func_info.param_type_list.push_back(func->param_list[j]->data_type);
             }
             for (u32 j = 0; j < func->return_type_list.size(); ++j) {
@@ -149,6 +150,21 @@ u32 PackageManager::get_func_info(const String& package_name,
         } else {
             info = package_info.funcs[lower_func_name];
         }
+    }
+    return ret;
+}
+
+u32 PackageManager::get_package_info(const String& package_name, 
+                                     PackageInfo& info)
+{
+    u32 ret = SUCCESS;
+    String lower_package_name = package_name;
+    str_to_lower(lower_package_name);
+    if (all_packages.find(lower_package_name) == all_packages.cend()) {
+        ret = ERR_UNEXPECTED;
+        LOG_ERR("package not exists", K(lower_package_name), K(ret));
+    } else {
+        info = all_packages[lower_package_name];
     }
     return ret;
 }

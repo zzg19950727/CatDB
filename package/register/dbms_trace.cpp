@@ -1,6 +1,6 @@
 #include "dbms_trace.h"
 #include "session_info.h"
-#include "obj_varchar.h"
+#include "object.h"
 #include "error.h"
 #include "log.h"
 

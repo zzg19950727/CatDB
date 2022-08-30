@@ -76,6 +76,7 @@ u32 TransformPreProcess::inner_simplify_calculable_expr(ExprStmt_s &expr, bool &
         } else {
             ExprStmt_s new_expr = ConstStmt::make_const_stmt(obj_result);
             new_expr->alias_name = expr->alias_name;
+            new_expr->res_type = expr->res_type;
             expr = new_expr;
         }
         happened = true;

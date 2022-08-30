@@ -18,6 +18,7 @@ namespace CatDB {
             struct PackageFuncInfo {
                 String name;
                 PackageBase::PackageFuncType func_ptr;
+                Vector<String> param_names;
                 Vector<DataType> param_type_list;
                 Vector<String> return_columns;
                 Vector<DataType> return_type_list;
@@ -47,7 +48,8 @@ namespace CatDB {
             u32 get_func_info(const String& package_name, 
                               const String& func_name, 
                               PackageFuncInfo& info);
-
+            u32 get_package_info(const String& package_name, 
+                                 PackageInfo& info);
             KV_STRING(
                 K(all_packages)
             );

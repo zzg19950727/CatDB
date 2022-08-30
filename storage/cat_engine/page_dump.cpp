@@ -16,7 +16,7 @@ PageDump::PageDump(const String &data_file)
     index = 0;
 }
 
-void dump_header(Page_s &page, std::stringstream &str_stream)
+void PageDump::dump_header(Page_s &page, std::stringstream &str_stream)
 {
     str_stream << "page_checksum:" << page->page_header_->page_checksum << std::endl;
 	str_stream << "page_offset:" << page->page_header_->page_offset << std::endl;
@@ -27,23 +27,23 @@ void dump_header(Page_s &page, std::stringstream &str_stream)
 	str_stream << "free_size:" << page->page_header_->free_size << std::endl;
 }
 
-void hex_string(const char* data, u32 size, String& str)
+void PageDump::hex_string(const char* data, u32 size, String& str)
 {
-    static char map[] = {'1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+    static char map[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
     for (u32 i = 0; i < size; ++i) {
-        str += map[data[i]&0xf];
-        str += map[(data[i]&0xf0) >> 4];
+        str += map[(data[i] >> 4) & 0x0f];
+        str += map[data[i] & 0x0f];
     }
 }
 
-void dump_record(Page_s &page, int idx, std::stringstream &str_stream)
+void PageDump::dump_record(Page_s &page, int idx, std::stringstream &str_stream)
 {
     RowInfo *info = &page->row_info_[idx];
-    RawRecord* record = RawRecord::make_raw_record(page->records_space_ + info->offset);
     if (page->is_row_deleted(info)) {
         str_stream << "row " << idx << ":" << "delete" << std::endl;
         return;
     }
+    RawRecord* record = RawRecord::make_raw_record(page->records_space_ + info->offset);
     str_stream << "row " << idx << ":" << record->column_count-1 << " columns" << std::endl;
     for (u32 i = 0; i < record->column_count-1; ++i) {
         u32 size = record->get_offset(i+1) - record->get_offset(i);
@@ -54,10 +54,6 @@ void dump_record(Page_s &page, int idx, std::stringstream &str_stream)
         } else {
             String str;
             hex_string(data, size , str);
-            str += ' ';
-            str += '(';
-            str += String(data, size);
-            str += ')';
             str_stream << str << std::endl;
         }
     }
@@ -83,7 +79,7 @@ bool PageDump::dump_page(String &page_info, u32 page_id)
     page->open();
     dump_header(page, str_stream);
     for (u32 i = 0; i < page->page_header_->row_count; ++i) {
-        dump_record(page, i, str_stream);
+        dump_record(page, page->get_idx_from_row_id(i), str_stream);
     }
     page->close();
     page_info = str_stream.str();

@@ -461,7 +461,7 @@ u32 SchemaGuard::add_database_to_inner_table(u32 id, const String& name)
     u32 ret = SUCCESS;
     ResultSet_s result;
     String query = "insert into " + FULL_SYSTEM_DB_NAME + " values(" +
-                     std::to_string(id) + ",\"" + name + "\");";
+                     std::to_string(id) + ",`" + name + "`);";
 	CHECK(execute_sys_sql(query, result));
     return ret;
 }
@@ -508,15 +508,15 @@ u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
     u32 ret = SUCCESS;
     String query = "insert into " + FULL_SYSTEM_TABLE_NAME + " values(" +
                 std::to_string(db_id) + "," + 
-                std::to_string(table_id) + ",\"" + 
-                name + "\"," +
+                std::to_string(table_id) + ",`" + 
+                name + "`," +
                 std::to_string(type);
     int i = 0;
     for (; i < engine_args.size() && i < ENGINE_ARG_COUNT; ++i) {
-        query += String(",\"") + engine_args[i] + "\""; 
+        query += String(",`") + engine_args[i] + "`"; 
     }
     for (; i < ENGINE_ARG_COUNT; ++i) {
-        query += String(",\" \""); 
+        query += String(",` `"); 
     }
     query += String(");");
 	ResultSet_s result;
@@ -524,8 +524,8 @@ u32 SchemaGuard::add_table_to_inner_table(u32 db_id,
 	for (u32 i = 0; i < columns.size(); ++i) {
 		query = "insert into " + FULL_SYSTEM_COLUMN_NAME + " values(" + 
             std::to_string(table_id) + "," + 
-            std::to_string(i) + ",\"" +
-			columns[i]->column_name + "\"," + 
+            std::to_string(i) + ",`" +
+			columns[i]->column_name + "`," + 
             std::to_string((int)columns[i]->data_type.res_type) + "," + 
             std::to_string(columns[i]->data_type.precision) + "," + 
             std::to_string(columns[i]->data_type.scale) + ");";

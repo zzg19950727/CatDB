@@ -53,7 +53,7 @@ long long DateTime::get_seconds(const char* str, u32 size)
 	if (month > 12 || day > 31 || hour > 24 || minute > 60 || second > 60)
 		return -1;
 
-	tm_.tm_year = year;
+	tm_.tm_year = year - 1900;
 	tm_.tm_mon = month - 1;
 	tm_.tm_mday = day;
 	tm_.tm_hour = hour;
@@ -211,7 +211,7 @@ u32 DateTime::inner_format_datetime(const String &format, String &str)const
 	//format yyyy
 	if("" == format || format.find('y') != String::npos || format.find('Y') != String::npos) {
 		sprintf(tmp + strlen(tmp), "%04d",
-			time->tm_year
+			time->tm_year + 1900
 		);
 		next = true;
 	} else {

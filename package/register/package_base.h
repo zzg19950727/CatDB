@@ -20,6 +20,7 @@ namespace CatDB {
 
             static u32 add_result(const String &value, PackageResType &result);
             static u32 add_result(const String &value1, const String &value2, PackageResType &result);
+            static u32 add_result_from_inner_sql(const String &sql, PackageResType &result);
         };
     }
 }

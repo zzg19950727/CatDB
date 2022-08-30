@@ -1,23 +1,153 @@
 #ifndef CMD_STMT_H
 #define CMD_STMT_H
-#include "object.h"
-#include "error.h"
 #include "select_stmt.h"
+#include "expr_stmt.h"
+#include "stmt.h"
 #include "type.h"
-#include "log.h"
 
 namespace CatDB {
 	namespace Parser {
-        DECLARE(ExprStmt);
-        DECLARE(SelectStmt);
-        DECLARE(BasicTableStmt);
-		DECLARE(Stmt);
 		using Common::DataType;
 
         DECLARE(CMDParam);
         class CMDParam {
         public:
             VIRTUAL_KV_STRING("");
+        };
+
+        //for create table
+        DECLARE(CreateTableParam);
+        class CreateTableParam : public CMDParam {
+        public:
+            static CreateTableParam_s make_create_table_param();
+            String database_name;
+            String table_name;
+            Vector<ColumnDefineStmt_s> column_define_list;
+            Vector<String> engine_args;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database_name),
+                K(table_name),
+                K(column_define_list),
+                K(engine_args)
+            );
+        };
+
+        //for drop table
+        DECLARE(DropTableParam);
+        class DropTableParam : public CMDParam {
+        public:
+            static DropTableParam_s make_drop_table_param();
+            String database_name;
+            String table_name;
+            bool ignore_not_exists;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database_name),
+                K(table_name),
+                K(ignore_not_exists)
+            );
+        };
+
+        //for create database
+        DECLARE(CreateDBParam);
+        class CreateDBParam : public CMDParam {
+        public:
+            static CreateDBParam_s make_create_DB_param();
+            String database;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database)
+            );
+        };
+
+        //for drop database
+        DECLARE(DropDBParam);
+        class DropDBParam : public CMDParam {
+        public:
+            static DropDBParam_s make_drop_DB_param();
+            String database;
+            bool ignore_not_exists;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database),
+                K(ignore_not_exists)
+            );
+        };
+
+        //for show tables
+        DECLARE(ShowTablesParam);
+        class ShowTablesParam : public CMDParam {
+        public:
+            static ShowTablesParam_s make_show_tables_param();
+            String database;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database)
+            );
+        };
+
+        //for desc table
+        DECLARE(DescTableParam);
+        class DescTableParam : public CMDParam {
+        public:
+            static DescTableParam_s make_desc_table_param();
+            String database_name;
+            String table_name;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database_name),
+                K(table_name)
+            );
+        };
+
+        //for use database
+        DECLARE(UseDBParam);
+        class UseDBParam : public CMDParam {
+        public:
+            static UseDBParam_s make_use_DB_param();
+            String database;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database)
+            );
+        };
+        
+        //kill session_id
+        DECLARE(KillSessionParam);
+        class KillSessionParam : public CMDParam {
+        public:
+            static KillSessionParam_s make_kill_session_param();
+            int session_id;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(session_id)
+            );
+        };
+
+        //create view
+        DECLARE(CreateViewParam);
+        class CreateViewParam : public CMDParam {
+        public:
+            static CreateViewParam_s make_create_view_param();
+            String database;
+            String view_name;
+            Vector<String> column_define;
+            String view_define_sql;
+            SelectStmt_s ref_query;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database),
+                K(view_name),
+                K(column_define),
+                K(view_define_sql)
+            );
+        };
+
+        //drop view
+        DECLARE(DropViewParam);
+        class DropViewParam : public CMDParam {
+        public:
+            static DropViewParam_s make_drop_view_param();
+            String database;
+            String view_name;
+            bool ignore_not_exists;
+            VIRTUAL_KV_STRING_OVERRIDE(
+                K(database),
+                K(view_name),
+                K(ignore_not_exists)
+            );
         };
 
         DECLARE(FunctionDefinition);
@@ -77,150 +207,8 @@ namespace CatDB {
 			~CMDStmt();
 			StmtType stmt_type()const override;
 			static Stmt_s make_cmd_stmt(CMDType cmd_type);
-            u32 get_create_table_params(String &database, 
-                                        String &table, 
-                                        Vector<ColumnDefineStmt_s> &columns,
-                                        Vector<String> &engine_args);
-            u32 get_drop_table_params(String &database, String &table, bool &ignore_not_exists);
-            u32 get_create_database_params(String &database);
-            u32 get_drop_database_params(String &database, bool &ignore_not_exists);
-            u32 get_show_tables_params(String &database);
-            u32 get_show_databases_params(bool &is_select_current_database);
-            u32 get_desc_table_params(String &database, 
-                                      String &table, 
-                                      bool &is_show_table_statis, 
-                                      bool &is_show_column_statis);
-            u32 get_use_database_params(String &database);
-            u32 get_analyze_params(String &database, String &table, double &sample_size);
-            u32 get_kill_params(int &session_id);
-            u32 get_create_view_params(String &database,
-                                    String &view_name,
-                                    Vector<String> &column_define,
-                                    String &view_define_sql,
-                                    SelectStmt_s &ref_query);
-            u32 get_drop_view_params(String &database,
-                                     String &view_name, 
-                                     bool &ignore_not_exists);
             u32 formalize() override;
-		public:
-            struct CMDParams{
-                //for create table
-                struct {
-                    BasicTableStmt_s table;
-			        Vector<ColumnDefineStmt_s> column_define_list;
-                    Vector<String> engine_args;
-                    KV_STRING(
-                        K(table),
-                        K(column_define_list),
-                        K(engine_args)
-                    );
-                } create_table_params;
-                //for drop table
-                struct {
-                    BasicTableStmt_s table;
-                    bool ignore_not_exists;
-                    KV_STRING(
-                        K(table)
-                    );
-                } drop_table_params;
-                //for create database
-                struct {
-                    String database;
-                    KV_STRING(
-                        K(database)
-                    );
-                } create_database_params;
-                //for drop database
-                struct {
-                    String database;
-                    bool ignore_not_exists;
-                    KV_STRING(
-                        K(database)
-                    );
-                } drop_database_params;
-                //for show tables
-                struct {
-                    String database;
-                    KV_STRING(
-                        K(database)
-                    );
-                } show_tables_params;  
-                //for show databases
-                struct {
-                    bool is_select_current_database = false;
-                    KV_STRING(
-                        K(is_select_current_database)
-                    );
-                } show_databases_params;
-                //for desc table
-                struct {
-                    BasicTableStmt_s table;
-                    bool is_show_table_statis = false;
-                    bool is_show_column_statis = false;
-                    KV_STRING(
-                        K(table),
-                        K(is_show_table_statis),
-                        K(is_show_column_statis)
-                    );
-                } desc_table_params;
-                //for use database
-                struct {
-                    String database;
-                    KV_STRING(
-                        K(database)
-                    );
-                } use_database_params;
-                //for analyze
-                struct {
-                    String database;
-			        String table;
-                    double sample_size;
-                    KV_STRING(
-                        K(database),
-                        K(table),
-                        K(sample_size)
-                    );
-                } analyze_params;
-                //kill session_id
-                struct {
-                    int session_id;
-                    KV_STRING(
-                        K(session_id)
-                    );
-                } kill_params;
-                //create view
-                struct {
-                    String database;
-                    String view_name;
-                    Vector<String> column_define;
-                    String view_define_sql;
-                    SelectStmt_s ref_query;
-                    KV_STRING(
-                        K(database),
-                        K(view_name),
-                        K(column_define),
-                        K(view_define_sql)
-                    );
-                } create_view_params;
-                //drop view
-                struct {
-                    String database;
-                    String view_name;
-                    bool ignore_not_exists;
-                    KV_STRING(
-                        K(database),
-                        K(view_name),
-                        K(ignore_not_exists)
-                    );
-                } drop_view_params;
 
-                CMDParams() { }
-                ~CMDParams() { }
-                KV_STRING(
-                    V("NONE")
-                );
-
-            } params;
             CMDType cmd_type;
             CMDParam_s param;
 

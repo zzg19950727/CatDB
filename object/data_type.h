@@ -92,6 +92,26 @@ namespace CatDB {
 			static DataType default_varchar_type() { return DataType(T_VARCHAR, MAX_STR_LENGTH); }
 			static DataType default_bool_type() { return DataType(T_BOOL); }
 
+			bool is_same(const DataType& other) const
+			{
+				bool b_ret = false;
+				if (T_NUMBER == res_type) {
+					return res_type == other.res_type &&
+							precision == other.precision &&
+							scale == other.scale;
+				} else if (T_VARCHAR == res_type) {
+					return res_type == other.res_type &&
+							length == other.length;
+				} else if (T_DATETIME == res_type) {
+					return res_type == other.res_type &&
+							time_type == other.time_type &&
+							scale == other.scale;
+				} else if (T_BOOL == res_type) {
+					return res_type == other.res_type;
+				}
+				return b_ret;
+			}
+
 			String to_kv_string()const
 			{
 				if (T_NUMBER == res_type) {

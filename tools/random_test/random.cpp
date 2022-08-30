@@ -12,7 +12,7 @@ string random_number(int max_size)
 
 string random_string(int max_size)
 {
-    string str = "\"";
+    string str = "'";
     int n = (std::rand() % max_size) + 1;
     for (int i = 0; i < n; ++i) {
         int letter = std::rand()%26;
@@ -25,19 +25,19 @@ string random_string(int max_size)
             str += "%";
         }
     }
-    str += "\"";
+    str += "'";
     return str;
 }
 
 string random_time()
 {
-    string time = "\"";
+    string time = "'";
     time += std::to_string(2000+std::rand()%20);
     time += "-" + std::to_string(std::rand()%12+1);
     time += "-" + std::to_string(std::rand()%28+1);
     time += " " + std::to_string(std::rand()%24);
     time += ":" + std::to_string(std::rand()%60);
     time += ":" + std::to_string(std::rand()%60);
-    time += "\"";
+    time += "'";
     return time;
 }

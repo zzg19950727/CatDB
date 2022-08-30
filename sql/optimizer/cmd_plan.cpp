@@ -79,9 +79,6 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 		case UseDatabase:
 			CHECK(do_cmd_use_database());
 			break;
-		case Analyze:
-			CHECK(do_cmd_analyze());
-			break;
 		case ShowProcesslist:
 			CHECK(do_show_processlist(query_result));
 			break;
@@ -98,13 +95,10 @@ u32 CMDPlan::execute(ResultSet_s &query_result)
 			CHECK(do_drop_view());
 			break;
 		case CreatePackage:
-		{
-			PackageManager_s &manager = PackageManager::get_package_manager();
-			CHECK(manager->add_package(lex->param));
+			CHECK(do_create_package());
 			break;
-		}
 		case ExecFunction:
-			CHECK(PackageExecutor::execute_function(lex->param, query_result));
+			CHECK(do_exec_package(query_result));
 			break;
         default:
 			ret = INVALID_CMD_TYPE;
@@ -126,12 +120,12 @@ u32 CMDPlan::do_cmd_create_table()
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
-	String table;
-	Vector<ColumnDefineStmt_s> columns;
-	Vector<String> engine_args;
+	CreateTableParam_s param = stmt->param;
+	String &database = param->database_name;
+	String &table = param->table_name;
+	Vector<ColumnDefineStmt_s> &columns = param->column_define_list;
+	Vector<String> &engine_args = param->engine_args;
 	
-	CHECK(stmt->get_create_table_params(database, table, columns, engine_args));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -164,11 +158,11 @@ u32 CMDPlan::do_cmd_drop_table()
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
-	String table;
-	bool ignore_not_exists = false;
+	DropTableParam_s param = stmt->param;
+	String &database = param->database_name;
+	String &table = param->table_name;
+	bool ignore_not_exists = param->ignore_not_exists;
 	
-	CHECK(stmt->get_drop_table_params(database, table, ignore_not_exists));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -200,9 +194,9 @@ u32 CMDPlan::do_cmd_create_database()
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
+	CreateDBParam_s param = stmt->param;
+	String &database = param->database;
 	
-	CHECK(stmt->get_create_database_params(database));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
@@ -224,10 +218,10 @@ u32 CMDPlan::do_cmd_drop_database()
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
-	bool ignore_not_exists = false;
+	DropDBParam_s param = stmt->param;
+	String &database = param->database;
+	bool ignore_not_exists = param->ignore_not_exists;
 	
-	CHECK(stmt->get_drop_database_params(database, ignore_not_exists));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
@@ -249,10 +243,10 @@ u32 CMDPlan::do_cmd_show_tables(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
+	ShowTablesParam_s param = stmt->param;
+	String &database = param->database;
 	Vector<String> tables;
 	
-	CHECK(stmt->get_show_tables_params(database));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_table(database, tables));
@@ -273,31 +267,19 @@ u32 CMDPlan::do_cmd_show_databases(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	bool is_select_current_database;
 	Vector<String> databases;
 	
-	CHECK(stmt->get_show_databases_params(is_select_current_database));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_database(databases));
-	if (is_select_current_database) {
-		Vector<String> title;
-		title.push_back(String("cur_database()"));
-		CHECK(init_command_result_head(title, query_result));
-		Object_s database = Varchar::make_object(SESSION_CTX->get_cur_database());
+	Vector<String> title;
+	title.push_back(String("databases"));
+	CHECK(init_command_result_head(title, query_result));
+	for (u32 i = 0; i < databases.size(); ++i) {
+		Object_s database = Varchar::make_object(databases[i]);
 		Vector<Object_s> objs;
 		objs.push_back(database);
 		CHECK(add_objects_to_result_set(objs, query_result));
-	} else {
-		Vector<String> title;
-		title.push_back(String("databases"));
-		CHECK(init_command_result_head(title, query_result));
-		for (u32 i = 0; i < databases.size(); ++i) {
-			Object_s database = Varchar::make_object(databases[i]);
-			Vector<Object_s> objs;
-			objs.push_back(database);
-			CHECK(add_objects_to_result_set(objs, query_result));
-		}
 	}
 	return ret;
 }
@@ -306,12 +288,10 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
-	String table;
-	bool is_show_table_statis;
-	bool is_show_column_statis;
+	DescTableParam_s param = stmt->param;
+	String &database = param->database_name;
+	String &table = param->table_name;
 	
-	CHECK(stmt->get_desc_table_params(database, table, is_show_table_statis, is_show_column_statis));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -321,19 +301,7 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 		QUERY_CTX->set_error_msg(msg);
 		return ret;
 	}
-	if (is_show_table_statis) {
-		CHECK(show_table_statis(database, table, query_result));
-	} else if (is_show_column_statis) {
-		CHECK(show_column_statis(database, table, query_result));
-	} else {
-		CHECK(desc_table(database, table, query_result));
-	}
-	return ret;
-}
 
-u32 CMDPlan::desc_table(const String &database, const String &table, ResultSet_s &query_result)
-{
-	u32 ret = SUCCESS;
 	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
 	MY_ASSERT(checker);
 	Vector<ColumnInfo_s> columns;
@@ -369,51 +337,14 @@ u32 CMDPlan::desc_table(const String &database, const String &table, ResultSet_s
 	return ret;
 }
 
-u32 CMDPlan::show_table_statis(const String &database, const String &table, ResultSet_s &query_result)
-{
-	u32 ret = SUCCESS;
-	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-	MY_ASSERT(checker);
-	u32 tid = INVALID_ID;
-	CHECK(checker->get_table_id(database, table, tid));
-	String query = R"(select row_count,space_size,analyze_time
-				from `system`.`table_statis`  
-				where `tid` = )" + std::to_string(tid) +
-		R"( order by `analyze_time` desc limit 1;)";
-	CHECK(SqlEngine::handle_inner_sql(query, query_result));
-	return ret;
-}
-
-u32 CMDPlan::show_column_statis(const String &database, const String &table, ResultSet_s &query_result)
-{
-	u32 ret = SUCCESS;
-	SchemaChecker_s checker = SchemaChecker::make_schema_checker();
-	MY_ASSERT(checker);
-	u32 tid = INVALID_ID;
-	CHECK(checker->get_table_id(database, table, tid));
-	String query = R"(select col.name as COLUMN_NAME, col.type as TYPE, cs.ndv as NDV,cs.null_count as NULL_COUNT,
-				cs.max_value as MAX_VALUE, cs.min_value as MIN_VALUE, cs.analyze_time as ANALYZE_TIME
-				from system.sys_databases as db, system.sys_tables as tb, 
-				system.sys_columns as col, `system`.`column_statis` as cs  
-				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
-				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) +
-				R"(and cs.analyze_time = (select max(cs.analyze_time) from system.sys_databases as db, system.sys_tables as tb, 
-				system.sys_columns as col, `system`.`column_statis` as cs  
-				where db.id=tb.db_id and tb.id = col.table_id and col.id=cs.cid and 
-				db.name=")" + database + R"(" and tb.name=")" + table + R"(" and cs.`tid` = )" + std::to_string(tid) + ")" +
-				R"( order by col.id asc;)";
-	CHECK(SqlEngine::handle_inner_sql(query, query_result));
-	return ret;
-}
-
 u32 CMDPlan::do_cmd_use_database()
 {
 	u32 ret = SUCCESS;
 	CMDStmt_s stmt = lex_stmt;
-	String database;
+	UseDBParam_s param = stmt->param;
+	String &database = param->database;
 	u32 id;
 	
-	CHECK(stmt->get_use_database_params(database));
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	DatabaseInfo_s info;
@@ -427,22 +358,6 @@ u32 CMDPlan::do_cmd_use_database()
 	MY_ASSERT(checker);
 	CHECK(checker->get_database_id(database, id));
 	SESSION_CTX->set_cur_database(database);
-	return ret;
-}
-
-u32 CMDPlan::do_cmd_analyze()
-{
-	u32 ret = SUCCESS;
-	CMDStmt_s stmt = lex_stmt;
-	String database;
-	String table;
-	double sample_size;
-	
-	CHECK(stmt->get_analyze_params(database, table, sample_size));
-	StatisManager_s &manager = StatisManager::get_statis_manager();
-	MY_ASSERT(manager);
-	QUERY_CTX->set_sample_size(sample_size);
-	CHECK(manager->analyze_table(database, table, sample_size));
 	return ret;
 }
 
@@ -477,9 +392,9 @@ u32 CMDPlan::do_show_processlist(ResultSet_s &query_result)
 u32 CMDPlan::do_kill_process()
 {
 	u32 ret = SUCCESS;
-	int session_id;
 	CMDStmt_s stmt = lex_stmt;
-	CHECK(stmt->get_kill_params(session_id));
+	KillSessionParam_s param = stmt->param;
+	int session_id = param->session_id;
 	SessionInfo_s session_info;
 	GTX->get_session_info(session_id, session_info);
 	if (session_info) {
@@ -512,7 +427,7 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 	for (auto iter = MemoryMonitor::make_memory_monitor().mem_used.begin(); iter != MemoryMonitor::make_memory_monitor().mem_used.end(); ++iter) {
 		MemoryMonitor::MemInfo *info = iter->second;
 		sql_insert_use += "(";
-		sql_insert_use += "\"" + iter->first + "\"";
+		sql_insert_use += "`" + iter->first + "`";
 		sql_insert_use += ", " + std::to_string(iter->second->use_count);
 		sql_insert_use += "),";
 		has_use_info = true;
@@ -523,13 +438,13 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 			for (u32 j = 0; j < iter2->second.size(); ++j) {
 				sql_insert_trace += "(";
 				//mode
-				sql_insert_trace += "\"" + iter->first + "\"";
+				sql_insert_trace += "`" + iter->first + "`";
 				//ptr
-				sql_insert_trace += ", \"" + ptr2str(iter2->first) + "\"";
+				sql_insert_trace += ", `" + ptr2str(iter2->first) + "`";
 				//release
 				sql_insert_trace += ", 1";
 				//trace_info
-				sql_insert_trace += ", \"" + iter2->second[j] + "\"";
+				sql_insert_trace += ", `" + iter2->second[j] + "`";
 				sql_insert_trace += "),";
 				has_trace_info = true;
 			}
@@ -538,13 +453,13 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 			for (u32 j = 0; j < iter2->second.size(); ++j) {
 				sql_insert_trace += "(";
 				//mode
-				sql_insert_trace += "\"" + iter->first + "\"";
+				sql_insert_trace += "`" + iter->first + "`";
 				//ptr
-				sql_insert_trace += ", \"" + ptr2str(iter2->first) + "\"";
+				sql_insert_trace += ", `" + ptr2str(iter2->first) + "`";
 				//release
 				sql_insert_trace += ", 0";
 				//trace info
-				sql_insert_trace += ", \"" + iter2->second[j] + "\"";
+				sql_insert_trace += ", `" + iter2->second[j] + "`";
 				sql_insert_trace += "),";
 				has_trace_info = true;
 			}
@@ -568,20 +483,16 @@ u32 CMDPlan::do_show_memory(ResultSet_s &query_result)
 u32 CMDPlan::do_create_view()
 {
 	u32 ret = SUCCESS;
-	String database;
-	String view_name;
-	Vector<String> column_define;
-	String view_define_sql;
-	SelectStmt_s ref_query;
+	CMDStmt_s stmt = lex_stmt;
+	CreateViewParam_s param = stmt->param;
+	String &database = param->database;
+	String &view_name = param->view_name;
+	Vector<String> &column_define = param->column_define;
+	String &view_define_sql = param->view_define_sql;
+	SelectStmt_s &ref_query = param->ref_query;
 	Vector<ColumnDefineStmt_s> columns;
 	Vector<String> engine_args;
-	CMDStmt_s stmt = lex_stmt;
-	CHECK(stmt->get_create_view_params(database,
-									   view_name,
-									   column_define,
-									   view_define_sql,
-									   ref_query));
-	ret = ERR_UNEXPECTED;
+	
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -620,13 +531,12 @@ u32 CMDPlan::do_create_view()
 u32 CMDPlan::do_drop_view()
 {
 	u32 ret = SUCCESS;
-	String database;
-	String view_name;
-	bool ignore_not_exists;
 	CMDStmt_s stmt = lex_stmt;
-	CHECK(stmt->get_drop_view_params(database,
-									 view_name,
-									 ignore_not_exists));
+	DropViewParam_s param = stmt->param;
+	String &database = param->database;
+	String &view_name = param->view_name;
+	bool ignore_not_exists = param->ignore_not_exists;
+	
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	TableInfo_s info;
@@ -646,6 +556,23 @@ u32 CMDPlan::do_drop_view()
 		return ret;
 	}
 	CHECK(guard->del_table(database, view_name));
+	return ret;
+}
+
+u32 CMDPlan::do_create_package()
+{
+	u32 ret = SUCCESS;
+	CMDStmt_s stmt = lex_stmt;
+	PackageManager_s &manager = PackageManager::get_package_manager();
+	CHECK(manager->add_package(stmt->param));
+	return ret;
+}
+
+u32 CMDPlan::do_exec_package(ResultSet_s &query_result)
+{
+	u32 ret = SUCCESS;
+	CMDStmt_s stmt = lex_stmt;
+	CHECK(PackageExecutor::execute_function(stmt->param, query_result));
 	return ret;
 }
 

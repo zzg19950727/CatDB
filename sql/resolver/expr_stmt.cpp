@@ -126,6 +126,8 @@ bool ConstStmt::same_as(const ExprStmt_s& other, ExprCompareCtx *ctx)
 		return true;
 	} else if (CONST != other->expr_type()) {
 		return false;
+	} else if (!res_type.is_same(other->res_type)) {
+		return false;
 	}
 	ConstStmt_s const_stmt = other;
 	int res = 0;

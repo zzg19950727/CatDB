@@ -1,0 +1,34 @@
+/**
+ * 包名和定义SQL
+ */
+REGISTE_PACKAGE(DBMS_METADATA, R"(
+CREATE OR REPLACE PACKAGE DBMS_METADATA IS
+    FUNCTION get_table_ddl(database_name varchar, 
+                           table_name varchar)
+        RETURN VARCHAR;
+
+    FUNCTION get_view_ddl(database_name varchar, 
+                          view_name varchar)
+        RETURN VARCHAR;
+
+    FUNCTION get_package_ddl(package_name varchar)
+        RETURN VARCHAR;
+
+    FUNCTION get_function_ddl(package_name varchar, 
+                              function_name varchar)
+        RETURN VARCHAR;
+
+    FUNCTION get_procedure_ddl(package_name varchar, 
+                              function_name varchar)
+        RETURN VARCHAR;
+END;
+)")
+/**
+ * 定义每个包体函数的实现接口
+ */
+REGISTE_PACKAGE_INTERFACE(DBMS_METADATA, get_table_ddl, DBMS_METADATA::get_table_ddl)
+REGISTE_PACKAGE_INTERFACE(DBMS_METADATA, get_view_ddl, DBMS_METADATA::get_view_ddl)
+REGISTE_PACKAGE_INTERFACE(DBMS_METADATA, get_package_ddl, DBMS_METADATA::get_package_ddl)
+REGISTE_PACKAGE_INTERFACE(DBMS_METADATA, get_function_ddl, DBMS_METADATA::get_function_ddl)
+REGISTE_PACKAGE_INTERFACE(DBMS_METADATA, get_procedure_ddl, DBMS_METADATA::get_procedure_ddl)
+

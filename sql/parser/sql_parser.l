@@ -54,7 +54,6 @@ timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 ">"						{ return CatDB::SqlParser::make_CMP_GT(loc); }
 ">="					{ return CatDB::SqlParser::make_CMP_GE(loc); }
 "all"					{ return CatDB::SqlParser::make_ALL(loc); }
-"analyze"				{ return CatDB::SqlParser::make_ANALYZE(loc); }
 "and"					{ return CatDB::SqlParser::make_AND(loc); }
 "any"					{ return CatDB::SqlParser::make_ANY(loc); }
 "as"					{ return CatDB::SqlParser::make_AS(loc); }
@@ -139,6 +138,7 @@ timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "no_win_magic"			{ return CatDB::SqlParser::make_NO_WIN_MAGIC(loc); }
 "not"					{ return CatDB::SqlParser::make_NOT(loc); }
 "null"					{ return CatDB::SqlParser::make_NULLX(loc); }
+"number"				{ return CatDB::SqlParser::make_NUMBER(loc); }
 "numeric"				{ return CatDB::SqlParser::make_NUMERIC_SYM(loc); }
 "on"					{ return CatDB::SqlParser::make_ON(loc); }
 "or"					{ return CatDB::SqlParser::make_OR(loc); }
@@ -211,9 +211,27 @@ timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 
 \"							{
 								parse_str.clear();
-								BEGIN(beg_str);
+								BEGIN(beg_ident);
 							}
-<beg_str>\"         		{
+<beg_ident>\"         		{
+								BEGIN(INITIAL);
+								return CatDB::SqlParser::make_IDENT(parse_str,loc);
+							}
+<beg_ident>\\n				parse_str += '\n';
+<beg_ident>\\t				parse_str += '\t';
+<beg_ident>\\r				parse_str += '\r';
+<beg_ident>\\b				parse_str += '\b';
+<beg_ident>\\f				parse_str += '\f';
+<beg_ident>\\(.|\n)			parse_str += yytext[1];
+<beg_ident>[^\\\n\"]+ 		{
+								tmp_ptr = yytext;
+								while( *tmp_ptr ) {
+									parse_str += *tmp_ptr++;
+								}
+							}
+
+'							{parse_str.clear();BEGIN(beg_str);}
+<beg_str>'         			{
 								BEGIN(INITIAL);
 								return CatDB::SqlParser::make_STRING(parse_str,loc);
 							}
@@ -223,43 +241,31 @@ timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 <beg_str>\\b				parse_str += '\b';
 <beg_str>\\f				parse_str += '\f';
 <beg_str>\\(.|\n)			parse_str += yytext[1];
-<beg_str>[^\\\n\"]+ 		{
+<beg_str>[^\\\n']+ 			{
 								tmp_ptr = yytext;
 								while( *tmp_ptr ) {
 									parse_str += *tmp_ptr++;
 								}
 							}
 
-'						{parse_str.clear();BEGIN(beg_str2);}
-<beg_str2>'         	{
-							BEGIN(INITIAL);
-							return CatDB::SqlParser::make_STRING(parse_str,loc);
-						}
-<beg_str2>\\n			parse_str += '\n';
-<beg_str2>\\t			parse_str += '\t';
-<beg_str2>\\r			parse_str += '\r';
-<beg_str2>\\b			parse_str += '\b';
-<beg_str2>\\f			parse_str += '\f';
-<beg_str2>\\(.|\n)		parse_str += yytext[1];
-<beg_str2>[^\\\n']+ 	{
-							tmp_ptr = yytext;
-							while( *tmp_ptr ) {
-								parse_str += *tmp_ptr++;
+`							{parse_str.clear();BEGIN(beg_str2);}
+<beg_str2>`         		{
+								BEGIN(INITIAL);
+								return CatDB::SqlParser::make_STRING(parse_str,loc);
 							}
-						}
-
-`						{parse_str.clear();BEGIN(beg_ident);}
-<beg_ident>`    		{
-							BEGIN(INITIAL);
-							return CatDB::SqlParser::make_IDENT(parse_str,loc);
-						}
-<beg_ident>[^\\\n`]+  	{
-							tmp_ptr = yytext;
-							while( *tmp_ptr ) {
-								parse_str += *tmp_ptr++;
+<beg_str2>\\n				parse_str += '\n';
+<beg_str2>\\t				parse_str += '\t';
+<beg_str2>\\r				parse_str += '\r';
+<beg_str2>\\b				parse_str += '\b';
+<beg_str2>\\f				parse_str += '\f';
+<beg_str2>\\(.|\n)			parse_str += yytext[1];
+<beg_str2>[^\\\n`]+ 		{
+								tmp_ptr = yytext;
+								while( *tmp_ptr ) {
+									parse_str += *tmp_ptr++;
+								}
 							}
-						}
 
 {space}
-<<EOF>>					{ yyterminate(); }
+<<EOF>>						{ yyterminate(); }
 %%

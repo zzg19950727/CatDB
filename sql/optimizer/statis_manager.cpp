@@ -366,7 +366,7 @@ u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_
 		+ std::to_string(table_statis->tid) + ","
 		+ std::to_string(table_statis->row_count) + ","
 		+ std::to_string(table_statis->space_size) + ","
-		+ "'" + cur_time + "');";
+		+ "`" + cur_time + "`);";
     column_statis_query = "insert into system.column_statis values ";
     for (auto iter = table_statis->column_statis.cbegin(); iter != table_statis->column_statis.cend(); ++iter) {
         ColumnStatis_s column_statis = iter->second;
@@ -377,7 +377,7 @@ u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_
 		+ std::to_string(column_statis->null_count) + ","
         + std::to_string(column_statis->max_value) + ","
         + std::to_string(column_statis->min_value) + ","
-		+ "'" + cur_time + "'),";
+		+ "`" + cur_time + "`),";
     }
     column_statis_query[column_statis_query.size()-1] = ';';
     return ret;

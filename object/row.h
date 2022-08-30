@@ -55,6 +55,7 @@ namespace CatDB {
 			u32 get_cell_num() const;
 			const Object_s& get_cell(u32 idx) const { return cells[idx]; }
 			inline u32 get_cell(u32 idx, Object_s& cell) const { cell = cells[idx]; return 0;}
+			inline Vector<Object_s> &get_all_cells() { return cells; }
 			u32 set_cell(u32 idx, Object_s& cell);
 			u32 equal(const Row_s& other, const bool null_safe, bool &res) const;
 			void set_op_id(u32 id) { op_id = id; }
