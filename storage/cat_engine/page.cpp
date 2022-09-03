@@ -116,8 +116,18 @@ u32 Page::close()
 u32 Page::get_next_row(Row_s & row)
 {
 	u32 ret = SUCCESS;
-	while (row_idx_ < page_header_->row_count && is_row_deleted(row_info_ + get_idx_from_row_id(row_idx_))) {
-		++row_idx_;
+	while (row_idx_ < page_header_->row_count) {
+		if (is_row_deleted(row_info_ + get_idx_from_row_id(row_idx_))) {
+			++row_idx_;
+			continue;
+		} else if (sample_value < 0) {
+			break;
+		} else if (std::rand() > sample_value){
+			++row_idx_;
+			continue;
+		} else {
+			break;
+		}
 	}
 	if (row_idx_ >= page_header_->row_count) {
 		return NO_MORE_ROWS;

@@ -1,4 +1,3 @@
-explain
 SELECT Sum(l_extendedprice * ( 1 - l_discount )) AS revenue
 FROM   lineitem,
        part

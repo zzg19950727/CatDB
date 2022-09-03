@@ -23,8 +23,8 @@ using namespace CatDB::Sql;
 
 RequestHandle::RequestHandle(int fd,ServerService& service)
 	:m_fd(fd),
-	m_read_cache(GTX->config().cache_size()),
-	m_write_cache(GTX->config().cache_size()),
+	m_read_cache(SYS_CONF.cache_size()),
+	m_write_cache(SYS_CONF.cache_size()),
 	m_server_service(service)
 {
 	NetService::CallbackFunc func = std::bind(&RequestHandle::notify_socket,this, std::placeholders::_1, std::placeholders::_2);
@@ -32,10 +32,7 @@ RequestHandle::RequestHandle(int fd,ServerService& service)
 	{
 		close_connection();
 	}
-	session_info = SessionInfo::make_session_info();
-	session_info->set_session_log_level(GTX->config().log_level());
-	session_info->set_session_log_module(GTX->config().log_module());
-	session_info->set_query_timeout(GTX->config().query_timeout());
+	session_info = SessionInfo::make_session_info(SYS_PARAMS);
 }
 
 RequestHandle::~RequestHandle()

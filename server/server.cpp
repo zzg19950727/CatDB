@@ -34,10 +34,8 @@ ServerService::~ServerService()
 int ServerService::init(const String& config)
 {
 	GTX->init_config(config.c_str());
-	m_workers.init(GTX->config().thread_pool_size());
+	m_workers.init(SYS_CONF.thread_pool_size());
 	init_log_file();
-	SESSION_CTX->set_session_log_level(GTX->config().log_level());
-	SESSION_CTX->set_session_log_module(GTX->config().log_module());
 	SESSION_CTX->set_root_session();
 	PackageManager_s& package_manager = PackageManager::get_package_manager();
 	if (package_manager->init() != SUCCESS) {
@@ -59,7 +57,9 @@ int ServerService::init(const String& config)
 
 int ServerService::run()
 {
-	m_fd = start_listen(GTX->config().ip().c_str(), GTX->config().port(), GTX->config().max_client_count());
+	m_fd = start_listen(SYS_CONF.ip().c_str(), 
+						SYS_CONF.port(), 
+						SYS_CONF.max_client_count());
 	if (m_fd > 0)
 	{
 		NetService::CallbackFunc func = std::bind(&ServerService::new_connection, this, std::placeholders::_1, std::placeholders::_2);
@@ -84,7 +84,7 @@ void ServerService::new_connection(int fd, NetService::Event e)
 	int client_fd = accept_connection(fd);
 	if(client_fd > 0)
 	{
-		if(m_clients >= GTX->config().max_client_count())
+		if(m_clients >= SYS_CONF.max_client_count())
 		{
 			LOG_ERR("ServerService::new_connection too much clients,rejuect", K(m_clients));
 			net_close(client_fd);

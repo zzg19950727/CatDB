@@ -1,4 +1,3 @@
-explain
 SELECT o_orderpriority,
        Count(*) AS order_count
 FROM   orders

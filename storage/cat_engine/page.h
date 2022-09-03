@@ -75,6 +75,7 @@ namespace CatDB {
 			inline Buffer_s& page_buffer() { return buffer_; }
 			inline bool is_page_dirty() const { return is_dirty; }
 			inline void write_page_to_disk() { is_dirty = false; }
+			void set_sample_value(int64_t value) { sample_value = value; }
 			void clear_page(u32 offset);
 
 			/* row_id的定义：前22位为当前页偏移的虚拟地址，
@@ -130,6 +131,7 @@ namespace CatDB {
 			RowInfo* 		row_info_;		//每条记录的信息
 			u32 			row_idx_;	//用于快速扫描所有行数据
 			bool 			is_dirty;	//保证脏数据写回表空间
+			int64_t			sample_value;
 
 		private:
 			DISALLOW_COPY_AND_ASSIGN(Page)

@@ -434,7 +434,7 @@ u32 CodeGenerator::generate_table_scan_op(ExprGenerateCtx &ctx, LogTableScan_s l
     PhyTableScan_s scan = PhyTableScan::make_table_scan(log_op->table_item->database, 
                                                         log_op->table_item->table_name, 
                                                         info->engine_args,
-                                                        QUERY_CTX->sample_size);
+                                                        QUERY_CTX->sample_value);
     phy_op = scan;
     RowDesc row_desc;
     ColumnDesc col_desc;

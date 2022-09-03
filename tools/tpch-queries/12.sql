@@ -1,4 +1,3 @@
-explain
 SELECT l_shipmode,
        SUM(CASE
              WHEN o_orderpriority = '1-URGENT'

@@ -1,4 +1,3 @@
-explain
 SELECT nation,
        o_year,
        Sum(amount) AS sum_profit

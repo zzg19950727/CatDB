@@ -6,6 +6,7 @@
 #include "type.h"
 #define SESSION_CTX (get_cur_thread_session_info().session_info)
 #define SET_SESSION_CTX(session_info) get_cur_thread_session_info().session_info = session_info
+#define SESSION_PARAMS (SESSION_CTX->get_session_parameters())
 #define QUERY_CTX   (SESSION_CTX->get_query_ctx())
 
 namespace CatDB {
@@ -18,6 +19,7 @@ namespace CatDB {
             SessionInfo();
             virtual ~SessionInfo() {}
             static SessionInfo_s make_session_info();
+            static SessionInfo_s make_session_info(ConfigService &sys_params);
             void reset();
 
 			inline QueryCtx_s &get_query_ctx() { return query_ctx; }
@@ -52,11 +54,12 @@ namespace CatDB {
             void kill_query() { killed = true; }
             void set_root_session() { is_root_session = true; }
             
-            ConfigService& config();
+            ConfigService& get_session_parameters();
+            u32 refresh_parameters();
 
         private:
 			QueryCtx_s query_ctx;
-			ConfigService config_service;
+			ConfigService session_parameters;
 			SessionStatus session_status;
             String cur_database;
             String query_sql;

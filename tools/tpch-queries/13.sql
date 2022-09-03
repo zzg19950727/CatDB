@@ -1,4 +1,3 @@
-explain
 SELECT c_count,
        Count(*) AS custdist
 FROM   (SELECT c_custkey,

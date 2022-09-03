@@ -8,12 +8,13 @@ namespace CatDB {
         class DBMS_SYS : public PackageBase
         {
         public:
-            static u32 set_sys_var(const Vector<Object_s> &params, PackageResType &result);
-            static u32 get_sys_var(const Vector<Object_s> &params, PackageResType &result);
-            static u32 list_sys_var(const Vector<Object_s> &params, PackageResType &result);
-            static u32 set_session_var(const Vector<Object_s> &params, PackageResType &result);
-            static u32 get_session_var(const Vector<Object_s> &params, PackageResType &result);
-            static u32 list_session_var(const Vector<Object_s> &params, PackageResType &result);
+            static u32 set_sys_parameter(const Vector<Object_s> &params, PackageResType &result);
+            static u32 get_sys_parameter(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_sys_parameters(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_sys_config(const Vector<Object_s> &params, PackageResType &result);
+            static u32 set_session_parameter(const Vector<Object_s> &params, PackageResType &result);
+            static u32 get_session_parameter(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_session_parameters(const Vector<Object_s> &params, PackageResType &result);
         };
     }
 }

@@ -18,7 +18,7 @@ namespace CatDB {
 			static TableSpace_s make_table_space(const String& table_name, 
                                                  const String& database,
                                                  const Vector<String> &args,
-                                                 double sample_size = 1,
+                                                 double sample_value = -1,
 												 bool read_only = false);
 			//对外获取记录接口
 			virtual u32 open() = 0;
@@ -50,7 +50,7 @@ namespace CatDB {
 			String table_name;
 			RowDesc access_desc;
 			RowDesc update_desc;
-			u32 page_skip_size;
+			u32 sample_value;
 		
 		private:
 			DISALLOW_COPY_AND_ASSIGN(TableSpace)

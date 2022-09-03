@@ -3,20 +3,22 @@
  */
 REGISTE_PACKAGE(DBMS_SYS, R"(
 CREATE OR REPLACE PACKAGE DBMS_SYS IS
-    PROCEDURE set_sys_var(var_name varchar, value varchar);
-    FUNCTION get_sys_var(var_name varchar) RETURN varchar;
-    FUNCTION list_sys_var() RETURN TABLE(var_name varchar, value varchar);
-    PROCEDURE set_session_var(var_name varchar, value varchar);
-    FUNCTION get_session_var(var_name varchar) RETURN varchar;
-    FUNCTION list_session_var() RETURN TABLE(var_name varchar, value varchar);
+    PROCEDURE set_sys_parameter(var_name varchar, value varchar);
+    FUNCTION get_sys_parameter(var_name varchar) RETURN TABLE(var_name varchar, value varchar);
+    FUNCTION list_sys_parameters() RETURN TABLE(var_name varchar, value varchar);
+    FUNCTION list_sys_config() RETURN TABLE(var_name varchar, value varchar);
+    PROCEDURE set_session_parameter(var_name varchar, value varchar);
+    FUNCTION get_session_parameter(var_name varchar) RETURN TABLE(var_name varchar, value varchar);
+    FUNCTION list_session_parameters() RETURN TABLE(var_name varchar, value varchar);
 END;
 )")
 /**
  * 定义每个包体函数的实现接口
  */
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_sys_var, DBMS_SYS::set_sys_var)
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_sys_var, DBMS_SYS::get_sys_var)
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_sys_var, DBMS_SYS::list_sys_var)
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_session_var, DBMS_SYS::set_session_var)
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_session_var, DBMS_SYS::get_session_var)
-REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_session_var, DBMS_SYS::list_session_var)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_sys_parameter, DBMS_SYS::set_sys_parameter)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_sys_parameter, DBMS_SYS::get_sys_parameter)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_sys_parameters, DBMS_SYS::list_sys_parameters)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_sys_config, DBMS_SYS::list_sys_config)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_session_parameter, DBMS_SYS::set_session_parameter)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_session_parameter, DBMS_SYS::get_session_parameter)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_session_parameters, DBMS_SYS::list_session_parameters)

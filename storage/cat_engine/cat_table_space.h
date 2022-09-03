@@ -55,7 +55,7 @@ namespace CatDB {
 			static TableSpace_s make_table_space(const String& table_name, 
 												 const String& database,
 												 const Vector<String> &args, 
-												 double sample_size,
+												 double sample_value,
 												 bool read_only);
 			//对外获取记录接口
 			u32 open()override;

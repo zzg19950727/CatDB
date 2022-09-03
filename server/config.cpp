@@ -14,6 +14,21 @@ ConfigService::~ConfigService()
 	
 }
 
+int ConfigService::init(const char* path)
+{
+	ConfigReader reader;
+	reader.read_file(path, m_keys);
+	return 0;
+}
+
+void ConfigService::init()
+{
+	add_value("query_timeout", "1000000");
+    add_value("log_level", "ERROR");
+    add_value("log_module", "ALL");
+	add_value("sample_size", "40000");
+}
+
 std::string ConfigService::ip()const
 {
 	String ip = value("ip");
@@ -101,7 +116,7 @@ long long ConfigService::query_timeout() const
 {
 	String query_timeout = value("query_timeout");
 	if (query_timeout.empty() || 
-		query_timeout.length() > 7 ||
+		query_timeout.length() > 9 ||
 		std::stoi(query_timeout) <= 0)
 		return 10000;
 	else
@@ -117,11 +132,13 @@ String ConfigService::value(const String& key)const
 		return "";
 }
 
-int ConfigService::init(const char* path)
+int ConfigService::int_value(const String& key)const
 {
-	ConfigReader reader;
-	reader.read_file(path, m_keys);
-	return 0;
+	auto iter = m_keys.find(key);
+	if(iter != m_keys.cend())
+		return std::stoi(iter->second);
+	else
+		return 1;
 }
 
 HashMap<String, String>& ConfigService::get_all_config()
@@ -145,4 +162,13 @@ void ConfigService::add_value(const String& key, const String& value)
 bool ConfigService::has_key(const String& key) const
 {
 	return m_keys.find(key) != m_keys.cend();
+}
+
+void ConfigService::search_key(const String& key, Vector<Pair<String,String>> &result)
+{
+	for (auto iter = m_keys.cbegin(); iter != m_keys.cend(); ++iter) {
+		if (iter->first.find(key) != String::npos) {
+			result.push_back(Pair<String,String>(iter->first, iter->second));
+		}
+	}
 }

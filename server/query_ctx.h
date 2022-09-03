@@ -25,8 +25,8 @@ namespace CatDB {
             String generate_view_name() { return "VIEW" + std::to_string(cur_view_id++); }
             u32 generate_param_index() { return param_index++; }
 
-            void set_sample_size(double size) { sample_size = size; }
-            double get_sample_size() const { return sample_size; }
+            void set_sample_value(double value) { sample_value = value; }
+            double get_sample_value() const { return sample_value; }
 
             void set_error_msg(const String& msg) { err_msg = msg; }
             String get_error_msg() const { return err_msg; }
@@ -47,8 +47,8 @@ namespace CatDB {
             u32 cur_stmt_id;
             u32 cur_view_id;
             u32 param_index;
-            //query sample size
-            double sample_size;
+            //query sample value
+            double sample_value;
             //dml query affected rows
             u32 affected_rows;
         };

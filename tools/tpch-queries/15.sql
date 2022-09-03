@@ -1,4 +1,3 @@
-explain 
 SELECT s_suppkey,
        s_name,
        s_address,

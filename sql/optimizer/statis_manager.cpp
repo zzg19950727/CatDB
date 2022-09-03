@@ -3,6 +3,7 @@
 #include "sql_engine.h"
 #include "table_space.h"
 #include "obj_datetime.h"
+#include "session_info.h"
 #include "object.h"
 #include "error.h"
 #include "row.h"
@@ -20,7 +21,7 @@ StatisManager_s& StatisManager::get_statis_manager()
 	return manager;
 }
 
-u32 StatisManager::analyze_table(const String& database, const String& table, double sample_size)
+u32 StatisManager::analyze_table(const String& database, const String& table)
 {
     u32 ret = SUCCESS;
     SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
@@ -31,17 +32,17 @@ u32 StatisManager::analyze_table(const String& database, const String& table, do
 			Vector<String> tables;
 			CHECK(guard->get_all_table(databases[i], tables));
 			for (u32 j = 0; j < tables.size(); ++j) {
-				CHECK(inner_analyze_table(databases[i], tables[j], sample_size));
+				CHECK(inner_analyze_table(databases[i], tables[j]));
 			}
 		}
 	} else if (table == "*") {
 		Vector<String> tables;
 		CHECK(guard->get_all_table(database, tables));
 		for (u32 i = 0; i < tables.size(); ++i) {
-			CHECK(inner_analyze_table(database, tables[i], sample_size));
+			CHECK(inner_analyze_table(database, tables[i]));
 		}
 	} else {
-		CHECK(inner_analyze_table(database, table, sample_size));
+		CHECK(inner_analyze_table(database, table));
 	}
 	return ret;
 }
@@ -62,7 +63,7 @@ double StatisManager::get_avg_row_size(u32 tid)
     if (iter == all_table_statis.end() || iter->second->row_count < 1) {
         return 100;
     } else {
-        return iter->second->space_size / iter->second->row_count;
+        return iter->second->block_count * PAGE_SIZE / iter->second->row_count;
     }
 }
 
@@ -72,7 +73,7 @@ double StatisManager::get_table_block_count(u32 tid)
     if (iter == all_table_statis.end()) {
         return 1;
     } else {
-        return iter->second->space_size / PAGE_SIZE;
+        return iter->second->block_count;
     }
 }
 
@@ -150,9 +151,10 @@ u32 StatisManager::delete_table_statis(u32 tid)
     return ret;
 }
 
-u32 StatisManager::execute_sys_sql(const String& sql, ResultSet_s &result, double sample_size)
+u32 StatisManager::execute_sys_sql(const String& sql, ResultSet_s &result, double sample_value)
 {
     u32 ret = SUCCESS;
+    QUERY_CTX->set_sample_value(sample_value);
 	CHECK(SqlEngine::handle_inner_sql(sql, result));
 	return ret;
 }
@@ -183,7 +185,7 @@ u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
 {
     u32 ret = SUCCESS;
     ResultSet_s table_statis_result;
-    String table_statis_sql = R"(SELECT tid, row_count, space_size FROM system.table_statis A
+    String table_statis_sql = R"(SELECT tid, row_count, block_count FROM system.table_statis A
                             WHERE analyze_time = (SELECT MAX(analyze_time) from system.table_statis B WHERE A.tid=B.tid) 
                             ORDER BY tid;)";
     ret = (execute_sys_sql(table_statis_sql, table_statis_result));
@@ -204,7 +206,7 @@ u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
         row->get_cell(pos++, cell);
         statis->row_count = cell->value();
         row->get_cell(pos++, cell);
-        statis->space_size = cell->value();
+        statis->block_count = cell->value();
         table_statis.push_back(statis);
 	}
     CHECK(table_statis_result->close());
@@ -215,8 +217,11 @@ u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
 {
     u32 ret = SUCCESS;
     ResultSet_s column_statis_result;
-    String column_statis_sql = R"(SELECT tid, cid, ndv, null_count, max_value, min_value FROM system.column_statis A
-                                WHERE analyze_time = (SELECT MAX(analyze_time) from system.column_statis B WHERE A.tid=B.tid and A.cid = B.cid) 
+    String column_statis_sql = R"(SELECT tid, cid, ndv, null_count, max_value, min_value 
+                                FROM system.column_statis A
+                                WHERE analyze_time = (SELECT MAX(analyze_time) 
+                                                        from system.column_statis B 
+                                                        WHERE A.tid=B.tid and A.cid = B.cid) 
                                 ORDER BY tid;)";
     ret = (execute_sys_sql(column_statis_sql, column_statis_result));
     if (FAIL(ret)) {
@@ -249,41 +254,69 @@ u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
     return ret;
 }
 
-u32 StatisManager::inner_analyze_table(const String& database, const String& table, double sample_size)
+u32 StatisManager::inner_analyze_table(const String& database, const String& table)
 {
     u32 ret = SUCCESS;
     u32 table_id = INVALID_ID;
     Vector<u32> column_ids;
     String query;
+    double row_count = 0;
+    double sample_value = -1;
+	CHECK(analyze_table_row_count(database, table, row_count));
+    u64 file_size = TableSpace::table_space_size(database, table);
+    int sample_size = SESSION_PARAMS.int_value("sample_size");
+	if (row_count <= sample_size) {
+        sample_value = -1;
+    } else {
+        sample_value = (sample_size / row_count) * RAND_MAX;
+    }
+    ResultSet_s result;
+	std::srand(std::time(nullptr));
     CHECK(generate_analyze_sql(database, 
                                table, 
                                query, 
                                table_id, 
                                column_ids));
-	u64 file_size = TableSpace::table_space_size(database, table);
-	if (file_size / 16384 < 1.0 / sample_size) {
-		sample_size = 1;
-	}
-    if (sample_size > 1) {
-        sample_size = 1;
-    }
-    ResultSet_s result;
-    CHECK(execute_sys_sql(query, result, sample_size));
-    TableStatis_s table_statis;
+    CHECK(execute_sys_sql(query, result, sample_value));
+    TableStatis_s table_statis, sample_sttais;
     CHECK(generate_table_statis(table_id, 
-                                file_size, 
-                                sample_size, 
+                                file_size / PAGE_SIZE, 
+                                row_count, 
                                 column_ids, 
                                 result, 
-                                table_statis));
+                                table_statis,
+                                sample_sttais));
                                 
     String table_statis_query, column_statis_query;
     CHECK(generate_load_sql(table_statis, 
+                            sample_sttais,
                             table_statis_query, 
                             column_statis_query));
     CHECK(execute_sys_sql(table_statis_query, result));
     CHECK(execute_sys_sql(column_statis_query, result));
 	return ret;
+}
+
+u32 StatisManager::analyze_table_row_count(const String& database, 
+                                        const String& table, 
+                                        double &row_count)
+{
+    u32 ret = SUCCESS;
+    ResultSet_s result;
+    String query = "select count(1) from " + database + "." + table + ";";
+    CHECK(execute_sys_sql(query, result, -1));
+    Row_s row;
+    CHECK(result->open());
+    MY_ASSERT(1 == result->get_column_count());
+    while (SUCC( ret = result->get_next_row(row))) {
+    }
+    MY_ASSERT(NO_MORE_ROWS == ret);
+    CHECK(result->close());
+    MY_ASSERT(row);
+    Object_s cell;
+    row->get_cell(0, cell);
+    row_count = cell->value();
+    return ret;
 }
 
 u32 StatisManager::generate_analyze_sql(const String& database,
@@ -316,11 +349,12 @@ u32 StatisManager::generate_analyze_sql(const String& database,
 }
 
 u32 StatisManager::generate_table_statis(u32 table_id,
-                                        u32 space_size,
-                                        double sample_size,
+                                        u32 block_count,
+                                        double row_count,
                                         Vector<u32> &column_ids,
                                         ResultSet_s &result,
-                                        TableStatis_s &table_statis)
+                                        TableStatis_s &table_statis,
+                                        TableStatis_s &sample_statis)
 {
     u32 ret = SUCCESS;
     Row_s row;
@@ -332,31 +366,45 @@ u32 StatisManager::generate_table_statis(u32 table_id,
     CHECK(result->close());
     MY_ASSERT(row);
     table_statis = TableStatis::make_table_statis();
+    sample_statis = TableStatis::make_table_statis();
     table_statis->tid = table_id;
-    table_statis->space_size = space_size;
+    table_statis->block_count = block_count;
     u32 pos = 0;
     Object_s cell;
     row->get_cell(pos++, cell);
-    table_statis->row_count = cell->value() / sample_size;
+    double sample_row_count = cell->value();
+    table_statis->row_count = row_count;
+    sample_statis->row_count = sample_row_count;
     for (u32 i = 0; i < column_ids.size(); ++i) {
         ColumnStatis_s statis = ColumnStatis::make_column_statis();
+        ColumnStatis_s sample_col_statis = ColumnStatis::make_column_statis();
         statis->tid = table_id;
         statis->cid = column_ids[i];
         row->get_cell(pos++, cell);
-        statis->ndv = cell->value() / sample_size;
+        sample_col_statis->ndv = cell->value();
+        statis->ndv = calc_origin_value(table_statis->row_count, 
+                                        sample_row_count, 
+                                        cell->value());
         row->get_cell(pos++, cell);
-        statis->null_count = cell->value() / sample_size;
+        sample_col_statis->null_count = cell->value();
+        statis->null_count = calc_origin_value(table_statis->row_count, 
+                                               sample_row_count, 
+                                               cell->value());
         row->get_cell(pos++, cell);
         statis->max_value = cell->value();
         row->get_cell(pos++, cell);
         statis->min_value = cell->value();
         table_statis->column_statis[column_ids[i]] = statis;
+        sample_statis->column_statis[column_ids[i]] = sample_col_statis;
     }
     all_table_statis[table_id] = table_statis;
     return ret;
 }
 
-u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_statis_query, String &column_statis_query)
+u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, 
+                                     TableStatis_s &sample_statis,
+                                     String &table_statis_query, 
+                                     String &column_statis_query)
 {
     u32 ret = SUCCESS;
     DateTime_s cur;
@@ -365,8 +413,9 @@ u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_
 	table_statis_query = "insert into system.table_statis values("
 		+ std::to_string(table_statis->tid) + ","
 		+ std::to_string(table_statis->row_count) + ","
-		+ std::to_string(table_statis->space_size) + ","
-		+ "`" + cur_time + "`);";
+		+ std::to_string(sample_statis->row_count) + ","
+		+ std::to_string(table_statis->block_count) + ","
+		+ "'" + cur_time + "');";
     column_statis_query = "insert into system.column_statis values ";
     for (auto iter = table_statis->column_statis.cbegin(); iter != table_statis->column_statis.cend(); ++iter) {
         ColumnStatis_s column_statis = iter->second;
@@ -374,11 +423,80 @@ u32 StatisManager::generate_load_sql(TableStatis_s &table_statis, String &table_
 		+ std::to_string(column_statis->tid) + ","
 		+ std::to_string(column_statis->cid) + ","
 		+ std::to_string(column_statis->ndv) + ","
+		+ std::to_string(sample_statis->column_statis[column_statis->cid]->ndv) + ","
 		+ std::to_string(column_statis->null_count) + ","
+		+ std::to_string(sample_statis->column_statis[column_statis->cid]->null_count) + ","
         + std::to_string(column_statis->max_value) + ","
         + std::to_string(column_statis->min_value) + ","
-		+ "`" + cur_time + "`),";
+		+ "'" + cur_time + "'),";
     }
     column_statis_query[column_statis_query.size()-1] = ';';
     return ret;
+}
+
+inline bool near_by_sample_value(double row_count, 
+                                double sample_size, 
+                                double sample_value,
+                                double value,
+                                double &calc_value)
+{
+    calc_value = value * (1 - std::pow(sample_size, row_count / value));
+    if (((calc_value - sample_value) / sample_value > -0.000001) &&
+        ((calc_value - sample_value) / sample_value < 0.000001)) {
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+double StatisManager::calc_origin_value(double row_count, 
+                                        double sample_row_count, 
+                                        double sample_value)
+{
+    if (sample_row_count <= 0) {
+        return sample_value;
+    } else if (sample_row_count >= row_count) {
+        return sample_value;
+    } else if (sample_value < 1) {
+        return sample_value;
+    } else {
+        double sample_size = 1 - sample_row_count / row_count;
+        //origin_value * (1 - pow( sample_size, row_count / origin_value) )
+        double calc_value = 0;
+        double begin = sample_value;
+        double end = row_count;
+        double value = sample_value;
+        bool stop = false;
+        if (near_by_sample_value(row_count, 
+                                 sample_size, 
+                                 sample_value, 
+                                 begin, 
+                                 calc_value)) {
+            stop = true;
+            value = begin;
+        } else if (near_by_sample_value(row_count, 
+                                        sample_size, 
+                                        sample_value, 
+                                        end, 
+                                        calc_value)) {
+            stop = true;
+            value = end;
+        }
+        while (!stop && end - begin > 1) {
+            value = (begin + end) / 2.0;
+            if (near_by_sample_value(row_count, 
+                                     sample_size, 
+                                     sample_value, 
+                                     value, 
+                                     calc_value)) {
+                stop = true;
+            } else if (calc_value > sample_value) {
+                end = (begin + end) / 2.0;
+            } else {
+                begin = (begin + end) / 2.0;
+            }
+        }
+        return value;
+    }
 }

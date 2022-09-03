@@ -102,7 +102,7 @@ void LogStream::print_msg(int log_level, const char* file, int line, const char*
 
 void CatDB::Common::init_log_file()
 {
-	ostream.set_log_file(GTX->config().log_file_path().c_str());
+	ostream.set_log_file(SYS_CONF.log_file_path().c_str());
 }
 
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)

@@ -1,4 +1,3 @@
-explain
 SELECT cntrycode,
        Count(*)       AS numcust,
        Sum(c_acctbal) AS totacctbal

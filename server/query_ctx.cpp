@@ -25,8 +25,8 @@ void QueryCtx::reset()
     //reset_view_id
     cur_view_id = 1;
     param_index = 1;
-    //reset_sample_size
-    sample_size = 1.0;
+    //reset_sample_value
+    sample_value = -1.0;
     affected_rows = 0;
 }
 

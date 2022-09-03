@@ -1,4 +1,3 @@
-explain
 SELECT s_name,
        Count(*) AS numwait
 FROM   supplier,

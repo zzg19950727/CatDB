@@ -3,21 +3,23 @@
  */
 REGISTE_PACKAGE(DBMS_STATS, R"(
 CREATE OR REPLACE PACKAGE DBMS_STATS IS
-    PROCEDURE gather_database_stats(database_name varchar, 
-                                    sample_size number(10,5));
+    PROCEDURE gather_database_stats(database_name varchar);
 
     PROCEDURE gather_table_stats(database_name varchar, 
-                                 table_name varchar, 
-                                 sample_size number(10,5));
+                                 table_name varchar);
 
     FUNCTION get_table_stats(database_name varchar, table_name varchar) 
-            RETURN TABLE(row_count int, space_size int);
+            RETURN TABLE(row_count int, 
+                         sample_row_count int,
+                         block_count int);
 
     FUNCTION get_column_stats(database_name varchar, 
                               table_name varchar) 
             RETURN TABLE(column_name varchar, 
                          ndv int, 
-                         null_count int, 
+                         sample_ndv int,
+                         null_count int,
+                         sample_null_count int, 
                          max_value number(72, 10), 
                          min_value number(72, 10));
 END;

@@ -20,12 +20,18 @@ GlobalCtx_s &GlobalCtx::get_global_ctx()
 
 int GlobalCtx::init_config(const char* path)
 {
-    return config_service.init(path);
+    system_parameters.init();
+    return system_config.init(path);
 }
 
-ConfigService& GlobalCtx::config()
+ConfigService& GlobalCtx::get_system_parameters()
 {
-    return config_service;
+    return system_parameters;
+}
+
+ConfigService& GlobalCtx::get_system_config()
+{
+    return system_config;
 }
 
 HashMap<int, RequestHandle_s>& GlobalCtx::get_all_processlist()

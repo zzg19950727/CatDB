@@ -20,20 +20,20 @@ TableSpace::~TableSpace()
 TableSpace_s TableSpace::make_table_space(const String& table_name, 
                                         const String& database, 
                                         const Vector<String> &args,
-                                        double sample_size,
+                                        double sample_value,
 										bool read_only)
 {
     if (!args.empty() && args[0] == "CSV") {
         return CSVTableSpace::make_table_space(table_name, 
 											   database, 
 											   args, 
-											   sample_size,
+											   sample_value,
 											   read_only);
     } else {
         return CatTableSpace::make_table_space(table_name, 
 											   database, 
 											   args, 
-											   sample_size, 
+											   sample_value, 
 											   read_only);
     }
 }
@@ -85,7 +85,7 @@ u32 TableSpace::create_database(const String & database)
 
 String TableSpace::table_path(const String & database, const String & table)
 {
-	String path = GTX->config().data_dir() + "/" + database + "/" + table;
+	String path = SYS_CONF.data_dir() + "/" + database + "/" + table;
 #ifdef _WIN32
 	for (u32 i = 0; i < path.size(); ++i) {
 		if (path[i] == '/') {
@@ -98,7 +98,7 @@ String TableSpace::table_path(const String & database, const String & table)
 
 String TableSpace::database_path(const String & database)
 {
-	String path = GTX->config().data_dir() + "/" + database;
+	String path = SYS_CONF.data_dir() + "/" + database;
 #ifdef _WIN32
 	for (u32 i = 0; i < path.size(); ++i) {
 		if (path[i] == '/') {

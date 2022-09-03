@@ -1,7 +1,17 @@
 #include "session_info.h"
 #include "error.h"
+#include "log.h"
 
 using namespace CatDB::Server;
+#define str_to_lower(str) 					\
+{											\
+	for(u32 i = 0; i<str.size(); ++i){		\
+		if(str[i] >= 'A' && str[i] <= 'Z'){	\
+			str[i] -= 'A';					\
+			str[i] += 'a';					\
+		}									\
+	}										\
+}
 
 SessionInfo::SessionInfo()
 {
@@ -14,18 +24,27 @@ SessionInfo_s SessionInfo::make_session_info()
     return SessionInfo_s(new SessionInfo);
 }
 
+SessionInfo_s SessionInfo::make_session_info(ConfigService &sys_params)
+{
+    SessionInfo_s info = SessionInfo_s(new SessionInfo);
+    info->session_parameters = sys_params;
+    info->refresh_parameters();
+    return info;
+}
+
 void SessionInfo::reset()
 {
     query_ctx->reset();
     session_status = IVALID;
     cur_database = "";
     query_start_time = 0;
-    query_timeout = 10000;
+    query_timeout = 1000000;
     session_id = 0;
-    log_level = 0;
-    log_module = "";
+    log_level = LOG_LEVEL_ERR;
+    log_module = "ALL";
     killed = false;
     is_root_session = false;
+    session_parameters.clear();
 }
 
 u32 SessionInfo::check_query_status()
@@ -119,9 +138,26 @@ const String& SessionInfo::get_query_sql() const
     return query_sql;
 }
 
-ConfigService& SessionInfo::config()
+ConfigService& SessionInfo::get_session_parameters()
 {
-    return config_service;
+    return session_parameters;
+}
+
+u32 SessionInfo::refresh_parameters()
+{
+    u32 ret = SUCCESS;
+    log_module = session_parameters.value("log_module");
+    query_timeout = std::stoi(session_parameters.value("query_timeout"));
+    String var_value = session_parameters.value("log_level");
+    str_to_lower(var_value);
+    if (var_value == "trace") {
+        log_level = LOG_LEVEL_TRACE;
+    } else if (var_value == "info") {
+        log_level = LOG_LEVEL_INFO;
+    } else if (var_value == "error") {
+        log_level = LOG_LEVEL_ERR;
+    }
+    return ret;
 }
 
 SessionInfoHelper& get_cur_thread_session_info()

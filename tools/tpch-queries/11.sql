@@ -1,4 +1,3 @@
-explain
 SELECT ps_partkey,
        Sum(ps_supplycost * ps_availqty) AS value
 FROM   partsupp,

@@ -1,4 +1,3 @@
-explain
 SELECT o_year,
        SUM(CASE
              WHEN nation = 'INDIA' THEN volume

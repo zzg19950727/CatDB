@@ -1,4 +1,3 @@
-explain
 SELECT c_name,
        c_custkey,
        o_orderkey,

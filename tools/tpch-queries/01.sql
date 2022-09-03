@@ -1,4 +1,3 @@
-explain 
 SELECT l_returnflag,
        l_linestatus,
        SUM(l_quantity)                                           AS sum_qty,

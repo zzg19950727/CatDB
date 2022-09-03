@@ -9,8 +9,9 @@ CASES=()
 TYPE="unknown"
 
 print_usage() {
-	echo "my_test IP PORT [option]"
+	echo "test [option]"
 	echo "option:"
+	echo "	tpch"
 	echo "	all"
 	echo "	suite=suite_name,suite_name,..."
 	echo "	testset=suite_name.case_name,suite_name.case_name,..."
@@ -78,8 +79,8 @@ parse_test_type() {
 }
 
 get_all_suite() {
-        all_suite=`ls suite/`
-        suites=($all_suite)
+	all_suite=`ls suite/`
+	suites=($all_suite)
 	for suite in ${suites[@]}
 	do
 		get_all_case $suite

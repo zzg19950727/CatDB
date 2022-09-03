@@ -10,6 +10,7 @@
 #include <chrono>
 #include <vector>
 #include <queue>
+#include <valarray>
 #include <list>
 #include <map>
 #include <cstring>

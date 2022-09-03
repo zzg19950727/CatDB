@@ -1,4 +1,3 @@
-explain
 SELECT Sum(l_extendedprice) / 7.0 AS avg_yearly
 FROM   lineitem,
        part

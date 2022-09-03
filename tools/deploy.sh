@@ -86,6 +86,10 @@ find_pid() {
     return 0
 }
 
+run_sql() {
+    echo "$1" | mysql -h $IP -P $PORT -c -vvv
+}
+
 init_server() {
     mkdir -p $DATA_DIR
     mkdir -p $RECYCLE_DIR
@@ -96,7 +100,7 @@ init_server() {
     touch $LOG_FILE
     start_server
     sleep 1
-    echo "source init_sys_table.sql" | mysql -h $IP -P $PORT
+    run_sql "source init_sys_table.sql"
     echo "succeed to init CatDB"
 }
 
@@ -184,9 +188,38 @@ random_test() {
     fi
 }
 
+run_tpch_test() {
+    echo "start load tpch data..."
+    #run_sql "source tpch_load.sql;"
+    echo "end load tpch data"
+    echo "start gather statis"
+    #run_sql "exec dbms_stats.gather_database_stats('tpch');"
+    echo "end gather statis"
+    all_query=`ls tpch-queries/`
+	queries=($all_query)
+	for query in ${queries[@]}
+	do
+        start_time=`date +%s`
+        echo "start run query:$query"
+        sql=`cat tpch-queries/$query`
+        sql="use tpch;explain ""$sql"
+		run_sql "$sql" >> log.txt
+        end_time=`date +%s`
+        time=`echo $start_time $end_time | awk '{print $2-$1}'`
+        echo "$query cost $time s" >> tpch.log
+        echo "end run query, cost $time s"
+	done 
+    echo "finish tpch test!"
+}
+
 run_test() {
-    cd test
-    ./my_test.sh $IP $PORT $@
+    if [ "$1" == "tpch" ]
+    then
+        run_tpch_test
+    else
+        cd test
+        ./my_test.sh $IP $PORT $@
+    fi
 }
 
 watching_log() {

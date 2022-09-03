@@ -1,4 +1,3 @@
-explain
 SELECT s_acctbal,
        s_name,
        n_name,

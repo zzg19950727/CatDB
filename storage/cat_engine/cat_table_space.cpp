@@ -129,18 +129,14 @@ CatTableSpace::~CatTableSpace()
 TableSpace_s CatTableSpace::make_table_space(const String& table_name, 
 											 const String & database, 
 											 const Vector<String> &args,
-											 double sample_size,
+											 double sample_value,
 											 bool read_only)
 {
 	CatTableSpace* table_space = new CatTableSpace;
 	table_space->database = database;
 	table_space->table_name = table_name;
 	table_space->read_only = read_only;
-	if (sample_size > 0.99) {
-		table_space->page_skip_size = 0;
-	} else {
-		table_space->page_skip_size = 1.0 / sample_size;
-	}
+	table_space->sample_value = sample_value;
 	return TableSpace_s(table_space);
 }
 
@@ -177,13 +173,7 @@ u32 CatTableSpace::get_next_row(Row_s & row)
 	while (NO_MORE_ROWS == (ret=cur_page->get_next_row(row))) {
 		LOG_TRACE("page have read end, load next page", K(cur_page));
 		//读取下一页
-		if (0 == page_skip_size) {
-			ret = io->read_next_page(cur_page);
-		} else {
-			u32 next_offset = cur_page->next_page_offset() + page_skip_size;
-			cur_page->clear_page(next_offset);
-			ret = io->read_page(cur_page);
-		}
+		ret = io->read_next_page(cur_page);
 		if (ret == END_OF_TABLE_SPACE) {
 			return ret;
 		} else if (ret != SUCCESS) {
@@ -191,6 +181,7 @@ u32 CatTableSpace::get_next_row(Row_s & row)
 			return ret;
 		} else {
 			CHECK(cur_page->open());
+			cur_page->set_sample_value(sample_value);
 		}
 	}
 	//TODO filter 放这还是下压到page层面？

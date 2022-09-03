@@ -1,4 +1,3 @@
-explain
 SELECT s_name,
        s_address
 FROM   supplier,

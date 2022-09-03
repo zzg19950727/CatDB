@@ -53,17 +53,13 @@ CSVTableSpace::~CSVTableSpace()
 TableSpace_s CSVTableSpace::make_table_space(const String& table_name, 
 											 const String & database, 
 											 const Vector<String> &args,
-											 double sample_size,
+											 double sample_value,
 											 bool read_only)
 {
 	CSVTableSpace* table_space = new CSVTableSpace(args, read_only);
 	table_space->database = database;
 	table_space->table_name = table_name;
-	if (sample_size > 0.99) {
-		table_space->page_skip_size = 0;
-	} else {
-		table_space->page_skip_size = 1.0 / sample_size;
-	}
+	table_space->sample_value = sample_value;
 	return TableSpace_s(table_space);
 }
 
@@ -158,7 +154,14 @@ u32 CSVTableSpace::buffer_read()
 		if (buffer[buf_read_pos] == line_split) {
 			have_new_row = true;
 			++buf_read_pos;
-			break;
+			if (sample_value < 0) {
+				break;
+			} else if (std::rand() > sample_value){
+				++buf_read_pos;
+				continue;
+			} else {
+				break;
+			}
 		}
 		++buf_read_pos;
 	}
