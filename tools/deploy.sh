@@ -100,7 +100,7 @@ init_server() {
     touch $LOG_FILE
     start_server
     sleep 1
-    run_sql "source init_sys_table.sql"
+    run_sql "source init_sys_table.sql" > log.txt
     echo "succeed to init CatDB"
 }
 
@@ -190,10 +190,10 @@ random_test() {
 
 run_tpch_test() {
     echo "start load tpch data..."
-    #run_sql "source tpch_load.sql;"
+    #run_sql "source tpch_load.sql;" >> tpch.log
     echo "end load tpch data"
     echo "start gather statis"
-    #run_sql "exec dbms_stats.gather_database_stats('tpch');"
+    #run_sql "exec dbms_stats.gather_database_stats('tpch');" >> tpch.log
     echo "end gather statis"
     all_query=`ls tpch-queries/`
 	queries=($all_query)

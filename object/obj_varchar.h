@@ -18,6 +18,8 @@ namespace CatDB {
 			~Varchar();
 			static Varchar_s make_object(const char* str, u32 len);
 			static Varchar_s make_object(const String& value);
+			u32 init(const u8* buf, u32 size, const DataType& type) override;
+			u32 init(const char* buf, u32 size, const DataType& type) override;
 			u32 serialization(u8*& buffer) const override;
 			u32 hash()const override;
 			String to_string()const override;

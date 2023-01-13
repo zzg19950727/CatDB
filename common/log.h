@@ -9,19 +9,18 @@
 #define LOG_ERR(...)	Log(LOG_LEVEL_ERR, ::to_kv_string(__VA_ARGS__))
 #define LOG_TRACE(...)	Log(LOG_LEVEL_TRACE, ::to_kv_string(__VA_ARGS__))
 
-#define DEBUG
-#ifdef DEBUG
 #define Log(log_level, msg) \
 		do{\
-			CatDB::Common::log_output(log_level, __FILE__, __LINE__, __PRETTY_FUNCTION__, msg); \
+			if (!CatDB::Common::can_trace_log(log_level)) {	\
+			} else {	\
+				CatDB::Common::log_output(log_level, __FILE__, __LINE__, __PRETTY_FUNCTION__, msg); \
+			}	\
 		} while (0);
-#else
-#define Log(log_level, msg) 
-#endif	//DEBUG
 
 namespace CatDB {
 	namespace Common {
 		void init_log_file();
+		bool can_trace_log(int log_level);
 		void log_output(int log_level, const char* file, int line, const char* function, const String& msg);
 		String lbt(); 
 	}

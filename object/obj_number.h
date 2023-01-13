@@ -26,6 +26,9 @@ namespace CatDB {
 			static Number_s make_int_object(longlong value);
 			static Number_s make_object(const String& value);
 			static Number_s make_object(Number_s value);
+			u32 init(const u8* buf, u32 size, const DataType& type) override;
+			u32 init(const char* buf, u32 size, const DataType& type) override;
+			u32 init(longlong value);
 			u32 serialization(u8*& buffer) const override;
 			u32 hash()const override;
 			String to_string()const override;

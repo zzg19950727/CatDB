@@ -24,7 +24,7 @@ enum PACKAGE_UNIQUE_CHECK {
 #include "register/package_register.def"
 };  
 
-//编译期检查是否所有函数定义是否包含在定义的包内
+//编译期检查是否存在同名函数
 #undef REGISTE_PACKAGE
 #undef REGISTE_PACKAGE_INTERFACE
 #define REGISTE_PACKAGE(name, define_sql)
@@ -34,7 +34,7 @@ enum PACKAGE_FUNC_UNIQUE_CHECK {
 #include "register/package_register.def"
 };
 
-//编译期检查是否存在同名函数
+//编译期检查是否所有函数定义是否包含在定义的包内
 #undef REGISTE_PACKAGE
 #undef REGISTE_PACKAGE_INTERFACE
 #define REGISTE_PACKAGE(name, define_sql) 
@@ -79,6 +79,15 @@ u32 PackageManager::init()
     #define T(a,b) a##::##b
     #include "register/package_register.def"
     LOG_TRACE("init package manager", K(all_packages));
+    return ret;
+}
+
+u32 PackageManager::get_all_package_name(Vector<String> &packages)
+{
+    u32 ret = SUCCESS;
+    for (auto iter = all_packages.cbegin(); iter != all_packages.cend(); ++iter) {
+        packages.push_back(iter->first);
+    }
     return ret;
 }
 

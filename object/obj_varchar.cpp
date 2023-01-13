@@ -48,6 +48,22 @@ Varchar_s Varchar::make_object(const String & buf)
 	return Varchar_s(new Varchar(buf));
 }
 
+u32 Varchar::init(const u8* buf, u32 size, const DataType& type)
+{
+	size = size > type.length ? type.length : size;
+	data = (char*)buf;
+	length = size;
+	return SUCCESS;
+}
+
+u32 Varchar::init(const char* buf, u32 size, const DataType& type)
+{
+	size = size > type.length ? type.length : size;
+	data = (char*)buf;
+	length = size;
+	return SUCCESS;
+}
+
 u32 Varchar::serialization(u8* & buffer) const
 {
 	memcpy(buffer, data, length);
@@ -70,7 +86,7 @@ String Varchar::to_string() const
 	if (is_null())
 		return String("NULL");
 	else
-		return String(data);
+		return String(data, length);
 }
 
 OBJ_TYPE Varchar::get_type()const

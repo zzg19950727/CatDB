@@ -171,6 +171,7 @@
 %token BINARY
 %token BOOL
 %token BY
+%token CALL
 %token CASE
 %token CHAR
 %token CMP_EQ
@@ -352,7 +353,7 @@
 									ident string datetime number opt_qb_name opt_qb_name_single beg_view_define
 									package_name procedure_name function_name param_name
 %type<bool>							opt_distinct opt_asc_desc distinct_or_all opt_if_exists opt_split opt_outer opt_not_null
-									opt_replace
+									opt_replace start_exec_package
 %type<int>							limit_expr int_value opt_char_length opt_time_precision
 
 %start sql_stmt
@@ -2202,7 +2203,7 @@ param_name:
   ;
 
 exec_package_stmt:
-	EXEC package_name "." function_name "(" opt_arith_expr_list ")"
+	start_exec_package package_name "." function_name "(" opt_arith_expr_list ")"
 	{
 		CMDStmt_s cmd_stmt = CMDStmt::make_cmd_stmt(ExecFunction);
 		check(cmd_stmt);
@@ -2213,6 +2214,13 @@ exec_package_stmt:
 		cmd_stmt->param = param;
 		$$ = cmd_stmt;
 	}
+	;
+
+start_exec_package:
+	EXEC
+	{ $$ = true; }
+	| CALL
+	{ $$ = true; }
 	;
 
 opt_arith_expr_list:

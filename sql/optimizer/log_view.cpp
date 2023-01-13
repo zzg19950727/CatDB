@@ -25,7 +25,13 @@ u32 LogView::est_row_count()
     Vector<ExprStmt_s> &select_list = table_item->ref_query->select_expr_list;
     for (u32 i = 0; i < select_list.size(); ++i) {
         ColumnEstInfo_s column_statis = ColumnEstInfo::make_column_est_info();
-        CHECK(EstSelUtil::calc_distinct_count(child()->est_info, select_list[i], column_statis->ori_ndv));
+        double ndv = 0;
+        CHECK(EstSelUtil::calc_distinct_count(child()->est_info, select_list[i], ndv));
+        if (ndv > table_statis->table_rows) {
+            ndv = table_statis->table_rows;
+        }
+        column_statis->ori_ndv = ndv;
+        column_statis->ndv = ndv;
         column_statis->column_id = i;
         column_statis->null_count = 0;
         column_statis->min_value = 0;
@@ -34,7 +40,7 @@ u32 LogView::est_row_count()
     }
     CHECK(est_info->add_view_statis(table_item->table_id, table_statis));
     double sel = 1.0;
-    CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
+    //CHECK(EstSelUtil::calc_selectivity(est_info, filters, sel));
     output_rows = child()->get_output_rows() * sel;
     set_output_rows(output_rows);
     CHECK(est_info->set_table_output_rows(table_item->table_id, output_rows));

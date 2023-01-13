@@ -65,6 +65,7 @@ timestamp		[0-9]{4}(-[0-9]{1,2}){2}[ ][0-9]{2}(:[0-9]{1,2}){2}
 "binary"				{ return CatDB::SqlParser::make_BINARY(loc); }
 "bool"					{ return CatDB::SqlParser::make_BOOL(loc); }
 "by"					{ return CatDB::SqlParser::make_BY(loc); }
+"call"					{ return CatDB::SqlParser::make_CALL(loc); }
 "case"					{ return CatDB::SqlParser::make_CASE(loc); }
 "char"					{ return CatDB::SqlParser::make_CHAR(loc); }
 "column"				{ return CatDB::SqlParser::make_COLUMN(loc); }

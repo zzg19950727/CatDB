@@ -44,6 +44,7 @@ namespace CatDB {
         public:
             static PackageManager_s &get_package_manager();
             u32 init();
+            u32 get_all_package_name(Vector<String> &packages);
             u32 add_package(CreatePackageParam_s param);
             u32 get_func_info(const String& package_name, 
                               const String& func_name, 

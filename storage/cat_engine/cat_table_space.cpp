@@ -160,6 +160,7 @@ u32 CatTableSpace::open()
 		}
 	}
 	CHECK(cur_page->open());
+	cur_page->set_sample_value(sample_value);
 	return ret;
 }
 
@@ -199,6 +200,7 @@ u32 CatTableSpace::reset()
 			ret = SUCCESS;
 		} else {
 			CHECK(cur_page->open());
+			cur_page->set_sample_value(sample_value);
 		}
 	}
 	return ret;
@@ -224,6 +226,7 @@ u32 CatTableSpace::insert_row(const Row_s & row)
 		CHECK(write_page_to_disk(cur_page));
 		cur_page->clear_page(cur_page->next_page_offset());
 		CHECK(cur_page->open());
+		cur_page->set_sample_value(sample_value);
 		CHECK(cur_page->insert_row(row));
 	}
 	return ret;
@@ -286,6 +289,7 @@ u32 CatTableSpace::get_page_from_row_id(u32 row_id, Page_s& page)
 		page = Page::make_page(page_offset, access_desc);
 		CHECK(io->read_page(page));
 		CHECK(page->open());
+		cur_page->set_sample_value(sample_value);
 		Page_s rm_page;
 		if (page_manager.add_page(page, rm_page)) {
 			write_page_to_disk(rm_page);

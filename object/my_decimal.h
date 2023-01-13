@@ -150,6 +150,21 @@ public:
 	uint precision() const { return intg + frac; }
 	uint scale() const { return frac; }
 	uint size()const{return sizeof(intg) + sizeof(frac) + decimal_bin_size(intg + frac, frac);}
+	void init(const uchar *bin, int size, int prec, int scale)
+	{
+		memcpy(&intg, bin, sizeof(intg));
+		memcpy(&frac, bin + sizeof(intg), sizeof(frac));
+		bin2decimal(bin + sizeof(intg) + sizeof(frac), this, intg + frac, frac);
+	}
+	void init(const char* str, int size)
+	{
+		char* end = (char*)(str + size);
+		internal_str2dec(str, this, &end, 0);
+	}
+	void init(longlong value)
+	{
+		longlong2decimal(value, this);
+	}
 	void minus()
 	{
 		decimal_t::sign = !decimal_t::sign;

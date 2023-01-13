@@ -25,7 +25,9 @@ u32 EstSelUtil::calc_selectivity(EstInfo_s &est_info,
     selectivity = 1.0;
     double sel = 1.0;
     bool is_valid = false;
+    BitSet table_ids;
     for (u32 i = 0; i < exprs.size(); ++i) {
+        table_ids.add_members(exprs[i]->table_ids);
         if (visited_exprs.has_member(i)) {
             continue;
         }
@@ -51,20 +53,22 @@ u32 EstSelUtil::calc_selectivity(EstInfo_s &est_info,
             selectivity *= sel;
         }
     }
-    //selectivity must greater than 1.0 / table_rows
-    Vector<ColumnStmt_s> columns;
-    CHECK(ExprUtils::get_column_exprs(exprs, INVALID_ID, columns));
-    double max_rows = 0;
-    for (u32 i = 0; i < columns.size(); ++i) {
-        ColumnStmt_s &column = columns[i];
-        TableEstInfo_s table_statis;
-        CHECK(est_info->get_table_statis(column->table_id, table_statis));
-        if (table_statis->table_rows > max_rows) {
-            max_rows = table_statis->table_rows;
+    if (table_ids.num_members() <= 2) {
+        //selectivity must greater than 1.0 / table_rows
+        Vector<ColumnStmt_s> columns;
+        CHECK(ExprUtils::get_column_exprs(exprs, INVALID_ID, columns));
+        double max_rows = 0;
+        for (u32 i = 0; i < columns.size(); ++i) {
+            ColumnStmt_s &column = columns[i];
+            TableEstInfo_s table_statis;
+            CHECK(est_info->get_table_statis(column->table_id, table_statis));
+            if (table_statis->table_rows > max_rows) {
+                max_rows = table_statis->table_rows;
+            }
         }
-    }
-    if (max_rows > 0 && max_rows < 1.0 / selectivity) {
-        selectivity = 1.0 / max_rows;
+        if (max_rows > 0 && max_rows < 1.0 / selectivity) {
+            selectivity = 1.0 / max_rows;
+        }
     }
     refine_selectivity(selectivity);
     return ret;
@@ -187,7 +191,10 @@ u32 EstSelUtil::calc_distinct_count(EstInfo_s &est_info,
         CHECK(est_info->get_column_statis(column->table_id, 
                                           column->column_id, 
                                           column_statis));
-        ndv *= use_ori_ndv ? column_statis->ori_ndv : column_statis->ndv;
+        double col_ndv = use_ori_ndv ? column_statis->ori_ndv : column_statis->ndv;
+        if (col_ndv > ndv) {
+            ndv = col_ndv;
+        }
     }
     if (ndv < 1.0) {
         ndv = 1.0;

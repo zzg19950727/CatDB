@@ -15,6 +15,9 @@ namespace CatDB {
             static u32 set_session_parameter(const Vector<Object_s> &params, PackageResType &result);
             static u32 get_session_parameter(const Vector<Object_s> &params, PackageResType &result);
             static u32 list_session_parameters(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_database(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_table(const Vector<Object_s> &params, PackageResType &result);
+            static u32 list_package(const Vector<Object_s> &params, PackageResType &result);
         };
     }
 }

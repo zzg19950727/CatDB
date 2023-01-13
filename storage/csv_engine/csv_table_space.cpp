@@ -6,6 +6,8 @@
 #include "row.h"
 #include "log.h"
 
+#define REUSE_MEM
+
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
@@ -65,9 +67,10 @@ TableSpace_s CSVTableSpace::make_table_space(const String& table_name,
 
 u32 CSVTableSpace::open()
 {
+	u32 ret = SUCCESS;
 	LOG_TRACE("open table space", K(database), K(table_name));
 	io->open(path);
-	return SUCCESS;
+	return ret;
 }
 
 u32 CSVTableSpace::get_next_row(Row_s & row)
@@ -75,8 +78,24 @@ u32 CSVTableSpace::get_next_row(Row_s & row)
 	u32 ret = SUCCESS;
 	ret = buffer_read();
 	if (SUCC(ret)) {
+		#ifdef REUSE_MEM
+		CHECK(read_row_reuse_mem(row));
+		#else
 		CHECK(read_row(row));
+		#endif //REUSE_MEM
 	}
+	#ifdef REUSE_MEM
+	if (NO_MORE_ROWS == ret) {
+		//reset ptr from table space
+		Vector<Object_s> &cells = row->get_all_cells();
+		for (u32 i = 0; i < row->get_cell_num(); ++i) {
+			ColumnDesc col_desc;
+			CHECK(access_desc.get_column_desc(i, col_desc));
+			CHECK(cells[i]->init((u8*)NULL, 0, col_desc.get_data_type()));
+		}
+		ret = NO_MORE_ROWS;
+	}
+	#endif //REUSE_MEM
 	return ret;
 }
 
@@ -211,6 +230,40 @@ u32 CSVTableSpace::read_row(Row_s& row)
 		} else if (column_id == ROWID_COLUMN_ID) {
 			Object_s row_id_value = Number::make_int_object(row_id);
 			row->set_cell(i, row_id_value);
+		} else {
+			LOG_ERR("row desc error when project row", K(column_cnt), K(col_desc));
+			return ERR_ROW_DESC;
+		}
+	}
+	column_cnt = 0;
+	buf_start = buf_read_pos;
+	++row_id;
+	return ret;
+}
+
+u32 CSVTableSpace::read_row_reuse_mem(Row_s& row)
+{
+	u32 ret = SUCCESS;
+	//反序列化所需的列
+	u32 column_id;
+	Vector<Object_s> &cells = row->get_all_cells();
+	for (u32 i = 0; i < row->get_cell_num(); ++i)
+	{
+		ColumnDesc col_desc;
+		CHECK(access_desc.get_column_desc(i, col_desc));
+		column_id = col_desc.get_cid();
+		if (column_id < column_cnt) {
+			u32 start = buf_start;
+			u32 end = column_pos[ column_id ];
+			if (column_id > 0) {
+				start = column_pos[ column_id-1 ] + 1;
+			}
+			CHECK(cells[i]->init(buffer+start, 
+								 end-start, 
+								 col_desc.get_data_type()));
+		} else if (column_id == ROWID_COLUMN_ID) {
+			Number_s row_id_value = cells[i];
+			row_id_value->init(row_id);
 		} else {
 			LOG_ERR("row desc error when project row", K(column_cnt), K(col_desc));
 			return ERR_ROW_DESC;

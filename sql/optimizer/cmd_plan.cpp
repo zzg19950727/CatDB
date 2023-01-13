@@ -247,6 +247,12 @@ u32 CMDPlan::do_cmd_show_tables(ResultSet_s &query_result)
 	String &database = param->database;
 	Vector<String> tables;
 	
+	if (database.empty()) {
+		QUERY_CTX->set_error_msg("not use database!");
+		ret = ERR_UNEXPECTED;
+		return ret;
+	}
+	
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);
 	CHECK(guard->get_all_table(database, tables));
@@ -291,6 +297,12 @@ u32 CMDPlan::do_cmd_desc_table(ResultSet_s &query_result)
 	DescTableParam_s param = stmt->param;
 	String &database = param->database_name;
 	String &table = param->table_name;
+
+	if (database.empty()) {
+		QUERY_CTX->set_error_msg("not use database!");
+		ret = ERR_UNEXPECTED;
+		return ret;
+	}
 	
 	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
 	MY_ASSERT(guard);

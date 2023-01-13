@@ -105,11 +105,14 @@ void CatDB::Common::init_log_file()
 	ostream.set_log_file(SYS_CONF.log_file_path().c_str());
 }
 
+bool CatDB::Common::can_trace_log(int log_level)
+{
+	return log_level <= SESSION_CTX->get_session_log_level();
+}
+
 void CatDB::Common::log_output(int log_level, const char* file, int line, const char* function, const String& msg)
 {
-	if (log_level > SESSION_CTX->get_session_log_level()) {
-		return;
-	} else if (SESSION_CTX->get_session_log_module() == "ALL") {
+	if (SESSION_CTX->get_session_log_module() == "ALL") {
 		ostream.print_msg(log_level, file, line, function, msg);
 	} else {
 		String module = get_module_name(function);

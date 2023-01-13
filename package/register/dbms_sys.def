@@ -10,6 +10,9 @@ CREATE OR REPLACE PACKAGE DBMS_SYS IS
     PROCEDURE set_session_parameter(var_name varchar, value varchar);
     FUNCTION get_session_parameter(var_name varchar) RETURN TABLE(var_name varchar, value varchar);
     FUNCTION list_session_parameters() RETURN TABLE(var_name varchar, value varchar);
+    FUNCTION list_database() RETURN TABLE(db_name varchar);
+    FUNCTION list_table(db_name varchar) RETURN TABLE(table_name varchar);
+    FUNCTION list_package() RETURN TABLE(package_name varchar);
 END;
 )")
 /**
@@ -22,3 +25,6 @@ REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_sys_config, DBMS_SYS::list_sys_config)
 REGISTE_PACKAGE_INTERFACE(DBMS_SYS, set_session_parameter, DBMS_SYS::set_session_parameter)
 REGISTE_PACKAGE_INTERFACE(DBMS_SYS, get_session_parameter, DBMS_SYS::get_session_parameter)
 REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_session_parameters, DBMS_SYS::list_session_parameters)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_database, DBMS_SYS::list_database)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_table, DBMS_SYS::list_table)
+REGISTE_PACKAGE_INTERFACE(DBMS_SYS, list_package, DBMS_SYS::list_package)

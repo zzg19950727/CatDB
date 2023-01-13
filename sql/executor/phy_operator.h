@@ -100,6 +100,7 @@ namespace CatDB {
 			Row_s cur_row;
             u32 operator_id;
 			ExecCtx_s exec_ctx;
+			u32 check_row_count;
 		private:
 			DISALLOW_COPY_AND_ASSIGN(PhyOperator)
 		};

@@ -553,14 +553,14 @@ u32 CodeGenerator::generate_output_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
     Vector<Expression_s> rt_filters;
     Vector<Object_s> null_values;
     CHECK(ExprGenerator::generate_exprs(ctx, log_root->output_exprs, rt_output_exprs));
-    CHECK(ExprGenerator::generate_exprs(ctx, log_root->filters, rt_filters));
     for (u32 i = 0; i < log_root->output_exprs.size(); ++i) {
         Object_s null_value = Object::make_null_object(log_root->output_exprs[i]->res_type);
         null_values.push_back(null_value);
     }
     phy_root->set_output_exprs(rt_output_exprs);
     phy_root->set_null_values(null_values);
-    if (!rt_filters.empty()) {
+    if (!log_root->filters.empty() && LOG_TABLE_SCAN != log_root->type()) {
+        CHECK(ExprGenerator::generate_exprs(ctx, log_root->filters, rt_filters));
         phy_root->set_filter(rt_filters);
     }
     return ret;

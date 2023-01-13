@@ -196,13 +196,28 @@ u32 DMLStmt::reset_stmt_id(u32 stmt_id)
     return ret;
 }
 
+#define str_to_lower(str) 					\
+{											\
+	for(u32 i = 0; i<str.size(); ++i){		\
+		if(str[i] >= 'A' && str[i] <= 'Z'){	\
+			str[i] -= 'A';					\
+			str[i] += 'a';					\
+		}									\
+	}										\
+}
+
 bool DMLStmt::find_table_id(const String &table_name, u32 &table_id)
 {
     bool find = false;
     Vector<TableStmt_s> table_items;
     get_table_items(table_items);
+    String lower_table_name = table_name;
+    str_to_lower(lower_table_name);
+    table_id = INVALID_ID;
     for (u32 i = 0; i < table_items.size(); ++i) {
-        if (table_items[i]->alias_name == table_name) {
+        String lower_alias_name = table_items[i]->alias_name;
+        str_to_lower(lower_alias_name);
+        if (lower_alias_name == lower_table_name) {
             if (find) {
                 return false;
             } else {

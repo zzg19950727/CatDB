@@ -56,6 +56,7 @@ u32 ExecCtx::set_input_rows(const Row_s &row1, const Row_s &row2)
 }
 
 PhyOperator::PhyOperator()
+	:check_row_count(0)
 {
 }
 
@@ -150,7 +151,10 @@ void PhyOperator::set_input_rows(const Row_s &row1, const Row_s &row2)
 u32 PhyOperator::check_status()
 {
 	u32 ret = SUCCESS;
-	ret = SESSION_CTX->check_query_status();
+	++check_row_count;
+	if (check_row_count % 10000 == 0) {
+		ret = SESSION_CTX->check_query_status();
+	}
 	return ret;
 }
 

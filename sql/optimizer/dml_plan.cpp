@@ -1045,6 +1045,7 @@ u32 DMLPlan::init_leading_info()
     LeadingHintStmt_s leading_hint = QUERY_CTX->query_hint->get_leading_hint(stmt->get_qb_name());
     MY_ASSERT(leading_hint->tables);
     CHECK(get_leading_info(leading_hint->tables, leading_info.table_ids));
+    LOG_TRACE("succeed to init leading info", K(leading_info));
     return ret;
 }
 

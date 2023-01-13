@@ -35,9 +35,18 @@ PhyOperator_s PhyTableScan::make_table_scan(const String&database,
 
 u32 PhyTableScan::inner_open()
 {
+	u32 ret = SUCCESS;
 	store_row = Row::make_row(access_desc.get_column_num());
 	store_row->set_op_id(operator_id);
-	return table_space->open();
+	for (u32 i = 0; i < store_row->get_cell_num(); ++i)
+	{
+		ColumnDesc col_desc;
+		CHECK(access_desc.get_column_desc(i, col_desc));
+		Object_s value = Object::make_empty_object(col_desc.get_data_type());
+		store_row->set_cell(i, value);
+	}
+	CHECK(table_space->open());
+	return ret;
 }
 
 u32 PhyTableScan::close()

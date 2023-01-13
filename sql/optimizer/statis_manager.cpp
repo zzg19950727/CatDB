@@ -441,8 +441,7 @@ inline bool near_by_sample_value(double row_count,
                                 double &calc_value)
 {
     calc_value = value * (1 - std::pow(sample_size, row_count / value));
-    if (((calc_value - sample_value) / sample_value > -0.000001) &&
-        ((calc_value - sample_value) / sample_value < 0.000001)) {
+    if ((calc_value - sample_value) == 0) {
         return true;
     } else {
         return false;

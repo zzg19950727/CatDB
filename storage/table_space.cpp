@@ -9,6 +9,7 @@
 using namespace CatDB::Storage;
 
 TableSpace::TableSpace()
+	:sample_value(-1)
 {
 
 }

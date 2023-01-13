@@ -97,6 +97,23 @@ DateTime_s DateTime::make_object(const String & str)
 	return DateTime_s(new DateTime(get_seconds(str.c_str(), str.size())));
 }
 
+u32 DateTime::init(const u8* buf, u32 size, const DataType& type)
+{
+	if (NULL != buf) {
+		data.init(buf, size, type.precision, type.scale);
+	}
+	return SUCCESS;
+}
+
+u32 DateTime::init(const char* buf, u32 size, const DataType& type)
+{
+	if (NULL != buf) {
+		long long seconds = get_seconds(buf, size);
+		data.init(seconds);
+	}
+	return SUCCESS;
+}
+
 u32 DateTime::serialization(u8* & buffer) const
 {
 	u32 ret = data.to_binary(buffer);

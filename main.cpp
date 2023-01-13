@@ -20,8 +20,9 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	CatDB::Server::ServerService service;
-	service.init(config_path);
-	if (service.run() != 0) {
+	if (service.init(config_path) != 0) {
+		std::cout << "init server failed!" << std::endl;
+	} else if (service.run() != 0) {
 		std::cout << "start server failed!" << std::endl;
 	}
 	service.close_connection();

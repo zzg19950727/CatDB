@@ -37,7 +37,8 @@ RawRecord * RawRecord::make_raw_record(void * ptr)
 Page::Page(const Buffer_s & buffer)
 	:buffer_(buffer),
 	is_dirty(false),
-	row_idx_(0)
+	row_idx_(0),
+	sample_value(-1)
 {
 	page_header_ = reinterpret_cast<PageHeader*>(buffer->buf);
 	records_space_ = buffer->buf + sizeof(PageHeader);
@@ -120,7 +121,7 @@ u32 Page::get_next_row(Row_s & row)
 		if (is_row_deleted(row_info_ + get_idx_from_row_id(row_idx_))) {
 			++row_idx_;
 			continue;
-		} else if (sample_value < 0) {
+		} else if (sample_value <= 0) {
 			break;
 		} else if (std::rand() > sample_value){
 			++row_idx_;

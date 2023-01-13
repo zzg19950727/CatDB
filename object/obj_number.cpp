@@ -65,6 +65,29 @@ Number_s Number::make_object(Number_s value)
 	return Number_s(new Number(value->data));
 }
 
+u32 Number::init(const u8* buf, u32 size, const DataType& type)
+{
+	if (NULL != buf) {
+		data.init(buf, size, type.precision, type.scale);
+	}
+	return SUCCESS;
+}
+
+u32 Number::init(const char* buf, u32 size, const DataType& type)
+{
+	if (NULL != buf) {
+		data.init(buf, size);
+		data.cast_to_decimal(type.precision, type.scale, this->data);
+	}
+	return SUCCESS;
+}
+
+u32 Number::init(longlong value)
+{
+	data.init(value);
+	return SUCCESS;
+}
+
 u32 Number::serialization(u8* & buffer) const
 {
 	u32 ret = data.to_binary(buffer);

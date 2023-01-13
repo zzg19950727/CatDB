@@ -14,10 +14,13 @@ namespace CatDB {
 			virtual ~Object();
 			//for raw data
 			static Object_s make_object(const u8* buf, u32 size, const DataType& type);
+			static Object_s make_empty_object(const DataType& type);
 			//for string data
 			static Object_s make_object(const char* str, u32 size, const DataType& type);
 			static Object_s make_null_object();
 			static Object_s make_null_object(const DataType& type);
+			virtual u32 init(const u8* buf, u32 size, const DataType& type) = 0;
+			virtual u32 init(const char* buf, u32 size, const DataType& type) = 0;
 			virtual OBJ_TYPE get_type()const = 0;
 			virtual u32 width()const = 0;
 			virtual u32 hash() const = 0;

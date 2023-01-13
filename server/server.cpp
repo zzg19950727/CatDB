@@ -33,10 +33,10 @@ ServerService::~ServerService()
 
 int ServerService::init(const String& config)
 {
+	SESSION_CTX->set_root_session();
 	GTX->init_config(config.c_str());
 	m_workers.init(SYS_CONF.thread_pool_size());
 	init_log_file();
-	SESSION_CTX->set_root_session();
 	PackageManager_s& package_manager = PackageManager::get_package_manager();
 	if (package_manager->init() != SUCCESS) {
 		LOG_ERR("failed to init package manager");

@@ -1,12 +1,25 @@
 #include "dbms_sys.h"
+#include "package_manager.h"
 #include "global_context.h"
 #include "session_info.h"
+#include "schema_guard.h"
 #include "object.h"
 #include "error.h"
 #include "log.h"
 
 using namespace CatDB::Common;
+using namespace CatDB::Parser;
 using namespace CatDB::Package;
+
+#define str_to_lower(str) 					\
+{											\
+	for(u32 i = 0; i<str.size(); ++i){		\
+		if(str[i] >= 'A' && str[i] <= 'Z'){	\
+			str[i] -= 'A';					\
+			str[i] += 'a';					\
+		}									\
+	}										\
+}
 
 u32 DBMS_SYS::set_sys_parameter(const Vector<Object_s> &params, PackageResType &result)
 {
@@ -98,5 +111,48 @@ u32 DBMS_SYS::list_session_parameters(const Vector<Object_s> &params, PackageRes
     for (auto iter = all_config.cbegin(); iter != all_config.cend(); ++iter) {
         CHECK(add_result(iter->first, iter->second, result));
     }
+    return ret;
+}
+
+u32 DBMS_SYS::list_database(const Vector<Object_s> &params, PackageResType &result)
+{
+    u32 ret = SUCCESS;
+	Vector<String> databases;
+	
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
+	MY_ASSERT(guard);
+	CHECK(guard->get_all_database(databases));
+	for (u32 i = 0; i < databases.size(); ++i) {
+		CHECK(add_result(databases[i], result));
+	}
+	return ret;
+}
+
+u32 DBMS_SYS::list_table(const Vector<Object_s> &params, PackageResType &result)
+{
+    u32 ret = SUCCESS;
+    MY_ASSERT(params.size() == 1);
+    String database = params[0]->to_string();
+    Vector<String> tables;
+	
+	SchemaGuard_s &guard = SchemaGuard::get_schema_guard();
+	MY_ASSERT(guard);
+	CHECK(guard->get_all_table(database, tables));
+    
+	for (u32 i = 0; i < tables.size(); ++i) {
+		CHECK(add_result(tables[i], result));
+	}
+	return ret;
+}
+
+u32 DBMS_SYS::list_package(const Vector<Object_s> &params, PackageResType &result)
+{
+    u32 ret = SUCCESS;
+    Vector<String> packages;
+    PackageManager_s &manager = PackageManager::get_package_manager();
+    CHECK(manager->get_all_package_name(packages));
+    for (u32 i = 0; i < packages.size(); ++i) {
+		CHECK(add_result(packages[i], result));
+	}
     return ret;
 }

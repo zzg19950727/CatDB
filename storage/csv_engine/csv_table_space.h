@@ -38,6 +38,7 @@ namespace CatDB {
 			u32 buffer_read();
 			u32 buffer_move();
 			u32 read_row(Row_s& row);
+			u32 read_row_reuse_mem(Row_s& row);
 			u32 write_row(const Row_s& row);
 			u32 buffer_full();
 

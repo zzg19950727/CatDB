@@ -20,6 +20,8 @@ namespace CatDB {
 			DateTime(const char *data, u32 size, const DataType& type);
 		public:
 			static DateTime_s make_object(const String& str);
+			u32 init(const u8* buf, u32 size, const DataType& type) override;
+			u32 init(const char* buf, u32 size, const DataType& type) override;
 			u32 serialization(u8*& buffer)const override;
             OBJ_TYPE get_type()const override;
 			u32 width()const override;

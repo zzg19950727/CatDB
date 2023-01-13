@@ -1,0 +1,116 @@
+struct PushDownFilter {
+    void init_row(Row_s &row);
+    bool operator()(u32 col_idx);
+    Vector<Expression_s> filters;
+    Vector<u32> index;
+    ExecCtx_s exec_ctx;
+};
+
+void PushDownFilter::init(Raw_s &row)
+{
+    exec_ctx->set_input_rows(row);
+}
+
+bool PushDownFilter::operator()(u32 col_idx)
+{
+    u32 ret = SUCCESS;
+    bool is_valid = true;
+    if (col_idx > 0) {
+        for (u32 i = index[col_id-1]; is_valid && i < index[col_id]; ++i) {
+            ret = filters[i]->get_result(exec_ctx);
+		    is_valid = exec_ctx->bool_result;
+        }
+    } else {
+        for (u32 i = 0; is_valid && i < index[col_id]; ++i) {
+            ret = filters[i]->get_result(exec_ctx);
+		    is_valid = exec_ctx->bool_result;
+        }
+    }
+    return false;
+}
+const u32 BATCH_SIZE = 256;
+struct EvalInfo {
+    Object* get_obj(u32 batch_idx);
+    void set_obj(u32 batch_idx, Object* obj);
+    bool get_value(u32 batch_idx);
+    void set_value(u32 batch_idx, bool value);
+    bool is_share(u32 batch_idx);
+    void set_share(u32 batch_idx);
+    
+    union {
+        Object *ptr[BATCH_SIZE];
+        bool value[BATCH_SIZE];
+    };
+    bool share[BATCH_SIZE];
+};
+
+struct NewRow {
+    Object** cells;
+};
+
+struct BatchRow {
+    NewRow rows[BATCH_SIZE];
+    u32 batch_size;
+};
+
+class Expr {
+    u32 eval(ExecCtx*, u32 batch_idx, EvalInfo *&info);
+    u32 eval(ExecCtx*, EvalInfo *&info);
+	u32 frame_idx;
+    u32 info_off;
+    //obj_init_func
+};
+
+class MemPool {
+    EvalInfo* get_eval_info(u32 idx, u33 off);
+    void* alloc(u32 size);
+    u32 init(u32 frame_size);
+    Vector<char*> frames;
+    u32 cur_idx;
+    u32 cur_off;
+};
+
+struct ExecCtx {
+    bool skip[BATCH_SIZE];
+    u32 batch_size;
+    MemPool *allocator;
+};
+
+class OperatorProperty {
+    Vector<OperatorProperty*> child;
+    Vector<Expr*> output;
+    Vector<Expr*> filters;
+    u32 id;
+};
+
+class PhysicalPlan {
+    u32 generate_operator_tree(MemPool *allocator, BatchOperator* &op_root);
+    OperatorProperty *root;
+    u32 batch_size;
+    u32 frame_size;
+};
+
+class BatchOperator {
+    u32 get_next_batch(ExecCtx* ctx);
+    u32 get_next_batch(BatchRow &batch_row);
+    u32 cache_next_batch(BatchRow &batch_row);
+    BatchOperator* get_child();
+    BatchOperator* get_child(u32 i);
+    BatchOperator* get_left_child();
+    BatchOperator* get_right_child();
+    Vector<BatchOperator*> child;
+    OperatorProperty *property;
+    ExecCtx *exec_ctx;
+};
+
+class BatchTableScan : public BatchOperator {
+
+};
+
+class BatchSort : public BatchOperator {
+
+};
+
+class BatchTopnSort : public BatchOperator {
+
+};

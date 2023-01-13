@@ -16,6 +16,7 @@ using namespace CatDB::Server;
 SessionInfo::SessionInfo()
 {
     query_ctx = QueryCtx::make_query_ctx();
+    query_ctx->reset();
     reset();
 }
 
@@ -119,7 +120,7 @@ void SessionInfo::set_session_log_module(const String& module)
 String SessionInfo::get_err_msg(int ret) const
 {
     String err_msg = ErrCodeString[ret];
-    err_msg += " " + query_ctx->get_error_msg();
+    err_msg += "\n" + query_ctx->get_error_msg();
     return err_msg;
 }
 
