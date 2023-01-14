@@ -559,7 +559,7 @@ u32 CodeGenerator::generate_output_exprs(ExprGenerateCtx &ctx, LogicalOperator_s
     }
     phy_root->set_output_exprs(rt_output_exprs);
     phy_root->set_null_values(null_values);
-    if (!log_root->filters.empty() && LOG_TABLE_SCAN != log_root->type()) {
+    if (!log_root->filters.empty()) {
         CHECK(ExprGenerator::generate_exprs(ctx, log_root->filters, rt_filters));
         phy_root->set_filter(rt_filters);
     }

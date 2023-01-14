@@ -17,7 +17,7 @@ namespace CatDB {
             private:
                 void dump_header(Page_s &page, std::stringstream &str_stream);
                 void hex_string(const char* data, u32 size, String& str);
-                void dump_record(Page_s &page, int idx, std::stringstream &str_stream);
+                void dump_record(Page_s &page, int idx, int row_size, std::stringstream &str_stream);
 
                 CatIoService_s io_service;
                 Page_s page;

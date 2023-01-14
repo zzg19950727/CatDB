@@ -4,6 +4,7 @@
 
 int main(int argc, char* argv[])
 {
+	setenv("TZ", "Asia/Shanghai", 0);
 	String config_path = "catdb.conf";
 	if (argc == 2) {
 		config_path = argv[1];

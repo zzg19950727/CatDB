@@ -104,6 +104,8 @@ namespace CatDB {
                                   String &column_statis_query);
 
             //sample_value = origin_value * (1 - pow( (1 -  sample_row_count / row_count), row_count / origin_value) )
+            //ndv1_rows = sample_value * 2 - sample_row_count
+            //origin_value = (sample_row_count * sample_value) / (sample_row_count - ndv1_rows + ndv1_rows * sample_row_count / row_count)
             double calc_origin_value(double row_count, 
                                      double sample_row_count, 
                                      double sample_value);                      

@@ -34,7 +34,11 @@ Number::Number(const u8* data, u32 size, const DataType& type)
 Number::Number(const char* data, u32 size, const DataType& type)
 	:data(data, size)
 {
-	this->data.cast_to_decimal(type.precision, type.scale, this->data);
+	int intg = type.precision - type.scale;
+	int frac = type.scale;
+	if (intg < this->data.intg || frac < this->data.frac) {
+		this->data.cast_to_decimal(type.precision, type.scale, this->data);
+	}
 }
 
 Number_s Number::make_object(const my_decimal& data)
@@ -77,7 +81,11 @@ u32 Number::init(const char* buf, u32 size, const DataType& type)
 {
 	if (NULL != buf) {
 		data.init(buf, size);
-		data.cast_to_decimal(type.precision, type.scale, this->data);
+		int intg = type.precision - type.scale;
+		int frac = type.scale;
+		if (intg < this->data.intg || frac < this->data.frac) {
+			this->data.cast_to_decimal(type.precision, type.scale, this->data);
+		}
 	}
 	return SUCCESS;
 }

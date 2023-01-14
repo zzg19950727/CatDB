@@ -195,7 +195,7 @@ u32 DBMS_METADATA::print_function(const PackageManager::PackageFuncInfo &info,
                 ddl += "\t";
             }
             CHECK(print_ident(info.return_columns[i], ddl));
-            ddl += " " + info.return_columns[i];
+            ddl += " " + info.return_type_list[i].to_kv_string();
             if (i == info.return_columns.size() - 1) {
                 ddl += "\n";
             } else {

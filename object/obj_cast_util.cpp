@@ -18,12 +18,15 @@ using namespace CatDB::Parser;
  */
 u32 ObjCastUtil::check_need_cast(const DataType &from, 
                                 const DataType &to,
-                                bool &need_cast)
+                                bool &need_cast,
+                                const bool is_restrict)
 {
     u32 ret = SUCCESS;
     need_cast = false;
-    if (from.res_type == to.res_type) {
-        
+    if (is_restrict && from.is_same(to)) {
+
+    } else if (from.res_type == to.res_type) {
+        need_cast = is_restrict;
     } else if (from.res_type != to.res_type) {
         if (from.is_varchar()) {
             need_cast = true;

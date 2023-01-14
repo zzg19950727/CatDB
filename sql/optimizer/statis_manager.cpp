@@ -190,7 +190,7 @@ u32 StatisManager::init_table_statis(Vector<TableStatis_s> &table_statis)
                             ORDER BY tid;)";
     ret = (execute_sys_sql(table_statis_sql, table_statis_result));
     if (FAIL(ret)) {
-        LOG_ERR("database not init");
+        LOG_ERR("failed to init table statis, database not init");
         ret = SUCCESS;
         return ret;
     }
@@ -225,7 +225,7 @@ u32 StatisManager::init_column_statis(Vector<ColumnStatis_s> &column_statis)
                                 ORDER BY tid;)";
     ret = (execute_sys_sql(column_statis_sql, column_statis_result));
     if (FAIL(ret)) {
-        LOG_ERR("database not init");
+        LOG_ERR("failed to init column statis manager, database not init");
         ret = SUCCESS;
         return ret;
     }
@@ -434,68 +434,22 @@ u32 StatisManager::generate_load_sql(TableStatis_s &table_statis,
     return ret;
 }
 
-inline bool near_by_sample_value(double row_count, 
-                                double sample_size, 
-                                double sample_value,
-                                double value,
-                                double &calc_value)
-{
-    calc_value = value * (1 - std::pow(sample_size, row_count / value));
-    if ((calc_value - sample_value) == 0) {
-        return true;
-    } else {
-        return false;
-    }
-
-}
-
 double StatisManager::calc_origin_value(double row_count, 
                                         double sample_row_count, 
                                         double sample_value)
 {
+    double ndv1_row_count = sample_value * 2 - sample_row_count;
     if (sample_row_count <= 0) {
         return sample_value;
     } else if (sample_row_count >= row_count) {
         return sample_value;
     } else if (sample_value < 1) {
         return sample_value;
+    } else if (ndv1_row_count <= 0) {
+        return sample_value;
     } else {
-        double sample_size = 1 - sample_row_count / row_count;
-        //origin_value * (1 - pow( sample_size, row_count / origin_value) )
-        double calc_value = 0;
-        double begin = sample_value;
-        double end = row_count;
-        double value = sample_value;
-        bool stop = false;
-        if (near_by_sample_value(row_count, 
-                                 sample_size, 
-                                 sample_value, 
-                                 begin, 
-                                 calc_value)) {
-            stop = true;
-            value = begin;
-        } else if (near_by_sample_value(row_count, 
-                                        sample_size, 
-                                        sample_value, 
-                                        end, 
-                                        calc_value)) {
-            stop = true;
-            value = end;
-        }
-        while (!stop && end - begin > 1) {
-            value = (begin + end) / 2.0;
-            if (near_by_sample_value(row_count, 
-                                     sample_size, 
-                                     sample_value, 
-                                     value, 
-                                     calc_value)) {
-                stop = true;
-            } else if (calc_value > sample_value) {
-                end = (begin + end) / 2.0;
-            } else {
-                begin = (begin + end) / 2.0;
-            }
-        }
+        double value = (sample_row_count * sample_value) / 
+                       (sample_row_count - ndv1_row_count + ndv1_row_count * sample_row_count / row_count);
         return value;
     }
 }

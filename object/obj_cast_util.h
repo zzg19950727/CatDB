@@ -17,7 +17,8 @@ namespace CatDB {
 		public:
             static u32 check_need_cast(const DataType &from, 
                                        const DataType &to,
-                                       bool &need_cast);
+                                       bool &need_cast,
+                                       const bool is_restrict = false);
 
             static u32 get_result_type(const DataType& lhs, 
                                         bool &l_need_cast,

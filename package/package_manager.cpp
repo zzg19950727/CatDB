@@ -1,5 +1,6 @@
 #include "package_manager.h"
 #include "register/package_register.h"
+#include "session_info.h"
 #include "sql_engine.h"
 #include "cmd_stmt.h"
 #include "error.h"
@@ -115,6 +116,7 @@ u32 PackageManager::add_package(CreatePackageParam_s param)
         all_packages.find(param->name) != all_packages.cend()) {
         ret = ERR_UNEXPECTED;
         LOG_ERR("package exists", K(param), K(ret));
+        QUERY_CTX->set_error_msg("package "+param->name+" exists!");
     } else {
         PackageInfo info;
         info.name = param->name;

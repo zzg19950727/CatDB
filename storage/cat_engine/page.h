@@ -15,6 +15,18 @@ namespace CatDB {
 
 		struct PageHeader
 		{
+			PageHeader()
+			:page_checksum(0),
+			page_offset(0),
+			page_pre(0),
+			page_next(0),
+			row_count(0),
+			free_offset(0),
+			free_size(0)
+			{
+
+			}
+			
 			u32 page_checksum;	//校验和
 			u32 page_offset;	//表空间内的偏移，虚拟地址，以16K压缩地址，真正的地址需要向左移14位
 			u32 page_pre;		//上一页
@@ -35,7 +47,14 @@ namespace CatDB {
 
 		struct RowInfo
 		{
+			RowInfo()
+			:offset(0)
+			{}
+			
 			u16 offset;
+			u32 set_row_deleted();
+			bool is_row_deleted();
+			u16 row_offset();
 			KV_STRING(
 				K(offset)
 			);
@@ -119,8 +138,6 @@ namespace CatDB {
 			u32 deserialize_row(RowInfo* row_info, u32 row_id, Row_s& row)const;
 			u32 serialize_row(const Row_s& row, u32& store_len);
 			u32 search_row(u32 row_id, RowInfo*& info)const;
-			u32 set_row_deleted(RowInfo* info);
-			bool is_row_deleted(RowInfo* info)const;
 			u32 row_width(const Row_s& row)const;
 			
 			RowDesc 		row_desc;

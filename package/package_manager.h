@@ -16,6 +16,10 @@ namespace CatDB {
         class PackageManager {
         public:
             struct PackageFuncInfo {
+                PackageFuncInfo()
+                    :func_ptr(NULL)
+                {}
+                
                 String name;
                 PackageBase::PackageFuncType func_ptr;
                 Vector<String> param_names;

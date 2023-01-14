@@ -13,7 +13,7 @@ PID=""
 print_usage() {
     echo "Usage: ./deploy.sh [option]"
     echo "Options:"
-    echo "      init                        init and start database service"
+    echo "      reboot                      clear data dir and reinit database service"
     echo "      start                       start database service"
     echo "      restart                     restart database service"
     echo "      stop                        stop database service"
@@ -91,6 +91,7 @@ run_sql() {
 }
 
 init_server() {
+    rm -rf $DATA_DIR
     mkdir -p $DATA_DIR
     mkdir -p $RECYCLE_DIR
     mkdir -p $DATA_DIR"/system"
@@ -223,14 +224,23 @@ run_test() {
 }
 
 watching_log() {
-    grep $1 $LOG_FILE | vim -
+    if [ $# -eq 1]
+    then
+        grep $1 $LOG_FILE | vim -
+    else
+        tail -f $LOG_FILE
+    fi
 }
 
 if [ $# != 0 ]
 then
-    if [ "$1" == "init" ]
+    if [ "$1" == "reboot" ]
     then
         read_conf
+        stop_server
+        sleep 1
+        build_server "$2"
+		sleep 1
         init_server
     elif [ "$1" == "start" ]
     then

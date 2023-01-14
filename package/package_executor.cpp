@@ -56,10 +56,13 @@ u32 PackageExecutor::get_func_params(ExecFunctionParam_s &param,
         }
         CHECK(ObjCastUtil::check_need_cast(expr->res_type, 
                                            param_type[i], 
-                                           need_cast));
-        CHECK(ObjCastUtil::add_cast(expr, 
-                                    param_type[i], 
-                                    expr));
+                                           need_cast,
+                                           true));
+        if (need_cast) {
+            CHECK(ObjCastUtil::add_cast(expr, 
+                                        param_type[i], 
+                                        expr));
+        }
         CHECK(SqlEngine::handle_const_expr(expr, 
                                            obj_result, 
                                            bool_result));

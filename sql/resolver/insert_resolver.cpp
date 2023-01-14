@@ -61,8 +61,15 @@ u32 InsertResolver::resolve_row(Vector<ExprStmt_s>& list, const RowDesc& row_des
         column_id = col_desc.get_cid();
         MY_ASSERT(column_id >= 0, column_id < list.size());
         CHECK(list[column_id]->formalize());
-        CHECK(ObjCastUtil::check_need_cast(list[column_id]->res_type, col_desc.get_data_type(), need_cast));
-        CHECK(ObjCastUtil::add_cast(list[column_id], col_desc.get_data_type(), list[column_id]));
+        CHECK(ObjCastUtil::check_need_cast(list[column_id]->res_type, 
+                                           col_desc.get_data_type(), 
+                                           need_cast,
+                                           true));
+        if (need_cast) {
+            CHECK(ObjCastUtil::add_cast(list[column_id], 
+                                        col_desc.get_data_type(), 
+                                        list[column_id]));
+        }
 	}
 	return SUCCESS;
 }

@@ -88,8 +88,15 @@ u32 UpdateResolver::check_assign_expr(ExprStmt_s &assign_expr,
     column_expr = expr->params[0];
     MY_ASSERT(column_expr->table_id == update_stmt->table->table_id);
     value_expr = expr->params[1];
-    CHECK(ObjCastUtil::check_need_cast(value_expr->res_type, column_expr->res_type, need_cast));
-    CHECK(ObjCastUtil::add_cast(value_expr, column_expr->res_type, value_expr));
+    CHECK(ObjCastUtil::check_need_cast(value_expr->res_type, 
+                                       column_expr->res_type, 
+                                       need_cast,
+                                       true));
+    if (need_cast) {
+        CHECK(ObjCastUtil::add_cast(value_expr, 
+                                    column_expr->res_type, 
+                                    value_expr));
+    }
     expr->params[1] = value_expr;
     return ret;
 }

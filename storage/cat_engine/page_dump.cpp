@@ -36,15 +36,15 @@ void PageDump::hex_string(const char* data, u32 size, String& str)
     }
 }
 
-void PageDump::dump_record(Page_s &page, int idx, std::stringstream &str_stream)
+void PageDump::dump_record(Page_s &page, int idx, int row_size, std::stringstream &str_stream)
 {
     RowInfo *info = &page->row_info_[idx];
-    if (page->is_row_deleted(info)) {
-        str_stream << "row " << idx << ":" << "delete" << std::endl;
+    if (info->is_row_deleted()) {
+        str_stream << "row " << page->page_header_->row_count-idx << ":" << "delete" << std::endl;
         return;
     }
     RawRecord* record = RawRecord::make_raw_record(page->records_space_ + info->offset);
-    str_stream << "row " << idx << ":" << record->column_count-1 << " columns" << std::endl;
+    str_stream << "row " << page->page_header_->row_count-idx << " size:" << row_size << std::endl;
     for (u32 i = 0; i < record->column_count-1; ++i) {
         u32 size = record->get_offset(i+1) - record->get_offset(i);
         str_stream << "\t" << "column\t" << i << ",\tlength\t" << size << ",\tvalue:\t";
@@ -64,22 +64,25 @@ bool PageDump::dump_page(String &page_info, u32 page_id)
     u32 ret = SUCCESS;
     std::stringstream str_stream;
     page_info.clear();
-    while (SUCC(ret)) {
-        ret = io_service->read_next_page(page);
-        if (page_id == index) {
-            ++index;
-            break;
-        } else {
-            ++index;
-        }
-    }
+    page->page_header_->page_offset = page_id;
+    ret = io_service->read_page(page);
     if (FAIL(ret)) {
         return false;
     }
     page->open();
     dump_header(page, str_stream);
     for (u32 i = 0; i < page->page_header_->row_count; ++i) {
-        dump_record(page, page->get_idx_from_row_id(i), str_stream);
+        int idx = page->get_idx_from_row_id(i);
+        RowInfo *info = &page->row_info_[idx];
+        int row_size = 0;
+        if (i < page->page_header_->row_count - 1) {
+            int idx_next = page->get_idx_from_row_id(i+1);
+            RowInfo *info_next = &page->row_info_[idx_next];
+            row_size = info_next->row_offset() - info->row_offset();
+        } else {
+            row_size = page->page_header_->free_offset - info->row_offset();
+        }
+        dump_record(page, idx, row_size, str_stream);
     }
     page->close();
     page_info = str_stream.str();

@@ -9,6 +9,22 @@
 using namespace CatDB::Storage;
 using namespace CatDB::Common;
 
+u32 RowInfo::set_row_deleted()
+{
+	offset |= 0x8000;
+	return SUCCESS;
+}
+
+bool RowInfo::is_row_deleted()
+{
+	return (offset & 0x8000) != 0;
+}
+
+u16 RowInfo::row_offset()
+{
+	return offset & 0x7fff;
+}
+
 u32 RawRecord::size() const
 {
 	return sizeof(column_count) + column_count * sizeof(column_offset);
@@ -118,7 +134,8 @@ u32 Page::get_next_row(Row_s & row)
 {
 	u32 ret = SUCCESS;
 	while (row_idx_ < page_header_->row_count) {
-		if (is_row_deleted(row_info_ + get_idx_from_row_id(row_idx_))) {
+		RowInfo *row_info = row_info_ + get_idx_from_row_id(row_idx_);
+		if (row_info->is_row_deleted()) {
 			++row_idx_;
 			continue;
 		} else if (sample_value <= 0) {
@@ -178,17 +195,17 @@ u32 Page::delete_row(u32 row_id)
 	RowInfo* info = nullptr;
 	u32 ret = SUCCESS;
 	CHECK(search_row(row_id, info));
-	CHECK(set_row_deleted(info));
+	CHECK(info->set_row_deleted());
 	LOG_TRACE("delete row success", K(row_id));
 	//设置页含有脏数据
 	is_dirty = true;
 	return ret;
 }
 
-u32 Page::deserialize_row(RowInfo * row_info, u32 row_id, Row_s & row)const
+u32 Page::deserialize_row(RowInfo *row_info, u32 row_id, Row_s & row)const
 {
 	u32 ret = SUCCESS;
-	if (is_row_deleted(row_info)) {
+	if (row_info->is_row_deleted()) {
 		LOG_ERR("get deleted row", K(row_id));
 		ret = ERR_UNEXPECTED;
 		return ret;
@@ -253,17 +270,6 @@ u32 Page::search_row(u32 row_id, RowInfo *& info)const
 		info = &row_info_[idx];
 		return SUCCESS;
 	}
-}
-
-u32 Page::set_row_deleted(RowInfo* info)
-{
-	info->offset |= 0x8000;
-	return SUCCESS;
-}
-
-bool Page::is_row_deleted(RowInfo* info)const
-{
-	return (info->offset & 0x8000) != 0;
 }
 
 u32 Page::row_width(const Row_s & row) const

@@ -682,7 +682,7 @@ Query Plan:
 +---------------------------------------------------------------+
 | ID | OPERATOR                      | NAME  | ROW COUNT | COST |
 +---------------------------------------------------------------+
-| 0  | HASH Inner JOIN               |       | 2         | 50   |
+| 0  | HASH Inner JOIN               |       | 4         | 50   |
 | 1  |  VIEW                         | VIEW1 | 2         | 25   |
 | 2  |   UNION_ALL                   |       | 2         | 25   |
 | 3  |    NESTED LOOP LeftOuter JOIN |       | 1         | 12   |
